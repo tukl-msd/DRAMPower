@@ -11,7 +11,7 @@ trace to be analyzed.
 
 2. REQUIRED PACKAGES
 
-The tool was verified on Ubuntu 10.4 using:
+The tool was verified on Ubuntu 10.04 using:
 
 xerces-c - v3.1 with Xerces development package
 gcc - v4.4.3
