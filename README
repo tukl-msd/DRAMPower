@@ -274,7 +274,7 @@ It also reports the simulation start/end times and the total simulation time in 
 9. DRAMPower LIBRARY
 
 The DRAMPower tool has an additional feature and can be used as a library.
-In order to use the library, include src/LibDRAMPower.h in your Project and
+In order to use the library run "make lib", include src/LibDRAMPower.h in your Project and
 link the file src/libdrampower.a with your project.
 An example for the usuage of the library can be found in the folder test_library/lib_test.cc
 
