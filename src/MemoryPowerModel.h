@@ -33,10 +33,11 @@
  *
  */
 
-
 #ifndef MEMORY_POWER_MODEL_H
 #define MEMORY_POWER_MODEL_H
 
+#include <vector>
+#include <deque>
 #include "MemorySpecification.h"
 #include "CommandAnalysis.h"
 #include <iostream>
@@ -51,9 +52,11 @@ namespace Data {
         //Calculate energy and average power consumption for the given memory
         //command trace
         void trace_power(MemorySpecification memSpec, std::ifstream& pwr_trace,
-					int trans, int grouping, int interleaving, int burst, 
-														int term, int powerdown);
-
+			int trans,int grouping, int interleaving, int burst,					      int term, int powerdown);
+      //calculate energy and average power consumption for DRAMPowerlib
+	void lib_power(MemorySpecification memSpec, std::vector<MemCommand>& cmd_list,
+		      int grouping, int interleaving, int burst, int term,
+		      int powerdown);
         //Used to calculate activation power
         static double engy_act(double idd3n, double idd0, double vdd, int tras,
                 double clk);
@@ -173,3 +176,4 @@ namespace Data {
     };
 }
 #endif
+

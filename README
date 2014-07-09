@@ -1,5 +1,5 @@
 ========================================================
-DRAM Power Model (DRAMPower) - v3.1 - 14/November/2013
+DRAM Power Model (DRAMPower) - v3.1 - 09/July/2014
 ========================================================
 
 1. INSTALLATION
@@ -271,7 +271,14 @@ reports the energy consumption of these components, besides the IO and Terminati
 components in pJ (pico Joules) and the average power consumption of the trace in mW. 
 It also reports the simulation start/end times and the total simulation time in seconds.
 
-9. AUTHORS & ACKNOWLEDGMENT
+9. DRAMPower LIBRARY
+
+The DRAMPower tool has an additional feature and can be used as a library.
+In order to use the library, include src/LibDRAMPower.h in your Project and
+link the file src/libdrampower.a with your project.
+An example for the usuage of the library can be found in the folder test_library/lib_test.cc
+
+10. AUTHORS & ACKNOWLEDGMENT
 
 The tool is based on the DRAM power model developed jointly by the Computer Engineering
 Research Group at TU Delft and the Electronic Systems Group at TU Eindhoven and 
@@ -307,7 +314,7 @@ An Empirical Approach"
 Karthik Chandrasekar, Christian Weis, Benny Akesson, Norbert Wehn, and Kees Goossens
 In Proc. Design Automation Conference (DAC), 2013
 
-10. CONTACT INFORMATION
+11. CONTACT INFORMATION
 
 Further questions about the tool and the power model can be directed to:
 

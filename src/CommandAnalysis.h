@@ -29,7 +29,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji
  *
  */
 
@@ -60,6 +60,10 @@ namespace Data {
         //Returns number of reads, writes, acts, pres and refs in the trace
         CommandAnalysis(std::ifstream& pwr_trace, const int nbrofBanks,
                 Data::MemorySpecification memSpec);
+	
+		//Constructor for libDRAMPower
+		CommandAnalysis(std::vector<MemCommand>& list, const int nbrofBanks, 
+		Data::MemorySpecification memSpec);
 
         //Number of commands to be considered in a single power estimation time window
         const static int ANALYSIS_WINDOW = MILLION;
@@ -191,6 +195,9 @@ namespace Data {
 	//To identify auto-precharges
         void getCommands(const MemorySpecification& memSpec, const int
                 nbrofBanks, std::ifstream& pwr_trace);
+	//To identify auto-precharges for the DRAMPower library
+		void getCommands_lib(const Data::MemorySpecification& memSpec,
+        const int nbrofBanks, std::vector<MemCommand>& list);
 
 	//To perform timing analysis of a given set of commands and update command counters
         void evaluate(const MemorySpecification& memSpec,
@@ -212,3 +219,4 @@ namespace Data {
     };
 }
 #endif
+

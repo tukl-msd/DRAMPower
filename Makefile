@@ -29,7 +29,7 @@
 # * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 # * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 # *
-# * Authors: Karthik Chandrasekar
+# * Authors: Karthik Chandrasekar, Yonghui Li, Benny Akesson, Matthias Jung, Omar Naji
 # *
 # */
 
@@ -89,6 +89,9 @@ ${OBJECTS}: %.o: %.cc
 
 
 all: ${BINARY}
+
+lib: ${BINARY}
+	ar -cvr src/libdrampower.a src/*.o
 
 clean:
 	$(RM) $(OBJECTS) $(DEPENDENCIES) $(BINARY)
