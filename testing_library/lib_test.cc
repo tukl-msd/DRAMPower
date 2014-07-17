@@ -41,7 +41,9 @@ int main(void)
 		//type path to memspec file
 		filename = "../memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml";
 		libDRAMPower test;
-
+		//Parsing the Memspec specification of found in memspec folder
+		MemorySpecification memSpec(MemorySpecification::
+         	getMemSpecFromXML(filename));
 		// During the simulation you can report activity
 		// to DRAMPower with the doCommand(...) function:
 		test.doCommand(MemCommand::ACT,0,35);
@@ -66,6 +68,6 @@ int main(void)
 
 		// At the end of your simulation call the getEnergy(...)
 		// function to print the power report
-		test.getEnergy(filename);
+		test.getEnergy(memSpec);
 		return 0;
 }
