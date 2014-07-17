@@ -57,6 +57,5 @@ void libDRAMPower::doCommand(MemCommand::cmds type, unsigned bank, double timest
 }
 void libDRAMPower::getEnergy(const MemorySpecification& memSpec)
 {
-    MemoryPowerModel mpm;
     mpm.lib_power(memSpec, cmd_list, 1, 1, 1, 0, 0);
 }

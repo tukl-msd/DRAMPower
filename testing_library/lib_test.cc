@@ -69,5 +69,33 @@ int main(void)
         // At the end of your simulation call the getEnergy(...)
         // function to print the power report
         test.getEnergy(memSpec);
+        
+        // Accesing the results:
+        
+        // Number of issued Commands
+        std::cout << "# of acts" << "\t" <<test.mpm.timings.numberofacts << endl;
+        std::cout << "# of reads" << "\t" <<test.mpm.timings.numberofreads << endl;
+        std::cout << "# of precharges" << "\t" <<test.mpm.timings.numberofpres << endl;
+        // many other timing parameters in test.mpm.timings
+        
+        //ENERGIES per Rank
+        std::cout << "ACT Cmd Energy" << "\t" << test.mpm.energy.act_energy << endl;
+        std::cout << "PRE Cmd Energy" << "\t" << test.mpm.energy.pre_energy << endl;
+        std::cout << "Read Cmd Energy" << "\t" << test.mpm.energy.read_energy << endl;
+        std::cout << "Write Cmd Energy" << "\t" << test.mpm.energy.write_energy << endl;
+        //Standby Energy for 1 rank
+        //In total energy calculated for both ranks= test.memSpec.memArchSpec *
+        //test.mpm.energy.act_stdby_energy
+        std::cout << "ACT Std Energy" << "\t" << test.mpm.energy.act_stdby_energy << endl;
+        //total active standby energy for both ranks
+        std::cout << "ACT Std Energy total ranks" << "\t" << memSpec.memArchSpec.nbrOfRanks * 
+        test.mpm.energy.act_stdby_energy << "\n" ;
+        std::cout << "PRE Std Energy" << "\t" << test.mpm.energy.pre_stdby_energy << endl;
+        std::cout << "Total Energy" << "\t" << test.mpm.energy.total_energy << endl;
+        //many other energies in test.mpm.energy
+
+        //Powers per Rank
+        std::cout << "Average Power" << "\t" << test.mpm.power.average_power << endl;
+        //many other powers in test.mpm.power
         return 0;
 }

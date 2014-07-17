@@ -47,47 +47,45 @@ void MemoryPowerModel::lib_power(MemorySpecification memSpec, std::vector<MemCom
     MemTimingSpec& memTimingSpec = memSpec.memTimingSpec;
     MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
     MemPowerSpec& memPowerSpec = memSpec.memPowerSpec;
-    CommandAnalysis timings;
     //creating timings
     time_t startnow = time(0);
     tm* startpm = localtime(&startnow);
-    cout << "* Power Computation Start time: " << asctime(startpm);
     //create CommandAnalysis object using cmd_list
     timings = CommandAnalysis(cmd_list, memArchSpec.nbrOfBanks, memSpec);
-     //To obtain command timings from the trace
-    act_energy = 0.0;
-    pre_energy = 0.0;
-    read_energy = 0.0;
-    write_energy = 0.0;
-    ref_energy = 0.0;
-    act_stdby_energy = 0.0;
-    pre_stdby_energy = 0.0;
-    idle_energy_act = 0.0;
-    idle_energy_pre = 0.0;
-    total_energy = 0.0;
-    f_act_pd_energy = 0.0;
-    f_pre_pd_energy = 0.0;
-    s_act_pd_energy = 0.0;
-    s_pre_pd_energy = 0.0;
-    sref_energy = 0.0;
-    sref_ref_energy = 0.0;
-    sref_ref_act_energy = 0.0;
-    sref_ref_pre_energy = 0.0;
-    spup_energy = 0.0;
-    spup_ref_energy = 0.0;
-    spup_ref_act_energy = 0.0;
-    spup_ref_pre_energy = 0.0;
-    pup_act_energy = 0.0;
-    pup_pre_energy = 0.0;    
-    IO_power = 0.0;
-    WR_ODT_power = 0.0;
-    TermRD_power = 0.0;
-    TermWR_power = 0.0;    
-    read_io_energy = 0.0;
-    write_term_energy = 0.0;
-    read_oterm_energy = 0.0;
-    write_oterm_energy = 0.0;
-    io_term_energy = 0.0;
+    
+    energy.act_energy = 0.0;
+    energy.pre_energy = 0.0;
+    energy.read_energy = 0.0;
+    energy.write_energy = 0.0;
+    energy.ref_energy = 0.0;
+    energy.act_stdby_energy = 0.0;
+    energy.pre_stdby_energy = 0.0;
+    energy.idle_energy_act = 0.0;
+    energy.idle_energy_pre = 0.0;
+    energy.total_energy = 0.0;
+    energy.f_act_pd_energy = 0.0;
+    energy.f_pre_pd_energy = 0.0;
+    energy.s_act_pd_energy = 0.0;
+    energy.s_pre_pd_energy = 0.0;
+    energy.sref_energy = 0.0;
+    energy.sref_ref_energy = 0.0;
+    energy.sref_ref_act_energy = 0.0;
+    energy.sref_ref_pre_energy = 0.0;
+    energy.spup_energy = 0.0;
+    energy.spup_ref_energy = 0.0;
+    energy.spup_ref_act_energy = 0.0;
+    energy.spup_ref_pre_energy = 0.0;
+    energy.pup_act_energy = 0.0;
+    energy.pup_pre_energy = 0.0;    
+    power.IO_power = 0.0;
+    power.WR_ODT_power = 0.0;
+    power.TermRD_power = 0.0;
+    power.TermWR_power = 0.0;    
+    energy.read_io_energy = 0.0;
+    energy.write_term_energy = 0.0;
+    energy.read_oterm_energy = 0.0;
+    energy.write_oterm_energy = 0.0;
+    energy.io_term_energy = 0.0;
     //IO and Termination Power measures are included, if required.
     if(term)
     {
@@ -96,14 +94,14 @@ void MemoryPowerModel::lib_power(MemorySpecification memSpec, std::vector<MemCom
         //Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
         //Width represents data pins
         //1 DQS pin is associated with every data byte
-        read_io_energy = (IO_power * timings.numberofreads * memArchSpec.burstLength 
+        energy.read_io_energy = (power.IO_power * timings.numberofreads * memArchSpec.burstLength 
                                         * (memArchSpec.width + memArchSpec.width/8));    
         
         //Write ODT power is consumed by each DQ (data), DQS (data strobe) and DM 
         //(data mask) pin. 
         //Width represents data pins
         //1 DQS and 1 DM pin is associated with every data byte
-        write_term_energy = (WR_ODT_power * timings.numberofwrites * 
+        energy.write_term_energy = (power.WR_ODT_power * timings.numberofwrites * 
                 memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width/4));
         
         if(memArchSpec.nbrOfRanks > 1)
@@ -112,20 +110,20 @@ void MemoryPowerModel::lib_power(MemorySpecification memSpec, std::vector<MemCom
             //rank by each DQ (data) and DQS (data strobe) pin. 
             //Width represents data pins
             //1 DQS pin is associated with every data byte
-            read_oterm_energy = (TermRD_power * timings.numberofreads * 
+            energy.read_oterm_energy = (power.TermRD_power * timings.numberofreads * 
                 memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width/8));
             
             //Termination power consumed in the idle rank during writes on the active
             //rank by each DQ (data), DQS (data strobe) and DM (data mask) pin. 
             //Width represents data pins
             //1 DQS and 1 DM pin is associated with every data byte
-            write_oterm_energy = (TermWR_power * timings.numberofwrites * 
+            energy.write_oterm_energy = (power.TermWR_power * timings.numberofwrites * 
                 memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width/4));
         }
         
         //Sum of all IO and termination energy
-        io_term_energy = read_io_energy + write_term_energy + read_oterm_energy + 
-                                                                  write_oterm_energy;        
+        energy.io_term_energy = energy.read_io_energy + energy.write_term_energy 
+                              + energy.read_oterm_energy + energy.write_oterm_energy;        
     }    
     
     
@@ -138,89 +136,89 @@ void MemoryPowerModel::lib_power(MemorySpecification memSpec, std::vector<MemCom
           + timings.sref_ref_act_cycles + timings.sref_ref_pre_cycles +
           timings.spup_ref_act_cycles + timings.spup_ref_pre_cycles;
 
-    act_energy = timings.numberofacts * engy_act(memPowerSpec.idd3n,
+    energy.act_energy = timings.numberofacts * engy_act(memPowerSpec.idd3n,
             memPowerSpec.idd0, memPowerSpec.vdd, memTimingSpec.RAS,
             memTimingSpec.clkPeriod);
 
-    pre_energy = timings.numberofpres * engy_pre(memPowerSpec.idd2n,
+    energy.pre_energy = timings.numberofpres * engy_pre(memPowerSpec.idd2n,
             memPowerSpec.idd0, memPowerSpec.vdd, memTimingSpec.RAS,
             memTimingSpec.RC, memTimingSpec.clkPeriod);
 
-    read_energy = timings.numberofreads * engy_read_cmd(memPowerSpec.idd3n,
+    energy.read_energy = timings.numberofreads * engy_read_cmd(memPowerSpec.idd3n,
             memPowerSpec.idd4r, memPowerSpec.vdd, memArchSpec.burstLength /
             memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-    write_energy = timings.numberofwrites * engy_write_cmd(memPowerSpec.idd3n,
+    energy.write_energy = timings.numberofwrites * engy_write_cmd(memPowerSpec.idd3n,
             memPowerSpec.idd4w, memPowerSpec.vdd, memArchSpec.burstLength /
             memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-    ref_energy = timings.numberofrefs * engy_ref(memPowerSpec.idd3n,
+    energy.ref_energy = timings.numberofrefs * engy_ref(memPowerSpec.idd3n,
             memPowerSpec.idd5, memPowerSpec.vdd, memTimingSpec.RFC,
             memTimingSpec.clkPeriod);
 
-    pre_stdby_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
+    energy.pre_stdby_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
             timings.precycles, memTimingSpec.clkPeriod);
 
-    act_stdby_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
+    energy.act_stdby_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
             timings.actcycles, memTimingSpec.clkPeriod);
 
     //Idle energy in the active standby clock cycles
-    idle_energy_act = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
+    energy.idle_energy_act = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
             timings.idlecycles_act, memTimingSpec.clkPeriod);
 
     //Idle energy in the precharge standby clock cycles
-    idle_energy_pre = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
+    energy.idle_energy_pre = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
             timings.idlecycles_pre, memTimingSpec.clkPeriod);
 
     //fast-exit active power-down cycles energy
-    f_act_pd_energy = engy_f_act_pd(memPowerSpec.idd3p1, memPowerSpec.vdd,
+    energy.f_act_pd_energy = engy_f_act_pd(memPowerSpec.idd3p1, memPowerSpec.vdd,
             timings.f_act_pdcycles, memTimingSpec.clkPeriod);
 
     //fast-exit precharged power-down cycles energy
-    f_pre_pd_energy = engy_f_pre_pd(memPowerSpec.idd2p1, memPowerSpec.vdd,
+    energy.f_pre_pd_energy = engy_f_pre_pd(memPowerSpec.idd2p1, memPowerSpec.vdd,
             timings.f_pre_pdcycles, memTimingSpec.clkPeriod);
 
     //slow-exit active power-down cycles energy
-    s_act_pd_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
+    energy.s_act_pd_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
             timings.s_act_pdcycles, memTimingSpec.clkPeriod);
 
     //slow-exit precharged power-down cycles energy
-    s_pre_pd_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
+    energy.s_pre_pd_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
             timings.s_pre_pdcycles, memTimingSpec.clkPeriod);
 
     //self-refresh cycles energy including a refresh per self-refresh entry
-    sref_energy = engy_sref(memPowerSpec.idd6, memPowerSpec.idd3n,
+    energy.sref_energy = engy_sref(memPowerSpec.idd6, memPowerSpec.idd3n,
             memPowerSpec.idd5, memPowerSpec.vdd,
             timings.sref_cycles, timings.sref_ref_act_cycles,
             timings.sref_ref_pre_cycles, timings.spup_ref_act_cycles,
             timings.spup_ref_pre_cycles, memTimingSpec.clkPeriod);
 
     //background energy during active auto-refresh cycles in self-refresh
-    sref_ref_act_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
+    energy.sref_ref_act_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
             timings.sref_ref_act_cycles, memTimingSpec.clkPeriod);
 
     //background energy during precharged auto-refresh cycles in self-refresh
-    sref_ref_pre_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
+    energy.sref_ref_pre_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
             timings.sref_ref_pre_cycles, memTimingSpec.clkPeriod);
 
     //background energy during active auto-refresh cycles in self-refresh exit
-    spup_ref_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
+    energy.spup_ref_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
             timings.spup_ref_act_cycles, memTimingSpec.clkPeriod);
 
     //background energy during precharged auto-refresh cycles in self-refresh exit
-    spup_ref_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
+    energy.spup_ref_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
             timings.spup_ref_pre_cycles, memTimingSpec.clkPeriod);
 
     //self-refresh power-up cycles energy -- included
-    spup_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
+    energy.spup_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
             timings.spup_cycles, memTimingSpec.clkPeriod);
 
     //active power-up cycles energy - same as active standby -- included
-    pup_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
+    energy.pup_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
             timings.pup_act_cycles, memTimingSpec.clkPeriod);
 
     //precharged power-up cycles energy - same as precharged standby -- included
-    pup_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
+    energy.pup_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
             timings.pup_pre_cycles, memTimingSpec.clkPeriod);
 
     //similar equations as before to support multiple voltage domains in LPDDR2
@@ -229,227 +227,101 @@ void MemoryPowerModel::lib_power(MemorySpecification memSpec, std::vector<MemCom
         memoryType == MemorySpecification::getMemoryTypeFromName("LPDDR3")||
         memoryType == MemorySpecification::getMemoryTypeFromName("DDR4")||
         memoryType == MemorySpecification::getMemoryTypeFromName("WIDEIO_SDR")){
-        act_energy += timings.numberofacts * engy_act(memPowerSpec.idd3n2,
+        energy.act_energy += timings.numberofacts * engy_act(memPowerSpec.idd3n2,
                 memPowerSpec.idd02, memPowerSpec.vdd2, memTimingSpec.RAS,
                 memTimingSpec.clkPeriod);
 
-        pre_energy += timings.numberofpres * engy_pre(memPowerSpec.idd2n2,
+        energy.pre_energy += timings.numberofpres * engy_pre(memPowerSpec.idd2n2,
                 memPowerSpec.idd02, memPowerSpec.vdd2, memTimingSpec.RAS,
                 memTimingSpec.RC, memTimingSpec.clkPeriod);
 
-        read_energy += timings.numberofreads * engy_read_cmd(memPowerSpec.idd3n2,
+        energy.read_energy += timings.numberofreads * engy_read_cmd(memPowerSpec.idd3n2,
                 memPowerSpec.idd4r2, memPowerSpec.vdd2, memArchSpec.burstLength/
                 memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-        write_energy += timings.numberofwrites *
+        energy.write_energy += timings.numberofwrites *
                 engy_write_cmd(memPowerSpec.idd3n2, memPowerSpec.idd4w2,
                 memPowerSpec.vdd2, memArchSpec.burstLength /
                 memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-        ref_energy += timings.numberofrefs * engy_ref(memPowerSpec.idd3n2,
+        energy.ref_energy += timings.numberofrefs * engy_ref(memPowerSpec.idd3n2,
                 memPowerSpec.idd52, memPowerSpec.vdd2, memTimingSpec.RFC,
                 memTimingSpec.clkPeriod);
 
-        pre_stdby_energy += engy_pre_stdby(memPowerSpec.idd2n2,memPowerSpec.vdd2,
+        energy.pre_stdby_energy += engy_pre_stdby(memPowerSpec.idd2n2,memPowerSpec.vdd2,
                 timings.precycles, memTimingSpec.clkPeriod);
 
-        act_stdby_energy += engy_act_stdby(memPowerSpec.idd3n2,memPowerSpec.vdd2,
+        energy.act_stdby_energy += engy_act_stdby(memPowerSpec.idd3n2,memPowerSpec.vdd2,
                 timings.actcycles, memTimingSpec.clkPeriod);
 
-        idle_energy_act += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
+        energy.idle_energy_act += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
                 timings.idlecycles_act, memTimingSpec.clkPeriod);
 
-        idle_energy_pre += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
+        energy.idle_energy_pre += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
                 timings.idlecycles_pre, memTimingSpec.clkPeriod);
 
-        f_act_pd_energy += engy_f_act_pd(memPowerSpec.idd3p12, memPowerSpec.vdd2,
+        energy.f_act_pd_energy += engy_f_act_pd(memPowerSpec.idd3p12, memPowerSpec.vdd2,
                 timings.f_act_pdcycles, memTimingSpec.clkPeriod);
 
-        f_pre_pd_energy += engy_f_pre_pd(memPowerSpec.idd2p12, memPowerSpec.vdd2,
+        energy.f_pre_pd_energy += engy_f_pre_pd(memPowerSpec.idd2p12, memPowerSpec.vdd2,
                 timings.f_pre_pdcycles, memTimingSpec.clkPeriod);
 
-        s_act_pd_energy += engy_s_act_pd(memPowerSpec.idd3p02, memPowerSpec.vdd2,
+        energy.s_act_pd_energy += engy_s_act_pd(memPowerSpec.idd3p02, memPowerSpec.vdd2,
                 timings.s_act_pdcycles, memTimingSpec.clkPeriod);
 
-        s_pre_pd_energy += engy_s_pre_pd(memPowerSpec.idd2p02, memPowerSpec.vdd2,
+        energy.s_pre_pd_energy += engy_s_pre_pd(memPowerSpec.idd2p02, memPowerSpec.vdd2,
                 timings.s_pre_pdcycles, memTimingSpec.clkPeriod);
 
-        sref_energy += engy_sref(memPowerSpec.idd62, memPowerSpec.idd3n2,
+        energy.sref_energy += engy_sref(memPowerSpec.idd62, memPowerSpec.idd3n2,
                 memPowerSpec.idd52, memPowerSpec.vdd2,
                 timings.sref_cycles, timings.sref_ref_act_cycles,
                 timings.sref_ref_pre_cycles, timings.spup_ref_act_cycles,
                 timings.spup_ref_pre_cycles, memTimingSpec.clkPeriod);
 
-        sref_ref_act_energy += engy_s_act_pd(memPowerSpec.idd3p02,
+        energy.sref_ref_act_energy += engy_s_act_pd(memPowerSpec.idd3p02,
                 memPowerSpec.vdd2, timings.sref_ref_act_cycles,
                                                        memTimingSpec.clkPeriod);
 
-        sref_ref_pre_energy += engy_s_pre_pd(memPowerSpec.idd2p02,
+        energy.sref_ref_pre_energy += engy_s_pre_pd(memPowerSpec.idd2p02,
                 memPowerSpec.vdd2, timings.sref_ref_pre_cycles,
                                                        memTimingSpec.clkPeriod);
 
-        spup_ref_act_energy += engy_act_stdby(memPowerSpec.idd3n2,
+        energy.spup_ref_act_energy += engy_act_stdby(memPowerSpec.idd3n2,
                 memPowerSpec.vdd2, timings.spup_ref_act_cycles,
                                                        memTimingSpec.clkPeriod);
 
-        spup_ref_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2,
+        energy.spup_ref_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2,
                 memPowerSpec.vdd2, timings.spup_ref_pre_cycles,
                                                        memTimingSpec.clkPeriod);
 
-        spup_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
+        energy.spup_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
                 timings.spup_cycles, memTimingSpec.clkPeriod);
 
-        pup_act_energy += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
+        energy.pup_act_energy += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
                 timings.pup_act_cycles, memTimingSpec.clkPeriod);
 
-        pup_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
+        energy.pup_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
                 timings.pup_pre_cycles, memTimingSpec.clkPeriod);
 
     }
 
     //auto-refresh energy during self-refresh cycles
-    sref_ref_energy = sref_ref_act_energy + sref_ref_pre_energy;
+    energy.sref_ref_energy = energy.sref_ref_act_energy + energy.sref_ref_pre_energy;
 
     //auto-refresh energy during self-refresh exit cycles
-    spup_ref_energy = spup_ref_act_energy + spup_ref_pre_energy;
+    energy.spup_ref_energy = energy.spup_ref_act_energy + energy.spup_ref_pre_energy;
 
     //adding all energy components for the active rank and all background and idle
     //energy components for both ranks (in a dual-rank system)
-    total_energy = act_energy + pre_energy + read_energy + write_energy +
-            ref_energy + io_term_energy + memArchSpec.nbrOfRanks * 
-            (act_stdby_energy + pre_stdby_energy + sref_energy +
-            f_act_pd_energy + f_pre_pd_energy + s_act_pd_energy + s_pre_pd_energy + 
-            sref_ref_energy + spup_ref_energy);
-
-    cout.precision(0);
-    cout << "* Trace Details:" << endl;
-    cout << "Number of Activates: " << fixed << timings.numberofacts << endl;
-    cout << "Number of Reads: " << timings.numberofreads << endl;
-    cout << "Number of Writes: " << timings.numberofwrites << endl;
-    cout << "Number of Precharges: " << timings.numberofpres << endl;
-    cout << "Number of Refreshes: " << timings.numberofrefs << endl;
-    cout << "Number of Active Cycles: " << timings.actcycles << endl;
-    cout << "  Number of Active Idle Cycles: " << timings.idlecycles_act<< endl;
-    cout << "  Number of Active Power-Up Cycles: " << timings.pup_act_cycles << endl;
-    cout << "    Number of Auto-Refresh Active cycles during Self-Refresh " <<
-                                 "Power-Up: " << timings.spup_ref_act_cycles << endl;
-    cout << "Number of Precharged Cycles: " << timings.precycles << endl;
-    cout << "  Number of Precharged Idle Cycles: " << timings.idlecycles_pre << endl;
-    cout << "  Number of Precharged Power-Up Cycles: " << timings.pup_pre_cycles 
-                                                                             << endl;
-    cout << "    Number of Auto-Refresh Precharged cycles during Self-Refresh"
-                             << " Power-Up: " << timings.spup_ref_pre_cycles << endl;
-    cout << "  Number of Self-Refresh Power-Up Cycles: " << timings.spup_cycles
-                                                                             << endl;
-    cout << "Total Idle Cycles (Active + Precharged): " <<
-                             timings.idlecycles_act + timings.idlecycles_pre << endl;
-    cout << "Number of Power-Downs: " << timings.f_act_pdns +
-                timings.s_act_pdns + timings.f_pre_pdns + timings.s_pre_pdns << endl;
-    cout << "  Number of Active Fast-exit Power-Downs: " << timings.f_act_pdns
-                                                                             << endl;
-    cout << "  Number of Active Slow-exit Power-Downs: " << timings.s_act_pdns
-                                                                             << endl;
-    cout << "  Number of Precharged Fast-exit Power-Downs: " <<
-                                                          timings.f_pre_pdns << endl;
-    cout << "  Number of Precharged Slow-exit Power-Downs: " <<
-                                                          timings.s_pre_pdns << endl;
-    cout << "Number of Power-Down Cycles: " << timings.f_act_pdcycles +
-    timings.s_act_pdcycles + timings.f_pre_pdcycles + timings.s_pre_pdcycles << endl;
-    cout << "  Number of Active Fast-exit Power-Down Cycles: " <<
-                                                      timings.f_act_pdcycles << endl;
-    cout << "  Number of Active Slow-exit Power-Down Cycles: " <<
-                                                      timings.s_act_pdcycles << endl;
-    cout << "    Number of Auto-Refresh Active cycles during Self-Refresh: " <<
-                                                 timings.sref_ref_act_cycles << endl;
-    cout << "  Number of Precharged Fast-exit Power-Down Cycles: " <<
-                                                      timings.f_pre_pdcycles << endl;
-    cout << "  Number of Precharged Slow-exit Power-Down Cycles: " <<
-                                                      timings.s_pre_pdcycles << endl;
-    cout << "    Number of Auto-Refresh Precharged cycles during Self-Refresh: " <<
-                                                 timings.sref_ref_pre_cycles << endl;
-    cout << "Number of Auto-Refresh Cycles: " << timings.numberofrefs *
-                                                           memTimingSpec.RFC << endl;
-    cout << "Number of Self-Refreshes: " << timings.numberofsrefs << endl;
-    cout << "Number of Self-Refresh Cycles: " << timings.sref_cycles << endl;
-    cout << "----------------------------------------" << endl;
-    cout << "Total Trace Length (clock cycles): " << total_cycles << endl;
-    cout << "----------------------------------------" << endl;
-    cout.precision(2);
-
-    cout << "\n* Trace Power and Energy Estimates:" << endl;
-    cout << "ACT Cmd Energy: " << act_energy << " pJ" << endl;
-    cout << "PRE Cmd Energy: " << pre_energy << " pJ" << endl;
-    cout << "RD Cmd Energy: " << read_energy << " pJ" << endl;
-    cout << "WR Cmd Energy: " << write_energy << " pJ" << endl;
-    if(term)
-    {
-        cout << "RD I/O Energy: " << read_io_energy << " pJ" << endl;
-        //No Termination for LPDDR/2/3 and DDR memories
-        if(memSpec.memoryType == MemorySpecification::getMemoryTypeFromName("DDR2") 
-        || memSpec.memoryType == MemorySpecification::getMemoryTypeFromName("DDR3") 
-        || memSpec.memoryType == MemorySpecification::getMemoryTypeFromName("DDR4"))
-        {
-            cout << "WR Termination Energy: " << write_term_energy << " pJ" << endl;
-        }    
-        
-        if(memArchSpec.nbrOfRanks > 1 && (memSpec.memoryType == 
-        MemorySpecification::getMemoryTypeFromName("DDR2") || memSpec.memoryType == 
-        MemorySpecification::getMemoryTypeFromName("DDR3") || memSpec.memoryType == 
-                                 MemorySpecification::getMemoryTypeFromName("DDR4")))
-        {
-            cout << "RD Termination Energy (Idle rank): " << read_oterm_energy 
-                                                                    << " pJ" << endl;
-            cout << "WR Termination Energy (Idle rank): " << write_oterm_energy 
-                                                                    << " pJ" << endl;        
-        }
-    }
-    cout << "ACT Stdby Energy: " << memArchSpec.nbrOfRanks * act_stdby_energy << 
-                                                                        " pJ" << endl;
-    cout << "  Active Idle Energy: " << memArchSpec.nbrOfRanks * idle_energy_act <<  
-                                                                        " pJ" << endl;
-    cout << "  Active Power-Up Energy: " << memArchSpec.nbrOfRanks * pup_act_energy << 
-                                                                        " pJ" << endl;
-    cout << "    Active Stdby Energy during Auto-Refresh cycles in Self-Refresh"
-                   << " Power-Up: " << memArchSpec.nbrOfRanks * spup_ref_act_energy << 
-                                                                        " pJ" << endl;
-    cout << "PRE Stdby Energy: " << memArchSpec.nbrOfRanks * pre_stdby_energy << 
-                                                                        " pJ" << endl;
-    cout << "  Precharge Idle Energy: " << memArchSpec.nbrOfRanks * idle_energy_pre << 
-                                                                        " pJ" << endl;
-    cout << "  Precharged Power-Up Energy: " << memArchSpec.nbrOfRanks * pup_pre_energy << 
-                                                                        " pJ" << endl;
-    cout << "    Precharge Stdby Energy during Auto-Refresh cycles " <<
-       "in Self-Refresh Power-Up: " << memArchSpec.nbrOfRanks * spup_ref_pre_energy << 
-                                                                        " pJ" << endl;
-    cout << "  Self-Refresh Power-Up Energy: " << memArchSpec.nbrOfRanks * spup_energy << 
-                                                                        " pJ" << endl;
-    cout << "Total Idle Energy (Active + Precharged): " << memArchSpec.nbrOfRanks * 
-                                 (idle_energy_act + idle_energy_pre) << " pJ" << endl;
-    cout << "Total Power-Down Energy: " << memArchSpec.nbrOfRanks * (f_act_pd_energy + 
-                f_pre_pd_energy + s_act_pd_energy + s_pre_pd_energy) << " pJ" << endl;
-    cout << "  Fast-Exit Active Power-Down Energy: " << memArchSpec.nbrOfRanks * 
-                                                     f_act_pd_energy << " pJ" << endl;
-    cout << "  Slow-Exit Active Power-Down Energy: " << memArchSpec.nbrOfRanks * 
-                                                     s_act_pd_energy << " pJ" << endl;
-    cout << "    Slow-Exit Active Power-Down Energy during Auto-Refresh cycles "
-                << "in Self-Refresh: " << memArchSpec.nbrOfRanks * sref_ref_act_energy << 
-                                                                        " pJ" << endl;
-    cout << "  Fast-Exit Precharged Power-Down Energy: " << memArchSpec.nbrOfRanks * 
-                                                     f_pre_pd_energy << " pJ" << endl;
-    cout << "  Slow-Exit Precharged Power-Down Energy: " << memArchSpec.nbrOfRanks * 
-                                                     s_pre_pd_energy << " pJ" << endl;
-    cout << "    Slow-Exit Precharged Power-Down Energy during Auto-Refresh " <<
-             "cycles in Self-Refresh: " << memArchSpec.nbrOfRanks * sref_ref_pre_energy <<
-                                                                        " pJ" << endl;
-    cout << "Auto-Refresh Energy: " << ref_energy << " pJ" << endl;
-    cout << "Self-Refresh Energy: " << memArchSpec.nbrOfRanks * sref_energy << 
-                                                                        " pJ" << endl;
-    cout << "----------------------------------------" << endl;
-    cout << "Total Trace Energy: " << total_energy << " pJ" << endl;
-    cout << "Average Power: " << total_energy / (total_cycles * 
-                                            memTimingSpec.clkPeriod) << " mW" << endl;
-    cout << "----------------------------------------" << endl;
+    energy.total_energy = energy.act_energy + energy.pre_energy + energy.read_energy +
+                          energy.write_energy + energy.ref_energy + energy.io_term_energy + 
+                          memArchSpec.nbrOfRanks * (energy.act_stdby_energy +
+                          energy.pre_stdby_energy + energy.sref_energy +
+                          energy.f_act_pd_energy + energy.f_pre_pd_energy + energy.s_act_pd_energy 
+                          + energy.s_pre_pd_energy + energy.sref_ref_energy + energy.spup_ref_energy);
     
+    //Calculate the average power consumption
+    power.average_power = energy.total_energy / (total_cycles * memTimingSpec.clkPeriod);
 }  
 //Calculate energy and average power consumption for the given command trace
 
@@ -460,7 +332,6 @@ void MemoryPowerModel::trace_power(MemorySpecification memSpec,
     MemTimingSpec& memTimingSpec = memSpec.memTimingSpec;
     MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
     MemPowerSpec& memPowerSpec = memSpec.memPowerSpec;
-    CommandAnalysis timings;
 
     ifstream pwr_trace;
 
@@ -480,46 +351,41 @@ void MemoryPowerModel::trace_power(MemorySpecification memSpec,
         tm* startpm = localtime(&startnow);
         cout << "* Power Computation Start time: " << asctime(startpm);
         timings = CommandAnalysis(trace, memArchSpec.nbrOfBanks, memSpec);
-    }
+    } 
 
-    //To obtain command timings from the trace
-
-    act_energy = 0.0;
-    pre_energy = 0.0;
-    read_energy = 0.0;
-    write_energy = 0.0;
-    ref_energy = 0.0;
-    act_stdby_energy = 0.0;
-    pre_stdby_energy = 0.0;
-    idle_energy_act = 0.0;
-    idle_energy_pre = 0.0;
-    total_energy = 0.0;
-    f_act_pd_energy = 0.0;
-    f_pre_pd_energy = 0.0;
-    s_act_pd_energy = 0.0;
-    s_pre_pd_energy = 0.0;
-    sref_energy = 0.0;
-    sref_ref_energy = 0.0;
-    sref_ref_act_energy = 0.0;
-    sref_ref_pre_energy = 0.0;
-    spup_energy = 0.0;
-    spup_ref_energy = 0.0;
-    spup_ref_act_energy = 0.0;
-    spup_ref_pre_energy = 0.0;
-    pup_act_energy = 0.0;
-    pup_pre_energy = 0.0;
-    
-    IO_power = 0.0;
-    WR_ODT_power = 0.0;
-    TermRD_power = 0.0;
-    TermWR_power = 0.0;
-    
-    read_io_energy = 0.0;
-    write_term_energy = 0.0;
-    read_oterm_energy = 0.0;
-    write_oterm_energy = 0.0;
-    io_term_energy = 0.0;
-
+    energy.act_energy = 0.0;
+    energy.pre_energy = 0.0;
+    energy.read_energy = 0.0;
+    energy.write_energy = 0.0;
+    energy.ref_energy = 0.0;
+    energy.act_stdby_energy = 0.0;
+    energy.pre_stdby_energy = 0.0;
+    energy.idle_energy_act = 0.0;
+    energy.idle_energy_pre = 0.0;
+    energy.total_energy = 0.0;
+    energy.f_act_pd_energy = 0.0;
+    energy.f_pre_pd_energy = 0.0;
+    energy.s_act_pd_energy = 0.0;
+    energy.s_pre_pd_energy = 0.0;
+    energy.sref_energy = 0.0;
+    energy.sref_ref_energy = 0.0;
+    energy.sref_ref_act_energy = 0.0;
+    energy.sref_ref_pre_energy = 0.0;
+    energy.spup_energy = 0.0;
+    energy.spup_ref_energy = 0.0;
+    energy.spup_ref_act_energy = 0.0;
+    energy.spup_ref_pre_energy = 0.0;
+    energy.pup_act_energy = 0.0;
+    energy.pup_pre_energy = 0.0;    
+    power.IO_power = 0.0;
+    power.WR_ODT_power = 0.0;
+    power.TermRD_power = 0.0;
+    power.TermWR_power = 0.0;    
+    energy.read_io_energy = 0.0;
+    energy.write_term_energy = 0.0;
+    energy.read_oterm_energy = 0.0;
+    energy.write_oterm_energy = 0.0;
+    energy.io_term_energy = 0.0;
     //IO and Termination Power measures are included, if required.
     if(term)
     {
@@ -528,14 +394,14 @@ void MemoryPowerModel::trace_power(MemorySpecification memSpec,
         //Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
         //Width represents data pins
         //1 DQS pin is associated with every data byte
-        read_io_energy = (IO_power * timings.numberofreads * memArchSpec.burstLength 
+        energy.read_io_energy = (power.IO_power * timings.numberofreads * memArchSpec.burstLength 
                                         * (memArchSpec.width + memArchSpec.width/8));    
         
         //Write ODT power is consumed by each DQ (data), DQS (data strobe) and DM 
         //(data mask) pin. 
         //Width represents data pins
         //1 DQS and 1 DM pin is associated with every data byte
-        write_term_energy = (WR_ODT_power * timings.numberofwrites * 
+        energy.write_term_energy = (power.WR_ODT_power * timings.numberofwrites * 
                 memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width/4));
         
         if(memArchSpec.nbrOfRanks > 1)
@@ -544,20 +410,20 @@ void MemoryPowerModel::trace_power(MemorySpecification memSpec,
             //rank by each DQ (data) and DQS (data strobe) pin. 
             //Width represents data pins
             //1 DQS pin is associated with every data byte
-            read_oterm_energy = (TermRD_power * timings.numberofreads * 
+            energy.read_oterm_energy = (power.TermRD_power * timings.numberofreads * 
                 memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width/8));
             
             //Termination power consumed in the idle rank during writes on the active
             //rank by each DQ (data), DQS (data strobe) and DM (data mask) pin. 
             //Width represents data pins
             //1 DQS and 1 DM pin is associated with every data byte
-            write_oterm_energy = (TermWR_power * timings.numberofwrites * 
+            energy.write_oterm_energy = (power.TermWR_power * timings.numberofwrites * 
                 memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width/4));
         }
         
         //Sum of all IO and termination energy
-        io_term_energy = read_io_energy + write_term_energy + read_oterm_energy + 
-                                                                  write_oterm_energy;        
+        energy.io_term_energy = energy.read_io_energy + energy.write_term_energy 
+                              + energy.read_oterm_energy + energy.write_oterm_energy;        
     }    
     
     
@@ -570,89 +436,89 @@ void MemoryPowerModel::trace_power(MemorySpecification memSpec,
           + timings.sref_ref_act_cycles + timings.sref_ref_pre_cycles +
           timings.spup_ref_act_cycles + timings.spup_ref_pre_cycles;
 
-    act_energy = timings.numberofacts * engy_act(memPowerSpec.idd3n,
+    energy.act_energy = timings.numberofacts * engy_act(memPowerSpec.idd3n,
             memPowerSpec.idd0, memPowerSpec.vdd, memTimingSpec.RAS,
             memTimingSpec.clkPeriod);
 
-    pre_energy = timings.numberofpres * engy_pre(memPowerSpec.idd2n,
+    energy.pre_energy = timings.numberofpres * engy_pre(memPowerSpec.idd2n,
             memPowerSpec.idd0, memPowerSpec.vdd, memTimingSpec.RAS,
             memTimingSpec.RC, memTimingSpec.clkPeriod);
 
-    read_energy = timings.numberofreads * engy_read_cmd(memPowerSpec.idd3n,
+    energy.read_energy = timings.numberofreads * engy_read_cmd(memPowerSpec.idd3n,
             memPowerSpec.idd4r, memPowerSpec.vdd, memArchSpec.burstLength /
             memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-    write_energy = timings.numberofwrites * engy_write_cmd(memPowerSpec.idd3n,
+    energy.write_energy = timings.numberofwrites * engy_write_cmd(memPowerSpec.idd3n,
             memPowerSpec.idd4w, memPowerSpec.vdd, memArchSpec.burstLength /
             memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-    ref_energy = timings.numberofrefs * engy_ref(memPowerSpec.idd3n,
+    energy.ref_energy = timings.numberofrefs * engy_ref(memPowerSpec.idd3n,
             memPowerSpec.idd5, memPowerSpec.vdd, memTimingSpec.RFC,
             memTimingSpec.clkPeriod);
 
-    pre_stdby_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
+    energy.pre_stdby_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
             timings.precycles, memTimingSpec.clkPeriod);
 
-    act_stdby_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
+    energy.act_stdby_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
             timings.actcycles, memTimingSpec.clkPeriod);
 
     //Idle energy in the active standby clock cycles
-    idle_energy_act = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
+    energy.idle_energy_act = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
             timings.idlecycles_act, memTimingSpec.clkPeriod);
 
     //Idle energy in the precharge standby clock cycles
-    idle_energy_pre = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
+    energy.idle_energy_pre = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
             timings.idlecycles_pre, memTimingSpec.clkPeriod);
 
     //fast-exit active power-down cycles energy
-    f_act_pd_energy = engy_f_act_pd(memPowerSpec.idd3p1, memPowerSpec.vdd,
+    energy.f_act_pd_energy = engy_f_act_pd(memPowerSpec.idd3p1, memPowerSpec.vdd,
             timings.f_act_pdcycles, memTimingSpec.clkPeriod);
 
     //fast-exit precharged power-down cycles energy
-    f_pre_pd_energy = engy_f_pre_pd(memPowerSpec.idd2p1, memPowerSpec.vdd,
+    energy.f_pre_pd_energy = engy_f_pre_pd(memPowerSpec.idd2p1, memPowerSpec.vdd,
             timings.f_pre_pdcycles, memTimingSpec.clkPeriod);
 
     //slow-exit active power-down cycles energy
-    s_act_pd_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
+    energy.s_act_pd_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
             timings.s_act_pdcycles, memTimingSpec.clkPeriod);
 
     //slow-exit precharged power-down cycles energy
-    s_pre_pd_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
+    energy.s_pre_pd_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
             timings.s_pre_pdcycles, memTimingSpec.clkPeriod);
 
     //self-refresh cycles energy including a refresh per self-refresh entry
-    sref_energy = engy_sref(memPowerSpec.idd6, memPowerSpec.idd3n,
+    energy.sref_energy = engy_sref(memPowerSpec.idd6, memPowerSpec.idd3n,
             memPowerSpec.idd5, memPowerSpec.vdd,
             timings.sref_cycles, timings.sref_ref_act_cycles,
             timings.sref_ref_pre_cycles, timings.spup_ref_act_cycles,
             timings.spup_ref_pre_cycles, memTimingSpec.clkPeriod);
 
     //background energy during active auto-refresh cycles in self-refresh
-    sref_ref_act_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
+    energy.sref_ref_act_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
             timings.sref_ref_act_cycles, memTimingSpec.clkPeriod);
 
     //background energy during precharged auto-refresh cycles in self-refresh
-    sref_ref_pre_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
+    energy.sref_ref_pre_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
             timings.sref_ref_pre_cycles, memTimingSpec.clkPeriod);
 
     //background energy during active auto-refresh cycles in self-refresh exit
-    spup_ref_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
+    energy.spup_ref_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
             timings.spup_ref_act_cycles, memTimingSpec.clkPeriod);
 
     //background energy during precharged auto-refresh cycles in self-refresh exit
-    spup_ref_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
+    energy.spup_ref_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
             timings.spup_ref_pre_cycles, memTimingSpec.clkPeriod);
 
     //self-refresh power-up cycles energy -- included
-    spup_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
+    energy.spup_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
             timings.spup_cycles, memTimingSpec.clkPeriod);
 
     //active power-up cycles energy - same as active standby -- included
-    pup_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
+    energy.pup_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
             timings.pup_act_cycles, memTimingSpec.clkPeriod);
 
     //precharged power-up cycles energy - same as precharged standby -- included
-    pup_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
+    energy.pup_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
             timings.pup_pre_cycles, memTimingSpec.clkPeriod);
 
     //similar equations as before to support multiple voltage domains in LPDDR2
@@ -661,98 +527,102 @@ void MemoryPowerModel::trace_power(MemorySpecification memSpec,
         memoryType == MemorySpecification::getMemoryTypeFromName("LPDDR3")||
         memoryType == MemorySpecification::getMemoryTypeFromName("DDR4")||
         memoryType == MemorySpecification::getMemoryTypeFromName("WIDEIO_SDR")){
-        act_energy += timings.numberofacts * engy_act(memPowerSpec.idd3n2,
+        energy.act_energy += timings.numberofacts * engy_act(memPowerSpec.idd3n2,
                 memPowerSpec.idd02, memPowerSpec.vdd2, memTimingSpec.RAS,
                 memTimingSpec.clkPeriod);
 
-        pre_energy += timings.numberofpres * engy_pre(memPowerSpec.idd2n2,
+        energy.pre_energy += timings.numberofpres * engy_pre(memPowerSpec.idd2n2,
                 memPowerSpec.idd02, memPowerSpec.vdd2, memTimingSpec.RAS,
                 memTimingSpec.RC, memTimingSpec.clkPeriod);
 
-        read_energy += timings.numberofreads * engy_read_cmd(memPowerSpec.idd3n2,
+        energy.read_energy += timings.numberofreads * engy_read_cmd(memPowerSpec.idd3n2,
                 memPowerSpec.idd4r2, memPowerSpec.vdd2, memArchSpec.burstLength/
                 memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-        write_energy += timings.numberofwrites *
+        energy.write_energy += timings.numberofwrites *
                 engy_write_cmd(memPowerSpec.idd3n2, memPowerSpec.idd4w2,
                 memPowerSpec.vdd2, memArchSpec.burstLength /
                 memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-        ref_energy += timings.numberofrefs * engy_ref(memPowerSpec.idd3n2,
+        energy.ref_energy += timings.numberofrefs * engy_ref(memPowerSpec.idd3n2,
                 memPowerSpec.idd52, memPowerSpec.vdd2, memTimingSpec.RFC,
                 memTimingSpec.clkPeriod);
 
-        pre_stdby_energy += engy_pre_stdby(memPowerSpec.idd2n2,memPowerSpec.vdd2,
+        energy.pre_stdby_energy += engy_pre_stdby(memPowerSpec.idd2n2,memPowerSpec.vdd2,
                 timings.precycles, memTimingSpec.clkPeriod);
 
-        act_stdby_energy += engy_act_stdby(memPowerSpec.idd3n2,memPowerSpec.vdd2,
+        energy.act_stdby_energy += engy_act_stdby(memPowerSpec.idd3n2,memPowerSpec.vdd2,
                 timings.actcycles, memTimingSpec.clkPeriod);
 
-        idle_energy_act += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
+        energy.idle_energy_act += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
                 timings.idlecycles_act, memTimingSpec.clkPeriod);
 
-        idle_energy_pre += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
+        energy.idle_energy_pre += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
                 timings.idlecycles_pre, memTimingSpec.clkPeriod);
 
-        f_act_pd_energy += engy_f_act_pd(memPowerSpec.idd3p12, memPowerSpec.vdd2,
+        energy.f_act_pd_energy += engy_f_act_pd(memPowerSpec.idd3p12, memPowerSpec.vdd2,
                 timings.f_act_pdcycles, memTimingSpec.clkPeriod);
 
-        f_pre_pd_energy += engy_f_pre_pd(memPowerSpec.idd2p12, memPowerSpec.vdd2,
+        energy.f_pre_pd_energy += engy_f_pre_pd(memPowerSpec.idd2p12, memPowerSpec.vdd2,
                 timings.f_pre_pdcycles, memTimingSpec.clkPeriod);
 
-        s_act_pd_energy += engy_s_act_pd(memPowerSpec.idd3p02, memPowerSpec.vdd2,
+        energy.s_act_pd_energy += engy_s_act_pd(memPowerSpec.idd3p02, memPowerSpec.vdd2,
                 timings.s_act_pdcycles, memTimingSpec.clkPeriod);
 
-        s_pre_pd_energy += engy_s_pre_pd(memPowerSpec.idd2p02, memPowerSpec.vdd2,
+        energy.s_pre_pd_energy += engy_s_pre_pd(memPowerSpec.idd2p02, memPowerSpec.vdd2,
                 timings.s_pre_pdcycles, memTimingSpec.clkPeriod);
 
-        sref_energy += engy_sref(memPowerSpec.idd62, memPowerSpec.idd3n2,
+        energy.sref_energy += engy_sref(memPowerSpec.idd62, memPowerSpec.idd3n2,
                 memPowerSpec.idd52, memPowerSpec.vdd2,
                 timings.sref_cycles, timings.sref_ref_act_cycles,
                 timings.sref_ref_pre_cycles, timings.spup_ref_act_cycles,
                 timings.spup_ref_pre_cycles, memTimingSpec.clkPeriod);
 
-        sref_ref_act_energy += engy_s_act_pd(memPowerSpec.idd3p02,
+        energy.sref_ref_act_energy += engy_s_act_pd(memPowerSpec.idd3p02,
                 memPowerSpec.vdd2, timings.sref_ref_act_cycles,
                                                        memTimingSpec.clkPeriod);
 
-        sref_ref_pre_energy += engy_s_pre_pd(memPowerSpec.idd2p02,
+        energy.sref_ref_pre_energy += engy_s_pre_pd(memPowerSpec.idd2p02,
                 memPowerSpec.vdd2, timings.sref_ref_pre_cycles,
                                                        memTimingSpec.clkPeriod);
 
-        spup_ref_act_energy += engy_act_stdby(memPowerSpec.idd3n2,
+        energy.spup_ref_act_energy += engy_act_stdby(memPowerSpec.idd3n2,
                 memPowerSpec.vdd2, timings.spup_ref_act_cycles,
                                                        memTimingSpec.clkPeriod);
 
-        spup_ref_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2,
+        energy.spup_ref_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2,
                 memPowerSpec.vdd2, timings.spup_ref_pre_cycles,
                                                        memTimingSpec.clkPeriod);
 
-        spup_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
+        energy.spup_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
                 timings.spup_cycles, memTimingSpec.clkPeriod);
 
-        pup_act_energy += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
+        energy.pup_act_energy += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
                 timings.pup_act_cycles, memTimingSpec.clkPeriod);
 
-        pup_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
+        energy.pup_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
                 timings.pup_pre_cycles, memTimingSpec.clkPeriod);
 
     }
 
     //auto-refresh energy during self-refresh cycles
-    sref_ref_energy = sref_ref_act_energy + sref_ref_pre_energy;
+    energy.sref_ref_energy = energy.sref_ref_act_energy + energy.sref_ref_pre_energy;
 
     //auto-refresh energy during self-refresh exit cycles
-    spup_ref_energy = spup_ref_act_energy + spup_ref_pre_energy;
+    energy.spup_ref_energy = energy.spup_ref_act_energy + energy.spup_ref_pre_energy;
 
     //adding all energy components for the active rank and all background and idle
     //energy components for both ranks (in a dual-rank system)
-    total_energy = act_energy + pre_energy + read_energy + write_energy +
-            ref_energy + io_term_energy + memArchSpec.nbrOfRanks * 
-            (act_stdby_energy + pre_stdby_energy + sref_energy +
-            f_act_pd_energy + f_pre_pd_energy + s_act_pd_energy + s_pre_pd_energy + 
-            sref_ref_energy + spup_ref_energy);
-
+    energy.total_energy = energy.act_energy + energy.pre_energy + energy.read_energy +
+                          energy.write_energy + energy.ref_energy + energy.io_term_energy + 
+                          memArchSpec.nbrOfRanks * (energy.act_stdby_energy +
+                          energy.pre_stdby_energy + energy.sref_energy +
+                          energy.f_act_pd_energy + energy.f_pre_pd_energy + energy.s_act_pd_energy 
+                          + energy.s_pre_pd_energy + energy.sref_ref_energy + energy.spup_ref_energy);
+    
+    //Calculate the average power consumption
+    power.average_power = energy.total_energy / (total_cycles * memTimingSpec.clkPeriod);
+    
     cout.precision(0);
     cout << "* Trace Details:" << endl;
     cout << "Number of Activates: " << fixed << timings.numberofacts << endl;
@@ -809,19 +679,19 @@ void MemoryPowerModel::trace_power(MemorySpecification memSpec,
     cout.precision(2);
 
     cout << "\n* Trace Power and Energy Estimates:" << endl;
-    cout << "ACT Cmd Energy: " << act_energy << " pJ" << endl;
-    cout << "PRE Cmd Energy: " << pre_energy << " pJ" << endl;
-    cout << "RD Cmd Energy: " << read_energy << " pJ" << endl;
-    cout << "WR Cmd Energy: " << write_energy << " pJ" << endl;
+    cout << "ACT Cmd Energy: " << energy.act_energy << " pJ" << endl;
+    cout << "PRE Cmd Energy: " << energy.pre_energy << " pJ" << endl;
+    cout << "RD Cmd Energy: " << energy.read_energy << " pJ" << endl;
+    cout << "WR Cmd Energy: " << energy.write_energy << " pJ" << endl;
     if(term)
     {
-        cout << "RD I/O Energy: " << read_io_energy << " pJ" << endl;
+        cout << "RD I/O Energy: " << energy.read_io_energy << " pJ" << endl;
         //No Termination for LPDDR/2/3 and DDR memories
         if(memSpec.memoryType == MemorySpecification::getMemoryTypeFromName("DDR2") 
         || memSpec.memoryType == MemorySpecification::getMemoryTypeFromName("DDR3") 
         || memSpec.memoryType == MemorySpecification::getMemoryTypeFromName("DDR4"))
         {
-            cout << "WR Termination Energy: " << write_term_energy << " pJ" << endl;
+            cout << "WR Termination Energy: " << energy.write_term_energy << " pJ" << endl;
         }    
         
         if(memArchSpec.nbrOfRanks > 1 && (memSpec.memoryType == 
@@ -829,58 +699,58 @@ void MemoryPowerModel::trace_power(MemorySpecification memSpec,
         MemorySpecification::getMemoryTypeFromName("DDR3") || memSpec.memoryType == 
                                  MemorySpecification::getMemoryTypeFromName("DDR4")))
         {
-            cout << "RD Termination Energy (Idle rank): " << read_oterm_energy 
+            cout << "RD Termination Energy (Idle rank): " << energy.read_oterm_energy 
                                                                     << " pJ" << endl;
-            cout << "WR Termination Energy (Idle rank): " << write_oterm_energy 
+            cout << "WR Termination Energy (Idle rank): " << energy.write_oterm_energy 
                                                                     << " pJ" << endl;        
         }
     }
-    cout << "ACT Stdby Energy: " << memArchSpec.nbrOfRanks * act_stdby_energy << 
+    cout << "ACT Stdby Energy: " << memArchSpec.nbrOfRanks * energy.act_stdby_energy << 
                                                                         " pJ" << endl;
-    cout << "  Active Idle Energy: " << memArchSpec.nbrOfRanks * idle_energy_act <<  
+    cout << "  Active Idle Energy: " << memArchSpec.nbrOfRanks * energy.idle_energy_act <<  
                                                                         " pJ" << endl;
-    cout << "  Active Power-Up Energy: " << memArchSpec.nbrOfRanks * pup_act_energy << 
+    cout << "  Active Power-Up Energy: " << memArchSpec.nbrOfRanks * energy.pup_act_energy << 
                                                                         " pJ" << endl;
     cout << "    Active Stdby Energy during Auto-Refresh cycles in Self-Refresh"
-                   << " Power-Up: " << memArchSpec.nbrOfRanks * spup_ref_act_energy << 
+                   << " Power-Up: " << memArchSpec.nbrOfRanks * energy.spup_ref_act_energy << 
                                                                         " pJ" << endl;
-    cout << "PRE Stdby Energy: " << memArchSpec.nbrOfRanks * pre_stdby_energy << 
+    cout << "PRE Stdby Energy: " << memArchSpec.nbrOfRanks * energy.pre_stdby_energy << 
                                                                         " pJ" << endl;
-    cout << "  Precharge Idle Energy: " << memArchSpec.nbrOfRanks * idle_energy_pre << 
+    cout << "  Precharge Idle Energy: " << memArchSpec.nbrOfRanks * energy.idle_energy_pre << 
                                                                         " pJ" << endl;
-    cout << "  Precharged Power-Up Energy: " << memArchSpec.nbrOfRanks * pup_pre_energy << 
+    cout << "  Precharged Power-Up Energy: " << memArchSpec.nbrOfRanks * energy.pup_pre_energy << 
                                                                         " pJ" << endl;
     cout << "    Precharge Stdby Energy during Auto-Refresh cycles " <<
-       "in Self-Refresh Power-Up: " << memArchSpec.nbrOfRanks * spup_ref_pre_energy << 
+       "in Self-Refresh Power-Up: " << memArchSpec.nbrOfRanks * energy.spup_ref_pre_energy << 
                                                                         " pJ" << endl;
-    cout << "  Self-Refresh Power-Up Energy: " << memArchSpec.nbrOfRanks * spup_energy << 
+    cout << "  Self-Refresh Power-Up Energy: " << memArchSpec.nbrOfRanks * energy.spup_energy << 
                                                                         " pJ" << endl;
     cout << "Total Idle Energy (Active + Precharged): " << memArchSpec.nbrOfRanks * 
-                                 (idle_energy_act + idle_energy_pre) << " pJ" << endl;
-    cout << "Total Power-Down Energy: " << memArchSpec.nbrOfRanks * (f_act_pd_energy + 
-                f_pre_pd_energy + s_act_pd_energy + s_pre_pd_energy) << " pJ" << endl;
+                                 (energy.idle_energy_act + energy.idle_energy_pre) << " pJ" << endl;
+    cout << "Total Power-Down Energy: " << memArchSpec.nbrOfRanks * (energy.f_act_pd_energy + 
+                energy.f_pre_pd_energy + energy.s_act_pd_energy + energy.s_pre_pd_energy) << " pJ" << endl;
     cout << "  Fast-Exit Active Power-Down Energy: " << memArchSpec.nbrOfRanks * 
-                                                     f_act_pd_energy << " pJ" << endl;
+                                                     energy.f_act_pd_energy << " pJ" << endl;
     cout << "  Slow-Exit Active Power-Down Energy: " << memArchSpec.nbrOfRanks * 
-                                                     s_act_pd_energy << " pJ" << endl;
+                                                     energy.s_act_pd_energy << " pJ" << endl;
     cout << "    Slow-Exit Active Power-Down Energy during Auto-Refresh cycles "
-                << "in Self-Refresh: " << memArchSpec.nbrOfRanks * sref_ref_act_energy << 
+                << "in Self-Refresh: " << memArchSpec.nbrOfRanks * energy.sref_ref_act_energy << 
                                                                         " pJ" << endl;
     cout << "  Fast-Exit Precharged Power-Down Energy: " << memArchSpec.nbrOfRanks * 
-                                                     f_pre_pd_energy << " pJ" << endl;
+                                                     energy.f_pre_pd_energy << " pJ" << endl;
     cout << "  Slow-Exit Precharged Power-Down Energy: " << memArchSpec.nbrOfRanks * 
-                                                     s_pre_pd_energy << " pJ" << endl;
+                                                     energy.s_pre_pd_energy << " pJ" << endl;
     cout << "    Slow-Exit Precharged Power-Down Energy during Auto-Refresh " <<
-             "cycles in Self-Refresh: " << memArchSpec.nbrOfRanks * sref_ref_pre_energy <<
+             "cycles in Self-Refresh: " << memArchSpec.nbrOfRanks * energy.sref_ref_pre_energy <<
                                                                         " pJ" << endl;
-    cout << "Auto-Refresh Energy: " << ref_energy << " pJ" << endl;
-    cout << "Self-Refresh Energy: " << memArchSpec.nbrOfRanks * sref_energy << 
+    cout << "Auto-Refresh Energy: " << energy.ref_energy << " pJ" << endl;
+    cout << "Self-Refresh Energy: " << memArchSpec.nbrOfRanks * energy.sref_energy << 
                                                                         " pJ" << endl;
     cout << "----------------------------------------" << endl;
-    cout << "Total Trace Energy: " << total_energy << " pJ" << endl;
-    cout << "Average Power: " << total_energy / (total_cycles * 
+    cout << "Total Trace Energy: " << energy.total_energy << " pJ" << endl;
+    cout << "Average Power: " << energy.total_energy / (total_cycles * 
                                             memTimingSpec.clkPeriod) << " mW" << endl;
-    cout << "----------------------------------------" << endl;
+    cout << "----------------------------------------" << endl;  
 
 }
 
@@ -995,7 +865,7 @@ void MemoryPowerModel::io_term_power(MemorySpecification memSpec) {
 
     //For LPDDR/2/3 memories - IO Power depends on DRAM clock frequency
     //No ODT (Termination) in LPDDR/2/3 and DDR memories
-    IO_power = 0.5 * pow(memPowerSpec.vdd2, 2.0) * memTimingSpec.clkMhz * 1000000;
+    power.IO_power = 0.5 * pow(memPowerSpec.vdd2, 2.0) * memTimingSpec.clkMhz * 1000000;
     
     //LPDDR/2/3 IO Capacitance in mF
     double LPDDR_Cap  = 0.0000000045;
@@ -1005,54 +875,54 @@ void MemoryPowerModel::io_term_power(MemorySpecification memSpec) {
     //Conservative estimates based on Micron DDR2 Power Calculator
     if(memoryType == MemorySpecification::getMemoryTypeFromName("DDR2"))
     {
-        IO_power = 1.5;//in mW
-        WR_ODT_power = 8.2;//in mW
+        power.IO_power = 1.5;//in mW
+        power.WR_ODT_power = 8.2;//in mW
         if(memArchSpec.nbrOfRanks > 1)
         {
-            TermRD_power = 13.1;//in mW
-            TermWR_power = 14.6;//in mW
+            power.TermRD_power = 13.1;//in mW
+            power.TermWR_power = 14.6;//in mW
         }    
     } 
     //Conservative estimates based on Micron DDR3 Power Calculator
     else if(memoryType == MemorySpecification::getMemoryTypeFromName("DDR3"))
     {
-        IO_power = 4.6;//in mW
-        WR_ODT_power = 21.2;//in mW
+        power.IO_power = 4.6;//in mW
+        power.WR_ODT_power = 21.2;//in mW
         if(memArchSpec.nbrOfRanks > 1)
         {
-            TermRD_power = 15.5;//in mW
-            TermWR_power = 15.4;//in mW
+            power.TermRD_power = 15.5;//in mW
+            power.TermWR_power = 15.4;//in mW
         }    
     }
     //Conservative estimates based on Micron DDR3 Power Calculator
     //using available termination resistance values from Micron DDR4 Datasheets 
     else if(memoryType == MemorySpecification::getMemoryTypeFromName("DDR4"))
     {
-        IO_power = 3.7;//in mW
-        WR_ODT_power = 17.0;//in mW
+        power.IO_power = 3.7;//in mW
+        power.WR_ODT_power = 17.0;//in mW
         if(memArchSpec.nbrOfRanks > 1)
         {
-            TermRD_power = 12.4;//in mW
-            TermWR_power = 12.3;//in mW
+            power.TermRD_power = 12.4;//in mW
+            power.TermWR_power = 12.3;//in mW
         }    
     }
     //LPDDR/2/3 and DDR memories only have IO Power (no ODT)
     //Conservative estimates based on Micron Mobile LPDDR2 Power Calculator
     else if(memoryType == MemorySpecification::getMemoryTypeFromName("LPDDR"))
     {
-        IO_power = LPDDR_Cap * IO_power;
+        power.IO_power = LPDDR_Cap * power.IO_power;
     } 
     else if(memoryType == MemorySpecification::getMemoryTypeFromName("LPDDR2"))
     {
-        IO_power = LPDDR2_Cap * IO_power;
+        power.IO_power = LPDDR2_Cap * power.IO_power;
     } 
     else if(memoryType == MemorySpecification::getMemoryTypeFromName("LPDDR3"))
     {
-        IO_power = LPDDR3_Cap * IO_power;
+        power.IO_power = LPDDR3_Cap * power.IO_power;
     }    
     else if(memoryType == MemorySpecification::getMemoryTypeFromName("DDR"))
     {
-        IO_power = 6.88;//in mW
+        power.IO_power = 6.88;//in mW
     }        
 }
 

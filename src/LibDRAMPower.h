@@ -53,11 +53,20 @@ class libDRAMPower
     ~libDRAMPower();
 
     void doCommand(MemCommand::cmds type, unsigned bank, double timestamp);
+    
     //takes as parameter an object of Memory Specification. The user of the
     //library is required to write a parser to set the parameters id,
     //memorytype, memArchSpec, memTimingSpec and memPowerSpec
     void getEnergy(const MemorySpecification& memSpec);
-    std::vector<MemCommand> cmd_list;
+    
+    //list of all commands
+	std::vector<MemCommand> cmd_list;
+	
+    //Object of MemoryPowerModel which contains the results
+	//Energies(pJ) stored in enery, Powers(mW) stored in power. Number of 
+	//each command stored in timings.
+	MemoryPowerModel mpm;
+    
     private:    
 };
 

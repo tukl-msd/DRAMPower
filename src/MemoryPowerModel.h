@@ -109,70 +109,80 @@ namespace Data {
 
         double total_cycles;
 
-        //Total energy of all activates
-        double act_energy;
-        //Total energy of all precharges
-        double pre_energy;
-        //Total energy of all reads
-        double read_energy;
-        //Total energy of all writes
-        double write_energy;
-        //Total energy of all refreshes
-        double ref_energy;
-        //Total background energy of all active standby cycles
-        double act_stdby_energy;
-        //Total background energy of all precharge standby cycles
-        double pre_stdby_energy;
-        //Total energy of idle cycles in the active mode
-        double idle_energy_act;
-        //Total energy of idle cycles in the precharge mode
-        double idle_energy_pre;
-        //Total trace/pattern energy
-        double total_energy;
+        struct Energy { 
+            //Total energy of all activates
+            double act_energy;
+            //Total energy of all precharges
+            double pre_energy;
+            //Total energy of all reads
+            double read_energy;
+            //Total energy of all writes
+            double write_energy;
+            //Total energy of all refreshes
+            double ref_energy;
+            //Total background energy of all active standby cycles
+            double act_stdby_energy;
+            //Total background energy of all precharge standby cycles
+            double pre_stdby_energy;
+            //Total energy of idle cycles in the active mode
+            double idle_energy_act;
+            //Total energy of idle cycles in the precharge mode
+            double idle_energy_pre;
+            //Total trace/pattern energy
+            double total_energy;
+            //Average Power 
+            double average_power;
 
-        //Energy consumed in active/precharged fast/slow-exit modes
-        double f_act_pd_energy;
-        double f_pre_pd_energy;
-        double s_act_pd_energy;
-        double s_pre_pd_energy;
+            //Energy consumed in active/precharged fast/slow-exit modes
+            double f_act_pd_energy;
+            double f_pre_pd_energy;
+            double s_act_pd_energy;
+            double s_pre_pd_energy;
 
-        //Energy consumed in self-refresh mode
-        double sref_energy;
+            //Energy consumed in self-refresh mode
+            double sref_energy;
 
-        //Energy consumed in auto-refresh during self-refresh mode
-        double sref_ref_energy;
-        double sref_ref_act_energy;
-        double sref_ref_pre_energy;
+            //Energy consumed in auto-refresh during self-refresh mode
+            double sref_ref_energy;
+            double sref_ref_act_energy;
+            double sref_ref_pre_energy;
 
-        //Energy consumed in powering-up from self-refresh mode
-        double spup_energy;
+            //Energy consumed in powering-up from self-refresh mode
+            double spup_energy;
 
-        //Energy consumed in auto-refresh during self-refresh power-up
-        double spup_ref_energy;
-        double spup_ref_act_energy;
-        double spup_ref_pre_energy;
+            //Energy consumed in auto-refresh during self-refresh power-up
+            double spup_ref_energy;
+            double spup_ref_act_energy;
+            double spup_ref_pre_energy;
 
-        //Energy consumed in powering-up from active/precharged power-down modes
-        double pup_act_energy;
-        double pup_pre_energy;
+            //Energy consumed in powering-up from active/precharged power-down modes
+            double pup_act_energy;
+            double pup_pre_energy;
+               
+            //Energy consumed by IO and Termination
+            double read_io_energy; //Read IO Energy
+            double write_term_energy; //Write Termination Energy
+            double read_oterm_energy; //Read Termination Energy from idle rank
+            double write_oterm_energy; //Write Termination Energy from idle rank
+            //Total IO and Termination Energy
+            double io_term_energy;
+        };
+
+        struct Power { 
+            //Power measures corresponding to IO and Termination        
+            double IO_power; //Read IO Power
+            double WR_ODT_power; //Write ODT Power
+            double TermRD_power; //Read Termination in idle rank (in dual-rank systems)
+            double TermWR_power; //Write Termination in idle rank (in dual-rank systems)
         
-        //Power measures corresponding to IO and Termination        
-        double IO_power; //Read IO Power
-        double WR_ODT_power; //Write ODT Power
-        double TermRD_power; //Read Termination in idle rank (in dual-rank systems)
-        double TermWR_power; //Write Termination in idle rank (in dual-rank systems)
-        
-        //Energy consumed by IO and Termination
-        double read_io_energy; //Read IO Energy
-        double write_term_energy; //Write Termination Energy
-        double read_oterm_energy; //Read Termination Energy from idle rank
-        double write_oterm_energy; //Write Termination Energy from idle rank
-        
-        //Total IO and Termination Energy
-        double io_term_energy;
-        
+            //Average Power 
+            double average_power;
+        };
         //To derive IO and Termination Power measures using DRAM specification
-        void io_term_power(MemorySpecification memSpec);        
+        void io_term_power(MemorySpecification memSpec);
+        Energy energy;
+        Power power;
+        CommandAnalysis timings;         
     };
 }
 #endif
