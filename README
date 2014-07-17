@@ -19,12 +19,12 @@ gcc - v4.4.3
 3. DIRECTORY STRUCTURE
 
 src/        : contains the source code of the DRAMPower tool that covers the power 
-	      model, the command scheduler and the trace analysis tool.
+          model, the command scheduler and the trace analysis tool.
 memspecs/   : contains the memory specification XMLs, which give the architectural, 
-	      timing and current/voltage details for different DRAM memories.
+          timing and current/voltage details for different DRAM memories.
 traces/     : contains 4 sample DRAM transaction traces and 1 sample command trace
 manual.pdf  : is the software development manual with details on the user interface 
-	      and the different source code files.
+          and the different source code files.
 PowerCalc.cc: gives the user interface.
 
 4. TRACE SPECIFICATION
@@ -35,41 +35,41 @@ cmds.trace  : The format it uses is: "<timestamp>,<command>,<bank>".
               For example, "500,ACT,2", where ACT is the command and 2 is the bank.
               Timestamp is in clock cycles (cc), the list of supported commands is
               mentioned in src/MemCommand.h and the bank is the target bank number. 
-	      For non-bank-specific commands, bank can be set to 0. Rank need not be
-	      specified. The timing correctness of the trace is not verified by the 
-	      tool and is assumed to be accurate. However, warning messages are 
-	      provided, to identify if the memory or bank state is inconsistent in 
-	      the trace. A sample command trace is provided in the traces/ folder.
+          For non-bank-specific commands, bank can be set to 0. Rank need not be
+          specified. The timing correctness of the trace is not verified by the 
+          tool and is assumed to be accurate. However, warning messages are 
+          provided, to identify if the memory or bank state is inconsistent in 
+          the trace. A sample command trace is provided in the traces/ folder.
 
 If the transaction-level interface is being used, a transaction trace can be logged.
 
 trans.trace : The format it uses is: "<timestamp>,<transaction_type>,<address>".
               For example, "35,READ,0x80028", where READ/WRITE can be the transaction
               type and the logical address (32-bits long and byte addressable) is 
-	      specified in HEX (0x). Timestamp is in clock cycles (cc) and maximum 
-	      DRAM capacity is 4GB (32Gb).
+          specified in HEX (0x). Timestamp is in clock cycles (cc) and maximum 
+          DRAM capacity is 4GB (32Gb).
 
               The tool uses a flexible and efficient memory map as follows:
-	      {row}-{bank}-{column}-{BI}-{BC}-{BGI}-{BL}
-	      
-	      Here, BI gives the degree of bank interleaving, 
-	      BC gives the burst size (count), 
+          {row}-{bank}-{column}-{BI}-{BC}-{BGI}-{BL}
+          
+          Here, BI gives the degree of bank interleaving, 
+          BC gives the burst size (count), 
               BGI gives the degree of bank group interleaving (for DDR4) and 
               BL gives the burst length used by the device.
-	      Dual-Rank addressing is not yet supported.
+          Dual-Rank addressing is not yet supported.
 
               The BC and BL address bits are derived from the column address bits, 
               whereas the BI and BGI bits are derived from the bank address bits.
 
               Four sample MediaBench application transaction traces have been provided. 
-	      The MediaBench applications include: (1) EPIC Encoder, (2) JPEG Encoder, 
-	      (3) H263 Encoder and (4) MPEG2 Encoder. These applications were 
-	      independently executed on the SimpleScalar simulator with a 16KB L1 
-	      D-cache, 16KB L1 I-cache, 128KB L2 cache and 64-byte cache line 
-	      configuration. We filtered out the L2 cache misses meant for the DRAM 
-	      and logged them as transaction traces. These can be used with our 
-	      command scheduler to generate equivalent command traces for any DRAM 
-	      memory specified.
+          The MediaBench applications include: (1) EPIC Encoder, (2) JPEG Encoder, 
+          (3) H263 Encoder and (4) MPEG2 Encoder. These applications were 
+          independently executed on the SimpleScalar simulator with a 16KB L1 
+          D-cache, 16KB L1 I-cache, 128KB L2 cache and 64-byte cache line 
+          configuration. We filtered out the L2 cache misses meant for the DRAM 
+          and logged them as transaction traces. These can be used with our 
+          command scheduler to generate equivalent command traces for any DRAM 
+          memory specified.
 
 5. USAGE
 

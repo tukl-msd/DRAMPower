@@ -36,38 +36,38 @@
 #include"../src/LibDRAMPower.h"
 int main(void)
 {
-		//Setup of DRAMPower for your simulation
-		string filename;
-		//type path to memspec file
-		filename = "../memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml";
-		libDRAMPower test;
-		//Parsing the Memspec specification of found in memspec folder
-		MemorySpecification memSpec(MemorySpecification::
-         	getMemSpecFromXML(filename));
-		// During the simulation you can report activity
-		// to DRAMPower with the doCommand(...) function:
-		test.doCommand(MemCommand::ACT,0,35);
-		test.doCommand(MemCommand::RDA,0,50);
-		test.doCommand(MemCommand::ACT,4,51);
-		test.doCommand(MemCommand::RDA,4,66);
-		test.doCommand(MemCommand::ACT,0,86);
-		test.doCommand(MemCommand::RDA,0,101);
-		test.doCommand(MemCommand::ACT,2,102);
-		test.doCommand(MemCommand::RDA,2,117);
-		test.doCommand(MemCommand::ACT,5,119);
-		test.doCommand(MemCommand::RDA,5,134);
-		test.doCommand(MemCommand::ACT,0,137);
-		test.doCommand(MemCommand::RDA,0,152);
-		test.doCommand(MemCommand::ACT,3,159);
-		test.doCommand(MemCommand::RDA,3,174);
-		test.doCommand(MemCommand::ACT,0,195);
-		test.doCommand(MemCommand::RDA,0,210);
-		test.doCommand(MemCommand::ACT,4,232);
-		test.doCommand(MemCommand::WRA,4,247);
-		test.doCommand(MemCommand::PDN_F_ACT,3,248);
+        //Setup of DRAMPower for your simulation
+        string filename;
+        //type path to memspec file
+        filename = "../memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml";
+        libDRAMPower test;
+        //Parsing the Memspec specification of found in memspec folder
+        MemorySpecification memSpec(MemorySpecification::
+             getMemSpecFromXML(filename));
+        // During the simulation you can report activity
+        // to DRAMPower with the doCommand(...) function:
+        test.doCommand(MemCommand::ACT,0,35);
+        test.doCommand(MemCommand::RDA,0,50);
+        test.doCommand(MemCommand::ACT,4,51);
+        test.doCommand(MemCommand::RDA,4,66);
+        test.doCommand(MemCommand::ACT,0,86);
+        test.doCommand(MemCommand::RDA,0,101);
+        test.doCommand(MemCommand::ACT,2,102);
+        test.doCommand(MemCommand::RDA,2,117);
+        test.doCommand(MemCommand::ACT,5,119);
+        test.doCommand(MemCommand::RDA,5,134);
+        test.doCommand(MemCommand::ACT,0,137);
+        test.doCommand(MemCommand::RDA,0,152);
+        test.doCommand(MemCommand::ACT,3,159);
+        test.doCommand(MemCommand::RDA,3,174);
+        test.doCommand(MemCommand::ACT,0,195);
+        test.doCommand(MemCommand::RDA,0,210);
+        test.doCommand(MemCommand::ACT,4,232);
+        test.doCommand(MemCommand::WRA,4,247);
+        test.doCommand(MemCommand::PDN_F_ACT,3,248);
 
-		// At the end of your simulation call the getEnergy(...)
-		// function to print the power report
-		test.getEnergy(memSpec);
-		return 0;
+        // At the end of your simulation call the getEnergy(...)
+        // function to print the power report
+        test.getEnergy(memSpec);
+        return 0;
 }

@@ -47,18 +47,16 @@ libDRAMPower::libDRAMPower()
 
 libDRAMPower::~libDRAMPower()
 {
-	
+    
 }
 
 void libDRAMPower::doCommand(MemCommand::cmds type, unsigned bank, double timestamp)
 {
-	MemCommand cmd(type, bank, timestamp);
-	cmd_list.push_back(cmd);
+    MemCommand cmd(type, bank, timestamp);
+    cmd_list.push_back(cmd);
 }
 void libDRAMPower::getEnergy(const MemorySpecification& memSpec)
 {
-	//MemorySpecification memSpec(MemorySpecification::
-    //        getMemSpecFromXML(memspecfile));
-	MemoryPowerModel mpm;
-	mpm.lib_power(memSpec, cmd_list, 1, 1, 1, 0, 0);
+    MemoryPowerModel mpm;
+    mpm.lib_power(memSpec, cmd_list, 1, 1, 1, 0, 0);
 }

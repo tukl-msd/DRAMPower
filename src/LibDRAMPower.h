@@ -48,17 +48,17 @@ using namespace Data;
 
 class libDRAMPower
 {
-	public:
-	libDRAMPower();
-	~libDRAMPower();
+    public:
+    libDRAMPower();
+    ~libDRAMPower();
 
-	void doCommand(MemCommand::cmds type, unsigned bank, double timestamp);
+    void doCommand(MemCommand::cmds type, unsigned bank, double timestamp);
     //takes as parameter an object of Memory Specification. The user of the
     //library is required to write a parser to set the parameters id,
     //memorytype, memArchSpec, memTimingSpec and memPowerSpec
-	void getEnergy(const MemorySpecification& memSpec);
-	std::vector<MemCommand> cmd_list;
-	private:	
+    void getEnergy(const MemorySpecification& memSpec);
+    std::vector<MemCommand> cmd_list;
+    private:    
 };
 
 #endif
