@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, TU Delft, TU Eindhoven and TU Kaiserslautern 
+ * Copyright (c) 2014, TU Delft, TU Eindhoven and TU Kaiserslautern 
  * All rights reserved. 
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -29,33 +29,45 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Matthias Jung, Omar Naji
  *
  */
 
-#include "MemorySpecification.h"
-#include "MemSpecParser.h"
-#include "XMLParser.h"
-#include <fstream>
-#include <sstream>
 
+#ifndef LIB_DRAM_POWER_H
+#define LIB_DRAM_POWER_H
+
+#include <string>
+#include <xercesc/sax2/DefaultHandler.hpp>
+#include "CommandAnalysis.h"
+#include "MemoryPowerModel.h"
+#include "MemCommand.h"
 
 using namespace std;
 using namespace Data;
 
-//Set variable values from XML
-void MemorySpecification::processParameters(){
-  setVarFromParam(&id, "memoryId");
-  string memoryTypeString;
-  setVarFromParam(&memoryTypeString, "memoryType");
-  memoryType = getMemoryTypeFromName(memoryTypeString);
-  }
+class libDRAMPower
+{
+    public:
+    libDRAMPower();
+    ~libDRAMPower();
 
-//Get memSpec from XML
-MemorySpecification MemorySpecification::getMemSpecFromXML(const string& id){
+    void doCommand(MemCommand::cmds type, unsigned bank, double timestamp);
+    
+    //takes as parameter an object of Memory Specification. The user of the
+    //library is required to write a parser to set the parameters id,
+    //memorytype, memArchSpec, memTimingSpec and memPowerSpec
+    void getEnergy(const MemorySpecification& memSpec);
+    
+    //list of all commands
+	std::vector<MemCommand> cmd_list;
+	
+    //Object of MemoryPowerModel which contains the results
+	//Energies(pJ) stored in enery, Powers(mW) stored in power. Number of 
+	//each command stored in timings.
+	MemoryPowerModel mpm;
+    
+    private:    
+};
 
-  MemSpecParser memSpecParser;
-  cout << "* Parsing " << id << endl;
-  XMLParser::parse(id, &memSpecParser);
-  return memSpecParser.getMemorySpecification();
-}
+#endif

@@ -47,9 +47,9 @@ using namespace std;
 void error(){
     std::cout << "Correct Usage: \n./drampower -m <memory spec (ID)> "
             "[-t] <transactions trace> [-c] <commands trace> [-i] "
-			"<interleaving> [-g] <DDR4 bank group "
-			"interleaving> [-s] <request size> [-r] "
-			"[-p] < 1 - Power-Down, 2 - Self-Refresh>\n";
+            "<interleaving> [-g] <DDR4 bank group "
+            "interleaving> [-s] <request size> [-r] "
+            "[-p] < 1 - Power-Down, 2 - Self-Refresh>\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -83,15 +83,15 @@ int main(int argc, char* argv[]) {
             } else if (string(argv[i]) == "-p") {
                 power_down = atoi(argv[i + 1]);
             } else {
-				if (string(argv[i]) == "-r")
-		    		term = 1;
+                if (string(argv[i]) == "-r")
+                    term = 1;
                 continue;
             }
         } else {
-			if (string(argv[i]) == "-r")
-		    	term = 1;
+            if (string(argv[i]) == "-r")
+                term = 1;
             continue;
-		}
+        }
     }
 
     if(memory == 0){
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     }
 
     unsigned min_size = interleaving * grouping * memArchSpec.burstLength
-													* memArchSpec.width / 8;
+                                                    * memArchSpec.width / 8;
 
     if(size == 0){
         src_size = min_size;
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
     //Calculates average power consumption and energy for the input memory
     //command trace
     mpm.trace_power(memSpec, trace_file, trans, grouping, interleaving, burst,
-							     					 		term, power_down);
+                                                              term, power_down);
 
     time_t end = time(0);
     tm* endtm = localtime(&end);

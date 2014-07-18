@@ -34,7 +34,7 @@
  */
 
 #ifndef CMDSCHEDULER_H
-#define	CMDSCHEDULER_H
+#define    CMDSCHEDULER_H
 
 #include <iostream>
 #include <string>
@@ -115,7 +115,7 @@ namespace Data {
         //commands which are scheduled to the memory.
         void transTranslation(Data::MemorySpecification memSpec,
         std::ifstream& trans_trace, int grouping, int interleaving, int burst,
-																	int powerdown);
+                                                                    int powerdown);
         //get the transactions by reading the traces.
         void getTrans(std::ifstream& pwr_trace, MemorySpecification memSpec);
         //the initialization function for scheduling.

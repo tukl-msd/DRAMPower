@@ -53,7 +53,7 @@ using namespace Data;
 //scheduling a number of commands to the memory. Hence, the transactions are
 //translated into a sequence of commands which will be used for power analysis.
 void cmdScheduler::transTranslation(MemorySpecification memSpec,
-	ifstream& trans_trace, int grouping, int interleaving, int burst, int powerdown){
+    ifstream& trans_trace, int grouping, int interleaving, int burst, int powerdown){
     commands.open("commands.trace", ifstream::out);
     MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
     nBanks = memArchSpec.nbrOfBanks;
@@ -252,7 +252,7 @@ void cmdScheduler::analyticalScheduling(MemorySpecification memSpec){
                 cmd.time = max(max(max(transFinish.time, PRE[transFinish.bank].time
                         +static_cast<int>(memTimingSpec.RP)),tREF),startTime);
                 if((power_down == SELF_REFRESH && !Inselfrefresh)||
-														(power_down != SELF_REFRESH))
+                                                        (power_down != SELF_REFRESH))
                 {
                     cmdScheduling.push_back(cmd);
                     startTime = cmd.time+memTimingSpec.RFC;
@@ -287,7 +287,7 @@ void cmdScheduler::analyticalScheduling(MemorySpecification memSpec){
                         //update to the current bank group address.
                         bankGroupAddr = PhysicalAddress.bankGroupAddr + j;
                         bankAddr = bankGroupAddr * nBanks/nbrOfBankGroups + 
-														  bankPointer[bankGroupAddr];
+                                                          bankPointer[bankGroupAddr];
                     }
                     else{
                         bankAddr = Bs + i;
@@ -307,16 +307,16 @@ void cmdScheduler::analyticalScheduling(MemorySpecification memSpec){
                         cmd.name = "ACT";
                         Inselfrefresh = 0;
                         cmd.time = max(max(ACT[bankaccess-1].time + tRRD_init,
-							PRE[cmd.bank].time + static_cast<int>(memTimingSpec.RP)),
-							ACT[bankaccess-4].time + 
-												static_cast<int>(memTimingSpec.FAW));
-												
+                            PRE[cmd.bank].time + static_cast<int>(memTimingSpec.RP)),
+                            ACT[bankaccess-4].time + 
+                                                static_cast<int>(memTimingSpec.FAW));
+                                                
                         if(memSpec.memoryType == 
-										memSpec.getMemoryTypeFromName("WIDEIO_SDR"))
-							cmd.time = max(max(ACT[bankaccess-1].time + tRRD_init,
-							PRE[cmd.bank].time + static_cast<int>(memTimingSpec.RP)),
-							ACT[bankaccess-2].time + 
-												static_cast<int>(memTimingSpec.TAW));
+                                        memSpec.getMemoryTypeFromName("WIDEIO_SDR"))
+                            cmd.time = max(max(ACT[bankaccess-1].time + tRRD_init,
+                            PRE[cmd.bank].time + static_cast<int>(memTimingSpec.RP)),
+                            ACT[bankaccess-2].time + 
+                                                static_cast<int>(memTimingSpec.TAW));
 
                         if(i == 0 && j == 0){
                             cmd.time = max(cmd.time, PreRDWR.time+1);
@@ -438,9 +438,9 @@ void cmdScheduler::analyticalScheduling(MemorySpecification memSpec){
 
     for(unsigned j =0; j< cmdList.size(); j++)
     {   
-		commands.precision(0);
+        commands.precision(0);
         commands << fixed << cmdList[j].time << "," << cmdList[j].name << "," << 
-																cmdList[j].bank << endl;
+                                                                cmdList[j].bank << endl;
     }
     cmdList.erase(cmdList.begin(),cmdList.end());
 }
@@ -541,7 +541,7 @@ int cmdScheduler::getRWTP(int transType, MemorySpecification memSpec){
                     memArchSpec.dataRate + memSpec.memTimingSpec.WR;
         }
         if (memSpec.memoryType == MemorySpecification::LPDDR2 || 
-								memSpec.memoryType == MemorySpecification::LPDDR3) {
+                                memSpec.memoryType == MemorySpecification::LPDDR3) {
             tRWTP_init = tRWTP_init + 1;
         }
     }
@@ -577,7 +577,7 @@ void cmdScheduler::getTimingConstraints(bool BGSwitch, MemorySpecification memSp
             }
             
             if(memSpec.memoryType == MemorySpecification::LPDDR2 ||
-								memSpec.memoryType == MemorySpecification::LPDDR3) {
+                                memSpec.memoryType == MemorySpecification::LPDDR3) {
                 tSwitch_init = tSwitch_init + 1;
             }
         }
@@ -664,7 +664,7 @@ cmdScheduler::physicalAddr cmdScheduler::memoryMap(trans Trans,
 
         unsigned rowShift = static_cast<unsigned> (log2(nColumns*nBanks));
         unsigned rowMask = static_cast<unsigned> (memSpec.memArchSpec.nbrOfRows - 1) 
-																		 << rowShift;
+                                                                         << rowShift;
         unsigned rowAddr = (DecLogic & rowMask) >> rowShift;
         PhysicalAddr.rowAddr = rowAddr;
 

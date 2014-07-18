@@ -29,7 +29,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji
  *
  */
 
@@ -49,7 +49,7 @@ namespace Data {
     class CommandAnalysis {
     public:
 
-	//Power-Down and Self-refresh related memory states
+        //Power-Down and Self-refresh related memory states
         enum memstate {
             MS_PDN_F_ACT = 10, MS_PDN_S_ACT = 11, MS_PDN_F_PRE = 12,
             MS_PDN_S_PRE = 13, MS_SREF = 14
@@ -60,6 +60,10 @@ namespace Data {
         //Returns number of reads, writes, acts, pres and refs in the trace
         CommandAnalysis(std::ifstream& pwr_trace, const int nbrofBanks,
                 Data::MemorySpecification memSpec);
+    
+        //Constructor for libDRAMPower
+        CommandAnalysis(std::vector<MemCommand>& list, const int nbrofBanks, 
+        Data::MemorySpecification memSpec);
 
         //Number of commands to be considered in a single power estimation time window
         const static int ANALYSIS_WINDOW = MILLION;
@@ -157,7 +161,7 @@ namespace Data {
         //Clock cycle when self-refresh was issued
         double sref_cycle;
 
-	//Clock cycle when the latest power-down was issued
+        //Clock cycle when the latest power-down was issued
         double pdn_cycle;
 
         //Memory State
@@ -169,30 +173,34 @@ namespace Data {
         //For command bank
         int bank;
 
-	//Command Issue timestamp in clock cycles (cc)
+        //Command Issue timestamp in clock cycles (cc)
         double timestamp;
 
-	//Clock cycle of first activate command when memory state changes to ACT
+        //Clock cycle of first activate command when memory state changes to ACT
         double first_act_cycle;
 
-	//Clock cycle of last precharge command when memory state changes to PRE
+        //Clock cycle of last precharge command when memory state changes to PRE
         double last_pre_cycle;
 
-	//Data structures to list explicit commands
+        //Data structures to list explicit commands
         unsigned nCommands;
 
-	//Data structure to keep track of auto-precharges
+        //Data structure to keep track of auto-precharges
         unsigned nCached;
 
-	//To collect and analyse all commands including auto-precharges
+        //To collect and analyse all commands including auto-precharges
         void analyse_commands(const int nbrofBanks, Data::MemorySpecification
         memSpec, double nCommands, double nCached);
 
-	//To identify auto-precharges
+        //To identify auto-precharges
         void getCommands(const MemorySpecification& memSpec, const int
                 nbrofBanks, std::ifstream& pwr_trace);
+        
+        //To identify auto-precharges for the DRAMPower library
+        void getCommands_lib(const Data::MemorySpecification& memSpec,
+        const int nbrofBanks, std::vector<MemCommand>& list);
 
-	//To perform timing analysis of a given set of commands and update command counters
+        //To perform timing analysis of a given set of commands and update command counters
         void evaluate(const MemorySpecification& memSpec,
                 std::vector<MemCommand>&cmd_list, int nbrofBanks);
 
@@ -200,15 +208,16 @@ namespace Data {
         int timeToCompletion(const MemorySpecification& memSpec,
                 MemCommand::cmds type);
 
-	//To update idle period information whenever active cycles may be idle
+        //To update idle period information whenever active cycles may be idle
         void idle_act_update(const MemorySpecification& memSpec,
                 double latest_read_cycle, double latest_write_cycle,
                 double latest_act_cycle, double timestamp);
 
-	//To update idle period information whenever precharged cycles may be idle
+        //To update idle period information whenever precharged cycles may be idle
         void idle_pre_update(const MemorySpecification& memSpec,
                 double timestamp, double latest_pre_cycle);
 
     };
 }
 #endif
+

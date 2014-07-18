@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, TU Delft, TU Eindhoven and TU Kaiserslautern 
+ * Copyright (c) 2014, TU Delft, TU Eindhoven and TU Kaiserslautern 
  * All rights reserved. 
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -29,33 +29,33 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Matthias Jung, Omar Naji
  *
  */
 
-#include "MemorySpecification.h"
-#include "MemSpecParser.h"
-#include "XMLParser.h"
-#include <fstream>
-#include <sstream>
 
+#include "LibDRAMPower.h"
+
+#include <iostream>
+#include <string>
 
 using namespace std;
-using namespace Data;
 
-//Set variable values from XML
-void MemorySpecification::processParameters(){
-  setVarFromParam(&id, "memoryId");
-  string memoryTypeString;
-  setVarFromParam(&memoryTypeString, "memoryType");
-  memoryType = getMemoryTypeFromName(memoryTypeString);
-  }
+libDRAMPower::libDRAMPower()
+{
+}
 
-//Get memSpec from XML
-MemorySpecification MemorySpecification::getMemSpecFromXML(const string& id){
+libDRAMPower::~libDRAMPower()
+{
+    
+}
 
-  MemSpecParser memSpecParser;
-  cout << "* Parsing " << id << endl;
-  XMLParser::parse(id, &memSpecParser);
-  return memSpecParser.getMemorySpecification();
+void libDRAMPower::doCommand(MemCommand::cmds type, unsigned bank, double timestamp)
+{
+    MemCommand cmd(type, bank, timestamp);
+    cmd_list.push_back(cmd);
+}
+void libDRAMPower::getEnergy(const MemorySpecification& memSpec)
+{
+    mpm.lib_power(memSpec, cmd_list, 1, 1, 1, 0, 0);
 }
