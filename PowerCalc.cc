@@ -190,6 +190,7 @@ int main(int argc, char* argv[]) {
     mpm.power_calc(memSpec, traceparser.cmd_list, grouping, interleaving, burst,
                                                               term, power_down);
 
+    mpm.power_print(memSpec, term);
     time_t end = time(0);
     tm* endtm = localtime(&end);
     cout << "* Power Computation End time: " << asctime(endtm);
