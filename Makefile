@@ -90,6 +90,9 @@ ${OBJECTS}: %.o: %.cc
 
 all: ${BINARY}
 
+lib: ${BINARY}
+	ar -cvr src/libdrampower.a src/*.o
+
 clean:
 	$(RM) $(OBJECTS) $(DEPENDENCIES) $(BINARY)
 
