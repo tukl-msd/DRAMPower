@@ -39,6 +39,7 @@
 #include <ctime>
 #include "src/CmdScheduler.h"
 #include "src/MemSpecParser.h"
+#include "src/TraceParser.h"
 #include <math.h>
 
 using namespace Data;
@@ -184,8 +185,10 @@ int main(int argc, char* argv[]) {
 
     //Calculates average power consumption and energy for the input memory
     //command trace
-    mpm.trace_power(memSpec, trace_file, trans, grouping, interleaving, burst,
-							     					 		term, power_down);
+    TraceParser traceparser;
+    traceparser.parseFile(memSpec, trace_file, grouping, interleaving, burst, power_down, trans);
+    mpm.power_calc(memSpec, traceparser.cmd_list, grouping, interleaving, burst,
+                                                              term, power_down);
 
     time_t end = time(0);
     tm* endtm = localtime(&end);

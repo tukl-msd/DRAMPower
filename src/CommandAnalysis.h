@@ -58,7 +58,7 @@ namespace Data {
         CommandAnalysis();
 
         //Returns number of reads, writes, acts, pres and refs in the trace
-        CommandAnalysis(std::ifstream& pwr_trace, const int nbrofBanks,
+        CommandAnalysis(std::vector<MemCommand>& list, const int nbrofBanks,
                 Data::MemorySpecification memSpec);
 
         //Number of commands to be considered in a single power estimation time window
@@ -190,7 +190,7 @@ namespace Data {
 
 	//To identify auto-precharges
         void getCommands(const MemorySpecification& memSpec, const int
-                nbrofBanks, std::ifstream& pwr_trace);
+                nbrofBanks, std::vector<MemCommand>& list);
 
 	//To perform timing analysis of a given set of commands and update command counters
         void evaluate(const MemorySpecification& memSpec,

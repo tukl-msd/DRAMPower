@@ -37,6 +37,8 @@
 #ifndef MEMORY_POWER_MODEL_H
 #define MEMORY_POWER_MODEL_H
 
+#include <vector>
+#include <deque>
 #include "MemorySpecification.h"
 #include "CommandAnalysis.h"
 #include <iostream>
@@ -50,8 +52,8 @@ namespace Data {
 
         //Calculate energy and average power consumption for the given memory
         //command trace
-        void trace_power(MemorySpecification memSpec, std::ifstream& pwr_trace,
-					int trans, int grouping, int interleaving, int burst, 
+        void power_calc(MemorySpecification memSpec, std::vector<MemCommand>& cmd_list,
+					    int grouping, int interleaving, int burst, 
 														int term, int powerdown);
 
         //Used to calculate activation power
@@ -169,7 +171,8 @@ namespace Data {
 		double io_term_energy;
 		
 		//To derive IO and Termination Power measures using DRAM specification
-		void io_term_power(MemorySpecification memSpec);		
+		void io_term_power(MemorySpecification memSpec);
+       CommandAnalysis timings;		
     };
 }
 #endif

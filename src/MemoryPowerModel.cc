@@ -43,36 +43,18 @@ using namespace Data;
 
 //Calculate energy and average power consumption for the given command trace
 
-void MemoryPowerModel::trace_power(MemorySpecification memSpec,
-        ifstream& trace, int trans, int grouping, int interleaving, int burst,
+void MemoryPowerModel::power_calc(MemorySpecification memSpec,
+        std::vector<MemCommand>& cmd_list, int grouping, int interleaving, int burst,
 												   		int term, int powerdown) {
 
     MemTimingSpec& memTimingSpec = memSpec.memTimingSpec;
     MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
     MemPowerSpec& memPowerSpec = memSpec.memPowerSpec;
-    CommandAnalysis timings;
-
-    ifstream pwr_trace;
-
-    if(trans){
-        cmdScheduler cmdsched;
-        cmdsched.transTranslation(memSpec, trace, grouping, interleaving, burst,
-																	  	powerdown);
-        time_t start = time(0);
-        tm* starttm = localtime(&start);
-        cout << "* Analysis End Time: " << asctime(starttm);
-        pwr_trace.open("commands.trace", ifstream::in);
-        cout << "* Power Computation Start time: " << asctime(starttm);
-        timings = CommandAnalysis(pwr_trace, memArchSpec.nbrOfBanks, memSpec);
-    }
-    else {
-        time_t startnow = time(0);
-        tm* startpm = localtime(&startnow);
-        cout << "* Power Computation Start time: " << asctime(startpm);
-        timings = CommandAnalysis(trace, memArchSpec.nbrOfBanks, memSpec);
-    }
-
-    //To obtain command timings from the trace
+     //creating timings
+    time_t startnow = time(0);
+    tm* startpm = localtime(&startnow);
+    //create CommandAnalysis object using cmd_list 
+    timings = CommandAnalysis(cmd_list, memArchSpec.nbrOfBanks, memSpec);
 
     act_energy = 0.0;
     pre_energy = 0.0;
