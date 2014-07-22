@@ -36,11 +36,20 @@
 
 # Name of the generated binary.
 BINARY := drampower
+LIBS := src/libdrampower.a src/libdrampowerxml.a
 
 # Identifies the source files and derives name of object files.
-SOURCES := PowerCalc.cc $(wildcard src/*.cc)
-OBJECTS := ${SOURCES:.cc=.o}
-DEPENDENCIES := ${SOURCES:.cc=.d}
+CORESOURCES := PowerCalc.cc $(wildcard src/*.cc)
+XMLPARSERSOURCES := $(wildcard src/xmlparser/*.cc)
+LIBSOURCES := $(wildcard src/libdrampower/*.cc)
+ALLSOURCES := ${CORESOURCES} ${XMLPARSERSOURCES} ${LIBSOURCES}
+
+COREOBJECTS := ${CORESOURCES:.cc=.o}
+XMLPARSEROBJECTS := ${XMLPARSERSOURCES:.cc=.o}
+LIBOBJECTS := ${LIBSOURCES:.cc=.o}
+ALLOBJECTS := ${ALLSOURCES:.cc=.o}
+
+DEPENDENCIES := ${ALLSOURCES:.cc=.d}
 
 ##########################################
 # Compiler settings
@@ -80,21 +89,23 @@ XERCES_LDFLAGS := -L$(XERCES_LIB) -lxerces-c
 # Targets
 ##########################################
 
-$(BINARY): ${OBJECTS}
+$(BINARY): ${XMLPARSEROBJECTS} ${COREOBJECTS}
 	$(CXX) $(LDFLAGS) -o $@ $^ $(XERCES_LDFLAGS)
 
 # From .cpp to .o. Dependency files are generated here
-${OBJECTS}: %.o: %.cc
-	$(CXX) ${CXXFLAGS} -MMD -MF $(subst .o,.d,$@) -o $@ -c $<
-
+%.o: %.cc
+	$(CXX) ${CXXFLAGS} -MMD -MF $(subst .o,.d,$@) -iquote src -o $@ -c $<
 
 all: ${BINARY}
 
-lib: ${BINARY}
-	ar -cvr src/libdrampower.a src/*.o
+lib: ${COREOBJECTS} ${LIBOBJECTS}
+	ar -cvr src/libdrampower.a ${COREOBJECTS} ${LIBOBJECTS}
+
+parserlib: ${XMLPARSEROBJECTS}
+	ar -cvr src/libdrampowerxml.a ${XMLPARSEROBJECTS}
 
 clean:
-	$(RM) $(OBJECTS) $(DEPENDENCIES) $(BINARY)
+	$(RM) $(ALLOBJECTS) $(DEPENDENCIES) $(BINARY) $(LIBS)
 
 .PHONY: clean
 

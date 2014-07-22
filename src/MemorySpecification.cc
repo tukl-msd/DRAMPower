@@ -34,11 +34,6 @@
  */
 
 #include "MemorySpecification.h"
-#include "MemSpecParser.h"
-#include "XMLParser.h"
-#include <fstream>
-#include <sstream>
-
 
 using namespace std;
 using namespace Data;
@@ -50,13 +45,3 @@ void MemorySpecification::processParameters(){
   setVarFromParam(&memoryTypeString, "memoryType");
   memoryType = getMemoryTypeFromName(memoryTypeString);
   }
-
-//Get memSpec from XML
-MemorySpecification MemorySpecification::getMemSpecFromXML(const string& id){
-
-  MemSpecParser memSpecParser;
-  cout << "* Parsing " << id << endl;
-  XMLParser::parse(id, &memSpecParser);
-
-  return memSpecParser.getMemorySpecification();
-}

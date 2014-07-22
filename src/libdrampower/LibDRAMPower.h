@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, TU Delft, TU Eindhoven and TU Kaiserslautern 
+ * Copyright (c) 2014, TU Delft, TU Eindhoven and TU Kaiserslautern 
  * All rights reserved. 
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -29,34 +29,51 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Matthias Jung, Omar Naji
  *
  */
 
-#ifndef DATA_MEMSPEC_PARSER_H
-#define DATA_MEMSPEC_PARSER_H
 
-#include "XMLHandler.h"
-#include "Parametrisable.h"
-#include "MemorySpecification.h"
+#ifndef LIB_DRAM_POWER_H
+#define LIB_DRAM_POWER_H
 
-namespace Data {
+#include <string>
+#include "CommandAnalysis.h"
+#include "MemoryPowerModel.h"
+#include "MemCommand.h"
 
-  class MemSpecParser : public XMLHandler {
+using namespace std;
+using namespace Data;
 
-  public:
+class libDRAMPower
+{
+    public:
+    libDRAMPower(MemorySpecification memSpec, int grouping, int interleaving, int burst, 
+                 int term, int powerdown);
+    ~libDRAMPower();
 
-    MemSpecParser();
+    void doCommand(MemCommand::cmds type, unsigned bank, double timestamp);
+    
+    //to be implemented
+    void updateCounters();
+    
+    void getEnergy();
+    
+    //Object of MemoryPowerModel which contains the results
+    //Energies(pJ) stored in enery, Powers(mW) stored in power. Number of 
+    //each command stored in timings.
+    MemoryPowerModel mpm;
+    
+    private:
+    //list of all commands
+    std::vector<MemCommand> list;
+    MemorySpecification MemSpec; 
+    CommandAnalysis counters;
+    int Grouping;                
+    int Interleaving;            
+    int Burst;                   
+    int Term;
+    int Powerdown;                        
+};
 
-    void startElement(const std::string& name,
-                      const XERCES_CPP_NAMESPACE_QUALIFIER Attributes& attrs);
-    void endElement(const std::string& name);
-
-    MemorySpecification getMemorySpecification();
-
-  private:
-    MemorySpecification memorySpecification;
-    Parametrisable* parameterParent;
-  };
-}
 #endif
