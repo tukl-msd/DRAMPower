@@ -1,33 +1,33 @@
 /*
- * Copyright (c) 2012, TU Delft, TU Eindhoven and TU Kaiserslautern 
- * All rights reserved. 
- * 
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions are 
- * met: 
+ * Copyright (c) 2012, TU Delft, TU Eindhoven and TU Kaiserslautern
+ * All rights reserved.
  *
- * 1. Redistributions of source code must retain the above copyright 
- * notice, this list of conditions and the following disclaimer. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
  *
- * 2. Redistributions in binary form must reproduce the above copyright 
- * notice, this list of conditions and the following disclaimer in the 
- * documentation and/or other materials provided with the distribution. 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
  *
- * 3. Neither the name of the copyright holder nor the names of its 
- * contributors may be used to endorse or promote products derived from 
- * this software without specific prior written permission. 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS 
- * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
- * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED 
- * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * 3. Neither the name of the copyright holder nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Authors: Andreas Hansson
  *
@@ -40,63 +40,61 @@
 #include <ostream>
 
 namespace Data {
+class Parameter {
+ public:
+  Parameter(const std::string& id, const std::string& type,
+            const std::string& value);
 
-    class Parameter {
-    public:
+  std::string getId() const;
+  std::string getType() const;
+  std::string getValue() const;
 
-        Parameter(const std::string& id, const std::string& type,
-                const std::string& value);
+  int          getIntValue() const;
+  unsigned int getUIntValue() const;
+  size_t       getSizeTValue() const;
+  double       getDoubleValue() const;
+  bool         getBoolValue() const;
 
-        std::string getId() const;
-        std::string getType() const;
-        std::string getValue() const;
+  operator int() const {
+    return getIntValue();
+  }
 
-        int getIntValue() const;
-        unsigned int getUIntValue() const;
-        size_t getSizeTValue() const;
-        double getDoubleValue() const;
-        bool getBoolValue() const;
-
-        operator int() const {
-            return getIntValue();
-        }
-
-        operator unsigned int() const {
-            return getUIntValue();
-        }
+  operator unsigned int() const {
+    return getUIntValue();
+  }
 
 #ifdef _LP64
 
-operator size_t() const {
-            return getSizeTValue();
-        }
+  operator size_t() const {
+    return getSizeTValue();
+  }
 #endif
 
-        operator double() const {
-            return getDoubleValue();
-        }
+  operator double() const {
+    return getDoubleValue();
+  }
 
-        operator bool() const {
-            return getBoolValue();
-        }
+  operator bool() const {
+    return getBoolValue();
+  }
 
-        operator std::string() const {
-            return getValue();
-        }
+  operator std::string() const {
+    return getValue();
+  }
 
-    private:
+ private:
+  std::string id;
+  std::string type;
+  std::string value;
+};
 
-        std::string id;
-        std::string type;
-        std::string value;
+Parameter HexParameter(const std::string& id,
+                       int                value);
 
-    };
+Parameter StringParameter(const std::string& id,
+                          const std::string& value);
 
-    Parameter HexParameter(const std::string& id, int value);
-
-    Parameter StringParameter(const std::string& id, const std::string& value);
-
-    std::ostream& operator<<(std::ostream& os,
-            const Parameter& parameter);
+std::ostream& operator<<(std::ostream&    os,
+                         const Parameter& parameter);
 }
-#endif
+#endif // ifndef DATA_PARAMETER_H

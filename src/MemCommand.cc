@@ -1,33 +1,33 @@
 /*
- * Copyright (c) 2012, TU Delft, TU Eindhoven and TU Kaiserslautern 
- * All rights reserved. 
- * 
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions are 
- * met: 
+ * Copyright (c) 2012, TU Delft, TU Eindhoven and TU Kaiserslautern
+ * All rights reserved.
  *
- * 1. Redistributions of source code must retain the above copyright 
- * notice, this list of conditions and the following disclaimer. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
  *
- * 2. Redistributions in binary form must reproduce the above copyright 
- * notice, this list of conditions and the following disclaimer in the 
- * documentation and/or other materials provided with the distribution. 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
  *
- * 3. Neither the name of the copyright holder nor the names of its 
- * contributors may be used to endorse or promote products derived from 
- * this software without specific prior written permission. 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS 
- * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
- * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED 
- * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * 3. Neither the name of the copyright holder nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Authors: Karthik Chandrasekar
  *
@@ -39,40 +39,45 @@
 using namespace Data;
 using namespace std;
 
-MemCommand::MemCommand():
+MemCommand::MemCommand() :
   type(MemCommand::PRE),
   bank(0),
-  timestamp(0) {
+  timestamp(0)
+{
 }
 
-//typeBank initilization
+// typeBank initilization
 MemCommand::MemCommand(MemCommand::cmds type,
-                       unsigned bank, double timestamp):
+                       unsigned bank, double timestamp) :
   type(type),
   bank(bank),
-  timestamp(timestamp){
+  timestamp(timestamp)
+{
 }
 
-void MemCommand::setType(MemCommand::cmds _type) {
+void MemCommand::setType(MemCommand::cmds _type)
+{
   type = _type;
 }
 
-MemCommand::cmds MemCommand::getType() const {
-    return type;
+MemCommand::cmds MemCommand::getType() const
+{
+  return type;
 }
 
-
-void MemCommand::setBank(unsigned _bank) {
+void MemCommand::setBank(unsigned _bank)
+{
   bank = _bank;
 }
 
-unsigned MemCommand::getBank() const {
-    return bank;
+unsigned MemCommand::getBank() const
+{
+  return bank;
 }
 
-//For auto-precharge with read or write - to calculate cycle of precharge
+// For auto-precharge with read or write - to calculate cycle of precharge
 int MemCommand::getPrechargeOffset(const MemorySpecification& memSpec,
-                                                          MemCommand::cmds type)
+                                   MemCommand::cmds           type)
 {
   int precharge_offset = 0;
 
@@ -83,26 +88,25 @@ int MemCommand::getPrechargeOffset(const MemorySpecification& memSpec,
   int WL(static_cast<int>(memSpec.memTimingSpec.WL));
   int WR(static_cast<int>(memSpec.memTimingSpec.WR));
 
-  //Read with auto-precharge
-  if(type == MemCommand::RDA)
-  {
-      if(memSpec.memoryType == MemorySpecification::DDR2)
-        precharge_offset = AL + BL/dataRate + max(RTP, 2) - 2;
-      else
-        precharge_offset = RTP;
-  }
-  else if(type == MemCommand::WRA)//Write with auto-precharge
-  {
-        precharge_offset = WL + BL/dataRate + WR;
+  // Read with auto-precharge
+  if (type == MemCommand::RDA) {
+    if (memSpec.memoryType == MemorySpecification::DDR2)
+      precharge_offset = AL + BL / dataRate + max(RTP, 2) - 2;
+    else
+      precharge_offset = RTP;
+  } else if (type == MemCommand::WRA)    { // Write with auto-precharge
+    precharge_offset = WL + BL / dataRate + WR;
   }
 
   return precharge_offset;
-}
+} // MemCommand::getPrechargeOffset
 
-void MemCommand::setTime(double _timestamp) {
+void MemCommand::setTime(double _timestamp)
+{
   timestamp = _timestamp;
 }
 
-double MemCommand::getTime() const {
-    return timestamp;
+double MemCommand::getTime() const
+{
+  return timestamp;
 }
