@@ -33,7 +33,12 @@
  *
  */
 
-#include"../src/LibDRAMPower.h"
+#include "libdrampower/LibDRAMPower.h"
+
+#if USE_XERCES
+    #include "xmlparser/MemSpecParser.h"
+#endif
+
 int main(void)
 {
         //Setup of DRAMPower for your simulation
@@ -41,8 +46,11 @@ int main(void)
         //type path to memspec file
         filename = "../memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml";
         //Parsing the Memspec specification of found in memspec folder
-        MemorySpecification memSpec(MemorySpecification::
-             getMemSpecFromXML(filename));
+        #if USE_XERCES
+            MemorySpecification memSpec(MemSpecParser::getMemSpecFromXML(filename));
+        #else
+            MemorySpecification memSpec;
+        #endif
         libDRAMPower test = libDRAMPower( memSpec, 1,1,1,0,0 );
         // During the simulation you can report activity
         // to DRAMPower with the doCommand(...) function:

@@ -31,8 +31,16 @@
 # Authors: Matthias Jung, Omar Naji
 #
 
+USE_XERCES ?= 1
+
+ifeq ($(USE_XERCES),1)
+	LIBS := -lxerces-c -ldrampowerxml -ldrampower
+else
+	LIBS := -ldrampower
+endif
+
 all:
-	g++ lib_test.cc -L../src/ -ldrampower -lxerces-c -o library_test
+	g++ lib_test.cc -iquote ../src -DUSE_XERCES=${USE_XERCES} -L../src/ ${LIBS} -o library_test
 
 clean:
-	rm library_test
+	rm -f library_test

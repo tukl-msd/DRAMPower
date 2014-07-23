@@ -33,13 +33,13 @@
  *
  */
 
-#include "src/MemorySpecification.h"
-#include "src/MemoryPowerModel.h"
+#include "MemorySpecification.h"
+#include "MemoryPowerModel.h"
 #include <iostream>
 #include <ctime>
-#include "src/CmdScheduler.h"
-#include "src/MemSpecParser.h"
-#include "src/TraceParser.h"
+#include "CmdScheduler.h"
+#include "xmlparser/MemSpecParser.h"
+#include "TraceParser.h"
 #include <math.h>
 
 using namespace Data;
@@ -124,8 +124,7 @@ int main(int argc, char* argv[]) {
 
     //Replace the memory specification XML file with another in the same format
     //from the memspecs folder
-    MemorySpecification memSpec(MemorySpecification::
-            getMemSpecFromXML(src_memory));
+    MemorySpecification memSpec(MemSpecParser::getMemSpecFromXML(src_memory));
 
     MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
 
