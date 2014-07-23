@@ -55,7 +55,7 @@ class libDRAMPower
     void doCommand(MemCommand::cmds type, unsigned bank, double timestamp);
     
     //to be implemented
-    void updateCounters();
+    void updateCounters(bool lastupdate);
     
     void getEnergy();
     

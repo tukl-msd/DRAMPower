@@ -45,6 +45,7 @@
 
 #include "MemCommand.h"
 #include "MemorySpecification.h"
+#include "CommandAnalysis.h"
 #include "Utils.h"
 using namespace Data;
 
@@ -56,10 +57,11 @@ using namespace Data;
         //function for parsing one line of the trace
         Data::MemCommand parseLine(std::string line);
 
+        CommandAnalysis counters;
         //function for parsing the whole file.
         //use this function for small traces ( no out-of-memory issue )
-        void parseFile(MemorySpecification memSpec, std::ifstream& trace, int grouping, 
-                       int interleaving, int burst, int powerdown, int trans);
+        void parseFile(MemorySpecification memSpec, std::ifstream& trace, int window, 
+                       int grouping, int interleaving, int burst, int powerdown, int trans);
     };
 
 #endif

@@ -185,8 +185,8 @@ int main(int argc, char* argv[]) {
     //Calculates average power consumption and energy for the input memory
     //command trace
     TraceParser traceparser;
-    traceparser.parseFile(memSpec, trace_file, grouping, interleaving, burst, power_down, trans);
-    mpm.power_calc(memSpec, traceparser.cmd_list, grouping, interleaving, burst,
+    traceparser.parseFile(memSpec, trace_file, 100, grouping, interleaving, burst, power_down, trans);
+    mpm.power_calc(memSpec, traceparser.counters, grouping, interleaving, burst,
                                                               term, power_down);
 
     mpm.power_print(memSpec, term);

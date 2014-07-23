@@ -49,6 +49,7 @@ libDRAMPower::libDRAMPower(MemorySpecification memSpec, int grouping, int interl
     Burst = burst;
     Term = term;        
     Powerdown = powerdown;
+    counters = CommandAnalysis(memSpec.memArchSpec.nbrOfBanks, memSpec);
 }
 
 libDRAMPower::~libDRAMPower(){
@@ -60,9 +61,15 @@ void libDRAMPower::doCommand(MemCommand::cmds type, unsigned bank, double timest
     list.push_back(cmd);
 }
 
-void libDRAMPower::updateCounters(){
+void libDRAMPower::updateCounters(bool lastupdate){
+    
+    counters.getCommands(MemSpec, MemSpec.memArchSpec.nbrOfBanks, list, lastupdate);
+    list.clear();
 }
 
 void libDRAMPower::getEnergy(){
-    mpm.power_calc(MemSpec, list, Grouping, Interleaving, Burst, Term, Powerdown);
+    
+    counters.clear();
+    mpm.power_calc(MemSpec, counters, Grouping, Interleaving, Burst, Term, Powerdown);
+
 }

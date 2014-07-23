@@ -72,10 +72,13 @@ Data::MemCommand TraceParser::parseLine(std::string line) {
     return memcmd;                                                                              
 }
 
-void TraceParser::parseFile (MemorySpecification memSpec, std::ifstream& trace, int grouping, 
-                       int interleaving, int burst, int powerdown, int trans) {
-
+void TraceParser::parseFile (MemorySpecification memSpec, std::ifstream& trace,
+                             int window, int grouping,  int interleaving, int burst, 
+                             int powerdown, int trans) {
     ifstream pwr_trace;
+    counters = CommandAnalysis(memSpec.memArchSpec.nbrOfBanks, memSpec);
+    int nCommands = 0;
+    bool lastupdate = false;
     if(trans){                                                                        
         cmdScheduler cmdsched;                                                        
         cmdsched.transTranslation(memSpec, trace, grouping, interleaving, burst, powerdown); 
@@ -84,7 +87,16 @@ void TraceParser::parseFile (MemorySpecification memSpec, std::ifstream& trace, 
         while (getline(pwr_trace, line)) {
         MemCommand cmdline = parseLine(line);
         cmd_list.push_back(cmdline);
+        nCommands++;
+            if(nCommands == window) {
+                counters.getCommands(memSpec, memSpec.memArchSpec.nbrOfBanks, cmd_list, lastupdate);
+				nCommands = 0;
+                cmd_list.clear();
+            }
         }
+        lastupdate = true;
+        counters.getCommands(memSpec, memSpec.memArchSpec.nbrOfBanks, cmd_list, lastupdate);
+        cmd_list.clear();
         pwr_trace.close();                                
     }
     else {                                                                                 
@@ -92,7 +104,17 @@ void TraceParser::parseFile (MemorySpecification memSpec, std::ifstream& trace, 
         while (getline(trace, line)) { 
             MemCommand cmdline = parseLine(line);
             cmd_list.push_back(cmdline);
+            nCommands++;
+            if(nCommands == window) {
+                counters.getCommands(memSpec, memSpec.memArchSpec.nbrOfBanks, cmd_list, lastupdate);
+				nCommands = 0;
+                cmd_list.clear();
+            }
         }
+        lastupdate = true;
+        counters.getCommands(memSpec, memSpec.memArchSpec.nbrOfBanks, cmd_list, lastupdate);
+        cmd_list.clear();
     }
+    counters.clear();
     trace.close();
 }

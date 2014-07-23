@@ -62,7 +62,7 @@ int main(void)
         test.doCommand(MemCommand::RDA,0,101);
         test.doCommand(MemCommand::ACT,2,102);
         //This functionality is still not implemented.
-        test.updateCounters();
+        test.updateCounters(false);
         test.doCommand(MemCommand::RDA,2,117);
         test.doCommand(MemCommand::ACT,5,119);
         test.doCommand(MemCommand::RDA,5,134);
@@ -76,7 +76,8 @@ int main(void)
         test.doCommand(MemCommand::WRA,4,247);
         test.doCommand(MemCommand::PDN_F_ACT,3,248);
 
-        test.updateCounters();
+        //set bool to true when this is the last update of the counters
+        test.updateCounters(true);
 
         // At the end of your simulation call the getEnergy(...)
         // function to print the power report

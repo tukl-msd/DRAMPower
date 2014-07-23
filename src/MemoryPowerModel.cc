@@ -44,7 +44,7 @@ using namespace Data;
 //Calculate energy and average power consumption for the given command trace
 
 void MemoryPowerModel::power_calc(MemorySpecification memSpec,
-        std::vector<MemCommand>& cmd_list, int grouping, int interleaving, int burst,
+        CommandAnalysis& counters, int grouping, int interleaving, int burst,
 												   		int term, int powerdown) {
 
     MemTimingSpec& memTimingSpec = memSpec.memTimingSpec;
@@ -53,9 +53,9 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
      //creating timings
     time_t startnow = time(0);
     tm* startpm = localtime(&startnow);
-    //create CommandAnalysis object using cmd_list 
-    timings = CommandAnalysis(cmd_list, memArchSpec.nbrOfBanks, memSpec);
-    
+    //create CommandAnalysis  
+    timings = counters;
+ 
     energy.act_energy = 0.0;
     energy.pre_energy = 0.0;
     energy.read_energy = 0.0;

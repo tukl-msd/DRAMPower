@@ -52,7 +52,7 @@ namespace Data {
 
         //Calculate energy and average power consumption for the given memory
         //command trace
-        void power_calc(MemorySpecification memSpec, std::vector<MemCommand>& cmd_list,
+        void power_calc(MemorySpecification memSpec, CommandAnalysis& counters,
 					    int grouping, int interleaving, int burst, 
 														int term, int powerdown);
 
