@@ -43,6 +43,7 @@ CORESOURCES := PowerCalc.cc $(wildcard src/*.cc)
 XMLPARSERSOURCES := $(wildcard src/xmlparser/*.cc)
 LIBSOURCES := $(wildcard src/libdrampower/*.cc)
 ALLSOURCES := ${CORESOURCES} ${XMLPARSERSOURCES} ${LIBSOURCES}
+ALLHEADERS := $(wildcard src/*.h) $(wildcard src/xmlparser/*.h) $(wildcard src/libdrampower/*.h)
 
 COREOBJECTS := ${CORESOURCES:.cc=.o}
 XMLPARSEROBJECTS := ${XMLPARSERSOURCES:.cc=.o}
@@ -107,6 +108,10 @@ parserlib: ${XMLPARSEROBJECTS}
 clean:
 	$(RM) $(ALLOBJECTS) $(DEPENDENCIES) $(BINARY) $(LIBS)
 
-.PHONY: clean
+pretty:
+	uncrustify -c src/uncrustify.cfg $(ALLSOURCES) --no-backup
+	uncrustify -c src/uncrustify.cfg $(ALLHEADERS) --no-backup
+
+.PHONY: clean pretty
 
 -include $(DEPENDENCIES)
