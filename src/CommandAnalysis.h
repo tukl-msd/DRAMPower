@@ -29,7 +29,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji
  *
  */
 
@@ -58,11 +58,8 @@ namespace Data {
         CommandAnalysis();
 
         //Returns number of reads, writes, acts, pres and refs in the trace
-        CommandAnalysis(std::ifstream& pwr_trace, const int nbrofBanks,
+        CommandAnalysis(const int nbrofBanks,
                 Data::MemorySpecification memSpec);
-
-        //Number of commands to be considered in a single power estimation time window
-        const static int ANALYSIS_WINDOW = MILLION;
 
         unsigned init;
         double zero;
@@ -138,6 +135,7 @@ namespace Data {
         //Bank state vector
         std::vector<int> bankstate;
 
+        std::vector<double> activation_cycle;
         //To keep track of the last ACT cycle
         double latest_act_cycle;
         //To keep track of the last PRE cycle
@@ -184,13 +182,16 @@ namespace Data {
 	//Data structure to keep track of auto-precharges
         unsigned nCached;
 
+	//function for clearing arrays
+		void clear();
+
 	//To collect and analyse all commands including auto-precharges
         void analyse_commands(const int nbrofBanks, Data::MemorySpecification
-        memSpec, double nCommands, double nCached);
+        memSpec, double nCommands, double nCached, bool lastupdate);
 
 	//To identify auto-precharges
         void getCommands(const MemorySpecification& memSpec, const int
-                nbrofBanks, std::ifstream& pwr_trace);
+                nbrofBanks, std::vector<MemCommand>& list, bool lastupdate);
 
 	//To perform timing analysis of a given set of commands and update command counters
         void evaluate(const MemorySpecification& memSpec,
@@ -208,7 +209,6 @@ namespace Data {
 	//To update idle period information whenever precharged cycles may be idle
         void idle_pre_update(const MemorySpecification& memSpec,
                 double timestamp, double latest_pre_cycle);
-
     };
 }
 #endif

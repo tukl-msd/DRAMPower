@@ -1,0 +1,4 @@
+drampower
+*.d
+*.o
+*.a

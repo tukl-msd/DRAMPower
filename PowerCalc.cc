@@ -29,16 +29,17 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Karthik Chandrasekar, Omar Naji
  *
  */
 
-#include "src/MemorySpecification.h"
-#include "src/MemoryPowerModel.h"
+#include "MemorySpecification.h"
+#include "MemoryPowerModel.h"
 #include <iostream>
 #include <ctime>
-#include "src/CmdScheduler.h"
-#include "src/MemSpecParser.h"
+#include "CmdScheduler.h"
+#include "xmlparser/MemSpecParser.h"
+#include "TraceParser.h"
 #include <math.h>
 
 using namespace Data;
@@ -123,8 +124,7 @@ int main(int argc, char* argv[]) {
 
     //Replace the memory specification XML file with another in the same format
     //from the memspecs folder
-    MemorySpecification memSpec(MemorySpecification::
-            getMemSpecFromXML(src_memory));
+    MemorySpecification memSpec(MemSpecParser::getMemSpecFromXML(src_memory));
 
     MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
 
@@ -184,9 +184,12 @@ int main(int argc, char* argv[]) {
 
     //Calculates average power consumption and energy for the input memory
     //command trace
-    mpm.trace_power(memSpec, trace_file, trans, grouping, interleaving, burst,
-							     					 		term, power_down);
+    TraceParser traceparser;
+    traceparser.parseFile(memSpec, trace_file, 100, grouping, interleaving, burst, power_down, trans);
+    mpm.power_calc(memSpec, traceparser.counters, grouping, interleaving, burst,
+                                                              term, power_down);
 
+    mpm.power_print(memSpec, term);
     time_t end = time(0);
     tm* endtm = localtime(&end);
     cout << "* Power Computation End time: " << asctime(endtm);

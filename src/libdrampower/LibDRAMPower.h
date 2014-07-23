@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, TU Delft, TU Eindhoven and TU Kaiserslautern 
+ * Copyright (c) 2014, TU Delft, TU Eindhoven and TU Kaiserslautern 
  * All rights reserved. 
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -29,19 +29,51 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Matthias Jung, Omar Naji
  *
  */
 
-#include "MemorySpecification.h"
+
+#ifndef LIB_DRAM_POWER_H
+#define LIB_DRAM_POWER_H
+
+#include <string>
+#include "CommandAnalysis.h"
+#include "MemoryPowerModel.h"
+#include "MemCommand.h"
 
 using namespace std;
 using namespace Data;
 
-//Set variable values from XML
-void MemorySpecification::processParameters(){
-  setVarFromParam(&id, "memoryId");
-  string memoryTypeString;
-  setVarFromParam(&memoryTypeString, "memoryType");
-  memoryType = getMemoryTypeFromName(memoryTypeString);
-  }
+class libDRAMPower
+{
+    public:
+    libDRAMPower(MemorySpecification memSpec, int grouping, int interleaving, int burst, 
+                 int term, int powerdown);
+    ~libDRAMPower();
+
+    void doCommand(MemCommand::cmds type, unsigned bank, double timestamp);
+    
+    //to be implemented
+    void updateCounters(bool lastupdate);
+    
+    void getEnergy();
+    
+    //Object of MemoryPowerModel which contains the results
+    //Energies(pJ) stored in enery, Powers(mW) stored in power. Number of 
+    //each command stored in timings.
+    MemoryPowerModel mpm;
+    
+    private:
+    //list of all commands
+    std::vector<MemCommand> list;
+    MemorySpecification MemSpec; 
+    CommandAnalysis counters;
+    int Grouping;                
+    int Interleaving;            
+    int Burst;                   
+    int Term;
+    int Powerdown;                        
+};
+
+#endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, TU Delft, TU Eindhoven and TU Kaiserslautern 
+ * Copyright (c) 2014, TU Delft, TU Eindhoven and TU Kaiserslautern 
  * All rights reserved. 
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -29,34 +29,47 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Matthias Jung, Omar Naji
  *
  */
 
-#ifndef DATA_MEMSPEC_PARSER_H
-#define DATA_MEMSPEC_PARSER_H
 
-#include "XMLHandler.h"
-#include "Parametrisable.h"
-#include "MemorySpecification.h"
+#include "LibDRAMPower.h"
 
-namespace Data {
+#include <iostream>
+#include <string>
 
-  class MemSpecParser : public XMLHandler {
+using namespace std;
 
-  public:
-
-    MemSpecParser();
-
-    void startElement(const std::string& name,
-                      const XERCES_CPP_NAMESPACE_QUALIFIER Attributes& attrs);
-    void endElement(const std::string& name);
-
-    MemorySpecification getMemorySpecification();
-
-  private:
-    MemorySpecification memorySpecification;
-    Parametrisable* parameterParent;
-  };
+libDRAMPower::libDRAMPower(MemorySpecification memSpec, int grouping, int interleaving, int burst,
+                           int term, int powerdown){
+    MemSpec = memSpec;
+    Grouping = grouping;
+    Interleaving = interleaving;
+    Burst = burst;
+    Term = term;        
+    Powerdown = powerdown;
+    counters = CommandAnalysis(memSpec.memArchSpec.nbrOfBanks, memSpec);
 }
-#endif
+
+libDRAMPower::~libDRAMPower(){
+    
+}
+
+void libDRAMPower::doCommand(MemCommand::cmds type, unsigned bank, double timestamp){
+    MemCommand cmd(type, bank, timestamp);
+    list.push_back(cmd);
+}
+
+void libDRAMPower::updateCounters(bool lastupdate){
+    
+    counters.getCommands(MemSpec, MemSpec.memArchSpec.nbrOfBanks, list, lastupdate);
+    list.clear();
+}
+
+void libDRAMPower::getEnergy(){
+    
+    counters.clear();
+    mpm.power_calc(MemSpec, counters, Grouping, Interleaving, Burst, Term, Powerdown);
+
+}

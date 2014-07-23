@@ -29,7 +29,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji  
  *
  */
 
@@ -46,7 +46,7 @@ using namespace std;
 CommandAnalysis::CommandAnalysis() {
 }
 
-CommandAnalysis::CommandAnalysis(ifstream& pwr_trace, const int nbrofBanks,
+CommandAnalysis::CommandAnalysis(const int nbrofBanks,
         Data::MemorySpecification memSpec) {
 
     //Initializing all counters and variables
@@ -107,54 +107,31 @@ CommandAnalysis::CommandAnalysis(ifstream& pwr_trace, const int nbrofBanks,
     type = 0;
     bank = 0;
     timestamp = 0;
-
-    cmd_list.resize(1, MemCommand::PRE);
+    cmd_list.resize(1, MemCommand::PRE);     
     full_cmd_list.resize(1, MemCommand::PRE);
     cached_cmd.resize(1, MemCommand::PRE);
+    activation_cycle.resize(nbrofBanks, 0);
+}
 
-    //To get all the commands from the input trace and analyse them
-    getCommands(memSpec, nbrofBanks, pwr_trace);
-    pwr_trace.close();
+//function to clear all arrays
+void CommandAnalysis::clear() {
     cached_cmd.clear();
     cmd_list.clear();
     full_cmd_list.clear();
     last_states.clear();
     bankstate.clear();
 }
-
 //Reads through the trace file, identifies the timestamp, command and bank
 //If the issued command includes an auto-precharge, adds an explicit
 //precharge to a cached command list and computes the precharge offset from the
 //issued command timestamp, when the auto-precharge would kick in
 
 void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
-        const int nbrofBanks, ifstream& pwr_trace) {
-    std::vector<double> activation_cycle(nbrofBanks, 0);
-    std::string line;
-    MemCommand::cmds type;
-    while (getline(pwr_trace, line)) {
-        istringstream linestream(line);
-        string item;
-        double item_val;
-        unsigned itemnum = 0;
+        const int nbrofBanks, std::vector<MemCommand>& list, bool lastupdate) {
+    //std::vector<double> activation_cycle(nbrofBanks, 0);
+    for (int i = 0 ; i < list.size(); i++) {
         cmd_list.resize(cmd_list.size() + 1, MemCommand::PRE);
-        while (getline(linestream, item, ',')) {
-            if (itemnum == 0) {
-                stringstream timestamp(item);
-                timestamp >> item_val;
-                cmd_list[nCommands].setTime(item_val);
-            } else if (itemnum == 1) {
-                item_val = MemCommand::getTypeFromName(item);
-                cmd_list[nCommands].setType(static_cast<MemCommand::cmds> (item_val));
-            } else if (itemnum == 2) {
-                stringstream bank(item);
-                bank >> item_val;
-	            cmd_list[nCommands].setType(type);
-                cmd_list[nCommands].setBank(static_cast<unsigned>(item_val));
-            }
-	        type = cmd_list[nCommands].getType();
-            itemnum++;
-        }
+        cmd_list[i] = list[i]; 
             if (cmd_list[nCommands].getType() == MemCommand::ACT) {
                 activation_cycle[cmd_list[nCommands].getBank()] =
                                 cmd_list[nCommands].getTime();
@@ -162,10 +139,10 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
                 cmd_list[nCommands].setType(MemCommand::RD);
                 cached_cmd.resize(cached_cmd.size() + 1, MemCommand::PRE);
                 cached_cmd[nCached].setType(MemCommand::PRE);
-                cached_cmd[nCached].setTime(max(cmd_list[nCommands].getTime() + 
+                cached_cmd[nCached].setTime(max(cmd_list[nCommands].getTime() +
                     cmd_list[nCommands].getPrechargeOffset(memSpec, MemCommand::RDA),
                     activation_cycle[cmd_list[nCommands].getBank()] +
-														memSpec.memTimingSpec.RAS));
+                                                        memSpec.memTimingSpec.RAS));
                 cached_cmd[nCached].setBank(cmd_list[nCommands].getBank());
                 nCached++;
             } else if (cmd_list[nCommands].getType() == MemCommand::WRA) {
@@ -175,29 +152,18 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
                 cached_cmd[nCached].setTime(max(cmd_list[nCommands].getTime() +
                     cmd_list[nCommands].getPrechargeOffset(memSpec, MemCommand::WRA),
                     activation_cycle[cmd_list[nCommands].getBank()] +
-														memSpec.memTimingSpec.RAS));
+                                                        memSpec.memTimingSpec.RAS));
                 cached_cmd[nCached].setBank(cmd_list[nCommands].getBank());
                 nCached++;
             }
         nCommands++;
-
-        //Based on the analysis windows length defined in CommandAnalysis.h
-        //calls the analyse and evaluate functions to analyse the expanded
-        //trace (including the auto-precharges) and to update the relevant
-        //counters and state changes
-        if (nCommands % ANALYSIS_WINDOW == 0) {
-            pop = 0;
-            analyse_commands(nbrofBanks, memSpec, nCommands, nCached);
-            nCommands = 0;
-            nCached = 0;
-            cmd_list.resize(1, MemCommand::PRE);
-            cached_cmd.resize(1, MemCommand::PRE);
-        }
     }
-
-    //For any remaining commands that have not yet been analysed
     pop = 0;
-    analyse_commands(nbrofBanks, memSpec, nCommands, nCached);
+    analyse_commands(nbrofBanks, memSpec, nCommands, nCached, lastupdate);
+    nCommands = 0;
+    nCached = 0;
+    cmd_list.resize(1, MemCommand::PRE);
+    cached_cmd.resize(1, MemCommand::PRE);
 }
 
 //Checks the auto-precharge cached command list and inserts the explicit
@@ -206,7 +172,7 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
 //evaluate function to analyse this expanded list of commands.
 
 void CommandAnalysis::analyse_commands(const int nbrofBanks,
-        Data::MemorySpecification memSpec, double nCommands, double nCached) {
+        Data::MemorySpecification memSpec, double nCommands, double nCached, bool lastupdate) {
     full_cmd_list.resize(1, MemCommand::PRE);
     unsigned mCommands = 0;
     unsigned mCached = 0;
@@ -263,15 +229,14 @@ void CommandAnalysis::analyse_commands(const int nbrofBanks,
     if (pop == 0) {
         full_cmd_list.pop_back();
     }
-
-    if(nCommands < ANALYSIS_WINDOW)
+    if(lastupdate)
     {
         full_cmd_list.resize(full_cmd_list.size() + 1, MemCommand::NOP);
         full_cmd_list[full_cmd_list.size() - 1].setTime(full_cmd_list
-		[full_cmd_list.size() - 2].getTime() + timeToCompletion(memSpec, 
-		full_cmd_list[full_cmd_list.size() -2].getType()) - 1);
+        [full_cmd_list.size() - 2].getTime() + timeToCompletion(memSpec, 
+        full_cmd_list[full_cmd_list.size() -2].getType()) - 1);
     }
-
+ 
     evaluate(memSpec, full_cmd_list, nbrofBanks);
 }
 

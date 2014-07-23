@@ -33,61 +33,33 @@
  *
  */
 
+#ifndef DATA_MEMSPEC_PARSER_H
+#define DATA_MEMSPEC_PARSER_H
 
-#include "MemSpecParser.h"
+#include <string>
 
-XERCES_CPP_NAMESPACE_USE
+#include "XMLHandler.h"
+#include "Parametrisable.h"
+#include "MemorySpecification.h"
 
-using namespace Data;
-using namespace std;
+namespace Data {
 
-MemSpecParser::MemSpecParser() :
-  parameterParent(NULL) {
+  class MemSpecParser : public XMLHandler {
+
+  public:
+
+    MemSpecParser();
+
+    void startElement(const std::string& name,
+                      const XERCES_CPP_NAMESPACE_QUALIFIER Attributes& attrs);
+    void endElement(const std::string& name);
+
+    MemorySpecification getMemorySpecification();
+    static MemorySpecification getMemSpecFromXML(const std::string& id);
+
+  private:
+    MemorySpecification memorySpecification;
+    Parametrisable* parameterParent;
+  };
 }
-
-void MemSpecParser::startElement(const string& name, const Attributes& attrs) {
-  if (name == "memspec") {
-    parameterParent = &memorySpecification;
-  }
-  else if (name == "memarchitecturespec") {
-    parameterParent = &memorySpecification.memArchSpec;
-  }
-  else if (name == "memtimingspec") {
-    parameterParent = &memorySpecification.memTimingSpec;
-  }
-  else if (name == "mempowerspec") {
-    parameterParent = &memorySpecification.memPowerSpec;
-  }
-  else if (name == "parameter") {
-    Parameter parameter(getValue("id", attrs),
-                        getValue("type", attrs),
-                        getValue("value", attrs));
-    assert(parameterParent != NULL);
-    parameterParent->pushParameter(parameter);
-  }
-}
-
-void MemSpecParser::endElement(const string& name) {
- if (name == "memarchitecturespec") {
-    memorySpecification.memArchSpec.processParameters();
-    // Reset parameterParent
-    parameterParent = &memorySpecification;
-  }
-  else if (name == "memtimingspec") {
-    memorySpecification.memTimingSpec.processParameters();
-    // Reset parameterParent
-    parameterParent = &memorySpecification;
-  }
-  else if (name == "mempowerspec") {
-    memorySpecification.memPowerSpec.processParameters();
-    // Reset parameterParent
-    parameterParent = &memorySpecification;
-  }
-  else if (name == "memspec"){
-    memorySpecification.processParameters();
-  }
-}
-
-MemorySpecification MemSpecParser::getMemorySpecification(){
-  return memorySpecification;
-}
+#endif
