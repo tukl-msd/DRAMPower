@@ -53,7 +53,7 @@ Data::MemCommand TraceParser::parseLine(std::string line)
   string item;
   double item_val;
   unsigned itemnum = 0;
-  MemCommand::cmds type;
+  MemCommand::cmds type = MemCommand::NOP; // Initialized to prevent warning
 
   while (getline(linestream, item, ',')) {
     if (itemnum == 0) {

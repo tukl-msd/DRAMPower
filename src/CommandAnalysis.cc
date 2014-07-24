@@ -135,7 +135,7 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
                                   const int nbrofBanks, std::vector<MemCommand>& list, bool lastupdate)
 {
   // std::vector<double> activation_cycle(nbrofBanks, 0);
-  for (int i = 0; i < list.size(); i++) {
+  for (int i = 0; i < static_cast<int>(list.size()); i++) {
     cmd_list.resize(cmd_list.size() + 1, MemCommand::PRE);
     cmd_list[i] = list[i];
     if (cmd_list[nCommands].getType() == MemCommand::ACT) {

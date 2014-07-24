@@ -427,10 +427,10 @@ void cmdScheduler::analyticalScheduling(MemorySpecification memSpec)
     // the vector length is reduced so that less memory is used for running
     // this tool.
     if (ACT.size() >= memSpec.memArchSpec.nbrOfBanks) {
-      for (unsigned m = 0; m < BI * BGI; m++) {
+      for (int m = 0; m < BI * BGI; m++) {
         ACT.erase(ACT.begin());
         RDWR[0].erase(RDWR[0].begin(), RDWR[0].end());
-        for (unsigned h = 0; h < bankaccess - 1 - m; h++) {
+        for (int h = 0; h < bankaccess - 1 - m; h++) {
           RDWR[h].insert(RDWR[h].begin(), RDWR[h + 1].begin(), RDWR[h + 1].end());
           RDWR[h + 1].resize(0);
         }

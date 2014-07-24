@@ -31,7 +31,7 @@
 # * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 # * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 # *
-# * Authors: Karthik Chandrasekar
+# * Authors: Karthik Chandrasekar, Benny Akesson
 # *
 # */
 
@@ -69,12 +69,12 @@ OPTCXXFLAGS =
 DBGCXXFLAGS = -g
 
 # Common warning flags shared by both C and C++.
-WARNFLAGS := -W -Wall -pedantic-errors -Wextra -Werror \
+WARNFLAGS := -W -pedantic-errors -Wextra -Werror \
              -Wformat -Wformat-nonliteral -Wpointer-arith \
-             -Wcast-align -Wconversion
+             -Wcast-align -Wconversion #-Wall
 
 # Sum up the flags.
-CXXFLAGS := -O #${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS}
+CXXFLAGS := -O ${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS}
 
 # Linker flags.
 LDFLAGS := -Wall
