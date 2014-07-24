@@ -33,11 +33,15 @@
  *
  */
 
+#include <string>
 #include "libdrampower/LibDRAMPower.h"
 
 #if USE_XERCES
     #include "xmlparser/MemSpecParser.h"
 #endif
+
+using namespace std;
+using namespace Data;
 
 int main(void)
 {

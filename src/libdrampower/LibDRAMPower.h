@@ -38,21 +38,17 @@
 #ifndef LIB_DRAM_POWER_H
 #define LIB_DRAM_POWER_H
 
-#include <string>
 #include "CommandAnalysis.h"
 #include "MemoryPowerModel.h"
 #include "MemCommand.h"
 
-using namespace std;
-using namespace Data;
-
 class libDRAMPower {
  public:
-  libDRAMPower(MemorySpecification memSpec, int grouping, int interleaving, int burst,
+  libDRAMPower(Data::MemorySpecification memSpec, int grouping, int interleaving, int burst,
                int term, int powerdown);
   ~libDRAMPower();
 
-  void doCommand(MemCommand::cmds type,
+  void doCommand(Data::MemCommand::cmds type,
                  unsigned         bank,
                  double           timestamp);
 
@@ -62,15 +58,15 @@ class libDRAMPower {
   void getEnergy();
 
   // Object of MemoryPowerModel which contains the results
-  // Energies(pJ) stored in enery, Powers(mW) stored in power. Number of
+  // Energies(pJ) stored in energy, Powers(mW) stored in power. Number of
   // each command stored in timings.
-  MemoryPowerModel mpm;
+  Data::MemoryPowerModel mpm;
 
  private:
   // list of all commands
-  std::vector<MemCommand> list;
-  MemorySpecification MemSpec;
-  CommandAnalysis counters;
+  std::vector<Data::MemCommand> list;
+  Data::MemorySpecification MemSpec;
+  Data::CommandAnalysis counters;
   int Grouping;
   int Interleaving;
   int Burst;

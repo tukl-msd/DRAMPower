@@ -41,6 +41,7 @@
 #include <string>
 
 using namespace std;
+using namespace Data;
 
 libDRAMPower::libDRAMPower(MemorySpecification memSpec, int grouping, int interleaving, int burst,
                            int term, int powerdown)

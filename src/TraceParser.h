@@ -39,17 +39,12 @@
 #define TRACE_PARSER_H
 
 #include <vector>
-#include <iostream>
-#include <deque>
-#include <fstream>
-#include <algorithm>
-#include <sstream>
+#include <string>
 
 #include "MemCommand.h"
 #include "MemorySpecification.h"
 #include "CommandAnalysis.h"
-#include "Utils.h"
-using namespace Data;
+
 
 class TraceParser {
  public:
@@ -59,10 +54,10 @@ class TraceParser {
   // function for parsing one line of the trace
   Data::MemCommand parseLine(std::string line);
 
-  CommandAnalysis counters;
+  Data::CommandAnalysis counters;
   // function for parsing the whole file.
   // use this function for small traces ( no out-of-memory issue )
-  void parseFile(MemorySpecification memSpec,
+  void parseFile(Data::MemorySpecification memSpec,
                  std::ifstream&      trace,
                  int                 window,
                  int                 grouping,
