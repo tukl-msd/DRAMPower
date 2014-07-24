@@ -35,6 +35,9 @@
 
 USE_XERCES ?= 1
 
+# Name of the generated binary.
+BINARY := library_test
+
 ifeq ($(USE_XERCES),1)
 	LIBS := -lxerces-c -ldrampowerxml -ldrampower
 else
@@ -42,7 +45,12 @@ else
 endif
 
 all:
-	g++ lib_test.cc -iquote ../src -DUSE_XERCES=${USE_XERCES} -L../src/ ${LIBS} -o library_test
+	g++ lib_test.cc -iquote ../src -DUSE_XERCES=${USE_XERCES} -L../src/ ${LIBS} -o $(BINARY)
 
 clean:
-	rm -f library_test
+	rm -f $(BINARY)
+
+test:	all
+	./$(BINARY)
+	
+.PHONY: clean test

@@ -92,14 +92,14 @@ XERCES_LDFLAGS := -L$(XERCES_LIB) -lxerces-c
 # Targets
 ##########################################
 
+all: ${BINARY} lib parserlib
+
 $(BINARY): ${XMLPARSEROBJECTS} ${COREOBJECTS}
 	$(CXX) $(LDFLAGS) -o $@ $^ $(XERCES_LDFLAGS)
 
 # From .cpp to .o. Dependency files are generated here
 %.o: %.cc
 	$(CXX) ${CXXFLAGS} -MMD -MF $(subst .o,.d,$@) -iquote src -o $@ -c $<
-
-all: ${BINARY}
 
 lib: ${COREOBJECTS} ${LIBOBJECTS}
 	ar -cvr src/libdrampower.a ${COREOBJECTS} ${LIBOBJECTS}
@@ -109,11 +109,16 @@ parserlib: ${XMLPARSEROBJECTS}
 
 clean:
 	$(RM) $(ALLOBJECTS) $(DEPENDENCIES) $(BINARY) $(LIBS)
+	$(MAKE) -C testing_library clean
 
 pretty:
 	uncrustify -c src/uncrustify.cfg $(ALLSOURCES) --no-backup
 	uncrustify -c src/uncrustify.cfg $(ALLHEADERS) --no-backup
+	
+test: all
+	$(MAKE) -C testing_library; \
+	$(MAKE) -C testing_library test
 
-.PHONY: clean pretty
+.PHONY: clean pretty test
 
 -include $(DEPENDENCIES)
