@@ -95,7 +95,7 @@ int MemCommand::getPrechargeOffset(const MemorySpecification& memSpec,
 
   // Read with auto-precharge
   if (type == MemCommand::RDA) {
-    if (memSpec.memoryType == MemorySpecification::DDR2)
+    if (memSpec.memoryType == MemoryType::DDR2)
       precharge_offset = AL + BL / dataRate + max(RTP, 2) - 2;
     else
       precharge_offset = RTP;

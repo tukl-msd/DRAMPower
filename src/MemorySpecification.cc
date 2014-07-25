@@ -43,8 +43,6 @@ using namespace Data;
 // Set variable values from XML
 void MemorySpecification::processParameters()
 {
-  setVarFromParam(&id,               "memoryId");
-  string memoryTypeString;
-  setVarFromParam(&memoryTypeString, "memoryType");
-  memoryType = getMemoryTypeFromName(memoryTypeString);
+  setVarFromParam(&id,"memoryId");
+  setVarFromParam(&memoryType, "memoryType");
 }

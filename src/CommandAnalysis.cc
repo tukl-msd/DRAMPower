@@ -495,10 +495,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                                memSpec.memTimingSpec.XP - memSpec.memTimingSpec.RCD);
       } else if (mem_state == CommandAnalysis::MS_PDN_S_ACT) {
         s_act_pdcycles += max(zero, timestamp - pdn_cycle);
-        if ((memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR"))
-            || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR2"))
-            || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR3"))
-            || (memSpec.memoryType == memSpec.getMemoryTypeFromName("WIDEIO_SDR"))) {
+        if (memSpec.memoryType.isLPDDRFamily()) {
           pup_act_cycles  += memSpec.memTimingSpec.XP;
           latest_act_cycle = max(timestamp, timestamp +
                                  memSpec.memTimingSpec.XP - memSpec.memTimingSpec.RCD);
@@ -530,10 +527,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                                memSpec.memTimingSpec.XP - memSpec.memTimingSpec.RP);
       } else if (mem_state == CommandAnalysis::MS_PDN_S_PRE) {
         s_pre_pdcycles += max(zero, timestamp - pdn_cycle);
-        if ((memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR"))
-            || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR2"))
-            || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR3"))
-            || (memSpec.memoryType == memSpec.getMemoryTypeFromName("WIDEIO_SDR"))) {
+        if (memSpec.memoryType.isLPDDRFamily()) {
           pup_pre_cycles  += memSpec.memTimingSpec.XP;
           latest_pre_cycle = max(timestamp, timestamp +
                                  memSpec.memTimingSpec.XP - memSpec.memTimingSpec.RP);
@@ -582,10 +576,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                                memSpec.memTimingSpec.RP;
         sref_ref_pre_cycles += memSpec.memTimingSpec.RP;
         last_pre_cycle       = timestamp;
-        if ((memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR"))
-            || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR2"))
-            || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR3"))
-            || (memSpec.memoryType == memSpec.getMemoryTypeFromName("WIDEIO_SDR"))) {
+        if (memSpec.memoryType.isLPDDRFamily()) {
           spup_cycles     += memSpec.memTimingSpec.XS;
           latest_pre_cycle = max(timestamp, timestamp +
                                  memSpec.memTimingSpec.XS - memSpec.memTimingSpec.RP);
@@ -608,11 +599,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
           sref_ref_pre_cycles += sref_pre;
           spup_ref_pre_cycles += spup_pre;
           last_pre_cycle       = timestamp + spup_pre;
-          if ((memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR"))
-              || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR2"))
-              || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR3"))
-              || (memSpec.memoryType ==
-                  memSpec.getMemoryTypeFromName("WIDEIO_SDR"))) {
+          if (memSpec.memoryType.isLPDDRFamily()) {
             spup_cycles     += memSpec.memTimingSpec.XS - spup_pre;
             latest_pre_cycle = max(timestamp, timestamp +
                                    memSpec.memTimingSpec.XS - spup_pre -
@@ -629,11 +616,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
           spup_ref_act_cycles += spup_act;
           spup_ref_pre_cycles += memSpec.memTimingSpec.RP;
           last_pre_cycle       = timestamp + spup_act + memSpec.memTimingSpec.RP;
-          if ((memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR"))
-              || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR2"))
-              || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR3"))
-              || (memSpec.memoryType ==
-                  memSpec.getMemoryTypeFromName("WIDEIO_SDR"))) {
+          if (memSpec.memoryType.isLPDDRFamily()) {
             spup_cycles     += memSpec.memTimingSpec.XS - spup_act -
                                memSpec.memTimingSpec.RP;
             latest_pre_cycle = max(timestamp, timestamp +

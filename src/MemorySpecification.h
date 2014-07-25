@@ -39,50 +39,84 @@
 #define TOOLS_MEMORY_SPECIFICATION_H
 
 #include <cassert>
+#include <string>
 
 #include "MemArchitectureSpec.h"
 #include "MemTimingSpec.h"
 #include "MemPowerSpec.h"
 #include "Parametrisable.h"
 
+
 namespace Data {
-class MemorySpecification : public virtual Parametrisable {
+// Supported memory types
+class MemoryType {
  public:
-  // Supported memory types
-  enum MemoryType {
-    DDR2,
+  enum MemoryType_t {
+    DDR2 = 0,
     DDR3,
     DDR4,
     LPDDR,
     LPDDR2,
     LPDDR3,
-    WIDEIO_SDR
+    WIDEIO_SDR,
+    MEMORY_TYPE_INVALID
   };
 
-  static const unsigned int nMemoryTypes = 7;
-
-  static std::string* getMemoryTypeStrings()
+  MemoryType(MemoryType_t _val) :
+    val(_val)
   {
-    static std::string type_map[nMemoryTypes] = { "DDR2",   "DDR3",   "DDR4", "LPDDR",
-                                                  "LPDDR2", "LPDDR3", "WIDEIO_SDR" };
-
-    return type_map;
   }
 
-  // To identify memory type from name
-  static MemoryType getMemoryTypeFromName(const std::string& name)
+  MemoryType() :
+    val(MEMORY_TYPE_INVALID)
   {
-    std::string* typeStrings = getMemoryTypeStrings();
+  }
 
-    for (size_t typeId = 0; typeId < nMemoryTypes; typeId++) {
-      if (typeStrings[typeId] == name) {
-        MemoryType memoryType = static_cast<MemoryType>(typeId);
-        return memoryType;
-      }
+  MemoryType(const std::string& _val) :
+    val(MEMORY_TYPE_INVALID)
+  {
+    if (_val == "DDR2") {
+      val == DDR2;
+    } else if (_val == "DDR3") {
+      val == DDR3;
+    } else if (_val == "DDR4") {
+      val == DDR4;
+    } else if (_val == "LPDDR") {
+      val == LPDDR;
+    } else if (_val == "LPDDR2") {
+      val == LPDDR2;
+    } else if (_val == "LPDDR3") {
+      val == LPDDR3;
+    } else if (_val == "WIDEIO_SDR") {
+      val == WIDEIO_SDR;
     }
-    assert(false); // Unknown name.
   }
 
+  bool isLPDDRFamily() const
+  {
+    return val == LPDDR ||
+           val == LPDDR2 ||
+           val == LPDDR3 ||
+           val == WIDEIO_SDR;
+  }
+
+  bool isDDRFamily() const
+  {
+    return val == DDR2 ||
+           val == DDR2 ||
+           val == DDR4;
+  }
+
+  operator MemoryType_t() const {
+    return val;
+  }
+
+ private:
+  MemoryType_t val;
+};
+
+class MemorySpecification : public virtual Parametrisable {
+ public:
   std::string id;
   MemoryType  memoryType;
 
@@ -94,5 +128,5 @@ class MemorySpecification : public virtual Parametrisable {
 
   static MemorySpecification getMemSpecFromXML(const std::string& id);
 };
-}
+}  // namespace Data
 #endif // ifndef TOOLS_MEMORY_SPECIFICATION_H

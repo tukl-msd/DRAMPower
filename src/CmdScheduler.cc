@@ -269,13 +269,13 @@ void cmdScheduler::analyticalScheduling(MemorySpecification memSpec)
 
     for (int i = 0; i < BI; i++) {
       for (int k = 0; k < BC; k++) {
-        if (memSpec.memoryType == MemorySpecification::DDR4) {
+        if (memSpec.memoryType == MemoryType::DDR4) {
           bankGroupPointer = PhysicalAddress.bankGroupAddr;
         }
 
         for (int j = 0; j < BGI; j++) {
           bankGroupSwitch = false;
-          if (memSpec.memoryType == MemorySpecification::DDR4) {
+          if (memSpec.memoryType == MemoryType::DDR4) {
             if (bankGroupPointer != bankGroupAddr) {
               bankGroupSwitch = true;
             }
@@ -305,8 +305,7 @@ void cmdScheduler::analyticalScheduling(MemorySpecification memSpec)
                                             ACT[bankaccess - 4].time +
                                             static_cast<int>(memTimingSpec.FAW));
 
-            if (memSpec.memoryType ==
-                memSpec.getMemoryTypeFromName("WIDEIO_SDR")) {
+            if (memSpec.memoryType == MemoryType::WIDEIO_SDR) {
               cmd.time = max(max(ACT[bankaccess - 1].time + tRRD_init,
                                  PRE[cmd.bank].time + static_cast<int>(memTimingSpec.RP)),
                              ACT[bankaccess - 2].time +
@@ -465,10 +464,7 @@ void cmdScheduler::pdScheduling(double endTime, double timer,
     else
       cmd.time = cmd.time + pdTime;
 
-    if ((memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR"))
-        || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR2"))
-        || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR3"))
-        || (memSpec.memoryType == memSpec.getMemoryTypeFromName("WIDEIO_SDR")))
+    if (memSpec.memoryType.isLPDDRFamily())
       startTime = cmd.time + memTimingSpec.XP;
     else
       startTime = cmd.time + memTimingSpec.XPDLL - memTimingSpec.RCD;
@@ -483,10 +479,7 @@ void cmdScheduler::pdScheduling(double endTime, double timer,
     cmd.name      = "SREX";
     cmd.time      = cmd.time + pdTime;
 
-    if ((memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR"))
-        || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR2"))
-        || (memSpec.memoryType == memSpec.getMemoryTypeFromName("LPDDR3"))
-        || (memSpec.memoryType == memSpec.getMemoryTypeFromName("WIDEIO_SDR")))
+    if (memSpec.memoryType.isLPDDRFamily())
       startTime = cmd.time + memTimingSpec.XS;
     else
       startTime = cmd.time + memTimingSpec.XSDLL - memTimingSpec.RCD;
@@ -505,38 +498,38 @@ int cmdScheduler::getRWTP(int transType, MemorySpecification memSpec)
 
   if (transType == READ) {
     switch (memSpec.memoryType) {
-    case MemorySpecification::LPDDR:
-    case MemorySpecification::WIDEIO_SDR:
+    case MemoryType::LPDDR:
+    case MemoryType::WIDEIO_SDR:
       tRWTP_init = memArchSpec.burstLength / memArchSpec.dataRate;
       break;
 
-    case MemorySpecification::LPDDR2:
-    case MemorySpecification::LPDDR3:
+    case MemoryType::LPDDR2:
+    case MemoryType::LPDDR3:
       tRWTP_init = memArchSpec.burstLength / memArchSpec.dataRate +
                    max(0, static_cast<int>(memTimingSpec.RTP - 2));
       break;
 
-    case MemorySpecification::DDR2:
+    case MemoryType::DDR2:
       tRWTP_init = memTimingSpec.AL + memArchSpec.burstLength /
                    memArchSpec.dataRate +
                    max(static_cast<int>(memTimingSpec.RTP), 2) - 2;
       break;
 
-    case MemorySpecification::DDR3:
-    case MemorySpecification::DDR4:
+    case MemoryType::DDR3:
+    case MemoryType::DDR4:
       tRWTP_init = memTimingSpec.RTP;
       break;
     } // switch
   } else if (transType == WRITE)    {
-    if (memSpec.memoryType == MemorySpecification::WIDEIO_SDR) {
+    if (memSpec.memoryType == MemoryType::WIDEIO_SDR) {
       tRWTP_init = memTimingSpec.WL + memArchSpec.burstLength /
                    memArchSpec.dataRate - 1 + memSpec.memTimingSpec.WR;
     } else   {
       tRWTP_init = memTimingSpec.WL + memArchSpec.burstLength /
                    memArchSpec.dataRate + memSpec.memTimingSpec.WR;
     }
-    if ((memSpec.memoryType == MemorySpecification::LPDDR2) ||
-        (memSpec.memoryType == MemorySpecification::LPDDR3)) {
+    if ((memSpec.memoryType == MemoryType::LPDDR2) ||
+        (memSpec.memoryType == MemoryType::LPDDR3)) {
       tRWTP_init = tRWTP_init + 1;
     }
   }
@@ -554,7 +547,7 @@ void cmdScheduler::getTimingConstraints(bool BGSwitch, MemorySpecification memSp
   MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
 
-  if (memSpec.memoryType != MemorySpecification::DDR4) {
+  if (memSpec.memoryType != MemoryType::DDR4) {
     tRRD_init = memTimingSpec.RRD;
     if (PreType == CurrentType) {
       tSwitch_init = memTimingSpec.CCD;
@@ -562,7 +555,7 @@ void cmdScheduler::getTimingConstraints(bool BGSwitch, MemorySpecification memSp
     }
 
     if ((PreType == WRITE) && (CurrentType == READ)) {
-      if (memSpec.memoryType == MemorySpecification::WIDEIO_SDR) {
+      if (memSpec.memoryType == MemoryType::WIDEIO_SDR) {
         tSwitch_init = memTimingSpec.WL + memArchSpec.burstLength /
                        memArchSpec.dataRate - 1 + memTimingSpec.WTR;
       } else   {
@@ -570,14 +563,14 @@ void cmdScheduler::getTimingConstraints(bool BGSwitch, MemorySpecification memSp
                        memArchSpec.dataRate + memTimingSpec.WTR;
       }
 
-      if ((memSpec.memoryType == MemorySpecification::LPDDR2) ||
-          (memSpec.memoryType == MemorySpecification::LPDDR3)) {
+      if ((memSpec.memoryType == MemoryType::LPDDR2) ||
+          (memSpec.memoryType == MemoryType::LPDDR3)) {
         tSwitch_init = tSwitch_init + 1;
       }
     }
   }
 
-  if (memSpec.memoryType == MemorySpecification::DDR4) {
+  if (memSpec.memoryType == MemoryType::DDR4) {
     if (BGSwitch) {
       tCCD_init = memTimingSpec.CCD_S;
       tRRD_init = memTimingSpec.RRD_S;
@@ -614,7 +607,7 @@ cmdScheduler::physicalAddr cmdScheduler::memoryMap(trans               Trans,
   DecLogic = Trans.logicalAddress;
 
   // row-bank-column-BI-BC-BGI-BL
-  if ((BGI > 1) && (memSpec.memoryType == MemorySpecification::DDR4)) {
+  if ((BGI > 1) && (memSpec.memoryType == MemoryType::DDR4)) {
     unsigned colBits   = static_cast<unsigned>(log2(nColumns));
     unsigned bankShift = static_cast<unsigned>(colBits + ((BI > 1) ? log2(BI) : 0)
                                                + ((BGI > 1) ? log2(BGI) : 0));
