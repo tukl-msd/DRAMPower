@@ -630,7 +630,4 @@ void MemoryPowerModel::io_term_power(MemorySpecification memSpec)
   } else if (memoryType == MemoryType::LPDDR3)    {
     power.IO_power = LPDDR3_Cap * power.IO_power;
   }
-  // } else if (memoryType == MemorySpecification::getMemoryTypeFromName("DDR"))    {
-  //   power.IO_power = 6.88; // in mW
-  // }
 } // MemoryPowerModel::io_term_power
