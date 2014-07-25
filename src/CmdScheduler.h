@@ -38,13 +38,11 @@
 #ifndef CMDSCHEDULER_H
 #define CMDSCHEDULER_H
 
-#include <iostream>
 #include <string>
 #include <vector>
+#include <functional>  // for binary_function<>
 #include <fstream>
-#include "sstream"
-#include <ctime>
-#include <fstream>
+
 #include "MemorySpecification.h"
 #include "Utils.h"
 

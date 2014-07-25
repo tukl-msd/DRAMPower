@@ -37,10 +37,6 @@
 
 #include "LibDRAMPower.h"
 
-#include <iostream>
-#include <string>
-
-using namespace std;
 using namespace Data;
 
 libDRAMPower::libDRAMPower(MemorySpecification memSpec, int grouping, int interleaving, int burst,

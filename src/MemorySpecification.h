@@ -38,6 +38,8 @@
 #ifndef TOOLS_MEMORY_SPECIFICATION_H
 #define TOOLS_MEMORY_SPECIFICATION_H
 
+#include <cassert>
+
 #include "MemArchitectureSpec.h"
 #include "MemTimingSpec.h"
 #include "MemPowerSpec.h"

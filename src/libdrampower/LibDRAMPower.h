@@ -38,6 +38,8 @@
 #ifndef LIB_DRAM_POWER_H
 #define LIB_DRAM_POWER_H
 
+#include <vector>
+
 #include "CommandAnalysis.h"
 #include "MemoryPowerModel.h"
 #include "MemCommand.h"

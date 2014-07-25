@@ -35,8 +35,11 @@
  *
  */
 
-#include "MemSpecParser.h"
-#include "XMLParser.h"
+#include "xmlparser/MemSpecParser.h"
+
+#include <iostream>
+
+#include "xmlparser/XMLParser.h"
 
 XERCES_CPP_NAMESPACE_USE
 

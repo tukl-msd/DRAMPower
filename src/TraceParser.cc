@@ -34,14 +34,10 @@
  * Authors: Omar Naji
  *
  */
-
-#include <fstream>
-#include <algorithm>
-#include <sstream>
+#include "TraceParser.h"
 
 #include "CommandAnalysis.h"
 #include "CmdScheduler.h"
-#include "TraceParser.h"
 
 using namespace Data;
 using namespace std;

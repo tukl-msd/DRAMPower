@@ -34,19 +34,13 @@
  * Authors: Karthik Chandrasekar
  *
  */
-
-#include <bitset>
-#include <algorithm>
 #include "CmdScheduler.h"
-#include "iostream"
-#include "iomanip"
-#include "sstream"
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
-#include "cstdlib"
-#include "assert.h"
-#include "string.h"
+
+#include <cassert>
+#include <cmath>  // For log2
+
+#include <algorithm>  // For max
+
 
 using namespace std;
 using namespace Data;
@@ -160,7 +154,7 @@ void cmdScheduler::getTrans(std::ifstream& trans_trace, MemorySpecification memS
         timestamp >> newtranstime;
         transTime = transTime + newtranstime;
       } else if (itemnum == 1) {
-        if ((strcmp(item.c_str(), "write") == 0) || (strcmp(item.c_str(), "WRITE") == 0)) {
+        if (item  == "write" || item == "WRITE") {
           transType = WRITE;
         } else   {
           transType = READ;

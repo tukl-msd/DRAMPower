@@ -38,10 +38,10 @@
 #ifndef MEMCOMMAND_H
 #define MEMCOMMAND_H
 
-#include "MemorySpecification.h"
-
+#include <cassert>
 #include <string>
-#include <vector>
+
+#include "MemorySpecification.h"
 
 namespace Data {
 class MemCommand {

@@ -34,22 +34,22 @@
  * Authors: Karthik Chandrasekar, Omar Naji
  *
  */
+#include <ctime>
+#include <cmath>
+
+#include <iostream>
 
 #include "MemorySpecification.h"
 #include "MemoryPowerModel.h"
-#include <iostream>
-#include <ctime>
-#include "CmdScheduler.h"
 #include "xmlparser/MemSpecParser.h"
 #include "TraceParser.h"
-#include <math.h>
 
 using namespace Data;
 using namespace std;
 
 void error()
 {
-  std::cout << "Correct Usage: \n./drampower -m <memory spec (ID)> "
+  cout << "Correct Usage: \n./drampower -m <memory spec (ID)> "
                "[-t] <transactions trace> [-c] <commands trace> [-i] "
                "<interleaving> [-g] <DDR4 bank group "
                "interleaving> [-s] <request size> [-r] "

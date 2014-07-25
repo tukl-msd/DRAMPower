@@ -36,6 +36,9 @@
  */
 
 #include "MemCommand.h"
+
+#include <algorithm>  // for max
+
 #include "MemorySpecification.h"
 
 using namespace Data;

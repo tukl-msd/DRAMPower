@@ -40,8 +40,8 @@
 
 #include <string>
 #include <sstream>
-#include <typeinfo>
 #include <stdexcept>
+#include <typeinfo>
 
 #define MILLION 1000000
 

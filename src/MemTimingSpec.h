@@ -35,8 +35,6 @@
  *
  */
 
-#include <iostream>
-
 #include "Parametrisable.h"
 
 namespace Data {

@@ -38,10 +38,10 @@
 #ifndef DATA_PARAMETRISABLE_H
 #define DATA_PARAMETRISABLE_H
 
-#include "Parameter.h"
-
+#include <string>
 #include <vector>
-#include <cassert>
+
+#include "Parameter.h"
 
 namespace Data {
 /**
