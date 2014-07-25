@@ -2,7 +2,7 @@
 
 <!ELEMENT parameter EMPTY>
 <!ATTLIST parameter id CDATA #REQUIRED>
-<!ATTLIST parameter type CDATA #REQUIRED>
+<!ATTLIST parameter type CDATA #IMPLIED>
 <!ATTLIST parameter value CDATA #REQUIRED>
 <!ATTLIST parameter unit CDATA #IMPLIED>
 

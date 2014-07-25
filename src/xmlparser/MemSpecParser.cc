@@ -63,7 +63,7 @@ void MemSpecParser::startElement(const string& name, const Attributes& attrs)
     parameterParent = &memorySpecification.memPowerSpec;
   } else if (name == "parameter")   {
     Parameter parameter(getValue("id", attrs),
-                        getValue("type",  attrs),
+                        hasValue("type", attrs) ? getValue("type", attrs) : "uint",
                         getValue("value", attrs));
     assert(parameterParent != NULL);
     parameterParent->pushParameter(parameter);
