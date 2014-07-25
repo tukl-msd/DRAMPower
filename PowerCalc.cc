@@ -38,6 +38,7 @@
 #include <cmath>
 
 #include <iostream>
+#include <fstream>
 
 #include "MemorySpecification.h"
 #include "MemoryPowerModel.h"

@@ -38,13 +38,8 @@
 #ifndef MEMORY_POWER_MODEL_H
 #define MEMORY_POWER_MODEL_H
 
-#include <vector>
-#include <deque>
 #include "MemorySpecification.h"
 #include "CommandAnalysis.h"
-#include <iostream>
-#include <fstream>
-#include <iomanip>
 
 namespace Data {
 class MemoryPowerModel {

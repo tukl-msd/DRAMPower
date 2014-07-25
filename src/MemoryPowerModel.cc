@@ -36,8 +36,8 @@
  */
 
 #include "MemoryPowerModel.h"
-#include "CmdScheduler.h"
-#include <math.h>
+
+#include <cmath>  // For pow
 
 using namespace std;
 using namespace Data;
