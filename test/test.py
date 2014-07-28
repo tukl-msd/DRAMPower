@@ -5,16 +5,16 @@ import os
 import fnmatch
 import tempfile
 
+devnull = None
+
 class TestBuild(unittest.TestCase):
     def test_make_wo_args_completes_returns_0(self):
         """ 'make -j4' should return 0 """
-        with open('/dev/null', 'w') as f:
-            self.assertEqual(subprocess.call(['make', '-f', 'Makefile', '-j4'], stdout = f), 0)
+        self.assertEqual(subprocess.call(['make', '-f', 'Makefile', '-j4'], stdout = devnull), 0)
 
 class TestUsingBuildResult(unittest.TestCase):
     def buildDRAMPower(self):
-        with open('/dev/null', 'w') as f:
-            self.assertEqual(subprocess.call(['make', '-f', 'Makefile', '-j4'], stdout = f), 0)
+        self.assertEqual(subprocess.call(['make', '-f', 'Makefile', '-j4'], stdout = devnull), 0)
         self.tempFileHandle, self.tempFileName = tempfile.mkstemp()
         os.close(self.tempFileHandle)
 
@@ -51,9 +51,8 @@ class TestLibDRAMPower(TestUsingBuildResult):
     testPath = 'test/libdrampowertest'
 
     def buildLibDRAMPowerExecutable(self, useXerces = True):
-        with open('/dev/null', 'w') as f:
-            xerces = 'USE_XERCES=%d' % (1 if useXerces else 0)
-            self.assertEqual(subprocess.call(['make', '-f', TestLibDRAMPower.testPath + '/Makefile', 'DRAMPOWER_PATH=.', xerces], stdout = f), 0)
+        xerces = 'USE_XERCES=%d' % (1 if useXerces else 0)
+        self.assertEqual(subprocess.call(['make', '-f', TestLibDRAMPower.testPath + '/Makefile', 'DRAMPOWER_PATH=.', xerces], stdout = devnull), 0)
 
     def test_libdrampower_with_xerces_test_builds(self):
         """ libdrampower-based executable build should return 0 """
@@ -77,8 +76,7 @@ class TestLibDRAMPower(TestUsingBuildResult):
 
 class TestClean(unittest.TestCase):
     def setUp(self):
-        with open('/dev/null', 'w') as f:
-            self.assertEqual(subprocess.call(['make', '-f', 'Makefile', 'clean'], stdout = f), 0)
+        self.assertEqual(subprocess.call(['make', '-f', 'Makefile', 'clean'], stdout = devnull), 0)
 
     def test_make_clean_removes_compiler_output(self):
         """ 'make clean' should remove all .o and .a and .d files """
@@ -90,4 +88,5 @@ class TestClean(unittest.TestCase):
         self.assertEqual(count, 0, msg = self.shortDescription())
 
 if __name__ == '__main__':
-    unittest.main()
+    with open(os.devnull, 'wb') as devnull:
+        unittest.main()
