@@ -43,8 +43,8 @@ LIBS := src/libdrampower.a src/libdrampowerxml.a
 # Identifies the source files and derives name of object files.
 CORESOURCES := PowerCalc.cc $(wildcard src/*.cc)
 XMLPARSERSOURCES := $(wildcard src/xmlparser/*.cc)
-LIBSOURCES := $(wildcard src/libdrampower/*.cc)
-ALLSOURCES := ${CORESOURCES} ${XMLPARSERSOURCES} ${LIBSOURCES}
+LIBSOURCES := $(wildcard src/*.cc src/libdrampower/*.cc)
+ALLSOURCES := PowerCalc.cc $(wildcard src/*.cc) $(wildcard src/xmlparser/*.cc) $(wildcard src/libdrampower/*.cc)
 ALLHEADERS := $(wildcard src/*.h) $(wildcard src/xmlparser/*.h) $(wildcard src/libdrampower/*.h)
 
 COREOBJECTS := ${CORESOURCES:.cc=.o}
@@ -101,8 +101,8 @@ $(BINARY): ${XMLPARSEROBJECTS} ${COREOBJECTS}
 %.o: %.cc
 	$(CXX) ${CXXFLAGS} -MMD -MF $(subst .o,.d,$@) -iquote src -o $@ -c $<
 
-lib: ${COREOBJECTS} ${LIBOBJECTS}
-	ar -cvr src/libdrampower.a ${COREOBJECTS} ${LIBOBJECTS}
+lib: ${LIBOBJECTS}
+	ar -cvr src/libdrampower.a ${LIBOBJECTS}
 
 parserlib: ${XMLPARSEROBJECTS}
 	ar -cvr src/libdrampowerxml.a ${XMLPARSEROBJECTS}
