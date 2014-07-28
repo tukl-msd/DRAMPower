@@ -76,20 +76,21 @@ class MemoryType {
     val(MEMORY_TYPE_INVALID)
   {
     if (_val == "DDR2") {
-      val == DDR2;
+      val = DDR2;
     } else if (_val == "DDR3") {
-      val == DDR3;
+      val = DDR3;
     } else if (_val == "DDR4") {
-      val == DDR4;
+      val = DDR4;
     } else if (_val == "LPDDR") {
-      val == LPDDR;
+      val = LPDDR;
     } else if (_val == "LPDDR2") {
-      val == LPDDR2;
+      val = LPDDR2;
     } else if (_val == "LPDDR3") {
-      val == LPDDR3;
+      val = LPDDR3;
     } else if (_val == "WIDEIO_SDR") {
-      val == WIDEIO_SDR;
+      val = WIDEIO_SDR;
     }
+    assert("Unknown memory type." && val != MEMORY_TYPE_INVALID);
   }
 
   bool isLPDDRFamily() const
