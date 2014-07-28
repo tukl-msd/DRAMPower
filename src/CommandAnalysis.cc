@@ -31,7 +31,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji
+ * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Sven Goossens
  *
  */
 
@@ -53,9 +53,6 @@ CommandAnalysis::CommandAnalysis(const int                 nbrofBanks,
                                  Data::MemorySpecification memSpec)
 {
   // Initializing all counters and variables
-
-  nCommands           = 0;
-  nCached             = 0;
 
   numberofacts        = 0;
   numberofpres        = 0;
@@ -110,9 +107,9 @@ CommandAnalysis::CommandAnalysis(const int                 nbrofBanks,
   type       = 0;
   bank       = 0;
   timestamp  = 0;
-  cmd_list.resize(1, MemCommand::PRE);
+  cmd_list.clear();
   full_cmd_list.resize(1, MemCommand::PRE);
-  cached_cmd.resize(1, MemCommand::PRE);
+  cached_cmd.clear();
   activation_cycle.resize(nbrofBanks, 0);
 }
 
@@ -134,42 +131,32 @@ void CommandAnalysis::clear()
 void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
                                   const int nbrofBanks, std::vector<MemCommand>& list, bool lastupdate)
 {
-  // std::vector<double> activation_cycle(nbrofBanks, 0);
-  for (int i = 0; i < static_cast<int>(list.size()); i++) {
-    cmd_list.resize(cmd_list.size() + 1, MemCommand::PRE);
-    cmd_list[i] = list[i];
-    if (cmd_list[nCommands].getType() == MemCommand::ACT) {
-      activation_cycle[cmd_list[nCommands].getBank()] =
-        cmd_list[nCommands].getTime();
-    } else if (cmd_list[nCommands].getType() == MemCommand::RDA) {
-      cmd_list[nCommands].setType(MemCommand::RD);
-      cached_cmd.resize(cached_cmd.size() + 1, MemCommand::PRE);
-      cached_cmd[nCached].setType(MemCommand::PRE);
-      cached_cmd[nCached].setTime(max(cmd_list[nCommands].getTime() +
-                                      cmd_list[nCommands].getPrechargeOffset(memSpec, MemCommand::RDA),
-                                      activation_cycle[cmd_list[nCommands].getBank()] +
-                                      memSpec.memTimingSpec.RAS));
-      cached_cmd[nCached].setBank(cmd_list[nCommands].getBank());
-      nCached++;
-    } else if (cmd_list[nCommands].getType() == MemCommand::WRA) {
-      cmd_list[nCommands].setType(MemCommand::WR);
-      cached_cmd.resize(cached_cmd.size() + 1, MemCommand::PRE);
-      cached_cmd[nCached].setType(MemCommand::PRE);
-      cached_cmd[nCached].setTime(max(cmd_list[nCommands].getTime() +
-                                      cmd_list[nCommands].getPrechargeOffset(memSpec, MemCommand::WRA),
-                                      activation_cycle[cmd_list[nCommands].getBank()] +
-                                      memSpec.memTimingSpec.RAS));
-      cached_cmd[nCached].setBank(cmd_list[nCommands].getBank());
-      nCached++;
+  for (vector<MemCommand>::const_iterator i = list.begin(); i != list.end(); ++i) {
+    const MemCommand& cmd = *i;
+    cmd_list.push_back(cmd);
+
+    MemCommand::cmds cmdType = cmd.getType();
+    if (cmdType == MemCommand::ACT) {
+      activation_cycle[cmd.getBank()] = cmd.getTime();
+    } else if (cmdType == MemCommand::RDA || cmdType == MemCommand::WRA) {
+      // Remove auto-precharge flag from command
+      cmd_list.back().setType(cmd.typeWithoutAutoPrechargeFlag());
+
+      // Add the auto precharge to the list of cached_cmds
+      double preTime = max(cmd.getTime() + cmd.getPrechargeOffset(memSpec, cmdType),
+                           activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.RAS);
+      cached_cmd.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), preTime));
     }
-    nCommands++;
   }
-  pop       = 0;
-  analyse_commands(nbrofBanks, memSpec, nCommands, nCached, lastupdate);
-  nCommands = 0;
-  nCached   = 0;
-  cmd_list.resize(1, MemCommand::PRE);
-  cached_cmd.resize(1, MemCommand::PRE);
+  pop = 0;
+  // Note: the extra pre-cmds at the end of the lists, and the cast to double
+  // of the size vector is probably not desirable.
+  cmd_list.push_back(MemCommand::PRE);
+  cached_cmd.push_back(MemCommand::PRE);
+  analyse_commands(nbrofBanks, memSpec, static_cast<double>(cmd_list.size()-1),
+                                        static_cast<double>(cached_cmd.size()-1), lastupdate);
+  cmd_list.clear();
+  cached_cmd.clear();
 } // CommandAnalysis::getCommands
 
 // Checks the auto-precharge cached command list and inserts the explicit

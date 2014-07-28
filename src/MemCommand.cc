@@ -82,7 +82,7 @@ unsigned MemCommand::getBank() const
 
 // For auto-precharge with read or write - to calculate cycle of precharge
 int MemCommand::getPrechargeOffset(const MemorySpecification& memSpec,
-                                   MemCommand::cmds           type)
+                                   MemCommand::cmds           type) const
 {
   int precharge_offset = 0;
 
@@ -114,4 +114,14 @@ void MemCommand::setTime(double _timestamp)
 double MemCommand::getTime() const
 {
   return timestamp;
+}
+
+MemCommand::cmds MemCommand::typeWithoutAutoPrechargeFlag() const
+{
+  if (type == MemCommand::RDA) {
+    return MemCommand::RD;
+  } else if (type == MemCommand::WRA) {
+    return MemCommand::WR;
+  }
+  return type;
 }

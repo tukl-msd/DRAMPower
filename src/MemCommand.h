@@ -115,9 +115,11 @@ class MemCommand {
   // Get timestamp
   double getTime() const;
 
+  cmds typeWithoutAutoPrechargeFlag() const;
+
   // To calculate precharge offset after read or write with auto-precharge
   int getPrechargeOffset(const MemorySpecification& memSpec,
-                         MemCommand::cmds           type);
+                         MemCommand::cmds           type) const;
 
   // To check for equivalence
 

@@ -176,12 +176,6 @@ class CommandAnalysis {
   // Clock cycle of last precharge command when memory state changes to PRE
   double last_pre_cycle;
 
-  // Data structures to list explicit commands
-  unsigned nCommands;
-
-  // Data structure to keep track of auto-precharges
-  unsigned nCached;
-
   // function for clearing arrays
   void clear();
 
