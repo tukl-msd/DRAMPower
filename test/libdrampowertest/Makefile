@@ -33,10 +33,12 @@
 # Authors: Matthias Jung, Omar Naji
 #
 
+DRAMPOWER_PATH ?= ../..
+MYPATH := ${DRAMPOWER_PATH}/test/libdrampowertest
 USE_XERCES ?= 1
 
 # Name of the generated binary.
-BINARY := library_test
+BINARY := ${MYPATH}/library_test
 
 ifeq ($(USE_XERCES),1)
 	LIBS := -lxerces-c -ldrampowerxml -ldrampower
@@ -45,12 +47,12 @@ else
 endif
 
 all:
-	g++ lib_test.cc -iquote ../src -DUSE_XERCES=${USE_XERCES} -L../src/ ${LIBS} -o $(BINARY)
+	g++ ${MYPATH}/lib_test.cc -iquote ${DRAMPOWER_PATH}/src -DUSE_XERCES=${USE_XERCES} -L${DRAMPOWER_PATH}/src/ ${LIBS} -o $(BINARY)
 
 clean:
 	rm -f $(BINARY)
 
-test:	all
-	./$(BINARY)
+test: all
+	./$(BINARY) ${DRAMPOWER_PATH}/memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml
 
 .PHONY: clean test

@@ -2,3 +2,4 @@ drampower
 *.d
 *.o
 *.a
+test/libdrampowertest/library_test

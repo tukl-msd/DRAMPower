@@ -43,12 +43,13 @@
 using namespace std;
 using namespace Data;
 
-int main(void)
+int main(int argc, char* argv[])
 {
+        assert(argc == 2);
         //Setup of DRAMPower for your simulation
         string filename;
         //type path to memspec file
-        filename = "../memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml";
+        filename = argv[1];
         //Parsing the Memspec specification of found in memspec folder
         #if USE_XERCES
             MemorySpecification memSpec(MemSpecParser::getMemSpecFromXML(filename));
