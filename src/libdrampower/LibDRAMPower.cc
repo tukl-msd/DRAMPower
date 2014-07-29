@@ -39,16 +39,11 @@
 
 using namespace Data;
 
-libDRAMPower::libDRAMPower(MemorySpecification memSpec, int grouping, int interleaving, int burst,
-                           int term, int powerdown)
+libDRAMPower::libDRAMPower(MemorySpecification memSpec, int term)
 {
   MemSpec      = memSpec;
-  Grouping     = grouping;
-  Interleaving = interleaving;
-  Burst        = burst;
   Term         = term;
-  Powerdown    = powerdown;
-  counters     = CommandAnalysis(memSpec.memArchSpec.nbrOfBanks, memSpec);
+  counters     = CommandAnalysis(memSpec.memArchSpec.nbrOfBanks);
 }
 
 libDRAMPower::~libDRAMPower()
@@ -71,5 +66,5 @@ void libDRAMPower::updateCounters(bool lastupdate)
 void libDRAMPower::getEnergy()
 {
   counters.clear();
-  mpm.power_calc(MemSpec, counters, Grouping, Interleaving, Burst, Term, Powerdown);
+  mpm.power_calc(MemSpec, counters, Term);
 }

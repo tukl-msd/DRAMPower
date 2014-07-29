@@ -49,8 +49,7 @@ CommandAnalysis::CommandAnalysis()
 {
 }
 
-CommandAnalysis::CommandAnalysis(const int                 nbrofBanks,
-                                 Data::MemorySpecification memSpec)
+CommandAnalysis::CommandAnalysis(const int nbrofBanks)
 {
   // Initializing all counters and variables
 

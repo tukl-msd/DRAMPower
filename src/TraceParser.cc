@@ -77,7 +77,7 @@ void TraceParser::parseFile(MemorySpecification memSpec, std::ifstream& trace,
 {
   ifstream pwr_trace;
 
-  counters = CommandAnalysis(memSpec.memArchSpec.nbrOfBanks, memSpec);
+  counters = CommandAnalysis(memSpec.memArchSpec.nbrOfBanks);
   int  nCommands  = 0;
   bool lastupdate = false;
   if (trans) {

@@ -45,16 +45,12 @@ using namespace Data;
 // Calculate energy and average power consumption for the given command trace
 
 void MemoryPowerModel::power_calc(MemorySpecification memSpec,
-                                  CommandAnalysis& counters, int grouping, int interleaving, int burst,
-                                  int term, int powerdown)
+                                  CommandAnalysis& counters,
+                                  int term)
 {
   MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
   MemPowerSpec&  memPowerSpec      = memSpec.memPowerSpec;
-  // creating timings
-  time_t startnow = time(0);
-  tm*    startpm  = localtime(&startnow);
-
   // create CommandAnalysis
   timings                    = counters;
 
@@ -327,7 +323,6 @@ void MemoryPowerModel::power_print(MemorySpecification memSpec, int term)
 {
   MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
-  MemPowerSpec&  memPowerSpec      = memSpec.memPowerSpec;
 
   cout.precision(0);
   cout << "* Trace Details:" << endl;

@@ -160,9 +160,9 @@ class MemCommand {
   }
 
  private:
-  double timestamp;
-  unsigned bank;
   MemCommand::cmds type;
+  unsigned bank;
+  double timestamp;
 };
 }
 #endif // ifndef MEMCOMMAND_H

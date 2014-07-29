@@ -519,6 +519,8 @@ int cmdScheduler::getRWTP(int transType, MemorySpecification memSpec)
     case MemoryType::DDR4:
       tRWTP_init = memTimingSpec.RTP;
       break;
+    default:
+      assert("Unknown memory type" && false);
     } // switch
   } else if (transType == WRITE)    {
     if (memSpec.memoryType == MemoryType::WIDEIO_SDR) {

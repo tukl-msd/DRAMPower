@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
         #else
             MemorySpecification memSpec;
         #endif
-        libDRAMPower test = libDRAMPower( memSpec, 1,1,1,0,0 );
+        libDRAMPower test = libDRAMPower(memSpec, 0);
         // During the simulation you can report activity
         // to DRAMPower with the doCommand(...) function:
         test.doCommand(MemCommand::ACT,0,35);

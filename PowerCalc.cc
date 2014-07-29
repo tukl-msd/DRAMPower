@@ -185,8 +185,7 @@ int main(int argc, char* argv[])
   const int CMD_ANALYSIS_WINDOW_SIZE = 1000000;
   TraceParser traceparser;
   traceparser.parseFile(memSpec, trace_file, CMD_ANALYSIS_WINDOW_SIZE, grouping, interleaving, burst, power_down, trans);
-  mpm.power_calc(memSpec, traceparser.counters, grouping, interleaving, burst,
-                 term, power_down);
+  mpm.power_calc(memSpec, traceparser.counters, term);
 
   mpm.power_print(memSpec, term);
   time_t end   = time(0);

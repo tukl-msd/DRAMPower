@@ -46,8 +46,7 @@
 
 class libDRAMPower {
  public:
-  libDRAMPower(Data::MemorySpecification memSpec, int grouping, int interleaving, int burst,
-               int term, int powerdown);
+  libDRAMPower(Data::MemorySpecification memSpec, int term);
   ~libDRAMPower();
 
   void doCommand(Data::MemCommand::cmds type,
@@ -69,11 +68,7 @@ class libDRAMPower {
   std::vector<Data::MemCommand> list;
   Data::MemorySpecification MemSpec;
   Data::CommandAnalysis counters;
-  int Grouping;
-  int Interleaving;
-  int Burst;
   int Term;
-  int Powerdown;
 };
 
 #endif // ifndef LIB_DRAM_POWER_H

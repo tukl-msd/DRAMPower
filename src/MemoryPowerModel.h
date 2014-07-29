@@ -48,11 +48,7 @@ class MemoryPowerModel {
   // command trace
   void power_calc(MemorySpecification memSpec,
                   CommandAnalysis&    counters,
-                  int                 grouping,
-                  int                 interleaving,
-                  int                 burst,
-                  int                 term,
-                  int                 powerdown);
+                  int                 term);
 
   // Used to calculate activation power
   static double engy_act(double idd3n,

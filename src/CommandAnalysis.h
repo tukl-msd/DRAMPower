@@ -58,8 +58,7 @@ class CommandAnalysis {
   CommandAnalysis();
 
   // Returns number of reads, writes, acts, pres and refs in the trace
-  CommandAnalysis(const int                 nbrofBanks,
-                  Data::MemorySpecification memSpec);
+  CommandAnalysis(const int nbrofBanks);
 
   unsigned init;
   double   zero;

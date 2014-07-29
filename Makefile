@@ -71,7 +71,7 @@ DBGCXXFLAGS = -g
 # Common warning flags shared by both C and C++.
 WARNFLAGS := -W -pedantic-errors -Wextra -Werror \
              -Wformat -Wformat-nonliteral -Wpointer-arith \
-             -Wcast-align -Wconversion #-Wall
+             -Wcast-align -Wconversion -Wall
 
 # Sum up the flags.
 CXXFLAGS := -O ${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++98
