@@ -15,11 +15,11 @@ class TestBuild(unittest.TestCase):
 class TestUsingBuildResult(unittest.TestCase):
     def buildDRAMPower(self):
         self.assertEqual(subprocess.call(['make', '-f', 'Makefile', '-j4'], stdout = devnull), 0)
-        self.tempFileHandle, self.tempFileName = tempfile.mkstemp()
-        os.close(self.tempFileHandle)
 
     def setUp(self):
         self.buildDRAMPower()
+        self.tempFileHandle, self.tempFileName = tempfile.mkstemp()
+        os.close(self.tempFileHandle)
 
     def getFilteredOutput(self, fName):
         with open(fName, 'r') as f:
