@@ -71,7 +71,7 @@ DBGCXXFLAGS = -g
 # Common warning flags shared by both C and C++.
 WARNFLAGS := -W -pedantic-errors -Wextra -Werror \
              -Wformat -Wformat-nonliteral -Wpointer-arith \
-             -Wcast-align -Wconversion -Wall
+             -Wcast-align -Wconversion -Wall -Werror
 
 # Sum up the flags.
 CXXFLAGS := -O ${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++98
@@ -95,7 +95,7 @@ XERCES_LDFLAGS := -L$(XERCES_LIB) -lxerces-c
 all: ${BINARY} lib parserlib
 
 $(BINARY): ${XMLPARSEROBJECTS} ${COREOBJECTS}
-	$(CXX) $(LDFLAGS) -o $@ $^ $(XERCES_LDFLAGS)
+	$(CXX) ${CXXFLAGS} $(LDFLAGS) -o $@ $^ $(XERCES_LDFLAGS)
 
 # From .cpp to .o. Dependency files are generated here
 %.o: %.cc
