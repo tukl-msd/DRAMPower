@@ -45,14 +45,14 @@ using namespace Data;
 // Calculate energy and average power consumption for the given command trace
 
 void MemoryPowerModel::power_calc(MemorySpecification memSpec,
-                                  CommandAnalysis& counters,
+                                  const CommandAnalysis& timings,
                                   int term)
 {
   MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
   MemPowerSpec&  memPowerSpec      = memSpec.memPowerSpec;
   // create CommandAnalysis
-  timings                    = counters;
+  //timings                    = counters;
 
   energy.act_energy          = 0.0;
   energy.pre_energy          = 0.0;
@@ -319,7 +319,7 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
   power.average_power = energy.total_energy / (total_cycles * memTimingSpec.clkPeriod);
 } // MemoryPowerModel::power_calc
 
-void MemoryPowerModel::power_print(MemorySpecification memSpec, int term)
+void MemoryPowerModel::power_print(MemorySpecification memSpec, int term, const CommandAnalysis& timings) const
 {
   MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;

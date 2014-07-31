@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
   traceparser.parseFile(memSpec, trace_file, CMD_ANALYSIS_WINDOW_SIZE, grouping, interleaving, burst, power_down, trans);
   mpm.power_calc(memSpec, traceparser.counters, term);
 
-  mpm.power_print(memSpec, term);
+  mpm.power_print(memSpec, term, traceparser.counters);
   time_t end   = time(0);
   tm*    endtm = localtime(&end);
   cout << "* Power Computation End time: " << asctime(endtm);
