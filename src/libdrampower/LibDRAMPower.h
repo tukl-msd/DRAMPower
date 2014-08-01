@@ -54,7 +54,6 @@ class libDRAMPower {
                  int                    bank,
                  int64_t                timestamp);
 
-  // to be implemented
   void updateCounters(bool lastUpdate);
 
   void clearState();

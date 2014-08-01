@@ -219,14 +219,13 @@ class MemoryPowerModel {
   // Print the power and energy
   void power_print(MemorySpecification memSpec,
                    int                 term,
-                   const CommandAnalysis& timings) const;
+                   const CommandAnalysis& counters) const;
 
   // To derive IO and Termination Power measures using DRAM specification
   void io_term_power(MemorySpecification memSpec);
 
   Energy energy;
   Power  power;
-  //CommandAnalysis timings;
 };
 }
 #endif // ifndef MEMORY_POWER_MODEL_H

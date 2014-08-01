@@ -45,14 +45,12 @@ using namespace Data;
 // Calculate energy and average power consumption for the given command trace
 
 void MemoryPowerModel::power_calc(MemorySpecification memSpec,
-                                  const CommandAnalysis& timings,
+                                  const CommandAnalysis& counters,
                                   int term)
 {
   MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
   MemPowerSpec&  memPowerSpec      = memSpec.memPowerSpec;
-  // create CommandAnalysis
-  //timings                    = counters;
 
   energy.act_energy          = 0.0;
   energy.pre_energy          = 0.0;
@@ -95,14 +93,14 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
     // Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
     // Width represents data pins
     // 1 DQS pin is associated with every data byte
-    energy.read_io_energy = (power.IO_power * static_cast<double>(timings.numberofreads) * memArchSpec.burstLength
+    energy.read_io_energy = (power.IO_power * static_cast<double>(counters.numberofreads) * memArchSpec.burstLength
                              * (memArchSpec.width + memArchSpec.width / 8));
 
     // Write ODT power is consumed by each DQ (data), DQS (data strobe) and DM
     // (data mask) pin.
     // Width represents data pins
     // 1 DQS and 1 DM pin is associated with every data byte
-    energy.write_term_energy = (power.WR_ODT_power * static_cast<double>(timings.numberofwrites) *
+    energy.write_term_energy = (power.WR_ODT_power * static_cast<double>(counters.numberofwrites) *
                                 memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width / 4));
 
     if (memArchSpec.nbrOfRanks > 1) {
@@ -110,14 +108,14 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
       // rank by each DQ (data) and DQS (data strobe) pin.
       // Width represents data pins
       // 1 DQS pin is associated with every data byte
-      energy.read_oterm_energy = (power.TermRD_power * static_cast<double>(timings.numberofreads) *
+      energy.read_oterm_energy = (power.TermRD_power * static_cast<double>(counters.numberofreads) *
                                   memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width / 8));
 
       // Termination power consumed in the idle rank during writes on the active
       // rank by each DQ (data), DQS (data strobe) and DM (data mask) pin.
       // Width represents data pins
       // 1 DQS and 1 DM pin is associated with every data byte
-      energy.write_oterm_energy = (power.TermWR_power * static_cast<double>(timings.numberofwrites) *
+      energy.write_oterm_energy = (power.TermWR_power * static_cast<double>(counters.numberofwrites) *
                                    memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width / 4));
     }
 
@@ -129,175 +127,175 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
   MemoryType memoryType;
   memoryType   = memSpec.memoryType;
 
-  total_cycles = timings.actcycles + timings.precycles +
-                 timings.f_act_pdcycles + timings.f_pre_pdcycles +
-                 timings.s_act_pdcycles + timings.s_pre_pdcycles + timings.sref_cycles
-                 + timings.sref_ref_act_cycles + timings.sref_ref_pre_cycles +
-                 timings.spup_ref_act_cycles + timings.spup_ref_pre_cycles;
+  total_cycles = counters.actcycles + counters.precycles +
+                 counters.f_act_pdcycles + counters.f_pre_pdcycles +
+                 counters.s_act_pdcycles + counters.s_pre_pdcycles + counters.sref_cycles
+                 + counters.sref_ref_act_cycles + counters.sref_ref_pre_cycles +
+                 counters.spup_ref_act_cycles + counters.spup_ref_pre_cycles;
 
-  energy.act_energy = static_cast<double>(timings.numberofacts) * engy_act(memPowerSpec.idd3n,
+  energy.act_energy = static_cast<double>(counters.numberofacts) * engy_act(memPowerSpec.idd3n,
                                                       memPowerSpec.idd0, memPowerSpec.vdd, memTimingSpec.RAS,
                                                       memTimingSpec.clkPeriod);
 
-  energy.pre_energy = static_cast<double>(timings.numberofpres) * engy_pre(memPowerSpec.idd2n,
+  energy.pre_energy = static_cast<double>(counters.numberofpres) * engy_pre(memPowerSpec.idd2n,
                                                       memPowerSpec.idd0, memPowerSpec.vdd, memTimingSpec.RAS,
                                                       memTimingSpec.RC, memTimingSpec.clkPeriod);
 
-  energy.read_energy = static_cast<double>(timings.numberofreads) * engy_read_cmd(memPowerSpec.idd3n,
+  energy.read_energy = static_cast<double>(counters.numberofreads) * engy_read_cmd(memPowerSpec.idd3n,
                                                              memPowerSpec.idd4r, memPowerSpec.vdd, memArchSpec.burstLength /
                                                              memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-  energy.write_energy = static_cast<double>(timings.numberofwrites) * engy_write_cmd(memPowerSpec.idd3n,
+  energy.write_energy = static_cast<double>(counters.numberofwrites) * engy_write_cmd(memPowerSpec.idd3n,
                                                                 memPowerSpec.idd4w, memPowerSpec.vdd, memArchSpec.burstLength /
                                                                 memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-  energy.ref_energy = static_cast<double>(timings.numberofrefs) * engy_ref(memPowerSpec.idd3n,
+  energy.ref_energy = static_cast<double>(counters.numberofrefs) * engy_ref(memPowerSpec.idd3n,
                                                       memPowerSpec.idd5, memPowerSpec.vdd, memTimingSpec.RFC,
                                                       memTimingSpec.clkPeriod);
 
   energy.pre_stdby_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
-                                           static_cast<double>(timings.precycles), memTimingSpec.clkPeriod);
+                                           static_cast<double>(counters.precycles), memTimingSpec.clkPeriod);
 
   energy.act_stdby_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
-                                           static_cast<double>(timings.actcycles), memTimingSpec.clkPeriod);
+                                           static_cast<double>(counters.actcycles), memTimingSpec.clkPeriod);
 
   // Idle energy in the active standby clock cycles
   energy.idle_energy_act = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
-                                          static_cast<double>(timings.idlecycles_act), memTimingSpec.clkPeriod);
+                                          static_cast<double>(counters.idlecycles_act), memTimingSpec.clkPeriod);
 
   // Idle energy in the precharge standby clock cycles
   energy.idle_energy_pre = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
-                                          static_cast<double>(timings.idlecycles_pre), memTimingSpec.clkPeriod);
+                                          static_cast<double>(counters.idlecycles_pre), memTimingSpec.clkPeriod);
 
   // fast-exit active power-down cycles energy
   energy.f_act_pd_energy = engy_f_act_pd(memPowerSpec.idd3p1, memPowerSpec.vdd,
-                                         static_cast<double>(timings.f_act_pdcycles), memTimingSpec.clkPeriod);
+                                         static_cast<double>(counters.f_act_pdcycles), memTimingSpec.clkPeriod);
 
   // fast-exit precharged power-down cycles energy
   energy.f_pre_pd_energy = engy_f_pre_pd(memPowerSpec.idd2p1, memPowerSpec.vdd,
-                                         static_cast<double>(timings.f_pre_pdcycles), memTimingSpec.clkPeriod);
+                                         static_cast<double>(counters.f_pre_pdcycles), memTimingSpec.clkPeriod);
 
   // slow-exit active power-down cycles energy
   energy.s_act_pd_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
-                                         static_cast<double>(timings.s_act_pdcycles), memTimingSpec.clkPeriod);
+                                         static_cast<double>(counters.s_act_pdcycles), memTimingSpec.clkPeriod);
 
   // slow-exit precharged power-down cycles energy
   energy.s_pre_pd_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
-                                         static_cast<double>(timings.s_pre_pdcycles), memTimingSpec.clkPeriod);
+                                         static_cast<double>(counters.s_pre_pdcycles), memTimingSpec.clkPeriod);
 
   // self-refresh cycles energy including a refresh per self-refresh entry
   energy.sref_energy = engy_sref(memPowerSpec.idd6, memPowerSpec.idd3n,
                                  memPowerSpec.idd5, memPowerSpec.vdd,
-                                 static_cast<double>(timings.sref_cycles), static_cast<double>(timings.sref_ref_act_cycles),
-                                 static_cast<double>(timings.sref_ref_pre_cycles), static_cast<double>(timings.spup_ref_act_cycles),
-                                 static_cast<double>(timings.spup_ref_pre_cycles), memTimingSpec.clkPeriod);
+                                 static_cast<double>(counters.sref_cycles), static_cast<double>(counters.sref_ref_act_cycles),
+                                 static_cast<double>(counters.sref_ref_pre_cycles), static_cast<double>(counters.spup_ref_act_cycles),
+                                 static_cast<double>(counters.spup_ref_pre_cycles), memTimingSpec.clkPeriod);
 
   // background energy during active auto-refresh cycles in self-refresh
   energy.sref_ref_act_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
-                                             static_cast<double>(timings.sref_ref_act_cycles), memTimingSpec.clkPeriod);
+                                             static_cast<double>(counters.sref_ref_act_cycles), memTimingSpec.clkPeriod);
 
   // background energy during precharged auto-refresh cycles in self-refresh
   energy.sref_ref_pre_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
-                                             static_cast<double>(timings.sref_ref_pre_cycles), memTimingSpec.clkPeriod);
+                                             static_cast<double>(counters.sref_ref_pre_cycles), memTimingSpec.clkPeriod);
 
   // background energy during active auto-refresh cycles in self-refresh exit
   energy.spup_ref_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
-                                              static_cast<double>(timings.spup_ref_act_cycles), memTimingSpec.clkPeriod);
+                                              static_cast<double>(counters.spup_ref_act_cycles), memTimingSpec.clkPeriod);
 
   // background energy during precharged auto-refresh cycles in self-refresh exit
   energy.spup_ref_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
-                                              static_cast<double>(timings.spup_ref_pre_cycles), memTimingSpec.clkPeriod);
+                                              static_cast<double>(counters.spup_ref_pre_cycles), memTimingSpec.clkPeriod);
 
   // self-refresh power-up cycles energy -- included
   energy.spup_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
-                                      static_cast<double>(timings.spup_cycles), memTimingSpec.clkPeriod);
+                                      static_cast<double>(counters.spup_cycles), memTimingSpec.clkPeriod);
 
   // active power-up cycles energy - same as active standby -- included
   energy.pup_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
-                                         static_cast<double>(timings.pup_act_cycles), memTimingSpec.clkPeriod);
+                                         static_cast<double>(counters.pup_act_cycles), memTimingSpec.clkPeriod);
 
   // precharged power-up cycles energy - same as precharged standby -- included
   energy.pup_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
-                                         static_cast<double>(timings.pup_pre_cycles), memTimingSpec.clkPeriod);
+                                         static_cast<double>(counters.pup_pre_cycles), memTimingSpec.clkPeriod);
 
   // similar equations as before to support multiple voltage domains in LPDDR2
   // and WIDEIO memories
   if (memoryType.isLPDDRFamily()) {
-    energy.act_energy += static_cast<double>(timings.numberofacts) * engy_act(memPowerSpec.idd3n2,
+    energy.act_energy += static_cast<double>(counters.numberofacts) * engy_act(memPowerSpec.idd3n2,
                                                          memPowerSpec.idd02, memPowerSpec.vdd2, memTimingSpec.RAS,
                                                          memTimingSpec.clkPeriod);
 
-    energy.pre_energy += static_cast<double>(timings.numberofpres) * engy_pre(memPowerSpec.idd2n2,
+    energy.pre_energy += static_cast<double>(counters.numberofpres) * engy_pre(memPowerSpec.idd2n2,
                                                          memPowerSpec.idd02, memPowerSpec.vdd2, memTimingSpec.RAS,
                                                          memTimingSpec.RC, memTimingSpec.clkPeriod);
 
-    energy.read_energy += static_cast<double>(timings.numberofreads) * engy_read_cmd(memPowerSpec.idd3n2,
+    energy.read_energy += static_cast<double>(counters.numberofreads) * engy_read_cmd(memPowerSpec.idd3n2,
                                                                 memPowerSpec.idd4r2, memPowerSpec.vdd2, memArchSpec.burstLength /
                                                                 memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-    energy.write_energy += static_cast<double>(timings.numberofwrites) *
+    energy.write_energy += static_cast<double>(counters.numberofwrites) *
                            engy_write_cmd(memPowerSpec.idd3n2, memPowerSpec.idd4w2,
                                           memPowerSpec.vdd2, memArchSpec.burstLength /
                                           memArchSpec.dataRate, memTimingSpec.clkPeriod);
 
-    energy.ref_energy += static_cast<double>(timings.numberofrefs) * engy_ref(memPowerSpec.idd3n2,
+    energy.ref_energy += static_cast<double>(counters.numberofrefs) * engy_ref(memPowerSpec.idd3n2,
                                                          memPowerSpec.idd52, memPowerSpec.vdd2, memTimingSpec.RFC,
                                                          memTimingSpec.clkPeriod);
 
     energy.pre_stdby_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
-                                              static_cast<double>(timings.precycles), memTimingSpec.clkPeriod);
+                                              static_cast<double>(counters.precycles), memTimingSpec.clkPeriod);
 
     energy.act_stdby_energy += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
-                                              static_cast<double>(timings.actcycles), memTimingSpec.clkPeriod);
+                                              static_cast<double>(counters.actcycles), memTimingSpec.clkPeriod);
 
     energy.idle_energy_act  += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
-                                              static_cast<double>(timings.idlecycles_act), memTimingSpec.clkPeriod);
+                                              static_cast<double>(counters.idlecycles_act), memTimingSpec.clkPeriod);
 
     energy.idle_energy_pre  += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
-                                              static_cast<double>(timings.idlecycles_pre), memTimingSpec.clkPeriod);
+                                              static_cast<double>(counters.idlecycles_pre), memTimingSpec.clkPeriod);
 
     energy.f_act_pd_energy  += engy_f_act_pd(memPowerSpec.idd3p12, memPowerSpec.vdd2,
-                                             static_cast<double>(timings.f_act_pdcycles), memTimingSpec.clkPeriod);
+                                             static_cast<double>(counters.f_act_pdcycles), memTimingSpec.clkPeriod);
 
     energy.f_pre_pd_energy  += engy_f_pre_pd(memPowerSpec.idd2p12, memPowerSpec.vdd2,
-                                             static_cast<double>(timings.f_pre_pdcycles), memTimingSpec.clkPeriod);
+                                             static_cast<double>(counters.f_pre_pdcycles), memTimingSpec.clkPeriod);
 
     energy.s_act_pd_energy  += engy_s_act_pd(memPowerSpec.idd3p02, memPowerSpec.vdd2,
-                                             static_cast<double>(timings.s_act_pdcycles), memTimingSpec.clkPeriod);
+                                             static_cast<double>(counters.s_act_pdcycles), memTimingSpec.clkPeriod);
 
     energy.s_pre_pd_energy  += engy_s_pre_pd(memPowerSpec.idd2p02, memPowerSpec.vdd2,
-                                             static_cast<double>(timings.s_pre_pdcycles), memTimingSpec.clkPeriod);
+                                             static_cast<double>(counters.s_pre_pdcycles), memTimingSpec.clkPeriod);
 
     energy.sref_energy      += engy_sref(memPowerSpec.idd62, memPowerSpec.idd3n2,
                                          memPowerSpec.idd52, memPowerSpec.vdd2,
-                                         static_cast<double>(timings.sref_cycles), static_cast<double>(timings.sref_ref_act_cycles),
-                                         static_cast<double>(timings.sref_ref_pre_cycles), static_cast<double>(timings.spup_ref_act_cycles),
-                                         static_cast<double>(timings.spup_ref_pre_cycles), memTimingSpec.clkPeriod);
+                                         static_cast<double>(counters.sref_cycles), static_cast<double>(counters.sref_ref_act_cycles),
+                                         static_cast<double>(counters.sref_ref_pre_cycles), static_cast<double>(counters.spup_ref_act_cycles),
+                                         static_cast<double>(counters.spup_ref_pre_cycles), memTimingSpec.clkPeriod);
 
     energy.sref_ref_act_energy += engy_s_act_pd(memPowerSpec.idd3p02,
-                                                memPowerSpec.vdd2, static_cast<double>(timings.sref_ref_act_cycles),
+                                                memPowerSpec.vdd2, static_cast<double>(counters.sref_ref_act_cycles),
                                                 memTimingSpec.clkPeriod);
 
     energy.sref_ref_pre_energy += engy_s_pre_pd(memPowerSpec.idd2p02,
-                                                memPowerSpec.vdd2, static_cast<double>(timings.sref_ref_pre_cycles),
+                                                memPowerSpec.vdd2, static_cast<double>(counters.sref_ref_pre_cycles),
                                                 memTimingSpec.clkPeriod);
 
     energy.spup_ref_act_energy += engy_act_stdby(memPowerSpec.idd3n2,
-                                                 memPowerSpec.vdd2, static_cast<double>(timings.spup_ref_act_cycles),
+                                                 memPowerSpec.vdd2, static_cast<double>(counters.spup_ref_act_cycles),
                                                  memTimingSpec.clkPeriod);
 
     energy.spup_ref_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2,
-                                                 memPowerSpec.vdd2, static_cast<double>(timings.spup_ref_pre_cycles),
+                                                 memPowerSpec.vdd2, static_cast<double>(counters.spup_ref_pre_cycles),
                                                  memTimingSpec.clkPeriod);
 
     energy.spup_energy    += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
-                                            static_cast<double>(timings.spup_cycles), memTimingSpec.clkPeriod);
+                                            static_cast<double>(counters.spup_cycles), memTimingSpec.clkPeriod);
 
     energy.pup_act_energy += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
-                                            static_cast<double>(timings.pup_act_cycles), memTimingSpec.clkPeriod);
+                                            static_cast<double>(counters.pup_act_cycles), memTimingSpec.clkPeriod);
 
     energy.pup_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
-                                            static_cast<double>(timings.pup_pre_cycles), memTimingSpec.clkPeriod);
+                                            static_cast<double>(counters.pup_pre_cycles), memTimingSpec.clkPeriod);
   }
 
   // auto-refresh energy during self-refresh cycles
@@ -319,61 +317,61 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
   power.average_power = energy.total_energy / (static_cast<double>(total_cycles) * memTimingSpec.clkPeriod);
 } // MemoryPowerModel::power_calc
 
-void MemoryPowerModel::power_print(MemorySpecification memSpec, int term, const CommandAnalysis& timings) const
+void MemoryPowerModel::power_print(MemorySpecification memSpec, int term, const CommandAnalysis& counters) const
 {
   MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
 
   cout.precision(0);
   cout << "* Trace Details:" << endl;
-  cout << "Number of Activates: " << fixed << timings.numberofacts << endl;
-  cout << "Number of Reads: " << timings.numberofreads << endl;
-  cout << "Number of Writes: " << timings.numberofwrites << endl;
-  cout << "Number of Precharges: " << timings.numberofpres << endl;
-  cout << "Number of Refreshes: " << timings.numberofrefs << endl;
-  cout << "Number of Active Cycles: " << timings.actcycles << endl;
-  cout << "  Number of Active Idle Cycles: " << timings.idlecycles_act << endl;
-  cout << "  Number of Active Power-Up Cycles: " << timings.pup_act_cycles << endl;
+  cout << "Number of Activates: " << fixed << counters.numberofacts << endl;
+  cout << "Number of Reads: " << counters.numberofreads << endl;
+  cout << "Number of Writes: " << counters.numberofwrites << endl;
+  cout << "Number of Precharges: " << counters.numberofpres << endl;
+  cout << "Number of Refreshes: " << counters.numberofrefs << endl;
+  cout << "Number of Active Cycles: " << counters.actcycles << endl;
+  cout << "  Number of Active Idle Cycles: " << counters.idlecycles_act << endl;
+  cout << "  Number of Active Power-Up Cycles: " << counters.pup_act_cycles << endl;
   cout << "    Number of Auto-Refresh Active cycles during Self-Refresh " <<
-    "Power-Up: " << timings.spup_ref_act_cycles << endl;
-  cout << "Number of Precharged Cycles: " << timings.precycles << endl;
-  cout << "  Number of Precharged Idle Cycles: " << timings.idlecycles_pre << endl;
-  cout << "  Number of Precharged Power-Up Cycles: " << timings.pup_pre_cycles
+    "Power-Up: " << counters.spup_ref_act_cycles << endl;
+  cout << "Number of Precharged Cycles: " << counters.precycles << endl;
+  cout << "  Number of Precharged Idle Cycles: " << counters.idlecycles_pre << endl;
+  cout << "  Number of Precharged Power-Up Cycles: " << counters.pup_pre_cycles
        << endl;
   cout << "    Number of Auto-Refresh Precharged cycles during Self-Refresh"
-       << " Power-Up: " << timings.spup_ref_pre_cycles << endl;
-  cout << "  Number of Self-Refresh Power-Up Cycles: " << timings.spup_cycles
+       << " Power-Up: " << counters.spup_ref_pre_cycles << endl;
+  cout << "  Number of Self-Refresh Power-Up Cycles: " << counters.spup_cycles
        << endl;
   cout << "Total Idle Cycles (Active + Precharged): " <<
-    timings.idlecycles_act + timings.idlecycles_pre << endl;
-  cout << "Number of Power-Downs: " << timings.f_act_pdns +
-    timings.s_act_pdns + timings.f_pre_pdns + timings.s_pre_pdns << endl;
-  cout << "  Number of Active Fast-exit Power-Downs: " << timings.f_act_pdns
+    counters.idlecycles_act + counters.idlecycles_pre << endl;
+  cout << "Number of Power-Downs: " << counters.f_act_pdns +
+    counters.s_act_pdns + counters.f_pre_pdns + counters.s_pre_pdns << endl;
+  cout << "  Number of Active Fast-exit Power-Downs: " << counters.f_act_pdns
        << endl;
-  cout << "  Number of Active Slow-exit Power-Downs: " << timings.s_act_pdns
+  cout << "  Number of Active Slow-exit Power-Downs: " << counters.s_act_pdns
        << endl;
   cout << "  Number of Precharged Fast-exit Power-Downs: " <<
-    timings.f_pre_pdns << endl;
+    counters.f_pre_pdns << endl;
   cout << "  Number of Precharged Slow-exit Power-Downs: " <<
-    timings.s_pre_pdns << endl;
-  cout << "Number of Power-Down Cycles: " << timings.f_act_pdcycles +
-    timings.s_act_pdcycles + timings.f_pre_pdcycles + timings.s_pre_pdcycles << endl;
+    counters.s_pre_pdns << endl;
+  cout << "Number of Power-Down Cycles: " << counters.f_act_pdcycles +
+    counters.s_act_pdcycles + counters.f_pre_pdcycles + counters.s_pre_pdcycles << endl;
   cout << "  Number of Active Fast-exit Power-Down Cycles: " <<
-    timings.f_act_pdcycles << endl;
+    counters.f_act_pdcycles << endl;
   cout << "  Number of Active Slow-exit Power-Down Cycles: " <<
-    timings.s_act_pdcycles << endl;
+    counters.s_act_pdcycles << endl;
   cout << "    Number of Auto-Refresh Active cycles during Self-Refresh: " <<
-    timings.sref_ref_act_cycles << endl;
+    counters.sref_ref_act_cycles << endl;
   cout << "  Number of Precharged Fast-exit Power-Down Cycles: " <<
-    timings.f_pre_pdcycles << endl;
+    counters.f_pre_pdcycles << endl;
   cout << "  Number of Precharged Slow-exit Power-Down Cycles: " <<
-    timings.s_pre_pdcycles << endl;
+    counters.s_pre_pdcycles << endl;
   cout << "    Number of Auto-Refresh Precharged cycles during Self-Refresh: " <<
-    timings.sref_ref_pre_cycles << endl;
-  cout << "Number of Auto-Refresh Cycles: " << timings.numberofrefs *
+    counters.sref_ref_pre_cycles << endl;
+  cout << "Number of Auto-Refresh Cycles: " << counters.numberofrefs *
     memTimingSpec.RFC << endl;
-  cout << "Number of Self-Refreshes: " << timings.numberofsrefs << endl;
-  cout << "Number of Self-Refresh Cycles: " << timings.sref_cycles << endl;
+  cout << "Number of Self-Refreshes: " << counters.numberofsrefs << endl;
+  cout << "Number of Self-Refresh Cycles: " << counters.sref_cycles << endl;
   cout << "----------------------------------------" << endl;
   cout << "Total Trace Length (clock cycles): " << total_cycles << endl;
   cout << "----------------------------------------" << endl;
