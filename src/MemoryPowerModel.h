@@ -134,7 +134,7 @@ class MemoryPowerModel {
                           double spup_ref_pre_cycles,
                           double clk);
 
-  double total_cycles;
+  int64_t total_cycles;
 
   struct Energy {
     // Total energy of all activates
