@@ -38,6 +38,7 @@
 #ifndef LIB_DRAM_POWER_H
 #define LIB_DRAM_POWER_H
 
+#include <stdint.h>
 #include <vector>
 
 #include "CommandAnalysis.h"
@@ -46,29 +47,34 @@
 
 class libDRAMPower {
  public:
-  libDRAMPower(Data::MemorySpecification memSpec, int term);
+  libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination);
   ~libDRAMPower();
 
   void doCommand(Data::MemCommand::cmds type,
-                 unsigned         bank,
-                 double           timestamp);
+                 int                    bank,
+                 int64_t                timestamp);
 
-  // to be implemented
-  void updateCounters(bool lastupdate);
+  void updateCounters(bool lastUpdate);
 
-  void getEnergy();
+  void clearState();
 
+  void calcEnergy();
+
+  const Data::MemoryPowerModel::Energy& getEnergy() const;
+  const Data::MemoryPowerModel::Power& getPower() const;
+
+  // list of all commands
+  std::vector<Data::MemCommand> cmdList;
+ private:
+  Data::MemorySpecification memSpec;
+ public:
+  Data::CommandAnalysis counters;
+ private:
+  bool includeIoAndTermination;
   // Object of MemoryPowerModel which contains the results
   // Energies(pJ) stored in energy, Powers(mW) stored in power. Number of
   // each command stored in timings.
   Data::MemoryPowerModel mpm;
-
- private:
-  // list of all commands
-  std::vector<Data::MemCommand> list;
-  Data::MemorySpecification MemSpec;
-  Data::CommandAnalysis counters;
-  int Term;
 };
 
 #endif // ifndef LIB_DRAM_POWER_H

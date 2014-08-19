@@ -38,6 +38,8 @@
 #ifndef COMMAND_TIMINGS_H
 #define COMMAND_TIMINGS_H
 
+#include <stdint.h>
+
 #include <vector>
 #include <iostream>
 #include <deque>
@@ -60,64 +62,74 @@ class CommandAnalysis {
   // Returns number of reads, writes, acts, pres and refs in the trace
   CommandAnalysis(const int nbrofBanks);
 
-  unsigned init;
-  double   zero;
-  unsigned pop;
-
   // Number of activate commands
-  double numberofacts;
+  int64_t numberofacts;
   // Number of precharge commands
-  double numberofpres;
+  int64_t numberofpres;
   // Number of reads commands
-  double numberofreads;
+  int64_t numberofreads;
   // Number of writes commands
-  double numberofwrites;
+  int64_t numberofwrites;
   // Number of refresh commands
-  double numberofrefs;
+  int64_t numberofrefs;
   // Number of precharge cycles
-  double precycles;
+  int64_t precycles;
   // Number of active cycles
-  double actcycles;
+  int64_t actcycles;
   // Number of Idle cycles in the active state
-  double idlecycles_act;
+  int64_t idlecycles_act;
   // Number of Idle cycles in the precharge state
-  double idlecycles_pre;
+  int64_t idlecycles_pre;
   // Number of fast-exit activate power-downs
-  double f_act_pdns;
+  int64_t f_act_pdns;
   // Number of slow-exit activate power-downs
-  double s_act_pdns;
+  int64_t s_act_pdns;
   // Number of fast-exit precharged power-downs
-  double f_pre_pdns;
+  int64_t f_pre_pdns;
   // Number of slow-exit activate power-downs
-  double s_pre_pdns;
+  int64_t s_pre_pdns;
   // Number of self-refresh commands
-  double numberofsrefs;
+  int64_t numberofsrefs;
   // Number of clock cycles in fast-exit activate power-down mode
-  double f_act_pdcycles;
+  int64_t f_act_pdcycles;
   // Number of clock cycles in slow-exit activate power-down mode
-  double s_act_pdcycles;
+  int64_t s_act_pdcycles;
   // Number of clock cycles in fast-exit precharged power-down mode
-  double f_pre_pdcycles;
+  int64_t f_pre_pdcycles;
   // Number of clock cycles in slow-exit precharged power-down mode
-  double s_pre_pdcycles;
+  int64_t s_pre_pdcycles;
   // Number of clock cycles in self-refresh mode
-  double sref_cycles;
+  int64_t sref_cycles;
   // Number of clock cycles in activate power-up mode
-  double pup_act_cycles;
+  int64_t pup_act_cycles;
   // Number of clock cycles in precharged power-up mode
-  double pup_pre_cycles;
+  int64_t pup_pre_cycles;
   // Number of clock cycles in self-refresh power-up mode
-  double spup_cycles;
+  int64_t spup_cycles;
 
   // Number of active auto-refresh cycles in self-refresh mode
-  double sref_ref_act_cycles;
+  int64_t sref_ref_act_cycles;
   // Number of precharged auto-refresh cycles in self-refresh mode
-  double sref_ref_pre_cycles;
+  int64_t sref_ref_pre_cycles;
   // Number of active auto-refresh cycles during self-refresh exit
-  double spup_ref_act_cycles;
+  int64_t spup_ref_act_cycles;
   // Number of precharged auto-refresh cycles during self-refresh exit
-  double spup_ref_pre_cycles;
+  int64_t spup_ref_pre_cycles;
 
+  // function for clearing arrays
+  void clear();
+
+  // To identify auto-precharges
+  void getCommands(const MemorySpecification& memSpec,
+                   const int
+                   nbrofBanks,
+                   std::vector<MemCommand>&   list,
+                   bool                       lastupdate);
+
+ private:
+  unsigned init;
+  int64_t  zero;
+  unsigned pop;
   // Cached last read command from the file
   std::vector<MemCommand> cached_cmd;
 
@@ -130,69 +142,47 @@ class CommandAnalysis {
   // To save states of the different banks, before entering active
   // power-down mode (slow/fast-exit).
   std::vector<int> last_states;
-
   // Bank state vector
   std::vector<int> bankstate;
 
-  std::vector<double> activation_cycle;
+  std::vector<int64_t> activation_cycle;
   // To keep track of the last ACT cycle
-  double latest_act_cycle;
+  int64_t latest_act_cycle;
   // To keep track of the last PRE cycle
-  double latest_pre_cycle;
+  int64_t latest_pre_cycle;
   // To keep track of the last READ cycle
-  double latest_read_cycle;
+  int64_t latest_read_cycle;
   // To keep track of the last WRITE cycle
-  double latest_write_cycle;
+  int64_t latest_write_cycle;
 
   // To calculate end of READ operation
-  double end_read_op;
+  int64_t end_read_op;
   // To calculate end of WRITE operation
-  double end_write_op;
+  int64_t end_write_op;
   // To calculate end of ACT operation
-  double end_act_op;
+  int64_t end_act_op;
 
   // Clock cycle when self-refresh was issued
-  double sref_cycle;
+  int64_t sref_cycle;
 
   // Clock cycle when the latest power-down was issued
-  double pdn_cycle;
+  int64_t pdn_cycle;
 
   // Memory State
   unsigned mem_state;
 
-  // For command type
-  int type;
-
-  // For command bank
-  int bank;
-
-  // Command Issue timestamp in clock cycles (cc)
-  double timestamp;
-
   // Clock cycle of first activate command when memory state changes to ACT
-  double first_act_cycle;
+  int64_t first_act_cycle;
 
   // Clock cycle of last precharge command when memory state changes to PRE
-  double last_pre_cycle;
-
-  // function for clearing arrays
-  void clear();
-
+  int64_t last_pre_cycle;
   // To collect and analyse all commands including auto-precharges
   void analyse_commands(const int nbrofBanks,
                         Data::MemorySpecification
                         memSpec,
-                        double    nCommands,
-                        double    nCached,
+                        int64_t    nCommands,
+                        int64_t    nCached,
                         bool      lastupdate);
-
-  // To identify auto-precharges
-  void getCommands(const MemorySpecification& memSpec,
-                   const int
-                   nbrofBanks,
-                   std::vector<MemCommand>&   list,
-                   bool                       lastupdate);
-
   // To perform timing analysis of a given set of commands and update command counters
   void evaluate(const MemorySpecification& memSpec,
                 std::vector<MemCommand>&   cmd_list,
@@ -204,15 +194,15 @@ class CommandAnalysis {
 
   // To update idle period information whenever active cycles may be idle
   void idle_act_update(const MemorySpecification& memSpec,
-                       double                     latest_read_cycle,
-                       double                     latest_write_cycle,
-                       double                     latest_act_cycle,
-                       double                     timestamp);
+                       int64_t                     latest_read_cycle,
+                       int64_t                     latest_write_cycle,
+                       int64_t                     latest_act_cycle,
+                       int64_t                     timestamp);
 
   // To update idle period information whenever precharged cycles may be idle
   void idle_pre_update(const MemorySpecification& memSpec,
-                       double                     timestamp,
-                       double                     latest_pre_cycle);
+                       int64_t                     timestamp,
+                       int64_t                     latest_pre_cycle);
 };
 }
 #endif // ifndef COMMAND_TIMINGS_H

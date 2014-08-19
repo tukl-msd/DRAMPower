@@ -46,9 +46,9 @@ class MemoryPowerModel {
  public:
   // Calculate energy and average power consumption for the given memory
   // command trace
-  void power_calc(MemorySpecification memSpec,
-                  CommandAnalysis&    counters,
-                  int                 term);
+  void power_calc(MemorySpecification    memSpec,
+                  const CommandAnalysis& counters,
+                  int                    term);
 
   // Used to calculate activation power
   static double engy_act(double idd3n,
@@ -134,7 +134,7 @@ class MemoryPowerModel {
                           double spup_ref_pre_cycles,
                           double clk);
 
-  double total_cycles;
+  int64_t total_cycles;
 
   struct Energy {
     // Total energy of all activates
@@ -218,14 +218,14 @@ class MemoryPowerModel {
 
   // Print the power and energy
   void power_print(MemorySpecification memSpec,
-                   int                 term);
+                   int                 term,
+                   const CommandAnalysis& counters) const;
 
   // To derive IO and Termination Power measures using DRAM specification
   void io_term_power(MemorySpecification memSpec);
 
   Energy energy;
   Power  power;
-  CommandAnalysis timings;
 };
 }
 #endif // ifndef MEMORY_POWER_MODEL_H

@@ -38,6 +38,7 @@
 #ifndef MEMCOMMAND_H
 #define MEMCOMMAND_H
 
+#include <stdint.h>
 #include <cassert>
 #include <string>
 
@@ -114,6 +115,7 @@ class MemCommand {
 
   // Get timestamp
   double getTime() const;
+  int64_t getTimeInt64() const;
 
   cmds typeWithoutAutoPrechargeFlag() const;
 

@@ -39,32 +39,45 @@
 
 using namespace Data;
 
-libDRAMPower::libDRAMPower(MemorySpecification memSpec, int term)
+libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination) :
+  memSpec(memSpec),
+  counters(CommandAnalysis(memSpec.memArchSpec.nbrOfBanks)),
+  includeIoAndTermination(includeIoAndTermination)
 {
-  MemSpec      = memSpec;
-  Term         = term;
-  counters     = CommandAnalysis(memSpec.memArchSpec.nbrOfBanks);
 }
 
 libDRAMPower::~libDRAMPower()
 {
 }
 
-void libDRAMPower::doCommand(MemCommand::cmds type, unsigned bank, double timestamp)
+void libDRAMPower::doCommand(MemCommand::cmds type, int bank, int64_t timestamp)
 {
-  MemCommand cmd(type, bank, timestamp);
-
-  list.push_back(cmd);
+  MemCommand cmd(type, static_cast<unsigned>(bank), static_cast<double>(timestamp));
+  cmdList.push_back(cmd);
 }
 
-void libDRAMPower::updateCounters(bool lastupdate)
+void libDRAMPower::updateCounters(bool lastUpdate)
 {
-  counters.getCommands(MemSpec, MemSpec.memArchSpec.nbrOfBanks, list, lastupdate);
-  list.clear();
+  counters.getCommands(memSpec, memSpec.memArchSpec.nbrOfBanks, cmdList, lastUpdate);
+  cmdList.clear();
 }
 
-void libDRAMPower::getEnergy()
+void libDRAMPower::calcEnergy()
+{
+  mpm.power_calc(memSpec, counters, includeIoAndTermination);
+}
+
+void libDRAMPower::clearState()
 {
   counters.clear();
-  mpm.power_calc(MemSpec, counters, Term);
+}
+
+const Data::MemoryPowerModel::Energy& libDRAMPower::getEnergy() const
+{
+  return mpm.energy;
+}
+
+const Data::MemoryPowerModel::Power& libDRAMPower::getPower() const
+{
+  return mpm.power;
 }

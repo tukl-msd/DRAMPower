@@ -103,9 +103,6 @@ CommandAnalysis::CommandAnalysis(const int nbrofBanks)
   sref_cycle = 0;
   pdn_cycle  = 0;
 
-  type       = 0;
-  bank       = 0;
-  timestamp  = 0;
   cmd_list.clear();
   full_cmd_list.resize(1, MemCommand::PRE);
   cached_cmd.clear();
@@ -136,15 +133,15 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
 
     MemCommand::cmds cmdType = cmd.getType();
     if (cmdType == MemCommand::ACT) {
-      activation_cycle[cmd.getBank()] = cmd.getTime();
+      activation_cycle[cmd.getBank()] = cmd.getTimeInt64();
     } else if (cmdType == MemCommand::RDA || cmdType == MemCommand::WRA) {
       // Remove auto-precharge flag from command
       cmd_list.back().setType(cmd.typeWithoutAutoPrechargeFlag());
 
       // Add the auto precharge to the list of cached_cmds
-      double preTime = max(cmd.getTime() + cmd.getPrechargeOffset(memSpec, cmdType),
+      int64_t preTime = max(cmd.getTimeInt64() + cmd.getPrechargeOffset(memSpec, cmdType),
                            activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.RAS);
-      cached_cmd.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), preTime));
+      cached_cmd.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), static_cast<double>(preTime)));
     }
   }
   pop = 0;
@@ -152,8 +149,8 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
   // of the size vector is probably not desirable.
   cmd_list.push_back(MemCommand::PRE);
   cached_cmd.push_back(MemCommand::PRE);
-  analyse_commands(nbrofBanks, memSpec, static_cast<double>(cmd_list.size()-1),
-                                        static_cast<double>(cached_cmd.size()-1), lastupdate);
+  analyse_commands(nbrofBanks, memSpec, cmd_list.size()-1,
+                                        cached_cmd.size()-1, lastupdate);
   cmd_list.clear();
   cached_cmd.clear();
 } // CommandAnalysis::getCommands
@@ -164,7 +161,7 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
 // evaluate function to analyse this expanded list of commands.
 
 void CommandAnalysis::analyse_commands(const int nbrofBanks,
-                                       Data::MemorySpecification memSpec, double nCommands, double nCached, bool lastupdate)
+                                       Data::MemorySpecification memSpec, int64_t nCommands, int64_t nCached, bool lastupdate)
 {
   full_cmd_list.resize(1, MemCommand::PRE);
   unsigned mCommands = 0;
@@ -266,9 +263,12 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
   // for each command identify timestamp, type and bank
   for (unsigned cmd_list_counter = 0; cmd_list_counter < cmd_list.size();
        cmd_list_counter++) {
-    type      = cmd_list[cmd_list_counter].getType();
-    bank      = cmd_list[cmd_list_counter].getBank();
-    timestamp = cmd_list[cmd_list_counter].getTime();
+    // For command type
+    int type = cmd_list[cmd_list_counter].getType();
+    // For command bank
+    int bank = cmd_list[cmd_list_counter].getBank();
+    // Command Issue timestamp in clock cycles (cc)
+    int64_t timestamp = cmd_list[cmd_list_counter].getTimeInt64();
 
     if (type == MemCommand::ACT) {
       // If command is ACT - update number of acts, bank state of the
@@ -574,11 +574,11 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                                  - memSpec.memTimingSpec.RP);
         }
       } else {
-        double sref_diff = memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
-        double sref_pre  = max(zero, timestamp - sref_cycle - sref_diff);
-        double spup_pre  = memSpec.memTimingSpec.RP - sref_pre;
-        double sref_act  = max(zero, timestamp - sref_cycle);
-        double spup_act  = memSpec.memTimingSpec.RFC - sref_act;
+        int64_t sref_diff = memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
+        int64_t sref_pre  = max(zero, timestamp - sref_cycle - sref_diff);
+        int64_t spup_pre  = memSpec.memTimingSpec.RP - sref_pre;
+        int64_t sref_act  = max(zero, timestamp - sref_cycle);
+        int64_t spup_act  = memSpec.memTimingSpec.RFC - sref_act;
 
         if (max(zero, timestamp - sref_cycle) >= sref_diff) {
           sref_ref_act_cycles += sref_diff;
@@ -646,8 +646,8 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
 
 // To update idle period information whenever active cycles may be idle
 void CommandAnalysis::idle_act_update(const MemorySpecification& memSpec,
-                                      double latest_read_cycle, double latest_write_cycle,
-                                      double latest_act_cycle, double timestamp)
+                                      int64_t latest_read_cycle, int64_t latest_write_cycle,
+                                      int64_t latest_act_cycle, int64_t timestamp)
 {
   if (latest_read_cycle >= 0) {
     end_read_op = latest_read_cycle + timeToCompletion(memSpec,
@@ -670,7 +670,7 @@ void CommandAnalysis::idle_act_update(const MemorySpecification& memSpec,
 
 // To update idle period information whenever precharged cycles may be idle
 void CommandAnalysis::idle_pre_update(const MemorySpecification& memSpec,
-                                      double timestamp, double latest_pre_cycle)
+                                      int64_t timestamp, int64_t latest_pre_cycle)
 {
   if (latest_pre_cycle > 0) {
     idlecycles_pre += max(zero, timestamp - latest_pre_cycle -

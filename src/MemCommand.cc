@@ -51,7 +51,6 @@ MemCommand::MemCommand() :
 {
 }
 
-// typeBank initilization
 MemCommand::MemCommand(MemCommand::cmds type,
                        unsigned bank, double timestamp) :
   type(type),
@@ -114,6 +113,11 @@ void MemCommand::setTime(double _timestamp)
 double MemCommand::getTime() const
 {
   return timestamp;
+}
+
+int64_t MemCommand::getTimeInt64() const
+{
+  return static_cast<int64_t>(timestamp);
 }
 
 MemCommand::cmds MemCommand::typeWithoutAutoPrechargeFlag() const
