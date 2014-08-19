@@ -63,9 +63,9 @@ class libDRAMPower {
   const Data::MemoryPowerModel::Energy& getEnergy() const;
   const Data::MemoryPowerModel::Power& getPower() const;
 
- private:
   // list of all commands
   std::vector<Data::MemCommand> cmdList;
+ private:
   Data::MemorySpecification memSpec;
  public:
   Data::CommandAnalysis counters;
