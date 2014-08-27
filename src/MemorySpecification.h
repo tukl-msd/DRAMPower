@@ -101,11 +101,117 @@ class MemoryType {
            val == WIDEIO_SDR;
   }
 
+  bool hasTwoVoltageDomains() const
+  {
+    return val == LPDDR ||
+           val == LPDDR2 ||
+           val == LPDDR3 ||
+           val == WIDEIO_SDR;
+  }
+
   bool isDDRFamily() const
   {
     return val == DDR2 ||
            val == DDR2 ||
            val == DDR4;
+  }
+
+  bool hasDll() const
+  {
+    return val == DDR2 ||
+           val == DDR2 ||
+           val == DDR4;
+  }
+
+  bool hasTermination() const
+  {
+    return val == DDR2 ||
+           val == DDR2 ||
+           val == DDR4;
+  }
+
+  double getCapacitance() const
+  {
+    // LPDDR/2/3 and DDR memories only have IO Power (no ODT)
+    // Conservative estimates based on Micron Mobile LPDDR2 Power Calculator
+      // LPDDR/2/3 IO Capacitance in mF
+    if (val == LPDDR) {
+        return 0.0000000045;
+    } else if (val == LPDDR2) {
+        return 0.0000000025;
+    } else if (val == LPDDR3) {
+        return 0.0000000018;
+    } else {
+        return 0.0;
+    }
+  }
+
+  double getIoPower() const
+  {
+    if (val == DDR2) {
+        // Conservative estimates based on Micron DDR2 Power Calculator
+        return 1.5;    // in mW
+    } else if (val == DDR3) {
+        // Conservative estimates based on Micron DDR3 Power Calculator
+        return 4.6;    // in mW
+    } else if (val == DDR4) {
+        // Conservative estimates based on Micron DDR3 Power Calculator
+        // using available termination resistance values from Micron DDR4 Datasheets
+        return 3.7;    // in mW
+    } else {
+        return 0.0;
+    }
+  }
+
+  double getWrOdtPower() const
+  {
+    if (val == DDR2) {
+        // Conservative estimates based on Micron DDR2 Power Calculator
+        return 8.2;    // in mW
+    } else if (val == DDR3) {
+        // Conservative estimates based on Micron DDR3 Power Calculator
+        return 21.2;    // in mW
+    } else if (val == DDR4) {
+        // Conservative estimates based on Micron DDR3 Power Calculator
+        // using available termination resistance values from Micron DDR4 Datasheets
+        return 17.0;    // in mW
+    } else {
+        return 0.0;
+    }
+  }
+
+  double getTermRdPower() const
+  {
+    if (val == DDR2) {
+        // Conservative estimates based on Micron DDR2 Power Calculator
+        return 13.1;    // in mW
+    } else if (val == DDR3) {
+        // Conservative estimates based on Micron DDR3 Power Calculator
+        return 15.5;    // in mW
+    } else if (val == DDR4) {
+        // Conservative estimates based on Micron DDR3 Power Calculator
+        // using available termination resistance values from Micron DDR4 Datasheets
+        return 12.4;    // in mW
+    } else {
+        return 0.0;
+    }
+  }
+
+  double getTermWrPower() const
+  {
+    if (val == DDR2) {
+        // Conservative estimates based on Micron DDR2 Power Calculator
+        return 14.6;    // in mW
+    } else if (val == DDR3) {
+        // Conservative estimates based on Micron DDR3 Power Calculator
+        return 15.4;    // in mW
+    } else if (val == DDR4) {
+        // Conservative estimates based on Micron DDR3 Power Calculator
+        // using available termination resistance values from Micron DDR4 Datasheets
+        return 12.3;    // in mW
+    } else {
+        return 0.0;
+    }
   }
 
   operator MemoryType_t() const {

@@ -44,5 +44,17 @@ using namespace Data;
 void MemorySpecification::processParameters()
 {
   setVarFromParam(&id,"memoryId");
-  setVarFromParam(&memoryType, "memoryType");
+  memoryType = getParamValWithDefault("memoryType", string("DDR3"));
+
+  if (hasParameter("memoryType")) {
+    memArchSpec.twoVoltageDomains = memoryType.hasTwoVoltageDomains();
+    memArchSpec.dll               = memoryType.hasDll();
+    memArchSpec.termination       = memoryType.hasTermination();
+
+    memPowerSpec.capacitance = memoryType.getCapacitance();
+    memPowerSpec.ioPower     = memoryType.getIoPower();
+    memPowerSpec.wrOdtPower  = memoryType.getWrOdtPower();
+    memPowerSpec.termRdPower = memoryType.getTermRdPower();
+    memPowerSpec.termWrPower = memoryType.getTermWrPower();
+  }
 }

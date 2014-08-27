@@ -124,9 +124,6 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
                             + energy.read_oterm_energy + energy.write_oterm_energy;
   }
 
-  MemoryType memoryType;
-  memoryType   = memSpec.memoryType;
-
   total_cycles = counters.actcycles + counters.precycles +
                  counters.f_act_pdcycles + counters.f_pre_pdcycles +
                  counters.s_act_pdcycles + counters.s_pre_pdcycles + counters.sref_cycles
@@ -220,7 +217,7 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
 
   // similar equations as before to support multiple voltage domains in LPDDR2
   // and WIDEIO memories
-  if (memoryType.isLPDDRFamily()) {
+  if (memArchSpec.twoVoltageDomains) {
     energy.act_energy += static_cast<double>(counters.numberofacts) * engy_act(memPowerSpec.idd3n2,
                                                          memPowerSpec.idd02, memPowerSpec.vdd2, memTimingSpec.RAS,
                                                          memTimingSpec.clkPeriod);
@@ -385,11 +382,11 @@ void MemoryPowerModel::power_print(MemorySpecification memSpec, int term, const 
   if (term) {
     cout << "RD I/O Energy: " << energy.read_io_energy << " pJ" << endl;
     // No Termination for LPDDR/2/3 and DDR memories
-    if (memSpec.memoryType.isDDRFamily()) {
+    if (memSpec.memArchSpec.termination) {
       cout << "WR Termination Energy: " << energy.write_term_energy << " pJ" << endl;
     }
 
-    if ((memArchSpec.nbrOfRanks > 1) && memSpec.memoryType.isDDRFamily()) {
+    if ((memArchSpec.nbrOfRanks > 1) && memSpec.memArchSpec.termination) {
       cout << "RD Termination Energy (Idle rank): " << energy.read_oterm_energy
            << " pJ" << endl;
       cout << "WR Termination Energy (Idle rank): " << energy.write_oterm_energy
@@ -574,52 +571,17 @@ void MemoryPowerModel::io_term_power(MemorySpecification memSpec)
   MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
   MemPowerSpec&  memPowerSpec      = memSpec.memPowerSpec;
-  MemoryType& memoryType           = memSpec.memoryType;
 
-  // For LPDDR/2/3 memories - IO Power depends on DRAM clock frequency
-  // No ODT (Termination) in LPDDR/2/3 and DDR memories
-  power.IO_power = 0.5 * pow(memPowerSpec.vdd2, 2.0) * memTimingSpec.clkMhz * 1000000;
+  power.IO_power     = memPowerSpec.ioPower;    // in mW
+  power.WR_ODT_power = memPowerSpec.wrOdtPower; // in mW
 
-  // LPDDR/2/3 IO Capacitance in mF
-  double LPDDR_Cap  = 0.0000000045;
-  double LPDDR2_Cap = 0.0000000025;
-  double LPDDR3_Cap = 0.0000000018;
+  if (memArchSpec.nbrOfRanks > 1) {
+    power.TermRD_power = memPowerSpec.termRdPower; // in mW
+    power.TermWR_power = memPowerSpec.termWrPower; // in mW
+  }
 
-  // Conservative estimates based on Micron DDR2 Power Calculator
-  if (memoryType == MemoryType::DDR2) {
-    power.IO_power     = 1.5;    // in mW
-    power.WR_ODT_power = 8.2;    // in mW
-    if (memArchSpec.nbrOfRanks > 1) {
-      power.TermRD_power = 13.1; // in mW
-      power.TermWR_power = 14.6; // in mW
-    }
-  }
-  // Conservative estimates based on Micron DDR3 Power Calculator
-  else if (memoryType == MemoryType::DDR3) {
-    power.IO_power     = 4.6;    // in mW
-    power.WR_ODT_power = 21.2;   // in mW
-    if (memArchSpec.nbrOfRanks > 1) {
-      power.TermRD_power = 15.5; // in mW
-      power.TermWR_power = 15.4; // in mW
-    }
-  }
-  // Conservative estimates based on Micron DDR3 Power Calculator
-  // using available termination resistance values from Micron DDR4 Datasheets
-  else if (memoryType == MemoryType::DDR4) {
-    power.IO_power     = 3.7;    // in mW
-    power.WR_ODT_power = 17.0;   // in mW
-    if (memArchSpec.nbrOfRanks > 1) {
-      power.TermRD_power = 12.4; // in mW
-      power.TermWR_power = 12.3; // in mW
-    }
-  }
-  // LPDDR/2/3 and DDR memories only have IO Power (no ODT)
-  // Conservative estimates based on Micron Mobile LPDDR2 Power Calculator
-  else if (memoryType == MemoryType::LPDDR) {
-    power.IO_power = LPDDR_Cap * power.IO_power;
-  } else if (memoryType == MemoryType::LPDDR2)    {
-    power.IO_power = LPDDR2_Cap * power.IO_power;
-  } else if (memoryType == MemoryType::LPDDR3)    {
-    power.IO_power = LPDDR3_Cap * power.IO_power;
+  if (memPowerSpec.capacitance != 0.0) {
+    // If capacity is given, then IO Power depends on DRAM clock frequency.
+    power.IO_power = memPowerSpec.capacitance * 0.5 * pow(memPowerSpec.vdd2, 2.0) * memTimingSpec.clkMhz * 1000000;
   }
 } // MemoryPowerModel::io_term_power

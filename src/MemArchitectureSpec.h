@@ -53,6 +53,9 @@ class MemArchitectureSpec : public virtual Parametrisable {
   unsigned nbrOfRows;
   unsigned width;
   unsigned nbrOfBankGroups;
+  bool dll;
+  bool twoVoltageDomains;
+  bool termination;
 };
 }
 #endif // ifndef TOOLS_MEM_ARCHITECTURE_SPEC_H

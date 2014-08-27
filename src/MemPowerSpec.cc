@@ -65,4 +65,10 @@ void MemPowerSpec::processParameters()
   idd62   = getParamValWithDefault("idd62", 0.0);
   vdd     = getParamValWithDefault("vdd", 0.0);
   vdd2    = getParamValWithDefault("vdd2", 0.0);
+
+  capacitance = getParamValWithDefault("capacitance", 0.0);
+  ioPower     = getParamValWithDefault("ioPower", 0.0);
+  wrOdtPower  = getParamValWithDefault("wrOdtPower", 0.0);
+  termRdPower = getParamValWithDefault("termRdPower", 0.0);
+  termWrPower = getParamValWithDefault("termWrPower", 0.0);
 } // MemPowerSpec::processParameters

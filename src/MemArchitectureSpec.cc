@@ -50,4 +50,7 @@ void MemArchitectureSpec::processParameters()
   nbrOfColumns    = getParamValWithDefault("nbrOfColumns", 1);
   nbrOfRows       = getParamValWithDefault("nbrOfRows", 1);
   width           = getParamValWithDefault("width", 1);
+  dll             = getParamValWithDefault("dll", false);
+  twoVoltageDomains = getParamValWithDefault("twoVoltageDomains", false);
+  termination       = getParamValWithDefault("termination", false);
 }
