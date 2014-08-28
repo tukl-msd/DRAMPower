@@ -115,5 +115,8 @@ int main(int argc, char* argv[])
         //Powers per Rank
         std::cout << "Average Power" << "\t" << test.getPower().average_power << endl;
         //many other powers in test.getPower()
+
+        // Test clearState function.
+        test.clearState();
         return 0;
 }
