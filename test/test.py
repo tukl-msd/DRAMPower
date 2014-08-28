@@ -51,6 +51,10 @@ class TestOutput(TestUsingBuildResult):
         ref = self.getFilteredOutput('test/test_commands_trace_output_matches_reference.out')
         self.assertListEqual(new, ref)
 
+    def test_no_arguments_error(self):
+        """ running drampower w/o arguments returns -1 """
+        self.assertEqual(subprocess.call(['./drampower'], stdout = devnull), 1)
+
 class TestLibDRAMPower(TestUsingBuildResult):
     testPath = 'test/libdrampowertest'
 

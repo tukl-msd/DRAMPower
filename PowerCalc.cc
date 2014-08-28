@@ -48,13 +48,14 @@
 using namespace Data;
 using namespace std;
 
-void error()
+int error()
 {
   cout << "Correct Usage: \n./drampower -m <memory spec (ID)> "
                "[-t] <transactions trace> [-c] <commands trace> [-i] "
                "<interleaving> [-g] <DDR4 bank group "
                "interleaving> [-s] <request size> [-r] "
                "[-p] < 1 - Power-Down, 2 - Self-Refresh>\n";
+  return 1;
 }
 
 int main(int argc, char* argv[])
@@ -101,8 +102,7 @@ int main(int argc, char* argv[])
 
   if (memory == 0) {
     cout << endl << "No DRAM memory specified!" << endl;
-    error();
-    return 0;
+    return error();
   }
 
   ifstream fout;
@@ -110,15 +110,13 @@ int main(int argc, char* argv[])
     fout.open(src_trans);
     if (fout.fail()) {
       cout << "Transactions trace file not found!" << endl;
-      error();
-      return 0;
+      return error();
     }
   } else   {
     fout.open(src_cmds);
     if (fout.fail()) {
       cout << "Commands trace file not found!" << endl;
-      error();
-      return 0;
+      return error();
     }
   }
   fout.close();
@@ -131,20 +129,17 @@ int main(int argc, char* argv[])
 
   if (interleaving > memArchSpec.nbrOfBanks) {
     cout << "Interleaving > Number of Banks" << endl;
-    error();
-    return 0;
+    return error();
   }
 
   if (grouping > memArchSpec.nbrOfBankGroups) {
     cout << "Grouping > Number of Bank Groups" << endl;
-    error();
-    return 0;
+    return error();
   }
 
   if (power_down > 2) {
     cout << "Incorrect power-down option" << endl;
-    error();
-    return 0;
+    return error();
   }
 
   unsigned min_size = interleaving * grouping * memArchSpec.burstLength
@@ -169,8 +164,7 @@ int main(int argc, char* argv[])
     trace_file.open(src_cmds, ifstream::in);
   } else {
     cout << "No transaction or command trace file specified!" << endl;
-    error();
-    return 0;
+    return error();
   }
 
   MemoryPowerModel mpm;
