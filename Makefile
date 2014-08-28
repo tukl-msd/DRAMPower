@@ -117,6 +117,9 @@ clean:
 	$(RM) $(ALLOBJECTS) $(DEPENDENCIES) $(BINARY) $(LIBS)
 	$(MAKE) -C test/libdrampowertest clean
 
+coverageclean:
+	$(RM) ${ALLSOURCES:.cc=.gcno} ${ALLSOURCES:.cc=.gcda}
+
 pretty:
 	uncrustify -c src/uncrustify.cfg $(ALLSOURCES) --no-backup
 	uncrustify -c src/uncrustify.cfg $(ALLHEADERS) --no-backup

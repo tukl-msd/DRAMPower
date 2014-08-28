@@ -70,6 +70,14 @@ class TestLibDRAMPower(TestUsingBuildResult):
         with open(self.tempFileName, 'w') as f:
             self.assertEqual(subprocess.call([TestLibDRAMPower.testPath + '/library_test',
                                               'memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml'], stdout = f), 0)
+            try:
+                """ Copy coverage statistics to test subfolder. Otherwise the coverage tool gets confused. """
+                if os.environ.get('COVERAGE', '0') == '1':
+                    import shutil
+                    for cp in ['lib_test.gcda', 'lib_test.gcno']:
+                        shutil.copyfile(cp, '%s/%s' % (TestLibDRAMPower.testPath, cp))
+            except:
+                pass
 
         new = self.getFilteredOutput(self.tempFileName)
         ref = self.getFilteredOutput('test/test_libdrampower_output_matches_reference.out')
