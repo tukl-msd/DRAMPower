@@ -1,0 +1,9 @@
+language: cpp
+compiler:
+  - gcc
+install:
+  - echo "No install."
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y xerces-c
+script: make test
