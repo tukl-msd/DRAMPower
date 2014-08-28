@@ -61,12 +61,18 @@ DEPENDENCIES := ${ALLSOURCES:.cc=.d}
 # State what compiler we use.
 CXX := g++
 
+ifeq ($(COVERAGE),1)
+	GCOVFLAGS := -fprofile-arcs -ftest-coverage
+else
+	GCOVFLAGS :=
+endif
+
 # Optimization flags. Usually you should not optimize until you have finished
 # debugging, except when you want to detect dead code.
 OPTCXXFLAGS ?=
 
 # Debugging flags.
-DBGCXXFLAGS ?= ${DBGCXXFLAGS} -g
+DBGCXXFLAGS ?= -g ${GCOVFLAGS}
 
 # Common warning flags shared by both C and C++.
 WARNFLAGS := -W -pedantic-errors -Wextra -Werror \

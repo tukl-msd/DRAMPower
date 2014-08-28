@@ -6,6 +6,6 @@ install:
 before_install:
   - sudo pip install cpp-coveralls
   - sudo apt-get install -y libxerces-c-dev
-script: make test DBGCXXFLAGS="-fprofile-arcs -ftest-coverage"
+script: make test COVERAGE=1
 after_success:
   - coveralls --exclude lib --exclude tests --gcov-options '\-lp'

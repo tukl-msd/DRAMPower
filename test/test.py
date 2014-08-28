@@ -52,7 +52,8 @@ class TestLibDRAMPower(TestUsingBuildResult):
 
     def buildLibDRAMPowerExecutable(self, useXerces = True):
         xerces = 'USE_XERCES=%d' % (1 if useXerces else 0)
-        self.assertEqual(subprocess.call(['make', '-f', TestLibDRAMPower.testPath + '/Makefile', 'DRAMPOWER_PATH=.', xerces], stdout = devnull), 0)
+        coverage = 'COVERAGE=%s' % os.environ.get('COVERAGE', '0')
+        self.assertEqual(subprocess.call(['make', '-f', TestLibDRAMPower.testPath + '/Makefile', 'DRAMPOWER_PATH=.', xerces, coverage], stdout = devnull), 0)
 
     def test_libdrampower_with_xerces_test_builds(self):
         """ libdrampower-based executable build should return 0 """
