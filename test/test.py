@@ -7,6 +7,10 @@ import tempfile
 
 devnull = None
 
+def inCoverageTest():
+    """ Returns true if we are doing a test with gcov enabled """
+    return os.environ.get('COVERAGE', '0') == '1'
+
 class TestBuild(unittest.TestCase):
     def test_make_wo_args_completes_returns_0(self):
         """ 'make -j4' should return 0 """
@@ -52,7 +56,7 @@ class TestLibDRAMPower(TestUsingBuildResult):
 
     def buildLibDRAMPowerExecutable(self, useXerces = True):
         xerces = 'USE_XERCES=%d' % (1 if useXerces else 0)
-        coverage = 'COVERAGE=%s' % os.environ.get('COVERAGE', '0')
+        coverage = 'COVERAGE=%s' % ('1' if inCoverageTest() else '0')
         self.assertEqual(subprocess.call(['make', '-f', TestLibDRAMPower.testPath + '/Makefile', 'DRAMPOWER_PATH=.', xerces, coverage], stdout = devnull), 0)
 
     def test_libdrampower_with_xerces_test_builds(self):
@@ -62,6 +66,8 @@ class TestLibDRAMPower(TestUsingBuildResult):
     def test_libdrampower_without_xerces_test_builds(self):
         """ libdrampower-based executable build should return 0 """
         self.buildLibDRAMPowerExecutable(useXerces = False)
+        if inCoverageTest():
+            os.unlink('lib_test.gcno')
 
     def test_libdrampower_output_matches_reference(self):
         """ libdrampower-based executable output should match reference """
@@ -72,10 +78,9 @@ class TestLibDRAMPower(TestUsingBuildResult):
                                               'memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml'], stdout = f), 0)
             try:
                 """ Copy coverage statistics to test subfolder. Otherwise the coverage tool gets confused. """
-                if os.environ.get('COVERAGE', '0') == '1':
-                    import shutil
-                    for cp in ['lib_test.gcda', 'lib_test.gcno']:
-                        shutil.copyfile(cp, '%s/%s' % (TestLibDRAMPower.testPath, cp))
+                if inCoverageTest():
+                    for cp in ['lib_test.gcno', 'lib_test.gcda']:
+                        os.rename(cp, '%s/%s' % (TestLibDRAMPower.testPath, cp))
             except:
                 pass
 
