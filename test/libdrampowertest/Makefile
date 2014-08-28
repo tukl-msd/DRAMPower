@@ -30,8 +30,23 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Authors: Matthias Jung, Omar Naji
+# Authors: Matthias Jung, Omar Naji, Sven Goossens
 #
+
+# Optimization flags. Usually you should not optimize until you have finished
+# debugging, except when you want to detect dead code.
+OPTCXXFLAGS ?=
+
+# Debugging flags.
+DBGCXXFLAGS ?= ${DBGCXXFLAGS} -g
+
+# Common warning flags shared by both C and C++.
+WARNFLAGS := -W -pedantic-errors -Wextra -Werror \
+             -Wformat -Wformat-nonliteral -Wpointer-arith \
+             -Wcast-align -Wconversion -Wall -Werror
+
+# Sum up the flags.
+CXXFLAGS := -O ${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++98
 
 DRAMPOWER_PATH ?= ../..
 MYPATH := ${DRAMPOWER_PATH}/test/libdrampowertest
@@ -47,7 +62,7 @@ else
 endif
 
 all:
-	g++ ${MYPATH}/lib_test.cc -iquote ${DRAMPOWER_PATH}/src -DUSE_XERCES=${USE_XERCES} -L${DRAMPOWER_PATH}/src/ ${LIBS} -o $(BINARY)
+	g++ ${MYPATH}/lib_test.cc ${CXXFLAGS} -iquote ${DRAMPOWER_PATH}/src -DUSE_XERCES=${USE_XERCES} -L${DRAMPOWER_PATH}/src/ ${LIBS} -o $(BINARY)
 
 clean:
 	rm -f $(BINARY)

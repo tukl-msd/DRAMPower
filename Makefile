@@ -31,7 +31,7 @@
 # * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # *
-# * Authors: Karthik Chandrasekar, Benny Akesson
+# * Authors: Karthik Chandrasekar, Benny Akesson, Sven Goossens
 # *
 # */
 
@@ -63,10 +63,10 @@ CXX := g++
 
 # Optimization flags. Usually you should not optimize until you have finished
 # debugging, except when you want to detect dead code.
-OPTCXXFLAGS =
+OPTCXXFLAGS ?=
 
 # Debugging flags.
-DBGCXXFLAGS = -g
+DBGCXXFLAGS ?= ${DBGCXXFLAGS} -g
 
 # Common warning flags shared by both C and C++.
 WARNFLAGS := -W -pedantic-errors -Wextra -Werror \
