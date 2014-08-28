@@ -73,6 +73,9 @@ all:
 clean:
 	rm -f $(BINARY)
 
+coverageclean:
+	$(RM) lib_test.gcno lib_test.gcda
+
 test: all
 	./$(BINARY) ${DRAMPOWER_PATH}/memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml
 
