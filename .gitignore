@@ -3,3 +3,5 @@ drampower
 *.o
 *.a
 test/libdrampowertest/library_test
+*.gcno
+*.gcda

@@ -52,7 +52,7 @@ class TestOutput(TestUsingBuildResult):
         self.assertListEqual(new, ref)
 
     def test_no_arguments_error(self):
-        """ running drampower w/o arguments returns -1 """
+        """ running drampower w/o arguments returns 1 """
         self.assertEqual(subprocess.call(['./drampower'], stdout = devnull), 1)
 
 class TestLibDRAMPower(TestUsingBuildResult):
@@ -60,7 +60,7 @@ class TestLibDRAMPower(TestUsingBuildResult):
 
     def buildLibDRAMPowerExecutable(self, useXerces = True):
         xerces = 'USE_XERCES=%d' % (1 if useXerces else 0)
-        coverage = 'COVERAGE=%s' % ('1' if inCoverageTest() else '0')
+        coverage = 'COVERAGE=%d' % (1 if inCoverageTest() else 0)
         self.assertEqual(subprocess.call(['make', '-f', TestLibDRAMPower.testPath + '/Makefile', 'DRAMPOWER_PATH=.', xerces, coverage], stdout = devnull), 0)
 
     def test_libdrampower_with_xerces_test_builds(self):

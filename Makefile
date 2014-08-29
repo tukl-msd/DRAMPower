@@ -119,6 +119,7 @@ clean:
 
 coverageclean:
 	$(RM) ${ALLSOURCES:.cc=.gcno} ${ALLSOURCES:.cc=.gcda}
+	$(MAKE) -C test/libdrampowertest coverageclean
 
 pretty:
 	uncrustify -c src/uncrustify.cfg $(ALLSOURCES) --no-backup
