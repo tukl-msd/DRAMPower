@@ -1,4 +1,11 @@
-# DRAM Power Model (DRAMPower) - v3.1 - 14/November/2013
+# DRAM Power Model (DRAMPower)
+
+## 0. Releases
+
+The last official release can be found here:
+https://github.com/ravenrd/DRAMPower/releases/tag/3.1
+
+The master branch of the repository should be regarded as the bleeding-edge version, which has all the latest features, but also all the latest bugs. Use at your own discretion.
 
 ## 1. Installation
 
