@@ -1,5 +1,6 @@
 # DRAM Power Model (DRAMPower)
-
+[![Build Status](https://travis-ci.org/ravenrd/DRAMPower.svg?branch=master)](https://travis-ci.org/ravenrd/DRAMPower)
+[![Coverage Status](https://coveralls.io/repos/ravenrd/DRAMPower/badge.png?branch=master)](https://coveralls.io/r/ravenrd/DRAMPower?branch=master)
 ## 0. Releases
 
 The last official release can be found here:
