@@ -112,21 +112,21 @@ class MemoryType {
   bool isDDRFamily() const
   {
     return val == DDR2 ||
-           val == DDR2 ||
+           val == DDR3 ||
            val == DDR4;
   }
 
   bool hasDll() const
   {
     return val == DDR2 ||
-           val == DDR2 ||
+           val == DDR3 ||
            val == DDR4;
   }
 
   bool hasTermination() const
   {
     return val == DDR2 ||
-           val == DDR2 ||
+           val == DDR3 ||
            val == DDR4;
   }
 
