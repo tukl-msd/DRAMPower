@@ -4,12 +4,21 @@ import subprocess
 import os
 import fnmatch
 import tempfile
+import gzip
 
 devnull = None
 
 def inCoverageTest():
     """ Returns true if we are doing a test with gcov enabled """
     return os.environ.get('COVERAGE', '0') == '1'
+
+def extractFileToTmpFile(compressedFile):
+    tempFileHandle, tempFileName = tempfile.mkstemp()
+    os.close(tempFileHandle)
+    with open(tempFileName, 'wb') as f:
+        with gzip.open(compressedFile, 'rb') as src:
+            f.write(src.read())
+    return tempFileName
 
 class TestBuild(unittest.TestCase):
     def test_make_wo_args_completes_returns_0(self):
@@ -24,6 +33,7 @@ class TestUsingBuildResult(unittest.TestCase):
         self.buildDRAMPower()
         self.tempFileHandle, self.tempFileName = tempfile.mkstemp()
         os.close(self.tempFileHandle)
+        self.tempFiles = [self.tempFileName]
 
     def getFilteredOutput(self, fName):
         with open(fName, 'r') as f:
@@ -31,11 +41,12 @@ class TestUsingBuildResult(unittest.TestCase):
         return [x for x in lines if not x.startswith('*') and len(x) > 1]
 
     def tearDown(self):
-        try:
-            os.unlink(self.tempFileName)
-        except:
-            # We don't really care, since it is a /tmp file anyway.
-            pass
+        for f in self.tempFiles:
+            try:
+                os.unlink(f)
+            except:
+                # We don't really care, since it is a /tmp file anyway.
+                pass
 
 class TestOutput(TestUsingBuildResult):
     def test_commands_trace_output_matches_reference(self):
@@ -54,6 +65,19 @@ class TestOutput(TestUsingBuildResult):
     def test_no_arguments_error(self):
         """ running drampower w/o arguments returns 1 """
         self.assertEqual(subprocess.call(['./drampower'], stdout = devnull), 1)
+
+    def test_LPDDR2_1066_matches_reference(self):
+        """ drampower output for an LPDDR2-1066 trace should match output of version 3.1 """
+        cmdTrace = extractFileToTmpFile('test/data/LPDDR2-1066.commands.trace.gz')
+        self.tempFiles.append(cmdTrace)
+        cmd = ['./drampower', '-m', 'memspecs/MICRON_2Gb_LPDDR2-1066-S4_16bit_A.xml', '-c', cmdTrace]
+        with open(self.tempFileName, 'w') as f:
+            subprocess.call(cmd, stdout = f)
+
+        new = self.getFilteredOutput(self.tempFileName)
+        ref = self.getFilteredOutput('test/reference/test_LPDDR2_1066_matches_reference.out')
+        self.assertListEqual(new, ref)
+
 
 class TestLibDRAMPower(TestUsingBuildResult):
     testPath = 'test/libdrampowertest'
