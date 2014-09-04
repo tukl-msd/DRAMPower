@@ -49,34 +49,42 @@ class TestUsingBuildResult(unittest.TestCase):
                 pass
 
 class TestOutput(TestUsingBuildResult):
+    def run_and_compare_to_reference(self, cmd, referenceFile):
+        with open(self.tempFileName, 'w') as f:
+            subprocess.call(cmd, stdout = f)
+
+        new = self.getFilteredOutput(self.tempFileName)
+        ref = self.getFilteredOutput(referenceFile)
+        self.assertListEqual(new, ref)
+
     def test_commands_trace_output_matches_reference(self):
         """ drampower output for commands.trace example should be equal to test_commands_trace_output_matches_reference.out
             Ignores all lines starting with * and empty lines. All remaining lines should be equal.
             Reference output is based on commit 4981a9856983b5d0b73778a00c43adb4cac0fcbc.
         """
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml', '-c', 'traces/commands.trace']
-        with open(self.tempFileName, 'w') as f:
-            subprocess.call(cmd, stdout = f)
-
-        new = self.getFilteredOutput(self.tempFileName)
-        ref = self.getFilteredOutput('test/test_commands_trace_output_matches_reference.out')
-        self.assertListEqual(new, ref)
+        self.run_and_compare_to_reference(cmd, 'test/test_commands_trace_output_matches_reference.out')
 
     def test_no_arguments_error(self):
         """ running drampower w/o arguments returns 1 """
         self.assertEqual(subprocess.call(['./drampower'], stdout = devnull), 1)
 
-    def test_LPDDR2_1066_matches_reference(self):
-        """ drampower output for an LPDDR2-1066 trace should match output of version 3.1 """
+    def get_LPDDR2_1066_trace_file(self):
         cmdTrace = extractFileToTmpFile('test/data/LPDDR2-1066.commands.trace.gz')
         self.tempFiles.append(cmdTrace)
-        cmd = ['./drampower', '-m', 'memspecs/MICRON_2Gb_LPDDR2-1066-S4_16bit_A.xml', '-c', cmdTrace]
-        with open(self.tempFileName, 'w') as f:
-            subprocess.call(cmd, stdout = f)
+        return cmdTrace
 
-        new = self.getFilteredOutput(self.tempFileName)
-        ref = self.getFilteredOutput('test/reference/test_LPDDR2_1066_matches_reference.out')
-        self.assertListEqual(new, ref)
+    def test_LPDDR2_1066_matches_reference(self):
+        """ drampower output for an LPDDR2-1066 trace should match output of version 3.1 """
+        cmdTrace = self.get_LPDDR2_1066_trace_file()
+        cmd = ['./drampower', '-m', 'memspecs/MICRON_2Gb_LPDDR2-1066-S4_16bit_A.xml', '-c', cmdTrace]
+        self.run_and_compare_to_reference(cmd, 'test/reference/test_LPDDR2_1066_matches_reference.out')
+
+    def test_LPDDR2_1066_termination_matches_reference(self):
+        """ drampower output for an LPDDR2-1066 trace with termination power enabled should match output of version 3.1 """
+        cmdTrace = self.get_LPDDR2_1066_trace_file()
+        cmd = ['./drampower', '-m', 'memspecs/MICRON_2Gb_LPDDR2-1066-S4_16bit_A.xml', '-c', cmdTrace, '-r']
+        self.run_and_compare_to_reference(cmd, 'test/reference/test_LPDDR2_1066_termination_matches_reference.out')
 
 
 class TestLibDRAMPower(TestUsingBuildResult):
