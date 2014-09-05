@@ -226,6 +226,9 @@ class MemoryPowerModel {
 
   Energy energy;
   Power  power;
+
+ private:
+  double calcIoTermEnergy(int64_t cycles, double period, double power, int64_t numBits);
 };
 }
 #endif // ifndef MEMORY_POWER_MODEL_H

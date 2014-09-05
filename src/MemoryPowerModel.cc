@@ -86,37 +86,47 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
   energy.write_oterm_energy  = 0.0;
   energy.io_term_energy      = 0.0;
 
+  // How long a single burst takes, measured in command-clock cycles.
+  int64_t burstCc = memArchSpec.burstLength / memArchSpec.dataRate;
+
   // IO and Termination Power measures are included, if required.
   if (term) {
     io_term_power(memSpec);
 
-    // Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
-    // Width represents data pins
+    // memArchSpec.width represents the number of data (dq) pins.
     // 1 DQS pin is associated with every data byte
-    energy.read_io_energy = (power.IO_power * static_cast<double>(counters.numberofreads) * memArchSpec.burstLength
-                             * (memArchSpec.width + memArchSpec.width / 8));
+    int64_t dqPlusDqsBits = memArchSpec.width + memArchSpec.width / 8;
+    // 1 DQS and 1 DM pin is associated with every data byte
+    int64_t dqPlusDqsPlusMaskBits = memArchSpec.width + memArchSpec.width / 8 + memArchSpec.width / 8;
+    // Size of one clock period for the data bus.
+    double ddrPeriod = memTimingSpec.clkPeriod * memArchSpec.dataRate;
+
+    // Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
+    energy.read_io_energy = calcIoTermEnergy(counters.numberofreads * burstCc,
+                                             ddrPeriod,
+                                             power.IO_power,
+                                             dqPlusDqsBits);
 
     // Write ODT power is consumed by each DQ (data), DQS (data strobe) and DM
-    // (data mask) pin.
-    // Width represents data pins
-    // 1 DQS and 1 DM pin is associated with every data byte
-    energy.write_term_energy = (power.WR_ODT_power * static_cast<double>(counters.numberofwrites) *
-                                memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width / 4));
+    energy.write_term_energy = calcIoTermEnergy(counters.numberofwrites * burstCc,
+                                                ddrPeriod,
+                                                power.WR_ODT_power,
+                                                dqPlusDqsPlusMaskBits);
 
     if (memArchSpec.nbrOfRanks > 1) {
       // Termination power consumed in the idle rank during reads on the active
       // rank by each DQ (data) and DQS (data strobe) pin.
-      // Width represents data pins
-      // 1 DQS pin is associated with every data byte
-      energy.read_oterm_energy = (power.TermRD_power * static_cast<double>(counters.numberofreads) *
-                                  memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width / 8));
+      energy.read_oterm_energy = calcIoTermEnergy(counters.numberofreads * burstCc,
+                                                  ddrPeriod,
+                                                  power.TermRD_power,
+                                                  dqPlusDqsBits);
 
       // Termination power consumed in the idle rank during writes on the active
       // rank by each DQ (data), DQS (data strobe) and DM (data mask) pin.
-      // Width represents data pins
-      // 1 DQS and 1 DM pin is associated with every data byte
-      energy.write_oterm_energy = (power.TermWR_power * static_cast<double>(counters.numberofwrites) *
-                                   memArchSpec.burstLength * (memArchSpec.width + memArchSpec.width / 4));
+      energy.write_oterm_energy = calcIoTermEnergy(counters.numberofwrites * burstCc,
+                                                   ddrPeriod,
+                                                   power.TermWR_power,
+                                                   dqPlusDqsPlusMaskBits);
     }
 
     // Sum of all IO and termination energy
@@ -585,3 +595,9 @@ void MemoryPowerModel::io_term_power(MemorySpecification memSpec)
     power.IO_power = memPowerSpec.capacitance * 0.5 * pow(memPowerSpec.vdd2, 2.0) * memTimingSpec.clkMhz * 1000000;
   }
 } // MemoryPowerModel::io_term_power
+
+
+double MemoryPowerModel::calcIoTermEnergy(int64_t cycles, double period, double power, int64_t numBits)
+{
+  return static_cast<double>(cycles) * period * power * static_cast<double>(numBits);
+}

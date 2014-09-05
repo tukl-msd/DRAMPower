@@ -50,6 +50,7 @@ class TestUsingBuildResult(unittest.TestCase):
 
 class TestOutput(TestUsingBuildResult):
     def run_and_compare_to_reference(self, cmd, referenceFile):
+        self.maxDiff = None  # Show full diff on error.
         with open(self.tempFileName, 'w') as f:
             subprocess.call(cmd, stdout = f)
 

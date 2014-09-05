@@ -37,6 +37,8 @@
 
 #include "MemArchitectureSpec.h"
 
+#include <cassert>
+
 using namespace Data;
 
 void MemArchitectureSpec::processParameters()
@@ -50,6 +52,7 @@ void MemArchitectureSpec::processParameters()
   nbrOfColumns    = getParamValWithDefault("nbrOfColumns", 1);
   nbrOfRows       = getParamValWithDefault("nbrOfRows", 1);
   width           = getParamValWithDefault("width", 1);
+  assert("memory width should be a multiple of 8" && (width % 8) == 0);
   dll             = getParamValWithDefault("dll", false);
   twoVoltageDomains = getParamValWithDefault("twoVoltageDomains", false);
   termination       = getParamValWithDefault("termination", false);
