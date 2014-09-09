@@ -76,25 +76,25 @@ class TestOutput(TestUsingBuildResult):
         return cmdTrace
 
     def test_LPDDR2_1066_matches_reference(self):
-        """ drampower output for an LPDDR2-1066 trace should match output of version 3.1 """
+        """ drampower output for an LPDDR2-1066 trace matches reference """
         cmdTrace = self.get_LPDDR2_1066_trace_file()
         cmd = ['./drampower', '-m', 'memspecs/MICRON_2Gb_LPDDR2-1066-S4_16bit_A.xml', '-c', cmdTrace]
         self.run_and_compare_to_reference(cmd, 'test/reference/test_LPDDR2_1066_matches_reference.out')
 
     def test_LPDDR2_1066_termination_matches_reference(self):
-        """ drampower output for an LPDDR2-1066 trace with termination power enabled should match output of version 3.1 """
+        """ drampower output for an LPDDR2-1066 trace with termination power enabled matches reference """
         cmdTrace = self.get_LPDDR2_1066_trace_file()
         cmd = ['./drampower', '-m', 'memspecs/MICRON_2Gb_LPDDR2-1066-S4_16bit_A.xml', '-c', cmdTrace, '-r']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_LPDDR2_1066_termination_matches_reference.out')
 
     def test_transaction_scheduler(self):
-        """ drampower output for LPDDR3-1333 with the jpegencode transaction trace matches output of version 3.1 """
+        """ drampower output for LPDDR3-1333 with the jpegencode transaction trace matches reference """
         cmd = ['./drampower', '-m', 'memspecs/MICRON_4Gb_LPDDR3-1333_32bit_A.xml',
                               '-t', 'traces/mediabench-jpegencode.trace']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_transaction_scheduler.out')
 
     def test_transaction_scheduler_with_self_refresh(self):
-        """ drampower output for LPDDR3-1333 with the jpegencode transaction trace with self refresh matches output of version 3.1 """
+        """ drampower output for LPDDR3-1333 with the jpegencode transaction trace matches reference """
         cmd = ['./drampower', '-m', 'memspecs/MICRON_4Gb_LPDDR3-1333_32bit_A.xml',
                               '-t', 'traces/mediabench-jpegencode.trace', '-p', '2']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_transaction_scheduler_with_self_refresh.out')
