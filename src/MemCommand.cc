@@ -91,15 +91,43 @@ int MemCommand::getPrechargeOffset(const MemorySpecification& memSpec,
   int AL(static_cast<int>(memSpec.memTimingSpec.AL));
   int WL(static_cast<int>(memSpec.memTimingSpec.WL));
   int WR(static_cast<int>(memSpec.memTimingSpec.WR));
+  int B = BL/dataRate;
+
+  const MemoryType::MemoryType_t& memType = memSpec.memoryType;
 
   // Read with auto-precharge
   if (type == MemCommand::RDA) {
-    if (memSpec.memoryType == MemoryType::DDR2)
-      precharge_offset = AL + BL / dataRate + max(RTP, 2) - 2;
-    else
-      precharge_offset = RTP;
-  } else if (type == MemCommand::WRA)    { // Write with auto-precharge
-    precharge_offset = WL + BL / dataRate + WR;
+    if (memType == MemoryType::DDR2) {
+      precharge_offset = B + AL - 2 + max(RTP, 2);
+    } else if (memType == MemoryType::DDR3) {
+      precharge_offset = AL + max(RTP, 4);
+    } else if (memType == MemoryType::DDR4) {
+      precharge_offset = AL + RTP;
+    } else if (memType == MemoryType::LPDDR) {
+      precharge_offset = B;
+    } else if (memType == MemoryType::LPDDR2) {
+      precharge_offset = B + max(0, RTP - 2);
+    } else if (memType == MemoryType::LPDDR3) {
+      precharge_offset = B + max(0, RTP - 4);
+    } else if (memType == MemoryType::WIDEIO_SDR) {
+      precharge_offset = B;
+    }
+  } else if (type == MemCommand::WRA) { // Write with auto-precharge
+    if (memType == MemoryType::DDR2) {
+      precharge_offset = B + WL + WR;
+    } else if (memType == MemoryType::DDR3) {
+      precharge_offset = B + WL + WR;
+    } else if (memType == MemoryType::DDR4) {
+      precharge_offset = B + WL + WR;
+    } else if (memType == MemoryType::LPDDR) {
+      precharge_offset = B + WR;  // + DQSS actually, but we don't have that parameter.
+    } else if (memType == MemoryType::LPDDR2) {
+      precharge_offset = B +  WL + WR + 1;
+    } else if (memType == MemoryType::LPDDR3) {
+      precharge_offset = B +  WL + WR + 1;
+    } else if (memType == MemoryType::WIDEIO_SDR) {
+      precharge_offset = B + WL + WR - 1;
+    }
   }
 
   return precharge_offset;
