@@ -95,8 +95,8 @@ Note: The timing specifications in the XMLs are in clock cycles (cc). The curren
 (1) MICRON_128MB_DDR3-1066_8bit - revision G  
 (2) MICRON_128MB_DDR3-1066_16bit - revision G  
 (3) MICRON_128MB_DDR3-1600_8bit - revision G  
-(3) MICRON_256MB_DDR3-1066_8bit - revision D  
-(4) MICRON_256MB_DDR3-1600_16bit - revision D  
+(4) MICRON_256MB_DDR3-1066_8bit - revision D  
+(5) MICRON_256MB_DDR3-1600_16bit - revision D  
 
 The original vendor-provided datasheet current specifications are given in XMLs
 without suffixes such as _mu, _2s and _3s. XMLs including suffixes indicate that the
