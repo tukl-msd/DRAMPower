@@ -1,5 +1,19 @@
 Change Log:
 
+DRAMPower v4.0 - *  DRAMPower can now be compiled as a library. This enables a user
+	            to access the tool through an API and log commands and their
+	            corresponding time stamps, removing the need to store large
+	            command traces on disk. In addition, cycle counting variables
+	            have been changed to int64 to support longer simulations.
+	            The library can be compiled without Xerces to remove an optional 
+	            dependency and reduce the size of the binary.
+                 *  Improved robustness. The latest build is automatically checked 
+	            out on a test server, compiled, and tested to verify that the 
+	            output matches an expected reference. The code is also compiled
+	            with a large number of warning flags enabled and treats all 
+	            warnings as errors.
+	         *  Bug fix: Fixed bug in io/termination energy calculation.
+
 DRAMPower v3.1 - *  Added IO and Termination Power measures from Micron's DRAM Power 
 		    Calculator, for all supported DRAM generations. In the case of 
 		    Wide IO DRAMs, these measures are already included in the provided
