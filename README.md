@@ -27,7 +27,6 @@ The tool was verified on Ubuntu 10.04 using:
  * memspecs/   : contains the memory specification XMLs, which give the architectural, timing and current/voltage details for different DRAM memories.
  * traces/     : contains 4 sample DRAM transaction traces and 1 sample command trace
  * test/       : contains test script and reference output
- * PowerCalc.cc: gives the command-line user interface.
 
 ## 4. Trace Specification
 ### Command Traces
@@ -90,12 +89,12 @@ Note: The timing specifications in the XMLs are in clock cycles (cc). The curren
 
 ## 7. Variation-aware Power And Energy Estimation
 
-15 of the included datasheets reflect the impact of process-variations on DRAM currents for a selection of DDR3 memories manufactured at 50nm process technology. These memories include:  
-(1) MICRON_128MB_DDR3-1066_8bit - revision G  
-(2) MICRON_128MB_DDR3-1066_16bit - revision G  
-(3) MICRON_128MB_DDR3-1600_8bit - revision G  
-(4) MICRON_256MB_DDR3-1066_8bit - revision D  
-(5) MICRON_256MB_DDR3-1600_16bit - revision D  
+15 of the included datasheets reflect the impact of process-variations on DRAM currents for a selection of DDR3 memories manufactured at 50nm process technology. These memories include:
+(1) MICRON_128MB_DDR3-1066_8bit - revision G
+(2) MICRON_128MB_DDR3-1066_16bit - revision G
+(3) MICRON_128MB_DDR3-1600_8bit - revision G
+(4) MICRON_256MB_DDR3-1066_8bit - revision D
+(5) MICRON_256MB_DDR3-1600_16bit - revision D
 
 The original vendor-provided datasheet current specifications are given in XMLs
 without suffixes such as _mu, _2s and _3s. XMLs including suffixes indicate that the

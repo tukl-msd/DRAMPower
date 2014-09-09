@@ -41,13 +41,13 @@ BINARY := drampower
 LIBS := src/libdrampower.a src/libdrampowerxml.a
 
 # Identifies the source files and derives name of object files.
-CORESOURCES := PowerCalc.cc $(wildcard src/*.cc)
+CLISOURCES := $(wildcard src/*.cc) $(wildcard src/cli/*.cc)
 XMLPARSERSOURCES := $(wildcard src/xmlparser/*.cc)
 LIBSOURCES := $(wildcard src/*.cc src/libdrampower/*.cc)
-ALLSOURCES := PowerCalc.cc $(wildcard src/*.cc) $(wildcard src/xmlparser/*.cc) $(wildcard src/libdrampower/*.cc)
+ALLSOURCES := $(wildcard src/cli/*.cc) $(wildcard src/*.cc) $(wildcard src/xmlparser/*.cc) $(wildcard src/libdrampower/*.cc)
 ALLHEADERS := $(wildcard src/*.h) $(wildcard src/xmlparser/*.h) $(wildcard src/libdrampower/*.h)
 
-COREOBJECTS := ${CORESOURCES:.cc=.o}
+CLIOBJECTS := ${CLISOURCES:.cc=.o}
 XMLPARSEROBJECTS := ${XMLPARSERSOURCES:.cc=.o}
 LIBOBJECTS := ${LIBSOURCES:.cc=.o}
 ALLOBJECTS := ${ALLSOURCES:.cc=.o}
@@ -100,7 +100,7 @@ XERCES_LDFLAGS := -L$(XERCES_LIB) -lxerces-c
 
 all: ${BINARY} lib parserlib
 
-$(BINARY): ${XMLPARSEROBJECTS} ${COREOBJECTS}
+$(BINARY): ${XMLPARSEROBJECTS} ${CLIOBJECTS}
 	$(CXX) ${CXXFLAGS} $(LDFLAGS) -o $@ $^ $(XERCES_LDFLAGS)
 
 # From .cpp to .o. Dependency files are generated here
