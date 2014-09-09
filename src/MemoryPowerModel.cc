@@ -39,6 +39,9 @@
 
 #include <cmath>  // For pow
 
+#include <stdint.h>
+
+
 using namespace std;
 using namespace Data;
 
@@ -87,7 +90,7 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
   energy.io_term_energy      = 0.0;
 
   // How long a single burst takes, measured in command-clock cycles.
-  int64_t burstCc = memArchSpec.burstLength / memArchSpec.dataRate;
+  // int64_t burstCc = memArchSpec.burstLength / memArchSpec.dataRate;
 
   // IO and Termination Power measures are included, if required.
   if (term) {
@@ -99,16 +102,16 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
     // 1 DQS and 1 DM pin is associated with every data byte
     int64_t dqPlusDqsPlusMaskBits = memArchSpec.width + memArchSpec.width / 8 + memArchSpec.width / 8;
     // Size of one clock period for the data bus.
-    double ddrPeriod = memTimingSpec.clkPeriod * memArchSpec.dataRate;
+    double ddrPeriod = memTimingSpec.clkPeriod / memArchSpec.dataRate;
 
     // Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
-    energy.read_io_energy = calcIoTermEnergy(counters.numberofreads * burstCc,
+    energy.read_io_energy = calcIoTermEnergy(counters.numberofreads * memArchSpec.burstLength,
                                              ddrPeriod,
                                              power.IO_power,
                                              dqPlusDqsBits);
 
     // Write ODT power is consumed by each DQ (data), DQS (data strobe) and DM
-    energy.write_term_energy = calcIoTermEnergy(counters.numberofwrites * burstCc,
+    energy.write_term_energy = calcIoTermEnergy(counters.numberofwrites * memArchSpec.burstLength,
                                                 ddrPeriod,
                                                 power.WR_ODT_power,
                                                 dqPlusDqsPlusMaskBits);
@@ -116,14 +119,14 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
     if (memArchSpec.nbrOfRanks > 1) {
       // Termination power consumed in the idle rank during reads on the active
       // rank by each DQ (data) and DQS (data strobe) pin.
-      energy.read_oterm_energy = calcIoTermEnergy(counters.numberofreads * burstCc,
+      energy.read_oterm_energy = calcIoTermEnergy(counters.numberofreads * memArchSpec.burstLength,
                                                   ddrPeriod,
                                                   power.TermRD_power,
                                                   dqPlusDqsBits);
 
       // Termination power consumed in the idle rank during writes on the active
       // rank by each DQ (data), DQS (data strobe) and DM (data mask) pin.
-      energy.write_oterm_energy = calcIoTermEnergy(counters.numberofwrites * burstCc,
+      energy.write_oterm_energy = calcIoTermEnergy(counters.numberofwrites * memArchSpec.burstLength,
                                                    ddrPeriod,
                                                    power.TermWR_power,
                                                    dqPlusDqsPlusMaskBits);
