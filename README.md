@@ -27,7 +27,6 @@ The tool was verified on Ubuntu 10.04 using:
  * memspecs/   : contains the memory specification XMLs, which give the architectural, timing and current/voltage details for different DRAM memories.
  * traces/     : contains 4 sample DRAM transaction traces and 1 sample command trace
  * test/       : contains test script and reference output
- * manual.pdf  : is the software development manual with details on the user interface and the different source code files.
  * PowerCalc.cc: gives the command-line user interface.
 
 ## 4. Trace Specification
