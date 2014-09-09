@@ -99,6 +99,11 @@ class TestOutput(TestUsingBuildResult):
                               '-t', 'traces/mediabench-jpegencode.trace', '-p', '2']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_transaction_scheduler_with_self_refresh.out')
 
+    def test_broken_trace(self):
+        """ running drampower with an invalid trace returns 0 """
+        self.assertEqual(subprocess.call(['./drampower',
+                                          '-m', 'memspecs/MICRON_1Gb_DDR2-800_16bit_H.xml',
+                                          '-c', 'test/data/warnings.trace'], stdout=devnull), 0)
 
 class TestLibDRAMPower(TestUsingBuildResult):
     testPath = 'test/libdrampowertest'

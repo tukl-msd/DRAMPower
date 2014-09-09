@@ -276,9 +276,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // state. Update the number of precharged/idle-precharged cycles.
       numberofacts++;
       if (bankstate[bank] == 1) {
-        cout << "Bank is already active!" << endl;
-        cout << "Command :" << type << "Timestamp: " << timestamp <<
-          ", Bank: " << bank << endl;
+        printWarning("Bank is already active!", type, timestamp, bank);
       }
       bankstate[bank] = 1;
       if (mem_state == 0) {
@@ -292,9 +290,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // If command is RD - update number of reads and read cycle. Check
       // for active idle cycles (if any).
       if (bankstate[bank] == 0) {
-        cout << "Bank is not active!" << endl;
-        cout << "Command :" << type << "Timestamp: " << timestamp <<
-          ", Bank: " << bank << endl;
+        printWarning("Bank is not active!", type, timestamp, bank);
       }
       numberofreads++;
       idle_act_update(memSpec, latest_read_cycle, latest_write_cycle,
@@ -304,9 +300,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // If command is WR - update number of writes and write cycle. Check
       // for active idle cycles (if any).
       if (bankstate[bank] == 0) {
-        cout << "Bank is not active!" << endl;
-        cout << "Command :" << type << "Timestamp: " << timestamp <<
-          ", Bank: " << bank << endl;
+        printWarning("Bank is not active!", type, timestamp, bank);
       }
       numberofwrites++;
       idle_act_update(memSpec, latest_read_cycle, latest_write_cycle,
@@ -318,12 +312,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // timestamp, set the number of active cycles to RFC-RP and check
       // for active and precharged cycles and idle active and idle
       // precharged cycles before refresh. Change memory state to 0.
-      if (mem_state != 0) {
-        cout << "One or more banks are active! REF requires all banks to be "
-             << "precharged." << endl;
-        cout << "Command :" << type << "Timestamp: " << timestamp <<
-          ", Bank: " << bank << endl;
-      }
+      printWarningIfActive("One or more banks are active! REF requires all banks to be precharged.", type, timestamp, bank);
       numberofrefs++;
       idle_pre_update(memSpec, timestamp, latest_pre_cycle);
       first_act_cycle  = timestamp;
@@ -400,12 +389,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // fast-exit active power-down. Save states of all the banks from
       // the cycle before entering active power-down, to be returned to
       // after powering-up. Update active and active idle cycles.
-      if (mem_state == 0) {
-        cout << "All banks are precharged! Incorrect use of Active "
-                "Power-Down." << endl;
-        cout << "Command :" << type << "Timestamp: " << timestamp <<
-          ", Bank: " << bank << endl;
-      }
+      printWarningIfNotActive("All banks are precharged! Incorrect use of Active Power-Down.", type, timestamp, bank);
       f_act_pdns++;
       for (int j = 0; j < nbrofBanks; j++) {
         last_states[j] = bankstate[j];
@@ -421,12 +405,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // slow-exit active power-down. Save states of all the banks from
       // the cycle before entering active power-down, to be returned to
       // after powering-up. Update active and active idle cycles.
-      if (mem_state == 0) {
-        cout << "All banks are precharged! Incorrect use of Active "
-                "Power-Down." << endl;
-        cout << "Command :" << type << "Timestamp: " << timestamp <<
-          ", Bank: " << bank << endl;
-      }
+      printWarningIfNotActive("All banks are precharged! Incorrect use of Active Power-Down.", type, timestamp, bank);
       s_act_pdns++;
       for (int j = 0; j < nbrofBanks; j++) {
         last_states[j] = bankstate[j];
@@ -441,12 +420,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // power-downs, set the power-down cycle and the memory mode to
       // fast-exit precahrged power-down. Update precharged and precharged
       // idle cycles.
-      if (mem_state != 0) {
-        cout << "One or more banks are active! Incorrect use of Precharged "
-             << "Power-Down." << endl;
-        cout << "Command :" << type << "Timestamp: " << timestamp <<
-          ", Bank: " << bank << endl;
-      }
+      printWarningIfActive("One or more banks are active! Incorrect use of Precharged Power-Down.", type, timestamp, bank);
       f_pre_pdns++;
       pdn_cycle  = timestamp;
       precycles += max(zero, timestamp - last_pre_cycle);
@@ -457,12 +431,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // power-downs, set the power-down cycle and the memory mode to
       // slow-exit precahrged power-down. Update precharged and precharged
       // idle cycles.
-      if (mem_state != 0) {
-        cout << "One or more banks are active! Incorrect use of Precharged "
-             << "Power-Down." << endl;
-        cout << "Command :" << type << "Timestamp: " << timestamp <<
-          ", Bank: " << bank << endl;
-      }
+      printWarningIfActive("One or more banks are active! Incorrect use of Precharged Power-Down.", type, timestamp, bank);
       s_pre_pdns++;
       pdn_cycle  = timestamp;
       precycles += max(zero, timestamp - last_pre_cycle);
@@ -534,12 +503,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // If command is self-refresh - update number of self-refreshes,
       // set memory state to SREF, update precharge and idle precharge
       // cycles and set the self-refresh cycle.
-      if (mem_state != 0) {
-        cout << "One or more banks are active! SREF requires all banks to be"
-             << " precharged." << endl;
-        cout << "Command :" << type << "Timestamp: " << timestamp <<
-          ", Bank: " << bank << endl;
-      }
+      printWarningIfActive("One or more banks are active! SREF requires all banks to be precharged.", type, timestamp, bank);
       numberofsrefs++;
       sref_cycle = timestamp;
       precycles += max(zero, timestamp - last_pre_cycle);
@@ -678,4 +642,25 @@ void CommandAnalysis::idle_pre_update(const MemorySpecification& memSpec,
   } else if (latest_pre_cycle == 0) {
     idlecycles_pre += max(zero, timestamp - latest_pre_cycle);
   }
+}
+
+void CommandAnalysis::printWarningIfActive(const string& warning, int type, int64_t timestamp, int bank)
+{
+  if (mem_state != 0) {
+    printWarning(warning, type, timestamp, bank);
+  }
+}
+
+void CommandAnalysis::printWarningIfNotActive(const string& warning, int type, int64_t timestamp, int bank)
+{
+  if (mem_state == 0) {
+    printWarning(warning, type, timestamp, bank);
+  }
+}
+
+void CommandAnalysis::printWarning(const string& warning, int type, int64_t timestamp, int bank)
+{
+  cout << "WARNING: " << warning << endl;
+  cout << "Command: " << type << ", Timestamp: " << timestamp <<
+    ", Bank: " << bank << endl;
 }

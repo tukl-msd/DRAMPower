@@ -43,6 +43,7 @@
 #include <vector>
 #include <iostream>
 #include <deque>
+#include <string>
 
 #include "MemCommand.h"
 #include "MemorySpecification.h"
@@ -203,6 +204,10 @@ class CommandAnalysis {
   void idle_pre_update(const MemorySpecification& memSpec,
                        int64_t                     timestamp,
                        int64_t                     latest_pre_cycle);
+
+  void printWarningIfActive(const std::string& warning, int type, int64_t timestamp, int bank);
+  void printWarningIfNotActive(const std::string& warning, int type, int64_t timestamp, int bank);
+  void printWarning(const std::string& warning, int type, int64_t timestamp, int bank);
 };
 }
 #endif // ifndef COMMAND_TIMINGS_H
