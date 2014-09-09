@@ -10,7 +10,7 @@ The master branch of the repository should be regarded as the bleeding-edge vers
 
 ## 1. Installation
 
-Clone the repository, or download the zip file of the release you would like to use. The source code is available in src folder. PowerCalc.cc file gives the user interface, where the user can specify the memory to be employed and the command/transaction trace to be analyzed. To build, use:
+Clone the repository, or download the zip file of the release you would like to use. The source code is available in src folder. src/cli/drampower.cc file gives the user interface, where the user can specify the memory to be employed and the command/transaction trace to be analyzed. To build, use:
 ```bash
 make -j4
 ```
@@ -52,7 +52,7 @@ Four sample MediaBench application transaction traces have been provided. The Me
 
 ## 5. Usage
 
-PowerCalc.cc is the main interface file, which accepts user inputs to specify memory to be employed and the command or transaction trace to be analyzed. If the transaction trace (DRAM command scheduler) is being used, the users can specify the degree of bank interleaving required, the request size and the use of power-down or self-refresh options. Also, for DDR4 memories bank group interleaving can be specified. Dual-rank DRAMs are not yet supported by the command scheduler. Note: Speculative use of power-down or self-refresh modes will increase the trace length due to the power-up latencies of these power-saving modes.
+src/cli/drampower.cc is the main interface file, which accepts user inputs to specify memory to be employed and the command or transaction trace to be analyzed. If the transaction trace (DRAM command scheduler) is being used, the users can specify the degree of bank interleaving required, the request size and the use of power-down or self-refresh options. Also, for DDR4 memories bank group interleaving can be specified. Dual-rank DRAMs are not yet supported by the command scheduler. Note: Speculative use of power-down or self-refresh modes will increase the trace length due to the power-up latencies of these power-saving modes.
 
 To use DRAMPower at the command-level (command trace), after make, use the following:
 ```bash
@@ -117,7 +117,6 @@ This should show the following compilation message on the screen:
 g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++98 -MMD -MF src/xmlparser/MemSpecParser.d -iquote src -o src/xmlparser/MemSpecParser.o -c src/xmlparser/MemSpecParser.cc
 g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++98 -MMD -MF src/xmlparser/XMLHandler.d -iquote src -o src/xmlparser/XMLHandler.o -c src/xmlparser/XMLHandler.cc
 g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++98 -MMD -MF src/xmlparser/XMLParser.d -iquote src -o src/xmlparser/XMLParser.o -c src/xmlparser/XMLParser.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++98 -MMD -MF PowerCalc.d -iquote src -o PowerCalc.o -c PowerCalc.cc
 g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++98 -MMD -MF src/CmdScheduler.d -iquote src -o src/CmdScheduler.o -c src/CmdScheduler.cc
 g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++98 -MMD -MF src/CommandAnalysis.d -iquote src -o src/CommandAnalysis.o -c src/CommandAnalysis.cc
 g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++98 -MMD -MF src/MemArchitectureSpec.d -iquote src -o src/MemArchitectureSpec.o -c src/MemArchitectureSpec.cc
@@ -134,7 +133,7 @@ ar -cvr src/libdrampowerxml.a src/xmlparser/MemSpecParser.o src/xmlparser/XMLHan
 a - src/xmlparser/MemSpecParser.o
 a - src/xmlparser/XMLHandler.o
 a - src/xmlparser/XMLParser.o
-g++ -Wall -o drampower src/xmlparser/MemSpecParser.o src/xmlparser/XMLHandler.o src/xmlparser/XMLParser.o PowerCalc.o src/CmdScheduler.o src/CommandAnalysis.o src/MemArchitectureSpec.o src/MemCommand.o src/MemoryPowerModel.o src/MemorySpecification.o src/MemPowerSpec.o src/MemTimingSpec.o src/Parameter.o src/Parametrisable.o src/TraceParser.o -L/usr/lib -lxerces-c
+g++ -Wall -o drampower src/xmlparser/MemSpecParser.o src/xmlparser/XMLHandler.o src/xmlparser/XMLParser.o src/CmdScheduler.o src/CommandAnalysis.o src/MemArchitectureSpec.o src/MemCommand.o src/MemoryPowerModel.o src/MemorySpecification.o src/MemPowerSpec.o src/MemTimingSpec.o src/Parameter.o src/Parametrisable.o src/TraceParser.o -L/usr/lib -lxerces-c
 ar -cvr src/libdrampower.a src/CmdScheduler.o src/CommandAnalysis.o src/MemArchitectureSpec.o src/MemCommand.o src/MemoryPowerModel.o src/MemorySpecification.o src/MemPowerSpec.o src/MemTimingSpec.o src/Parameter.o src/Parametrisable.o src/TraceParser.o src/libdrampower/LibDRAMPower.o
 a - src/CmdScheduler.o
 a - src/CommandAnalysis.o
