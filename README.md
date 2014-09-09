@@ -26,8 +26,9 @@ The tool was verified on Ubuntu 10.04 using:
  * src/: contains the source code of the DRAMPower tool that covers the power  model, the command scheduler and the trace analysis tool.
  * memspecs/   : contains the memory specification XMLs, which give the architectural, timing and current/voltage details for different DRAM memories.
  * traces/     : contains 4 sample DRAM transaction traces and 1 sample command trace
+ * test/       : contains test script and reference output
  * manual.pdf  : is the software development manual with details on the user interface and the different source code files.
- * PowerCalc.cc: gives the user interface.
+ * PowerCalc.cc: gives the command-line user interface.
 
 ## 4. Trace Specification
 ### Command Traces
@@ -43,7 +44,7 @@ specified. The timing correctness of the trace is not verified by the tool and i
 If the transaction-level interface is being used, a transaction trace can be logged.
 
 The format it uses is: ```<timestamp>,<transaction_type>,<address>```.
-For example, "35,READ,0x80028", where READ/WRITE can be the transaction type and the logical address (32-bits long and byte addressable) is DRAM capacity is 4GB (32Gb).
+For example, "35,READ,0x80028", where READ/WRITE can be the transaction type and the logical address (32-bits long and byte addressable) less than the maximum supported DRAM capacity of 4GB (32Gb).
 
 The tool uses a flexible and efficient memory map as follows: specified in HEX (0x). Timestamp is in clock cycles (cc) and maximum {row}-{bank}-{column}-{BI}-{BC}-{BGI}-{BL}
 Here, BI gives the degree of bank interleaving, BC gives the burst size (count), BGI gives the degree of bank group interleaving (for DDR4) and BL gives the burst length used by the device.
@@ -70,18 +71,17 @@ Additional options when using transactions trace [-t] include:
  * [-g] ```<DDR4 bank group interleaving>```
  * [-p] ```<0 - No Power-Down, 1 - Power-Down, 2 - Self-Refresh>```
 
-Also, when using either the commands trace or the transactions trace, user can
+Also, when using either the commands trace or the transactions trace, the user can
 optionally include IO and Termination power estimates (obtained from Micron's DRAM
 Power Calculator). To enable the same, the '-r' flag can be employed in command line.
 
-If these options are not used, the default values assumed are:
-interleaving = 1;
-request size = burst length * I/O width / 8 (in bytes); (from memory XMLs)
-power saving = No power-down
-bank group interleaving = 1;
-IO and termination = OFF (0)
-
-A burst size (count) of 1 is assumed by default.
+If these options are not used, the default values assumed are:  
+* interleaving = 1
+* request size = burst length * I/O width / 8 (in bytes) (from memory XMLs)
+* power saving = No power-down
+* bank group interleaving = 1
+* IO and termination = OFF (0)
+* Burst size (count) of 1
 
 ## 6. Memory Specifications
 
@@ -92,11 +92,11 @@ Note: The timing specifications in the XMLs are in clock cycles (cc). The curren
 ## 7. Variation-aware Power And Energy Estimation
 
 15 of the included datasheets reflect the impact of process-variations on DRAM currents for a selection of DDR3 memories manufactured at 50nm process technology. These memories include:
-(1) MICRON_128MB_DDR3-1066_8bit - revision G
-(2) MICRON_128MB_DDR3-1066_16bit - revision G
-(3) MICRON_128MB_DDR3-1600_8bit - revision G
-(3) MICRON_256MB_DDR3-1066_8bit - revision D
-(4) MICRON_256MB_DDR3-1600_16bit - revision D
+(1) MICRON_128MB_DDR3-1066_8bit - revision G  
+(2) MICRON_128MB_DDR3-1066_16bit - revision G  
+(3) MICRON_128MB_DDR3-1600_8bit - revision G  
+(3) MICRON_256MB_DDR3-1066_8bit - revision D  
+(4) MICRON_256MB_DDR3-1600_16bit - revision D  
 
 The original vendor-provided datasheet current specifications are given in XMLs
 without suffixes such as _mu, _2s and _3s. XMLs including suffixes indicate that the
@@ -244,7 +244,7 @@ It also reports the simulation start/end times and the total simulation time in 
 ## 9. DRAMPower Library
 
 The DRAMPower tool has an additional feature and can be used as a library.
-In order to use the library run "make lib", include src/libdrampower/LibDRAMPower.h in your Project and
+In order to use the library run "make lib", include src/libdrampower/LibDRAMPower.h in your project and
 link the file src/libdrampower.a with your project.
 An example for the usuage of the library can be found in the folder test/libdrampowertest/lib_test.cc
 
