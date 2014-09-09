@@ -64,7 +64,7 @@ class TestOutput(TestUsingBuildResult):
             Reference output is based on commit 4981a9856983b5d0b73778a00c43adb4cac0fcbc.
         """
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml', '-c', 'traces/commands.trace']
-        self.run_and_compare_to_reference(cmd, 'test/test_commands_trace_output_matches_reference.out')
+        self.run_and_compare_to_reference(cmd, 'test/reference/test_commands_trace_output_matches_reference.out')
 
     def test_no_arguments_error(self):
         """ running drampower w/o arguments returns 1 """
@@ -134,7 +134,7 @@ class TestLibDRAMPower(TestUsingBuildResult):
                 pass
 
         new = self.getFilteredOutput(self.tempFileName)
-        ref = self.getFilteredOutput('test/test_libdrampower_output_matches_reference.out')
+        ref = self.getFilteredOutput('test/reference/test_libdrampower_output_matches_reference.out')
         self.assertListEqual(new, ref)
 
 class TestClean(unittest.TestCase):
