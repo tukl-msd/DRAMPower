@@ -91,7 +91,7 @@ Note: The timing specifications in the XMLs are in clock cycles (cc). The curren
 
 ## 7. Variation-aware Power And Energy Estimation
 
-15 of the included datasheets reflect the impact of process-variations on DRAM currents for a selection of DDR3 memories manufactured at 50nm process technology. These memories include:
+15 of the included datasheets reflect the impact of process-variations on DRAM currents for a selection of DDR3 memories manufactured at 50nm process technology. These memories include:  
 (1) MICRON_128MB_DDR3-1066_8bit - revision G  
 (2) MICRON_128MB_DDR3-1066_16bit - revision G  
 (3) MICRON_128MB_DDR3-1600_8bit - revision G  
