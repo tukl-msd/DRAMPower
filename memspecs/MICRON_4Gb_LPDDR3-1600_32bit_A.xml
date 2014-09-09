@@ -35,7 +35,7 @@
       <parameter id="XPDLL" type="uint" value="6" />
       <parameter id="XS" type="uint" value="112" />
       <parameter id="XSDLL" type="uint" value="112" />
-      <parameter id="CKE" type="uint" value="6" />    
+      <parameter id="CKE" type="uint" value="6" />
       <parameter id="CKESR" type="uint" value="12" />
   </memtimingspec>
   <mempowerspec>

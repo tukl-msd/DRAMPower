@@ -14,7 +14,7 @@
   </memarchitecturespec>
   <memtimingspec>
       <parameter id="clkMhz" type="double" value="400" />
-      <parameter id="REFI" type="uint" value="1560" />      
+      <parameter id="REFI" type="uint" value="1560" />
       <parameter id="RFC" type="uint" value="52" />
       <parameter id="RL" type="uint" value="6" />
       <parameter id="WL" type="uint" value="3" />
