@@ -51,9 +51,9 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
                                   const CommandAnalysis& counters,
                                   int term)
 {
-  MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
+  MemTimingSpec& t                 = memSpec.memTimingSpec;
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
-  MemPowerSpec&  memPowerSpec      = memSpec.memPowerSpec;
+  MemPowerSpec&  mps               = memSpec.memPowerSpec;
 
   energy.act_energy          = 0.0;
   energy.pre_energy          = 0.0;
@@ -90,7 +90,7 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
   energy.io_term_energy      = 0.0;
 
   // How long a single burst takes, measured in command-clock cycles.
-  // int64_t burstCc = memArchSpec.burstLength / memArchSpec.dataRate;
+  int64_t burstCc = memArchSpec.burstLength / memArchSpec.dataRate;
 
   // IO and Termination Power measures are included, if required.
   if (term) {
@@ -102,7 +102,7 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
     // 1 DQS and 1 DM pin is associated with every data byte
     int64_t dqPlusDqsPlusMaskBits = memArchSpec.width + memArchSpec.width / 8 + memArchSpec.width / 8;
     // Size of one clock period for the data bus.
-    double ddrPeriod = memTimingSpec.clkPeriod / memArchSpec.dataRate;
+    double ddrPeriod = t.clkPeriod / memArchSpec.dataRate;
 
     // Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
     energy.read_io_energy = calcIoTermEnergy(counters.numberofreads * memArchSpec.burstLength,
@@ -143,169 +143,95 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
                  + counters.sref_ref_act_cycles + counters.sref_ref_pre_cycles +
                  counters.spup_ref_act_cycles + counters.spup_ref_pre_cycles;
 
-  energy.act_energy = static_cast<double>(counters.numberofacts) * engy_act(memPowerSpec.idd3n,
-                                                      memPowerSpec.idd0, memPowerSpec.vdd, memTimingSpec.RAS,
-                                                      memTimingSpec.clkPeriod);
+  EnergyDomain vdd0Domain(mps.vdd, t.clkPeriod);
 
-  energy.pre_energy = static_cast<double>(counters.numberofpres) * engy_pre(memPowerSpec.idd2n,
-                                                      memPowerSpec.idd0, memPowerSpec.vdd, memTimingSpec.RAS,
-                                                      memTimingSpec.RC, memTimingSpec.clkPeriod);
-
-  energy.read_energy = static_cast<double>(counters.numberofreads) * engy_read_cmd(memPowerSpec.idd3n,
-                                                             memPowerSpec.idd4r, memPowerSpec.vdd, memArchSpec.burstLength /
-                                                             memArchSpec.dataRate, memTimingSpec.clkPeriod);
-
-  energy.write_energy = static_cast<double>(counters.numberofwrites) * engy_write_cmd(memPowerSpec.idd3n,
-                                                                memPowerSpec.idd4w, memPowerSpec.vdd, memArchSpec.burstLength /
-                                                                memArchSpec.dataRate, memTimingSpec.clkPeriod);
-
-  energy.ref_energy = static_cast<double>(counters.numberofrefs) * engy_ref(memPowerSpec.idd3n,
-                                                      memPowerSpec.idd5, memPowerSpec.vdd, memTimingSpec.RFC,
-                                                      memTimingSpec.clkPeriod);
-
-  energy.pre_stdby_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
-                                           static_cast<double>(counters.precycles), memTimingSpec.clkPeriod);
-
-  energy.act_stdby_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
-                                           static_cast<double>(counters.actcycles), memTimingSpec.clkPeriod);
-
+  energy.act_energy       = vdd0Domain.calcTivEnergy(counters.numberofacts   * t.RAS          , mps.idd0 - mps.idd3n);
+  energy.pre_energy       = vdd0Domain.calcTivEnergy(counters.numberofpres   * (t.RC - t.RAS) , mps.idd0 - mps.idd2n);
+  energy.read_energy      = vdd0Domain.calcTivEnergy(counters.numberofreads  * burstCc        , mps.idd4r - mps.idd3n);
+  energy.write_energy     = vdd0Domain.calcTivEnergy(counters.numberofwrites * burstCc        , mps.idd4w - mps.idd3n);
+  energy.ref_energy       = vdd0Domain.calcTivEnergy(counters.numberofrefs   * t.RFC          , mps.idd5 - mps.idd3n);
+  energy.pre_stdby_energy = vdd0Domain.calcTivEnergy(counters.precycles, mps.idd2n);
+  energy.act_stdby_energy = vdd0Domain.calcTivEnergy(counters.actcycles, mps.idd3n);
   // Idle energy in the active standby clock cycles
-  energy.idle_energy_act = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
-                                          static_cast<double>(counters.idlecycles_act), memTimingSpec.clkPeriod);
-
+  energy.idle_energy_act  = vdd0Domain.calcTivEnergy(counters.idlecycles_act, mps.idd3n);
   // Idle energy in the precharge standby clock cycles
-  energy.idle_energy_pre = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
-                                          static_cast<double>(counters.idlecycles_pre), memTimingSpec.clkPeriod);
-
+  energy.idle_energy_pre  = vdd0Domain.calcTivEnergy(counters.idlecycles_pre, mps.idd2n);
   // fast-exit active power-down cycles energy
-  energy.f_act_pd_energy = engy_f_act_pd(memPowerSpec.idd3p1, memPowerSpec.vdd,
-                                         static_cast<double>(counters.f_act_pdcycles), memTimingSpec.clkPeriod);
-
+  energy.f_act_pd_energy  = vdd0Domain.calcTivEnergy(counters.f_act_pdcycles, mps.idd3p1);
   // fast-exit precharged power-down cycles energy
-  energy.f_pre_pd_energy = engy_f_pre_pd(memPowerSpec.idd2p1, memPowerSpec.vdd,
-                                         static_cast<double>(counters.f_pre_pdcycles), memTimingSpec.clkPeriod);
-
+  energy.f_pre_pd_energy  = vdd0Domain.calcTivEnergy(counters.f_pre_pdcycles, mps.idd2p1);
   // slow-exit active power-down cycles energy
-  energy.s_act_pd_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
-                                         static_cast<double>(counters.s_act_pdcycles), memTimingSpec.clkPeriod);
-
+  energy.s_act_pd_energy  = vdd0Domain.calcTivEnergy(counters.s_act_pdcycles, mps.idd3p0);
   // slow-exit precharged power-down cycles energy
-  energy.s_pre_pd_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
-                                         static_cast<double>(counters.s_pre_pdcycles), memTimingSpec.clkPeriod);
+  energy.s_pre_pd_energy  = vdd0Domain.calcTivEnergy(counters.s_pre_pdcycles, mps.idd2p0);
 
   // self-refresh cycles energy including a refresh per self-refresh entry
-  energy.sref_energy = engy_sref(memPowerSpec.idd6, memPowerSpec.idd3n,
-                                 memPowerSpec.idd5, memPowerSpec.vdd,
+  energy.sref_energy = engy_sref(mps.idd6, mps.idd3n,
+                                 mps.idd5, mps.vdd,
                                  static_cast<double>(counters.sref_cycles), static_cast<double>(counters.sref_ref_act_cycles),
                                  static_cast<double>(counters.sref_ref_pre_cycles), static_cast<double>(counters.spup_ref_act_cycles),
-                                 static_cast<double>(counters.spup_ref_pre_cycles), memTimingSpec.clkPeriod);
+                                 static_cast<double>(counters.spup_ref_pre_cycles), t.clkPeriod);
 
   // background energy during active auto-refresh cycles in self-refresh
-  energy.sref_ref_act_energy = engy_s_act_pd(memPowerSpec.idd3p0, memPowerSpec.vdd,
-                                             static_cast<double>(counters.sref_ref_act_cycles), memTimingSpec.clkPeriod);
-
+  energy.sref_ref_act_energy = vdd0Domain.calcTivEnergy(counters.sref_ref_act_cycles, mps.idd3p0);
   // background energy during precharged auto-refresh cycles in self-refresh
-  energy.sref_ref_pre_energy = engy_s_pre_pd(memPowerSpec.idd2p0, memPowerSpec.vdd,
-                                             static_cast<double>(counters.sref_ref_pre_cycles), memTimingSpec.clkPeriod);
-
+  energy.sref_ref_pre_energy = vdd0Domain.calcTivEnergy(counters.sref_ref_pre_cycles, mps.idd2p0);
   // background energy during active auto-refresh cycles in self-refresh exit
-  energy.spup_ref_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
-                                              static_cast<double>(counters.spup_ref_act_cycles), memTimingSpec.clkPeriod);
-
+  energy.spup_ref_act_energy = vdd0Domain.calcTivEnergy(counters.spup_ref_act_cycles, mps.idd3n);
   // background energy during precharged auto-refresh cycles in self-refresh exit
-  energy.spup_ref_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
-                                              static_cast<double>(counters.spup_ref_pre_cycles), memTimingSpec.clkPeriod);
-
+  energy.spup_ref_pre_energy = vdd0Domain.calcTivEnergy(counters.spup_ref_pre_cycles, mps.idd2n);
   // self-refresh power-up cycles energy -- included
-  energy.spup_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
-                                      static_cast<double>(counters.spup_cycles), memTimingSpec.clkPeriod);
-
+  energy.spup_energy         = vdd0Domain.calcTivEnergy(counters.spup_cycles, mps.idd2n);
   // active power-up cycles energy - same as active standby -- included
-  energy.pup_act_energy = engy_act_stdby(memPowerSpec.idd3n, memPowerSpec.vdd,
-                                         static_cast<double>(counters.pup_act_cycles), memTimingSpec.clkPeriod);
-
+  energy.pup_act_energy      = vdd0Domain.calcTivEnergy(counters.pup_act_cycles, mps.idd3n);
   // precharged power-up cycles energy - same as precharged standby -- included
-  energy.pup_pre_energy = engy_pre_stdby(memPowerSpec.idd2n, memPowerSpec.vdd,
-                                         static_cast<double>(counters.pup_pre_cycles), memTimingSpec.clkPeriod);
+  energy.pup_pre_energy      = vdd0Domain.calcTivEnergy(counters.pup_pre_cycles, mps.idd2n);
 
   // similar equations as before to support multiple voltage domains in LPDDR2
   // and WIDEIO memories
   if (memArchSpec.twoVoltageDomains) {
-    energy.act_energy += static_cast<double>(counters.numberofacts) * engy_act(memPowerSpec.idd3n2,
-                                                         memPowerSpec.idd02, memPowerSpec.vdd2, memTimingSpec.RAS,
-                                                         memTimingSpec.clkPeriod);
+    EnergyDomain vdd2Domain(mps.vdd2, t.clkPeriod);
 
-    energy.pre_energy += static_cast<double>(counters.numberofpres) * engy_pre(memPowerSpec.idd2n2,
-                                                         memPowerSpec.idd02, memPowerSpec.vdd2, memTimingSpec.RAS,
-                                                         memTimingSpec.RC, memTimingSpec.clkPeriod);
+    energy.act_energy       += vdd2Domain.calcTivEnergy(counters.numberofacts   * t.RAS          , mps.idd02 - mps.idd3n2);
+    energy.pre_energy       += vdd2Domain.calcTivEnergy(counters.numberofpres   * (t.RC - t.RAS) , mps.idd02 - mps.idd2n2);
+    energy.read_energy      += vdd2Domain.calcTivEnergy(counters.numberofreads  * burstCc        , mps.idd4r2 - mps.idd3n2);
+    energy.write_energy     += vdd2Domain.calcTivEnergy(counters.numberofwrites * burstCc        , mps.idd4w2 - mps.idd3n2);
+    energy.ref_energy       += vdd2Domain.calcTivEnergy(counters.numberofrefs   * t.RFC          , mps.idd52 - mps.idd3n2);
+    energy.pre_stdby_energy += vdd2Domain.calcTivEnergy(counters.precycles, mps.idd2n2);
+    energy.act_stdby_energy += vdd2Domain.calcTivEnergy(counters.actcycles, mps.idd3n2);
+    // Idle energy in the active standby clock cycles
+    energy.idle_energy_act  += vdd2Domain.calcTivEnergy(counters.idlecycles_act, mps.idd3n2);
+    // Idle energy in the precharge standby clock cycles
+    energy.idle_energy_pre  += vdd2Domain.calcTivEnergy(counters.idlecycles_pre, mps.idd2n2);
+    // fast-exit active power-down cycles energy
+    energy.f_act_pd_energy  += vdd2Domain.calcTivEnergy(counters.f_act_pdcycles, mps.idd3p12);
+    // fast-exit precharged power-down cycles energy
+    energy.f_pre_pd_energy  += vdd2Domain.calcTivEnergy(counters.f_pre_pdcycles, mps.idd2p12);
+    // slow-exit active power-down cycles energy
+    energy.s_act_pd_energy  += vdd2Domain.calcTivEnergy(counters.s_act_pdcycles, mps.idd3p02);
+    // slow-exit precharged power-down cycles energy
+    energy.s_pre_pd_energy  += vdd2Domain.calcTivEnergy(counters.s_pre_pdcycles, mps.idd2p02);
 
-    energy.read_energy += static_cast<double>(counters.numberofreads) * engy_read_cmd(memPowerSpec.idd3n2,
-                                                                memPowerSpec.idd4r2, memPowerSpec.vdd2, memArchSpec.burstLength /
-                                                                memArchSpec.dataRate, memTimingSpec.clkPeriod);
-
-    energy.write_energy += static_cast<double>(counters.numberofwrites) *
-                           engy_write_cmd(memPowerSpec.idd3n2, memPowerSpec.idd4w2,
-                                          memPowerSpec.vdd2, memArchSpec.burstLength /
-                                          memArchSpec.dataRate, memTimingSpec.clkPeriod);
-
-    energy.ref_energy += static_cast<double>(counters.numberofrefs) * engy_ref(memPowerSpec.idd3n2,
-                                                         memPowerSpec.idd52, memPowerSpec.vdd2, memTimingSpec.RFC,
-                                                         memTimingSpec.clkPeriod);
-
-    energy.pre_stdby_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
-                                              static_cast<double>(counters.precycles), memTimingSpec.clkPeriod);
-
-    energy.act_stdby_energy += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
-                                              static_cast<double>(counters.actcycles), memTimingSpec.clkPeriod);
-
-    energy.idle_energy_act  += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
-                                              static_cast<double>(counters.idlecycles_act), memTimingSpec.clkPeriod);
-
-    energy.idle_energy_pre  += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
-                                              static_cast<double>(counters.idlecycles_pre), memTimingSpec.clkPeriod);
-
-    energy.f_act_pd_energy  += engy_f_act_pd(memPowerSpec.idd3p12, memPowerSpec.vdd2,
-                                             static_cast<double>(counters.f_act_pdcycles), memTimingSpec.clkPeriod);
-
-    energy.f_pre_pd_energy  += engy_f_pre_pd(memPowerSpec.idd2p12, memPowerSpec.vdd2,
-                                             static_cast<double>(counters.f_pre_pdcycles), memTimingSpec.clkPeriod);
-
-    energy.s_act_pd_energy  += engy_s_act_pd(memPowerSpec.idd3p02, memPowerSpec.vdd2,
-                                             static_cast<double>(counters.s_act_pdcycles), memTimingSpec.clkPeriod);
-
-    energy.s_pre_pd_energy  += engy_s_pre_pd(memPowerSpec.idd2p02, memPowerSpec.vdd2,
-                                             static_cast<double>(counters.s_pre_pdcycles), memTimingSpec.clkPeriod);
-
-    energy.sref_energy      += engy_sref(memPowerSpec.idd62, memPowerSpec.idd3n2,
-                                         memPowerSpec.idd52, memPowerSpec.vdd2,
+    energy.sref_energy      += engy_sref(mps.idd62, mps.idd3n2,
+                                         mps.idd52, mps.vdd2,
                                          static_cast<double>(counters.sref_cycles), static_cast<double>(counters.sref_ref_act_cycles),
                                          static_cast<double>(counters.sref_ref_pre_cycles), static_cast<double>(counters.spup_ref_act_cycles),
-                                         static_cast<double>(counters.spup_ref_pre_cycles), memTimingSpec.clkPeriod);
+                                         static_cast<double>(counters.spup_ref_pre_cycles), t.clkPeriod);
 
-    energy.sref_ref_act_energy += engy_s_act_pd(memPowerSpec.idd3p02,
-                                                memPowerSpec.vdd2, static_cast<double>(counters.sref_ref_act_cycles),
-                                                memTimingSpec.clkPeriod);
-
-    energy.sref_ref_pre_energy += engy_s_pre_pd(memPowerSpec.idd2p02,
-                                                memPowerSpec.vdd2, static_cast<double>(counters.sref_ref_pre_cycles),
-                                                memTimingSpec.clkPeriod);
-
-    energy.spup_ref_act_energy += engy_act_stdby(memPowerSpec.idd3n2,
-                                                 memPowerSpec.vdd2, static_cast<double>(counters.spup_ref_act_cycles),
-                                                 memTimingSpec.clkPeriod);
-
-    energy.spup_ref_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2,
-                                                 memPowerSpec.vdd2, static_cast<double>(counters.spup_ref_pre_cycles),
-                                                 memTimingSpec.clkPeriod);
-
-    energy.spup_energy    += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
-                                            static_cast<double>(counters.spup_cycles), memTimingSpec.clkPeriod);
-
-    energy.pup_act_energy += engy_act_stdby(memPowerSpec.idd3n2, memPowerSpec.vdd2,
-                                            static_cast<double>(counters.pup_act_cycles), memTimingSpec.clkPeriod);
-
-    energy.pup_pre_energy += engy_pre_stdby(memPowerSpec.idd2n2, memPowerSpec.vdd2,
-                                            static_cast<double>(counters.pup_pre_cycles), memTimingSpec.clkPeriod);
+    // background energy during active auto-refresh cycles in self-refresh
+    energy.sref_ref_act_energy += vdd2Domain.calcTivEnergy(counters.sref_ref_act_cycles, mps.idd3p02);
+    // background energy during precharged auto-refresh cycles in self-refresh
+    energy.sref_ref_pre_energy += vdd2Domain.calcTivEnergy(counters.sref_ref_pre_cycles, mps.idd2p02);
+    // background energy during active auto-refresh cycles in self-refresh exit
+    energy.spup_ref_act_energy += vdd2Domain.calcTivEnergy(counters.spup_ref_act_cycles, mps.idd3n2);
+    // background energy during precharged auto-refresh cycles in self-refresh exit
+    energy.spup_ref_pre_energy += vdd2Domain.calcTivEnergy(counters.spup_ref_pre_cycles, mps.idd2n2);
+    // self-refresh power-up cycles energy -- included
+    energy.spup_energy         += vdd2Domain.calcTivEnergy(counters.spup_cycles, mps.idd2n2);
+    // active power-up cycles energy - same as active standby -- included
+    energy.pup_act_energy      += vdd2Domain.calcTivEnergy(counters.pup_act_cycles, mps.idd3n2);
+    // precharged power-up cycles energy - same as precharged standby -- included
+    energy.pup_pre_energy      += vdd2Domain.calcTivEnergy(counters.pup_pre_cycles, mps.idd2n2);
   }
 
   // auto-refresh energy during self-refresh cycles
@@ -324,7 +250,7 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
                                                   + energy.s_pre_pd_energy + energy.sref_ref_energy + energy.spup_ref_energy);
 
   // Calculate the average power consumption
-  power.average_power = energy.total_energy / (static_cast<double>(total_cycles) * memTimingSpec.clkPeriod);
+  power.average_power = energy.total_energy / (static_cast<double>(total_cycles) * t.clkPeriod);
 } // MemoryPowerModel::power_calc
 
 void MemoryPowerModel::power_print(MemorySpecification memSpec, int term, const CommandAnalysis& counters) const
@@ -453,116 +379,6 @@ void MemoryPowerModel::power_print(MemorySpecification memSpec, int term, const 
   cout << "----------------------------------------" << endl;
 } // MemoryPowerModel::power_print
 
-// Activation energy estimation
-double MemoryPowerModel::engy_act(double idd3n, double idd0, double vdd,
-                                  int tras, double clk)
-{
-  double act_engy;
-
-  act_engy = (idd0 - idd3n) * tras * vdd * clk;
-  return act_engy;
-}
-
-// Precharging energy estimation
-double MemoryPowerModel::engy_pre(double idd2n, double idd0, double vdd,
-                                  int tras, int trc, double clk)
-{
-  double pre_engy;
-
-  pre_engy = (idd0 - idd2n) * (trc - tras) * vdd * clk;
-  return pre_engy;
-}
-
-// Read command energy estimation
-double MemoryPowerModel::engy_read_cmd(double idd3n, double idd4r, double vdd,
-                                       int tr, double clk)
-{
-  double read_cmd_engy;
-
-  read_cmd_engy = (idd4r - idd3n) * tr * vdd * clk;
-  return read_cmd_engy;
-}
-
-// Write command energy estimation
-double MemoryPowerModel::engy_write_cmd(double idd3n, double idd4w, double vdd,
-                                        int tw, double clk)
-{
-  double write_cmd_engy;
-
-  write_cmd_engy = (idd4w - idd3n) * tw * vdd * clk;
-  return write_cmd_engy;
-}
-
-// Refresh operation energy estimation
-double MemoryPowerModel::engy_ref(double idd3n, double idd5, double vdd,
-                                  int trfc, double clk)
-{
-  double ref_engy;
-
-  ref_engy = (idd5 - idd3n) * trfc * vdd * clk;
-  return ref_engy;
-}
-
-// Precharge standby energy estimation
-double MemoryPowerModel::engy_pre_stdby(double idd2n, double vdd, double precycles,
-                                        double clk)
-{
-  double pre_stdby_engy;
-
-  pre_stdby_engy = idd2n * vdd * precycles * clk;
-  return pre_stdby_engy;
-}
-
-// Active standby energy estimation
-double MemoryPowerModel::engy_act_stdby(double idd3n, double vdd, double actcycles,
-                                        double clk)
-{
-  double act_stdby_engy;
-
-  act_stdby_engy = idd3n * vdd * actcycles * clk;
-  return act_stdby_engy;
-}
-
-// Fast-exit active power-down energy
-double MemoryPowerModel::engy_f_act_pd(double idd3p1, double vdd,
-                                       double f_act_pdcycles, double clk)
-{
-  double f_act_pd_energy;
-
-  f_act_pd_energy = idd3p1 * vdd * f_act_pdcycles * clk;
-  return f_act_pd_energy;
-}
-
-// Fast-exit precharge power-down energy
-double MemoryPowerModel::engy_f_pre_pd(double idd2p1, double vdd,
-                                       double f_pre_pdcycles, double clk)
-{
-  double f_pre_pd_energy;
-
-  f_pre_pd_energy = idd2p1 * vdd * f_pre_pdcycles * clk;
-  return f_pre_pd_energy;
-}
-
-// Slow-exit active power-down energy
-double MemoryPowerModel::engy_s_act_pd(double idd3p0, double vdd,
-                                       double s_act_pdcycles, double clk)
-{
-  double s_act_pd_energy;
-
-  s_act_pd_energy = idd3p0 * vdd * s_act_pdcycles * clk;
-  return s_act_pd_energy;
-}
-
-// Slow-exit precharge power-down energy
-double MemoryPowerModel::engy_s_pre_pd(double idd2p0, double vdd,
-                                       double s_pre_pdcycles, double clk)
-{
-  double s_pre_pd_energy;
-
-  s_pre_pd_energy = idd2p0 * vdd * s_pre_pdcycles * clk;
-  return s_pre_pd_energy;
-}
-
 // Self-refresh active energy estimation (not including background energy)
 double MemoryPowerModel::engy_sref(double idd6, double idd3n, double idd5,
                                    double vdd, double sref_cycles, double sref_ref_act_cycles,
@@ -600,7 +416,13 @@ void MemoryPowerModel::io_term_power(MemorySpecification memSpec)
 } // MemoryPowerModel::io_term_power
 
 
-double MemoryPowerModel::calcIoTermEnergy(int64_t cycles, double period, double power, int64_t numBits)
+double MemoryPowerModel::calcIoTermEnergy(int64_t cycles, double period, double power, int64_t numBits) const
 {
   return static_cast<double>(cycles) * period * power * static_cast<double>(numBits);
+}
+
+// time (t) * current (I) * voltage (V) energy calculation
+double EnergyDomain::calcTivEnergy(int64_t cycles, double current) const
+{
+  return static_cast<double>(cycles) * clkPeriod * current * voltage;
 }

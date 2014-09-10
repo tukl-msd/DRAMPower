@@ -50,78 +50,6 @@ class MemoryPowerModel {
                   const CommandAnalysis& counters,
                   int                    term);
 
-  // Used to calculate activation power
-  static double engy_act(double idd3n,
-                         double idd0,
-                         double vdd,
-                         int    tras,
-                         double clk);
-
-  // Used to calculate precharge power
-  static double engy_pre(double idd2n,
-                         double idd0,
-                         double vdd,
-                         int    tras,
-                         int    trc,
-                         double clk);
-
-  // Used to calculate read command power
-  static double engy_read_cmd(double idd3n,
-                              double idd4r,
-                              double vdd,
-                              int    tdata,
-                              double clk);
-
-  // Used to calculate write command power
-  static double engy_write_cmd(double idd3n,
-                               double idd4w,
-                               double vdd,
-                               int    tdata,
-                               double clk);
-
-  // Used to calculate refresh power
-  static double engy_ref(double idd3n,
-                         double idd5,
-                         double vdd,
-                         int    trfc,
-                         double clk);
-
-  // Used to calculate precharge standby energy
-  static double engy_pre_stdby(double idd2n,
-                               double vdd,
-                               double precycles,
-                               double clk);
-
-  // Used to calculate active standby energy
-  static double engy_act_stdby(double idd3n,
-                               double vdd,
-                               double actcycles,
-                               double clk);
-
-  // Used to calculate fast-exit active power-down energy
-  static double engy_f_act_pd(double idd3p1,
-                              double vdd,
-                              double f_act_pdcycles,
-                              double clk);
-
-  // Used to calculate fast-exit precharge power-down energy
-  static double engy_f_pre_pd(double idd2p1,
-                              double vdd,
-                              double f_pre_pdcycles,
-                              double clk);
-
-  // Used to calculate slow-exit active power-down energy
-  static double engy_s_act_pd(double idd3p0,
-                              double vdd,
-                              double s_act_pdcycles,
-                              double clk);
-
-  // Used to calculate slow-exit precharge power-down energy
-  static double engy_s_pre_pd(double idd2p0,
-                              double vdd,
-                              double s_pre_pdcycles,
-                              double clk);
-
   // Used to calculate self-refresh active energy
   static double engy_sref(double idd6,
                           double idd3n,
@@ -228,7 +156,21 @@ class MemoryPowerModel {
   Power  power;
 
  private:
-  double calcIoTermEnergy(int64_t cycles, double period, double power, int64_t numBits);
+  double calcIoTermEnergy(int64_t cycles, double period, double power, int64_t numBits) const;
 };
+
+class EnergyDomain {
+ public:
+  EnergyDomain(double voltage, double clkPeriod) :
+    voltage(voltage),
+    clkPeriod(clkPeriod)
+  {}
+
+  double calcTivEnergy(int64_t cycles, double current) const;
+ private:
+  const double voltage;
+  const double clkPeriod;
+};
+
 }
 #endif // ifndef MEMORY_POWER_MODEL_H
