@@ -133,7 +133,7 @@ traces.zip:
 	wget --quiet --output-document=traces.zip https://github.com/Sv3n/DRAMPowerTraces/archive/master.zip
 
 traces: traces.zip
-	unzip traces.zip && mv DRAMPowerTraces-master/traces/* traces/ && rm -rf DRAMPowerTraces-master
+	unzip traces.zip && mkdir -p traces && mv DRAMPowerTraces-master/traces/* traces/ && rm -rf DRAMPowerTraces-master
 
 .PHONY: clean pretty test traces
 
