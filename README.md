@@ -4,7 +4,7 @@
 ## 0. Releases
 
 The last official release can be found here:
-https://github.com/ravenrd/DRAMPower/releases/tag/3.1
+https://github.com/ravenrd/DRAMPower/releases/tag/4.0
 
 The master branch of the repository should be regarded as the bleeding-edge version, which has all the latest features, but also all the latest bugs. Use at your own discretion.
 
@@ -14,10 +14,11 @@ Clone the repository, or download the zip file of the release you would like to 
 ```bash
 make -j4
 ```
+This command will download a set of trace files from https://github.com/Sv3n/DRAMPowerTraces which can be used as test input for the tool.
 
 ## 2. Required Packages
 
-The tool was verified on Ubuntu 10.04 using:
+The tool was verified on Ubuntu 14.04 using:
 
  * xerces-c (libxerces-c-dev) - v3.1 with Xerces development package
  * gcc - v4.4.3
@@ -25,7 +26,7 @@ The tool was verified on Ubuntu 10.04 using:
 ## 3. Directory Structure
  * src/: contains the source code of the DRAMPower tool that covers the power  model, the command scheduler and the trace analysis tool.
  * memspecs/   : contains the memory specification XMLs, which give the architectural, timing and current/voltage details for different DRAM memories.
- * traces/     : contains 4 sample DRAM transaction traces and 1 sample command trace
+ * traces/     : contains 4 sample DRAM transaction traces and 1 sample command trace (after the installation / compilation)
  * test/       : contains test script and reference output
 
 ## 4. Trace Specification
@@ -73,7 +74,7 @@ Also, when using either the commands trace or the transactions trace, the user c
 optionally include IO and Termination power estimates (obtained from Micron's DRAM
 Power Calculator). To enable the same, the '-r' flag can be employed in command line.
 
-If these options are not used, the default values assumed are:  
+If these options are not used, the default values assumed are:
 * interleaving = 1
 * request size = burst length * I/O width / 8 (in bytes) (from memory XMLs)
 * power saving = No power-down

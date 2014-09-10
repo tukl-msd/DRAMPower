@@ -6,3 +6,4 @@ test/libdrampowertest/library_test
 *.gcno
 *.gcda
 traces/*
+traces.zip
