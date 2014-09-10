@@ -98,7 +98,7 @@ XERCES_LDFLAGS := -L$(XERCES_LIB) -lxerces-c
 # Targets
 ##########################################
 
-all: ${BINARY} lib parserlib
+all: ${BINARY} lib parserlib traces
 
 $(BINARY): ${XMLPARSEROBJECTS} ${CLIOBJECTS}
 	$(CXX) ${CXXFLAGS} $(LDFLAGS) -o $@ $^ $(XERCES_LDFLAGS)
@@ -116,6 +116,7 @@ parserlib: ${XMLPARSEROBJECTS}
 clean:
 	$(RM) $(ALLOBJECTS) $(DEPENDENCIES) $(BINARY) $(LIBS)
 	$(MAKE) -C test/libdrampowertest clean
+	$(RM) traces.zip
 
 coverageclean:
 	$(RM) ${ALLSOURCES:.cc=.gcno} ${ALLSOURCES:.cc=.gcda}
@@ -125,9 +126,15 @@ pretty:
 	uncrustify -c src/uncrustify.cfg $(ALLSOURCES) --no-backup
 	uncrustify -c src/uncrustify.cfg $(ALLHEADERS) --no-backup
 
-test:
+test: traces
 	python test/test.py -v
 
-.PHONY: clean pretty test
+traces.zip:
+	wget --quiet --output-document=traces.zip https://github.com/Sv3n/DRAMPowerTraces/archive/master.zip
+
+traces: traces.zip
+	unzip traces.zip && mv DRAMPowerTraces-master/traces/* traces/ && rm -rf DRAMPowerTraces-master
+
+.PHONY: clean pretty test traces
 
 -include $(DEPENDENCIES)
