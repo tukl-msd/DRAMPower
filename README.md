@@ -282,7 +282,7 @@ In Proc. Design Automation Conference (DAC), 2013
 
 Further questions about the tool and the power model can be directed to:
 
-Karthik Chandrasekar (k.chandrasekar@tudelft.nl)
+Benny Akesson (k.b.akesson@tue.nl)
 
 Feel free to ask for updates to the tool's features and please do report any bugs
 and errors you encounter. This will encourage us to continuously improve the tool.
