@@ -463,7 +463,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
         }
       } else if ((mem_state != CommandAnalysis::MS_PDN_S_ACT) || (mem_state !=
                                                                   CommandAnalysis::MS_PDN_F_ACT)) {
-        cout << "Incorrect use of Active Power-Up!" << endl;
+        cerr << "Incorrect use of Active Power-Up!" << endl;
       }
       mem_state = 0;
       for (int j = 0; j < nbrofBanks; j++) {
@@ -495,7 +495,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
         }
       } else if ((mem_state != CommandAnalysis::MS_PDN_S_PRE) || (mem_state !=
                                                                   CommandAnalysis::MS_PDN_F_PRE)) {
-        cout << "Incorrect use of Precharged Power-Up!" << endl;
+        cerr << "Incorrect use of Precharged Power-Up!" << endl;
       }
       mem_state      = 0;
       last_pre_cycle = timestamp;
@@ -517,7 +517,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // Set the last and latest precharge cycle accordingly and set the
       // memory state to 0.
       if (mem_state != CommandAnalysis::MS_SREF) {
-        cout << "Incorrect use of Self-Refresh Power-Up!" << endl;
+        cerr << "Incorrect use of Self-Refresh Power-Up!" << endl;
       }
       if (max(zero, timestamp - sref_cycle) >= memSpec.memTimingSpec.RFC) {
         sref_cycles         += max(zero, timestamp - sref_cycle
@@ -660,7 +660,7 @@ void CommandAnalysis::printWarningIfNotActive(const string& warning, int type, i
 
 void CommandAnalysis::printWarning(const string& warning, int type, int64_t timestamp, int bank)
 {
-  cout << "WARNING: " << warning << endl;
-  cout << "Command: " << type << ", Timestamp: " << timestamp <<
+  cerr << "WARNING: " << warning << endl;
+  cerr << "Command: " << type << ", Timestamp: " << timestamp <<
     ", Bank: " << bank << endl;
 }
