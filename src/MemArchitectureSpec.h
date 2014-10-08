@@ -43,6 +43,7 @@
 namespace Data {
 class MemArchitectureSpec : public virtual Parametrisable {
  public:
+  MemArchitectureSpec();
   void processParameters();
 
   unsigned int burstLength;

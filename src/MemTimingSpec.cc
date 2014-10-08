@@ -39,6 +39,41 @@
 
 using namespace Data;
 
+MemTimingSpec::MemTimingSpec() :
+  clkMhz(0.0),
+  RC(0),
+  RCD(0),
+  CCD(0),
+  CCD_S(0),
+  CCD_L(0),
+  RRD(0),
+  RRD_S(0),
+  RRD_L(0),
+  FAW(0),
+  TAW(0),
+  WTR(0),
+  WTR_S(0),
+  WTR_L(0),
+  REFI(0),
+  RL(0),
+  RP(0),
+  RFC(0),
+  RAS(0),
+  WL(0),
+  AL(0),
+  DQSCK(0),
+  RTP(0),
+  WR(0),
+  XP(0),
+  XPDLL(0),
+  XS(0),
+  XSDLL(0),
+  CKE(0),
+  CKESR(0),
+  clkPeriod(0.0)
+{
+}
+
 void MemTimingSpec::processParameters()
 {
   clkMhz    = getParamValWithDefault("clkMhz", 0.0);

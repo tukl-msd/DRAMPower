@@ -41,6 +41,21 @@
 
 using namespace Data;
 
+MemArchitectureSpec::MemArchitectureSpec() :
+  burstLength(0),
+  nbrOfBanks(0),
+  nbrOfRanks(0),
+  dataRate(0),
+  nbrOfColumns(0),
+  nbrOfRows(0),
+  width(0),
+  nbrOfBankGroups(0),
+  dll(false),
+  twoVoltageDomains(false),
+  termination(false)
+{
+}
+
 void MemArchitectureSpec::processParameters()
 {
   // Load all parameters in our member variables

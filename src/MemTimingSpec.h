@@ -40,6 +40,7 @@
 namespace Data {
 class MemTimingSpec : public virtual Parametrisable {
  public:
+  MemTimingSpec();
   void processParameters();
 
   double clkMhz;

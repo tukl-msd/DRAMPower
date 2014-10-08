@@ -40,6 +40,7 @@
 namespace Data {
 class MemPowerSpec : public virtual Parametrisable {
  public:
+  MemPowerSpec();
   void processParameters();
 
   double idd0;
