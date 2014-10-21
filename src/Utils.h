@@ -54,7 +54,7 @@ throw(std::runtime_error)
   T t;
 
   if (!(is >> f >> t)) {
-    throw std::runtime_error("fromString cannot convert " + s);
+    throw std::runtime_error("Cannot convert string");
   }
 
   return t;
