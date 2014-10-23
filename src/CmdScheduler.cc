@@ -42,6 +42,9 @@
 #include <algorithm>  // For max
 
 
+#define MILLION 1000000
+
+
 using namespace std;
 using namespace Data;
 

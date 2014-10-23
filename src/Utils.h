@@ -41,9 +41,7 @@
 #include <string>
 #include <sstream>
 #include <stdexcept>
-#include <typeinfo>
 
-#define MILLION 1000000
 
 template<typename T>
 T fromString(const std::string& s,
