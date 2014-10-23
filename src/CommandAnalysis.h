@@ -179,7 +179,7 @@ class CommandAnalysis {
   int64_t last_pre_cycle;
   // To collect and analyse all commands including auto-precharges
   void analyse_commands(const int nbrofBanks,
-                        Data::MemorySpecification
+                        const Data::MemorySpecification&
                         memSpec,
                         int64_t    nCommands,
                         int64_t    nCached,

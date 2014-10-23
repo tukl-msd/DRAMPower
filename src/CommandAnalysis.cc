@@ -161,7 +161,7 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
 // evaluate function to analyse this expanded list of commands.
 
 void CommandAnalysis::analyse_commands(const int nbrofBanks,
-                                       Data::MemorySpecification memSpec, int64_t nCommands, int64_t nCached, bool lastupdate)
+                                       const Data::MemorySpecification& memSpec, int64_t nCommands, int64_t nCached, bool lastupdate)
 {
   full_cmd_list.resize(1, MemCommand::PRE);
   unsigned mCommands = 0;
