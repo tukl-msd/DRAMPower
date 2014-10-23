@@ -37,9 +37,10 @@
 
 #include "MemoryPowerModel.h"
 
-#include <cmath>  // For pow
-
 #include <stdint.h>
+
+#include <cmath>  // For pow
+#include <iostream>  // fmtflags
 
 
 using namespace std;
@@ -258,6 +259,8 @@ void MemoryPowerModel::power_print(MemorySpecification memSpec, int term, const 
   MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
 
+  ios_base::fmtflags flags = cout.flags();
+  streamsize precision = cout.precision();
   cout.precision(0);
   cout << "* Trace Details:" << endl;
   cout << "Number of Activates: " << fixed << counters.numberofacts << endl;
@@ -377,6 +380,9 @@ void MemoryPowerModel::power_print(MemorySpecification memSpec, int term, const 
   cout << "Total Trace Energy: " << energy.total_energy << " pJ" << endl;
   cout << "Average Power: " << power.average_power << " mW" << endl;
   cout << "----------------------------------------" << endl;
+
+  cout.flags(flags);
+  cout.precision(precision);
 } // MemoryPowerModel::power_print
 
 // Self-refresh active energy estimation (not including background energy)
