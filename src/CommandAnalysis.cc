@@ -45,9 +45,6 @@
 using namespace Data;
 using namespace std;
 
-CommandAnalysis::CommandAnalysis()
-{
-}
 
 CommandAnalysis::CommandAnalysis(const int nbrofBanks)
 {

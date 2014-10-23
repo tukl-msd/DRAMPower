@@ -58,8 +58,6 @@ class CommandAnalysis {
     MS_PDN_S_PRE = 13, MS_SREF = 14
   };
 
-  CommandAnalysis();
-
   // Returns number of reads, writes, acts, pres and refs in the trace
   CommandAnalysis(const int nbrofBanks);
 

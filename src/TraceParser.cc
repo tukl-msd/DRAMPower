@@ -42,6 +42,12 @@
 using namespace Data;
 using namespace std;
 
+TraceParser::TraceParser(int nbrOfBanks) :
+  counters(nbrOfBanks)
+{
+}
+
+
 Data::MemCommand TraceParser::parseLine(std::string line)
 {
   MemCommand memcmd;
