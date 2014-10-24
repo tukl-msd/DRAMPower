@@ -45,6 +45,14 @@
 using namespace Data;
 using namespace std;
 
+bool commandSorter(const MemCommand& i, const MemCommand& j)
+{
+  if (i.getTimeInt64() == j.getTimeInt64()) {
+    return i.getType() == MemCommand::PRE && j.getType() != MemCommand::PRE;
+  } else {
+    return i.getTimeInt64() < j.getTimeInt64();
+  }
+}
 
 CommandAnalysis::CommandAnalysis(const int nbrofBanks)
 {
@@ -124,107 +132,37 @@ void CommandAnalysis::clear()
 void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
                                   const int nbrofBanks, std::vector<MemCommand>& list, bool lastupdate)
 {
-  for (vector<MemCommand>::const_iterator i = list.begin(); i != list.end(); ++i) {
-    const MemCommand& cmd = *i;
-    cmd_list.push_back(cmd);
+  if (init == 0) {
+    list.push_back(MemCommand(MemCommand::PREA, 0, 0));
+    init = 1;
+  }
 
+  for (size_t i = 0; i < list.size(); ++i) {
+    MemCommand& cmd = list[i];
     MemCommand::cmds cmdType = cmd.getType();
     if (cmdType == MemCommand::ACT) {
       activation_cycle[cmd.getBank()] = cmd.getTimeInt64();
     } else if (cmdType == MemCommand::RDA || cmdType == MemCommand::WRA) {
       // Remove auto-precharge flag from command
-      cmd_list.back().setType(cmd.typeWithoutAutoPrechargeFlag());
+      cmd.setType(cmd.typeWithoutAutoPrechargeFlag());
 
       // Add the auto precharge to the list of cached_cmds
       int64_t preTime = max(cmd.getTimeInt64() + cmd.getPrechargeOffset(memSpec, cmdType),
                            activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.RAS);
-      cached_cmd.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), static_cast<double>(preTime)));
+      list.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), static_cast<double>(preTime)));
     }
   }
-  pop = 0;
-  // Note: the extra pre-cmds at the end of the lists, and the cast to double
-  // of the size vector is probably not desirable.
-  cmd_list.push_back(MemCommand::PRE);
-  cached_cmd.push_back(MemCommand::PRE);
-  analyse_commands(nbrofBanks, memSpec, cmd_list.size()-1,
-                                        cached_cmd.size()-1, lastupdate);
-  cmd_list.clear();
-  cached_cmd.clear();
+  sort(list.begin(), list.end(), commandSorter);
+
+  if (lastupdate && list.empty() == false) {
+    // Add cycles at the end of the list
+    int64_t t = timeToCompletion(memSpec, list.back().getType()) + list.back().getTimeInt64() - 1;
+    list.push_back(MemCommand(MemCommand::NOP, 0, static_cast<double>(t)));
+  }
+
+  evaluate(memSpec, list, nbrofBanks);
 } // CommandAnalysis::getCommands
 
-// Checks the auto-precharge cached command list and inserts the explicit
-// precharges with the appropriate timestamp in the original command list
-// (by merging) based on their offset from the issuing command. Calls the
-// evaluate function to analyse this expanded list of commands.
-
-void CommandAnalysis::analyse_commands(const int nbrofBanks,
-                                       const Data::MemorySpecification& memSpec, int64_t nCommands, int64_t nCached, bool lastupdate)
-{
-  full_cmd_list.resize(1, MemCommand::PRE);
-  unsigned mCommands = 0;
-  unsigned mCached   = 0;
-  for (unsigned i = 0; i < nCommands + nCached + 1; i++) {
-    if (cached_cmd.size() > 1) {
-      if ((cmd_list[mCommands].getTime() > 1) && (init == 0)) {
-        full_cmd_list[i].setType(MemCommand::PREA);
-        init = 1;
-        pop  = 1;
-      } else {
-        init = 1;
-        if ((cached_cmd[mCached].getTime() > 0) && (cmd_list.
-                                                    at(mCommands).getTime() < cached_cmd[mCached].
-                                                    getTime()) && ((cmd_list[mCommands].getTime() > 0) ||
-                                                                   ((cmd_list[mCommands].getTime() == 0) && (cmd_list[mCommands].
-                                                                                                             getType() != MemCommand::PRE)))) {
-          full_cmd_list[i] = cmd_list[mCommands];
-          mCommands++;
-        } else if ((cached_cmd[mCached].getTime() > 0) && (cmd_list[mCommands].
-                                                           getTime() >= cached_cmd[mCached].getTime())) {
-          full_cmd_list[i] = cached_cmd[mCached];
-          mCached++;
-        } else if (cached_cmd[mCached].getTime() == 0) {
-          if ((cmd_list[mCommands].getTime() > 0) || ((cmd_list[mCommands].
-                                                       getTime() == 0) && (cmd_list[mCommands].
-                                                                           getType() != MemCommand::PRE))) {
-            full_cmd_list[i] = cmd_list[mCommands];
-            mCommands++;
-          }
-        } else if (cmd_list[mCommands].getTime() == 0) {
-          full_cmd_list[i] = cached_cmd[mCached];
-          mCached++;
-        }
-      }
-    } else {
-      if ((cmd_list[mCommands].getTime() > 1) && (init == 0)) {
-        full_cmd_list[i].setType(MemCommand::PREA);
-        init = 1;
-        pop  = 1;
-      } else {
-        init = 1;
-        if ((cmd_list[mCommands].getTime() > 0) || ((cmd_list.
-                                                     at(mCommands).getTime() == 0) && (cmd_list[mCommands].
-                                                                                       getType() != MemCommand::PRE))) {
-          full_cmd_list[i] = cmd_list[mCommands];
-          mCommands++;
-        }
-      }
-    }
-    full_cmd_list.resize(full_cmd_list.size() + 1, MemCommand::PRE);
-  }
-
-  full_cmd_list.pop_back();
-  if (pop == 0) {
-    full_cmd_list.pop_back();
-  }
-  if (lastupdate) {
-    full_cmd_list.resize(full_cmd_list.size() + 1, MemCommand::NOP);
-    full_cmd_list[full_cmd_list.size() - 1].setTime(full_cmd_list
-                                                    [full_cmd_list.size() - 2].getTime() + timeToCompletion(memSpec,
-                                                                                                            full_cmd_list[full_cmd_list.size() - 2].getType()) - 1);
-  }
-
-  evaluate(memSpec, full_cmd_list, nbrofBanks);
-} // CommandAnalysis::analyse_commands
 
 // To get the time of completion of the issued command
 // Derived based on JEDEC specifications
