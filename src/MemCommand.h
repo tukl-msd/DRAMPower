@@ -148,7 +148,7 @@ class MemCommand {
   }
 
   // To identify command type from name
-  static cmds getTypeFromName(const std::string name)
+  static cmds getTypeFromName(const std::string& name)
   {
     std::string* typeStrings = getCommandTypeStrings();
 

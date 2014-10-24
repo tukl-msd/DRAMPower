@@ -111,7 +111,7 @@ class cmdScheduler {
 
   // the function used to translate a transaction into a sequence of
   // commands which are scheduled to the memory.
-  void transTranslation(Data::MemorySpecification memSpec,
+  void transTranslation(const MemorySpecification& memSpec,
                         std::ifstream&            trans_trace,
                         int                       grouping,
                         int                       interleaving,
@@ -119,25 +119,25 @@ class cmdScheduler {
                         int                       powerdown);
   // get the transactions by reading the traces.
   void getTrans(std::ifstream&      pwr_trace,
-                MemorySpecification memSpec);
+                const MemorySpecification& memSpec);
   // the initialization function for scheduling.
-  void schedulingInitialization(MemorySpecification memSpec);
+  void schedulingInitialization(const MemorySpecification& memSpec);
   // the function used to schedule commands according to the timing constraints.
-  void analyticalScheduling(MemorySpecification memSpec);
+  void analyticalScheduling(const MemorySpecification& memSpec);
   // translate the logical address into physical address.
   physicalAddr memoryMap(trans               Trans,
-                         MemorySpecification memSpec);
+                         const MemorySpecification& memSpec);
   // the power down and power up are scheduled by pdScheduling
   void pdScheduling(double              endTime,
                     double              timer,
-                    MemorySpecification memSpec);
+                    const MemorySpecification& memSpec);
   // get the timings for scheduling a precharge since a read or write command
   // is scheduled.
   int getRWTP(int                 transType,
-              MemorySpecification memSpec);
+              const MemorySpecification& memSpec);
   // get different kind of timing constraints according to the used memory.
   void getTimingConstraints(bool                BGSwitch,
-                            MemorySpecification memSpec,
+                            const MemorySpecification& memSpec,
                             int                 PreType,
                             int                 CurrentType);
 

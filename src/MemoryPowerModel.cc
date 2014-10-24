@@ -48,13 +48,13 @@ using namespace Data;
 
 // Calculate energy and average power consumption for the given command trace
 
-void MemoryPowerModel::power_calc(MemorySpecification memSpec,
+void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
                                   const CommandAnalysis& counters,
                                   int term)
 {
-  MemTimingSpec& t                 = memSpec.memTimingSpec;
-  MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
-  MemPowerSpec&  mps               = memSpec.memPowerSpec;
+  const MemTimingSpec& t                 = memSpec.memTimingSpec;
+  const MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
+  const MemPowerSpec&  mps               = memSpec.memPowerSpec;
 
   energy.act_energy          = 0.0;
   energy.pre_energy          = 0.0;
@@ -254,10 +254,10 @@ void MemoryPowerModel::power_calc(MemorySpecification memSpec,
   power.average_power = energy.total_energy / (static_cast<double>(total_cycles) * t.clkPeriod);
 } // MemoryPowerModel::power_calc
 
-void MemoryPowerModel::power_print(MemorySpecification memSpec, int term, const CommandAnalysis& counters) const
+void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term, const CommandAnalysis& counters) const
 {
-  MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
-  MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
+  const MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
+  const MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
 
   ios_base::fmtflags flags = cout.flags();
   streamsize precision = cout.precision();
@@ -401,11 +401,11 @@ double MemoryPowerModel::engy_sref(double idd6, double idd3n, double idd5,
 
 // IO and Termination power calculation based on Micron Power Calculators
 // Absolute power measures are obtained from Micron Power Calculator (mentioned in mW)
-void MemoryPowerModel::io_term_power(MemorySpecification memSpec)
+void MemoryPowerModel::io_term_power(const MemorySpecification& memSpec)
 {
-  MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
-  MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
-  MemPowerSpec&  memPowerSpec      = memSpec.memPowerSpec;
+  const MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
+  const MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
+  const MemPowerSpec&  memPowerSpec      = memSpec.memPowerSpec;
 
   power.IO_power     = memPowerSpec.ioPower;    // in mW
   power.WR_ODT_power = memPowerSpec.wrOdtPower; // in mW

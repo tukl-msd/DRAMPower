@@ -51,11 +51,11 @@ using namespace Data;
 // Read the traces and get the transaction. Each transaction is executed by
 // scheduling a number of commands to the memory. Hence, the transactions are
 // translated into a sequence of commands which will be used for power analysis.
-void cmdScheduler::transTranslation(MemorySpecification memSpec,
+void cmdScheduler::transTranslation(const MemorySpecification& memSpec,
                                     ifstream& trans_trace, int grouping, int interleaving, int burst, int powerdown)
 {
   commands.open("commands.trace", ifstream::out);
-  MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
+  const MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
   nBanks          = memArchSpec.nbrOfBanks;
   nColumns        = memArchSpec.nbrOfColumns;
   burstLength     = memArchSpec.burstLength;
@@ -80,9 +80,9 @@ void cmdScheduler::transTranslation(MemorySpecification memSpec,
 } // cmdScheduler::transTranslation
 
 // initialize the variables and vectors for starting command scheduling.
-void cmdScheduler::schedulingInitialization(MemorySpecification memSpec)
+void cmdScheduler::schedulingInitialization(const MemorySpecification& memSpec)
 {
-  MemTimingSpec& memTimingSpec = memSpec.memTimingSpec;
+  const MemTimingSpec& memTimingSpec = memSpec.memTimingSpec;
 
   ACT.resize(2 * memSpec.memArchSpec.nbrOfBanks);
   RDWR.resize(2 * memSpec.memArchSpec.nbrOfBanks);
@@ -133,7 +133,7 @@ void cmdScheduler::schedulingInitialization(MemorySpecification memSpec)
 // transactions are generated according to the information read from the traces.
 // Then the command scheduling function is triggered to generate commands and
 // schedule them to the memory according to the timing constraints.
-void cmdScheduler::getTrans(std::ifstream& trans_trace, MemorySpecification memSpec)
+void cmdScheduler::getTrans(std::ifstream& trans_trace, const MemorySpecification& memSpec)
 {
   std::string line;
 
@@ -194,7 +194,7 @@ void cmdScheduler::getTrans(std::ifstream& trans_trace, MemorySpecification memS
 // be scheduled until all the commands for the current one are scheduled.
 // After the scheduling, a sequence of commands are obtained and they are written
 // into commands.txt which will be used for power analysis.
-void cmdScheduler::analyticalScheduling(MemorySpecification memSpec)
+void cmdScheduler::analyticalScheduling(const MemorySpecification& memSpec)
 {
   int  Bs               = -1;
   int  transType        = -1;
@@ -213,7 +213,7 @@ void cmdScheduler::analyticalScheduling(MemorySpecification memSpec)
 
   Inselfrefresh = 0;
 
-  MemTimingSpec& memTimingSpec = memSpec.memTimingSpec;
+  const MemTimingSpec& memTimingSpec = memSpec.memTimingSpec;
 
   for (unsigned t = 0; t < transTrace.size(); t++) {
     cmdScheduling.erase(cmdScheduling.begin(), cmdScheduling.end());
@@ -447,10 +447,10 @@ void cmdScheduler::analyticalScheduling(MemorySpecification memSpec)
 // It is called when the command scheduling for a transaction is finished, and it
 // is also called if there is a refresh.
 void cmdScheduler::pdScheduling(double endTime, double timer,
-                                MemorySpecification memSpec)
+                                const MemorySpecification& memSpec)
 {
   double ZERO = 0;
-  MemTimingSpec& memTimingSpec = memSpec.memTimingSpec;
+  const MemTimingSpec& memTimingSpec = memSpec.memTimingSpec;
 
   endTime = max(endTime, startTime);
   double pdTime = max(ZERO, timer - endTime);
@@ -493,11 +493,11 @@ void cmdScheduler::pdScheduling(double endTime, double timer,
 
 // get the time when a precharge occurs after a read/write command is scheduled.
 // In addition, it copes with different kind of memories.
-int cmdScheduler::getRWTP(int transType, MemorySpecification memSpec)
+int cmdScheduler::getRWTP(int transType, const MemorySpecification& memSpec)
 {
   int tRWTP_init = 0;
-  MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
-  MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
+  const MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
+  const MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
 
   if (transType == READ) {
     switch (memSpec.memoryType) {
@@ -546,11 +546,11 @@ int cmdScheduler::getRWTP(int transType, MemorySpecification memSpec)
 // In particular, tSwitch_init is generally used to provide the timings for
 // scheduling a read/write command after a read/write command which have been
 // scheduled to any possible banks within any possible bank groups (DDR4).
-void cmdScheduler::getTimingConstraints(bool BGSwitch, MemorySpecification memSpec,
+void cmdScheduler::getTimingConstraints(bool BGSwitch, const MemorySpecification& memSpec,
                                         int PreType, int CurrentType)
 {
-  MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
-  MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
+  const MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
+  const MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
 
   if (memSpec.memoryType != MemoryType::DDR4) {
     tRRD_init = memTimingSpec.RRD;
@@ -604,7 +604,7 @@ void cmdScheduler::getTimingConstraints(bool BGSwitch, MemorySpecification memSp
 // The logical address of each transaction is translated into a physical address
 // which consists of bank group (for DDR4), bank, row and column addresses.
 cmdScheduler::physicalAddr cmdScheduler::memoryMap(trans               Trans,
-                                                   MemorySpecification memSpec)
+                                                   const MemorySpecification& memSpec)
 {
   int DecLogic;
   physicalAddr PhysicalAddr;
