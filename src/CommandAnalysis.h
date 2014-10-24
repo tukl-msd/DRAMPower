@@ -175,13 +175,7 @@ class CommandAnalysis {
 
   // Clock cycle of last precharge command when memory state changes to PRE
   int64_t last_pre_cycle;
-  // To collect and analyse all commands including auto-precharges
-  void analyse_commands(const int nbrofBanks,
-                        const Data::MemorySpecification&
-                        memSpec,
-                        int64_t    nCommands,
-                        int64_t    nCached,
-                        bool      lastupdate);
+
   // To perform timing analysis of a given set of commands and update command counters
   void evaluate(const MemorySpecification& memSpec,
                 std::vector<MemCommand>&   cmd_list,
