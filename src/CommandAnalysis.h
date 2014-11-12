@@ -128,7 +128,6 @@ class CommandAnalysis {
  private:
   unsigned init;
   int64_t  zero;
-  unsigned pop;
   // Cached last read command from the file
   std::vector<MemCommand> cached_cmd;
 

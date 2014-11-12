@@ -69,7 +69,6 @@ CommandAnalysis::CommandAnalysis(const int nbrofBanks)
   s_pre_pdns          = 0;
   numberofsrefs       = 0;
 
-  pop                 = 0;
   init                = 0;
   zero                = 0;
 
