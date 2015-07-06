@@ -1,48 +1,48 @@
-* Parsing ../DRAMPower/memspecs/MICRON_2Gb_LPDDR2-1066-S4_16bit_A.xml
-* Analysis start time: Thu Sep  4 11:56:10 2014
+* Parsing memspecs/MICRON_2Gb_LPDDR2-1066-S4_16bit_A.xml
+* Analysis start time: Mon Jul  6 10:41:08 2015
 * Analyzing the input trace
-* Power Computation Start time: Thu Sep  4 11:56:10 2014
 * Trace Details:
-Number of Activates: 4000
-Number of Reads: 8000
-Number of Writes: 0
-Number of Precharges: 4000
-Number of Refreshes: 19
-Number of Active Cycles: 41431
-  Number of Active Idle Cycles: 0
-  Number of Active Power-Up Cycles: 0
-    Number of Auto-Refresh Active cycles during Self-Refresh Power-Up: 0
-Number of Precharged Cycles: 503
-  Number of Precharged Idle Cycles: 114
-  Number of Precharged Power-Up Cycles: 0
-    Number of Auto-Refresh Precharged cycles during Self-Refresh Power-Up: 0
-  Number of Self-Refresh Power-Up Cycles: 0
+
+#ACT commands: 4000
+#RD / #RDA commands: 8000
+#WR + #WRA commands: 0
+#PRE (+ PREA) commands: 4000
+#REF commands: 19
+#Active Cycles: 41431
+  #Active Idle Cycles: 0
+  #Active Power-Up Cycles: 0
+    #Auto-Refresh Active cycles during Self-Refresh Power-Up: 0
+#Precharged Cycles: 503
+  #Precharged Idle Cycles: 114
+  #Precharged Power-Up Cycles: 0
+    #Auto-Refresh Precharged cycles during Self-Refresh Power-Up: 0
+  #Self-Refresh Power-Up Cycles: 0
 Total Idle Cycles (Active + Precharged): 114
-Number of Power-Downs: 0
-  Number of Active Fast-exit Power-Downs: 0
-  Number of Active Slow-exit Power-Downs: 0
-  Number of Precharged Fast-exit Power-Downs: 0
-  Number of Precharged Slow-exit Power-Downs: 0
-Number of Power-Down Cycles: 0
-  Number of Active Fast-exit Power-Down Cycles: 0
-  Number of Active Slow-exit Power-Down Cycles: 0
-    Number of Auto-Refresh Active cycles during Self-Refresh: 0
-  Number of Precharged Fast-exit Power-Down Cycles: 0
-  Number of Precharged Slow-exit Power-Down Cycles: 0
-    Number of Auto-Refresh Precharged cycles during Self-Refresh: 0
-Number of Auto-Refresh Cycles: 1330
-Number of Self-Refreshes: 0
-Number of Self-Refresh Cycles: 0
+#Power-Downs: 0
+  #Active Fast-exit Power-Downs: 0
+  #Active Slow-exit Power-Downs: 0
+  #Precharged Fast-exit Power-Downs: 0
+  #Precharged Slow-exit Power-Downs: 0
+#Power-Down Cycles: 0
+  #Active Fast-exit Power-Down Cycles: 0
+  #Active Slow-exit Power-Down Cycles: 0
+    #Auto-Refresh Active cycles during Self-Refresh: 0
+  #Precharged Fast-exit Power-Down Cycles: 0
+  #Precharged Slow-exit Power-Down Cycles: 0
+    #Auto-Refresh Precharged cycles during Self-Refresh: 0
+#Auto-Refresh Cycles: 1330
+#Self-Refreshes: 0
+#Self-Refresh Cycles: 0
 ----------------------------------------
 Total Trace Length (clock cycles): 41934
 ----------------------------------------
 
 * Trace Power and Energy Estimates:
+
 ACT Cmd Energy: 14333358.35 pJ
 PRE Cmd Energy: 6196322.70 pJ
 RD Cmd Energy: 14531482.18 pJ
-WR Cmd Energy: 0.00 pJ
-ACT Stdby Energy: 2966241.95 pJ
+WR Cmd Energy: 0.00 pJACT Stdby Energy: 2966241.95 pJ
   Active Idle Energy: 0.00 pJ
   Active Power-Up Energy: 0.00 pJ
     Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0.00 pJ
@@ -65,5 +65,5 @@ Self-Refresh Energy: 0.00 pJ
 Total Trace Energy: 38434593.88 pJ
 Average Power: 488.52 mW
 ----------------------------------------
-* Power Computation End time: Thu Sep  4 11:56:10 2014
-* Total Simulation time: 0.05 seconds
+* Power Computation End time: Mon Jul  6 10:41:08 2015
+* Total Simulation time: 0.040004 seconds
