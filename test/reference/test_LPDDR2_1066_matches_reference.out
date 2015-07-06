@@ -1,10 +1,10 @@
 * Parsing memspecs/MICRON_2Gb_LPDDR2-1066-S4_16bit_A.xml
-* Analysis start time: Mon Jul  6 10:41:08 2015
+* Analysis start time: Mon Jul  6 10:46:11 2015
 * Analyzing the input trace
 * Trace Details:
 
 #ACT commands: 4000
-#RD / #RDA commands: 8000
+#RD + #RDA commands: 8000
 #WR + #WRA commands: 0
 #PRE (+ PREA) commands: 4000
 #REF commands: 19
@@ -65,5 +65,5 @@ Self-Refresh Energy: 0.00 pJ
 Total Trace Energy: 38434593.88 pJ
 Average Power: 488.52 mW
 ----------------------------------------
-* Power Computation End time: Mon Jul  6 10:41:08 2015
-* Total Simulation time: 0.040004 seconds
+* Power Computation End time: Mon Jul  6 10:46:11 2015
+* Total Simulation time: 0.037252 seconds

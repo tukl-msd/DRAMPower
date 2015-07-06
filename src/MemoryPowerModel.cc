@@ -266,7 +266,7 @@ void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term,
   cout.precision(0);
   cout << "* Trace Details:" << fixed << endl
        << endl << "#ACT commands: "                 << c.numberofacts
-       << endl << "#RD / #RDA commands: "           << c.numberofreads
+       << endl << "#RD + #RDA commands: "           << c.numberofreads
        << endl << "#WR + #WRA commands: "           << c.numberofwrites
   /* #PRE commands (precharge all counts a number of #PRE commands equal to the number of active banks) */
        << endl << "#PRE (+ PREA) commands: "        << c.numberofpres

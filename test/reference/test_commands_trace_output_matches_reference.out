@@ -1,10 +1,10 @@
 * Parsing memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml
-* Analysis start time: Mon Jul  6 10:41:08 2015
+* Analysis start time: Mon Jul  6 10:46:11 2015
 * Analyzing the input trace
 * Trace Details:
 
 #ACT commands: 1502
-#RD / #RDA commands: 1499
+#RD + #RDA commands: 1499
 #WR + #WRA commands: 3
 #PRE (+ PREA) commands: 1502
 #REF commands: 36
@@ -65,5 +65,5 @@ Self-Refresh Energy: 0.00 pJ
 Total Trace Energy: 26310866.79 pJ
 Average Power: 121.44 mW
 ----------------------------------------
-* Power Computation End time: Mon Jul  6 10:41:08 2015
-* Total Simulation time: 0.010137 seconds
+* Power Computation End time: Mon Jul  6 10:46:11 2015
+* Total Simulation time: 0.009375 seconds
