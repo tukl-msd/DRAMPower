@@ -79,7 +79,8 @@ int main(int argc, char* argv[])
         test.doCommand(MemCommand::RDA,0,210);
         test.doCommand(MemCommand::ACT,4,232);
         test.doCommand(MemCommand::WRA,4,247);
-        test.doCommand(MemCommand::PDN_F_ACT,3,248);
+        // Need at least tWRAPDEN = AL + CWL + BL/2 + WR + 1 cycles between WR and PDN_F_PRE
+        test.doCommand(MemCommand::PDN_F_PRE,3,265);
 
         //set bool to true when this is the last update of the counters
         test.updateCounters(true);

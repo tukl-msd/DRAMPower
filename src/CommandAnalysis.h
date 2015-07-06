@@ -168,6 +168,7 @@ class CommandAnalysis {
 
   // Memory State
   unsigned mem_state;
+  unsigned num_active_banks;
 
   // Clock cycle of first activate command when memory state changes to ACT
   int64_t first_act_cycle;
@@ -198,6 +199,7 @@ class CommandAnalysis {
 
   void printWarningIfActive(const std::string& warning, int type, int64_t timestamp, int bank);
   void printWarningIfNotActive(const std::string& warning, int type, int64_t timestamp, int bank);
+  void printWarningIfPoweredDown(const std::string& warning, int type, int64_t timestamp, int bank);
   void printWarning(const std::string& warning, int type, int64_t timestamp, int bank);
 };
 }

@@ -102,7 +102,8 @@ CommandAnalysis::CommandAnalysis(const int nbrofBanks)
 
   bankstate.resize(nbrofBanks, 0);
   last_states.resize(nbrofBanks);
-  mem_state  = 0;
+  mem_state = 0;
+  num_active_banks  = 0;
 
   sref_cycle = 0;
   pdn_cycle  = 0;
@@ -205,6 +206,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
     int64_t timestamp = cmd_list[cmd_list_counter].getTimeInt64();
 
     if (type == MemCommand::ACT) {
+      printWarningIfPoweredDown("Command issued while in power-down mode.", type, timestamp, bank);
       // If command is ACT - update number of acts, bank state of the
       // target bank, first and latest activation cycle and the memory
       // state. Update the number of precharged/idle-precharged cycles.
@@ -213,14 +215,15 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
         printWarning("Bank is already active!", type, timestamp, bank);
       }
       bankstate[bank] = 1;
-      if (mem_state == 0) {
+      if (num_active_banks == 0) {
         first_act_cycle = timestamp;
         precycles      += max(zero, timestamp - last_pre_cycle);
         idle_pre_update(memSpec, timestamp, latest_pre_cycle);
       }
       latest_act_cycle = timestamp;
-      mem_state++;
+      num_active_banks++;
     } else if (type == MemCommand::RD) {
+      printWarningIfPoweredDown("Command issued while in power-down mode.", type, timestamp, bank);
       // If command is RD - update number of reads and read cycle. Check
       // for active idle cycles (if any).
       if (bankstate[bank] == 0) {
@@ -231,6 +234,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                       latest_act_cycle, timestamp);
       latest_read_cycle = timestamp;
     } else if (type == MemCommand::WR) {
+      printWarningIfPoweredDown("Command issued while in power-down mode.", type, timestamp, bank);
       // If command is WR - update number of writes and write cycle. Check
       // for active idle cycles (if any).
       if (bankstate[bank] == 0) {
@@ -241,6 +245,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                       latest_act_cycle, timestamp);
       latest_write_cycle = timestamp;
     } else if (type == MemCommand::REF) {
+      printWarningIfPoweredDown("Command issued while in power-down mode.", type, timestamp, bank);
       // If command is REF - update number of refreshes, set bank state of
       // all banks to ACT, set the last PRE cycles at RFC-RP cycles from
       // timestamp, set the number of active cycles to RFC-RP and check
@@ -255,11 +260,12 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                          memSpec.memTimingSpec.RP;
       latest_pre_cycle = last_pre_cycle;
       actcycles       += memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
-      mem_state        = 0;
+      num_active_banks = 0;
       for (int j = 0; j < nbrofBanks; j++) {
         bankstate[j] = 0;
       }
     } else if (type == MemCommand::PRE) {
+      printWarningIfPoweredDown("Command issued while in power-down mode.", type, timestamp, bank);
       // If command is explicit PRE - update number of precharges, bank
       // state of the target bank and last and latest precharge cycle.
       // Calculate the number of active cycles if the memory was in the
@@ -271,23 +277,24 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       }
       bankstate[bank] = 0;
 
-      if (mem_state == 1) {
+      if (num_active_banks == 1) {
         actcycles     += max(zero, timestamp - first_act_cycle);
         last_pre_cycle = timestamp;
         idle_act_update(memSpec, latest_read_cycle, latest_write_cycle,
                         latest_act_cycle, timestamp);
-      } else if (mem_state == 0) {
+      } else if (num_active_banks == 0) {
         precycles     += max(zero, timestamp - last_pre_cycle);
         idle_pre_update(memSpec, timestamp, latest_pre_cycle);
         last_pre_cycle = timestamp;
       }
       latest_pre_cycle = timestamp;
-      if (mem_state > 0) {
-        mem_state--;
+      if (num_active_banks > 0) {
+        num_active_banks--;
       } else {
-        mem_state = 0;
+        num_active_banks = 0;
       }
     } else if (type == MemCommand::PREA) {
+      printWarningIfPoweredDown("Command issued while in power-down mode.", type, timestamp, bank);
       // If command is explicit PREA (precharge all banks) - update
       // number of precharges by the number of banks, update the bank
       // state of all banks to PRE and set the precharge cycle.
@@ -297,14 +304,14 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       if (timestamp == 0) {
         numberofpres += 0;
       } else {
-        numberofpres += mem_state;
+        numberofpres += num_active_banks;
       }
 
-      if (mem_state > 0) {
+      if (num_active_banks > 0) {
         actcycles += max(zero, timestamp - first_act_cycle);
         idle_act_update(memSpec, latest_read_cycle, latest_write_cycle,
                         latest_act_cycle, timestamp);
-      } else if (mem_state == 0) {
+      } else if (num_active_banks == 0) {
         precycles += max(zero, timestamp - last_pre_cycle);
         idle_pre_update(memSpec, timestamp, latest_pre_cycle);
       }
@@ -312,7 +319,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       latest_pre_cycle = timestamp;
       last_pre_cycle   = timestamp;
 
-      mem_state        = 0;
+      num_active_banks        = 0;
 
       for (int j = 0; j < nbrofBanks; j++) {
         bankstate[j] = 0;
@@ -395,14 +402,14 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                                  memSpec.memTimingSpec.XPDLL -
                                  (2 * memSpec.memTimingSpec.RCD));
         }
-      } else if ((mem_state != CommandAnalysis::MS_PDN_S_ACT) || (mem_state !=
-                                                                  CommandAnalysis::MS_PDN_F_ACT)) {
+      } else if (mem_state != CommandAnalysis::MS_PDN_S_ACT || mem_state != CommandAnalysis::MS_PDN_F_ACT) {
         cerr << "Incorrect use of Active Power-Up!" << endl;
       }
+      num_active_banks = 0;
       mem_state = 0;
       for (int j = 0; j < nbrofBanks; j++) {
-        bankstate[j] = last_states[j];
-        mem_state   += last_states[j];
+        bankstate[j]        = last_states[j];
+        num_active_banks   += last_states[j];
       }
       first_act_cycle = timestamp;
     } else if (type == MemCommand::PUP_PRE) {
@@ -427,11 +434,11 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                                  memSpec.memTimingSpec.XPDLL - memSpec.memTimingSpec.RCD -
                                  memSpec.memTimingSpec.RP);
         }
-      } else if ((mem_state != CommandAnalysis::MS_PDN_S_PRE) || (mem_state !=
-                                                                  CommandAnalysis::MS_PDN_F_PRE)) {
+      } else if (mem_state != CommandAnalysis::MS_PDN_S_PRE || mem_state != CommandAnalysis::MS_PDN_F_PRE) {
         cerr << "Incorrect use of Precharged Power-Up!" << endl;
       }
       mem_state      = 0;
+      num_active_banks = 0;
       last_pre_cycle = timestamp;
     } else if (type == MemCommand::SREN) {
       // If command is self-refresh - update number of self-refreshes,
@@ -517,14 +524,15 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
         }
       }
       mem_state = 0;
-    } else if ((type == MemCommand::END) || (type == MemCommand::NOP)) {
+      num_active_banks = 0;
+    } else if (type == MemCommand::END || type == MemCommand::NOP) {
       // May be optionally used at the end of memory trace for better accuracy
       // Update all counters based on completion of operations.
-      if ((mem_state > 0) && (mem_state < 9)) {
+      if (num_active_banks > 0 && mem_state == 0) {
         actcycles += max(zero, timestamp - first_act_cycle);
         idle_act_update(memSpec, latest_read_cycle, latest_write_cycle,
                         latest_act_cycle, timestamp);
-      } else if (mem_state == 0) {
+      } else if (num_active_banks == 0 && mem_state == 0) {
         precycles += max(zero, timestamp - last_pre_cycle);
         idle_pre_update(memSpec, timestamp, latest_pre_cycle);
       } else if (mem_state == CommandAnalysis::MS_PDN_F_ACT) {
@@ -580,14 +588,21 @@ void CommandAnalysis::idle_pre_update(const MemorySpecification& memSpec,
 
 void CommandAnalysis::printWarningIfActive(const string& warning, int type, int64_t timestamp, int bank)
 {
-  if (mem_state != 0) {
+  if (num_active_banks != 0) {
     printWarning(warning, type, timestamp, bank);
   }
 }
 
 void CommandAnalysis::printWarningIfNotActive(const string& warning, int type, int64_t timestamp, int bank)
 {
-  if (mem_state == 0) {
+  if (num_active_banks == 0) {
+    printWarning(warning, type, timestamp, bank);
+  }
+}
+
+void CommandAnalysis::printWarningIfPoweredDown(const string& warning, int type, int64_t timestamp, int bank)
+{
+  if (mem_state != 0) {
     printWarning(warning, type, timestamp, bank);
   }
 }
