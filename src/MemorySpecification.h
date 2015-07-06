@@ -106,7 +106,8 @@ class MemoryType {
     return val == LPDDR ||
            val == LPDDR2 ||
            val == LPDDR3 ||
-           val == WIDEIO_SDR;
+           val == WIDEIO_SDR ||
+           val == DDR4;
   }
 
   bool isDDRFamily() const
