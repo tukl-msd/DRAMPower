@@ -42,7 +42,7 @@
 using namespace Data;
 using namespace std;
 
-TraceParser::TraceParser(int nbrOfBanks) :
+TraceParser::TraceParser(uint64_t nbrOfBanks) :
   counters(nbrOfBanks)
 {
 }
@@ -53,7 +53,7 @@ Data::MemCommand TraceParser::parseLine(std::string line)
   MemCommand memcmd;
   istringstream linestream(line);
   string item;
-  double item_val;
+  int64_t item_val;
   unsigned itemnum = 0;
   MemCommand::cmds type = MemCommand::NOP; // Initialized to prevent warning
 

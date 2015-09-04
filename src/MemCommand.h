@@ -96,7 +96,7 @@ class MemCommand {
     // Target Bank
     unsigned         bank = 0,
     // Command Issue Timestamp (in cc)
-    double           timestamp = 0);
+    int64_t          timestamp = 0L);
 
   // Get command type
   cmds getType() const;
@@ -111,7 +111,7 @@ class MemCommand {
   unsigned getBank() const;
 
   // Set timestamp
-  void setTime(double _timestamp);
+  void setTime(int64_t _timestamp);
 
   // Get timestamp
   double getTime() const;
@@ -120,7 +120,7 @@ class MemCommand {
   cmds typeWithoutAutoPrechargeFlag() const;
 
   // To calculate precharge offset after read or write with auto-precharge
-  int getPrechargeOffset(const MemorySpecification& memSpec,
+  int64_t getPrechargeOffset(const MemorySpecification& memSpec,
                          MemCommand::cmds           type) const;
 
   // To check for equivalence
@@ -165,7 +165,7 @@ class MemCommand {
  private:
   MemCommand::cmds type;
   unsigned bank;
-  double timestamp;
+  int64_t timestamp;
 };
 }
 #endif // ifndef MEMCOMMAND_H

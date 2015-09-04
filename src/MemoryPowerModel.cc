@@ -103,7 +103,7 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
     // 1 DQS and 1 DM pin is associated with every data byte
     int64_t dqPlusDqsPlusMaskBits = memArchSpec.width + memArchSpec.width / 8 + memArchSpec.width / 8;
     // Size of one clock period for the data bus.
-    double ddrPeriod = t.clkPeriod / memArchSpec.dataRate;
+    double ddrPeriod = t.clkPeriod / static_cast<double>(memArchSpec.dataRate);
 
     // Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
     energy.read_io_energy = calcIoTermEnergy(c.numberofreads * memArchSpec.burstLength,
@@ -245,7 +245,7 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
   // energy components for both ranks (in a dual-rank system)
   energy.total_energy = energy.act_energy + energy.pre_energy + energy.read_energy +
                         energy.write_energy + energy.ref_energy + energy.io_term_energy +
-                        memArchSpec.nbrOfRanks * (energy.act_stdby_energy +
+                        static_cast<double>(memArchSpec.nbrOfRanks) * (energy.act_stdby_energy +
                                                   energy.pre_stdby_energy + energy.sref_energy +
                                                   energy.f_act_pd_energy + energy.f_pre_pd_energy + energy.s_act_pd_energy
                                                   + energy.s_pre_pd_energy + energy.sref_ref_energy + energy.spup_ref_energy);
@@ -258,7 +258,7 @@ void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term,
 {
   const MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   const MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
-  const unsigned nRanks = memArchSpec.nbrOfRanks;
+  const uint64_t nRanks = memArchSpec.nbrOfRanks;
   const char eUnit[] = " pJ";
 
   ios_base::fmtflags flags = cout.flags();
@@ -320,25 +320,27 @@ void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term,
     }
   }
 
-  cout <<         "ACT Stdby Energy: "                                                                      << nRanks * energy.act_stdby_energy << eUnit
-       << endl << "  Active Idle Energy: "                                                                  << nRanks * energy.idle_energy_act << eUnit
-       << endl << "  Active Power-Up Energy: "                                                              << nRanks * energy.pup_act_energy << eUnit
-       << endl << "    Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "           << nRanks * energy.spup_ref_act_energy << eUnit
-       << endl << "PRE Stdby Energy: "                                                                      << nRanks * energy.pre_stdby_energy << eUnit
-       << endl << "  Precharge Idle Energy: "                                                               << nRanks * energy.idle_energy_pre << eUnit
-       << endl << "  Precharged Power-Up Energy: "                                                          << nRanks * energy.pup_pre_energy << eUnit
-       << endl << "    Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "        << nRanks * energy.spup_ref_pre_energy << eUnit
-       << endl << "  Self-Refresh Power-Up Energy: "                                                        << nRanks * energy.spup_energy << eUnit
-       << endl << "Total Idle Energy (Active + Precharged): "                                               << nRanks * (energy.idle_energy_act + energy.idle_energy_pre) << eUnit
-       << endl << "Total Power-Down Energy: "                                                               << nRanks * (energy.f_act_pd_energy + energy.f_pre_pd_energy + energy.s_act_pd_energy + energy.s_pre_pd_energy) << eUnit
-       << endl << "  Fast-Exit Active Power-Down Energy: "                                                  << nRanks * energy.f_act_pd_energy << eUnit
-       << endl << "  Slow-Exit Active Power-Down Energy: "                                                  << nRanks * energy.s_act_pd_energy << eUnit
-       << endl << "    Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: "     << nRanks * energy.sref_ref_act_energy << eUnit
-       << endl << "  Fast-Exit Precharged Power-Down Energy: "                                              << nRanks * energy.f_pre_pd_energy << eUnit
-       << endl << "  Slow-Exit Precharged Power-Down Energy: "                                              << nRanks * energy.s_pre_pd_energy << eUnit
-       << endl << "    Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: " << nRanks * energy.sref_ref_pre_energy << eUnit
+  double nRanksDouble = static_cast<double>(nRanks);
+
+  cout <<         "ACT Stdby Energy: "                                                                      << nRanksDouble * energy.act_stdby_energy << eUnit
+       << endl << "  Active Idle Energy: "                                                                  << nRanksDouble * energy.idle_energy_act << eUnit
+       << endl << "  Active Power-Up Energy: "                                                              << nRanksDouble * energy.pup_act_energy << eUnit
+       << endl << "    Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "           << nRanksDouble * energy.spup_ref_act_energy << eUnit
+       << endl << "PRE Stdby Energy: "                                                                      << nRanksDouble * energy.pre_stdby_energy << eUnit
+       << endl << "  Precharge Idle Energy: "                                                               << nRanksDouble * energy.idle_energy_pre << eUnit
+       << endl << "  Precharged Power-Up Energy: "                                                          << nRanksDouble * energy.pup_pre_energy << eUnit
+       << endl << "    Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "        << nRanksDouble * energy.spup_ref_pre_energy << eUnit
+       << endl << "  Self-Refresh Power-Up Energy: "                                                        << nRanksDouble * energy.spup_energy << eUnit
+       << endl << "Total Idle Energy (Active + Precharged): "                                               << nRanksDouble * (energy.idle_energy_act + energy.idle_energy_pre) << eUnit
+       << endl << "Total Power-Down Energy: "                                                               << nRanksDouble * (energy.f_act_pd_energy + energy.f_pre_pd_energy + energy.s_act_pd_energy + energy.s_pre_pd_energy) << eUnit
+       << endl << "  Fast-Exit Active Power-Down Energy: "                                                  << nRanksDouble * energy.f_act_pd_energy << eUnit
+       << endl << "  Slow-Exit Active Power-Down Energy: "                                                  << nRanksDouble * energy.s_act_pd_energy << eUnit
+       << endl << "    Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: "     << nRanksDouble * energy.sref_ref_act_energy << eUnit
+       << endl << "  Fast-Exit Precharged Power-Down Energy: "                                              << nRanksDouble * energy.f_pre_pd_energy << eUnit
+       << endl << "  Slow-Exit Precharged Power-Down Energy: "                                              << nRanksDouble * energy.s_pre_pd_energy << eUnit
+       << endl << "    Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: " << nRanksDouble * energy.sref_ref_pre_energy << eUnit
        << endl << "Auto-Refresh Energy: "                                                                   << energy.ref_energy << eUnit
-       << endl << "Self-Refresh Energy: "                                                                   << nRanks * energy.sref_energy << eUnit
+       << endl << "Self-Refresh Energy: "                                                                   << nRanksDouble * energy.sref_energy << eUnit
        << endl << "----------------------------------------"
        << endl << "Total Trace Energy: "                                                                    << energy.total_energy << eUnit
        << endl << "Average Power: "                                                                         << power.average_power << " mW"

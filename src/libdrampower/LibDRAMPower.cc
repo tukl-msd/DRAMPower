@@ -52,7 +52,7 @@ libDRAMPower::~libDRAMPower()
 
 void libDRAMPower::doCommand(MemCommand::cmds type, int bank, int64_t timestamp)
 {
-  MemCommand cmd(type, static_cast<unsigned>(bank), static_cast<double>(timestamp));
+  MemCommand cmd(type, static_cast<unsigned>(bank), timestamp);
   cmdList.push_back(cmd);
 }
 

@@ -80,7 +80,7 @@ WARNFLAGS := -W -pedantic-errors -Wextra -Werror \
              -Wcast-align -Wconversion -Wall -Werror
 
 # Sum up the flags.
-CXXFLAGS := -O ${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++98
+CXXFLAGS := -O ${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
 
 # Linker flags.
 LDFLAGS := -Wall

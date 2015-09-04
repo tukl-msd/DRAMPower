@@ -59,7 +59,7 @@ class CommandAnalysis {
   };
 
   // Returns number of reads, writes, acts, pres and refs in the trace
-  CommandAnalysis(const int nbrofBanks);
+  CommandAnalysis(const int64_t nbrofBanks);
 
   // Number of activate commands
   int64_t numberofacts;
@@ -120,8 +120,7 @@ class CommandAnalysis {
 
   // To identify auto-precharges
   void getCommands(const MemorySpecification& memSpec,
-                   const int
-                   nbrofBanks,
+                   const int64_t nbrofBanks,
                    std::vector<MemCommand>&   list,
                    bool                       lastupdate);
 
@@ -179,10 +178,10 @@ class CommandAnalysis {
   // To perform timing analysis of a given set of commands and update command counters
   void evaluate(const MemorySpecification& memSpec,
                 std::vector<MemCommand>&   cmd_list,
-                int                        nbrofBanks);
+                int64_t                    nbrofBanks);
 
   // To calculate time of completion of any issued command
-  int timeToCompletion(const MemorySpecification& memSpec,
+  int64_t timeToCompletion(const MemorySpecification& memSpec,
                        MemCommand::cmds           type);
 
   // To update idle period information whenever active cycles may be idle

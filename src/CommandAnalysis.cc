@@ -54,7 +54,7 @@ bool commandSorter(const MemCommand& i, const MemCommand& j)
   }
 }
 
-CommandAnalysis::CommandAnalysis(const int nbrofBanks)
+CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
 {
   // Initializing all counters and variables
 
@@ -130,7 +130,7 @@ void CommandAnalysis::clear()
 // issued command timestamp, when the auto-precharge would kick in
 
 void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
-                                  const int nbrofBanks, std::vector<MemCommand>& list, bool lastupdate)
+                                  const int64_t nbrofBanks, std::vector<MemCommand>& list, bool lastupdate)
 {
   if (init == 0) {
     list.push_back(MemCommand(MemCommand::PREA, 0, 0));
@@ -149,7 +149,7 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
       // Add the auto precharge to the list of cached_cmds
       int64_t preTime = max(cmd.getTimeInt64() + cmd.getPrechargeOffset(memSpec, cmdType),
                            activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.RAS);
-      list.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), static_cast<double>(preTime)));
+      list.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), preTime));
     }
   }
   sort(list.begin(), list.end(), commandSorter);
@@ -157,7 +157,7 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
   if (lastupdate && list.empty() == false) {
     // Add cycles at the end of the list
     int64_t t = timeToCompletion(memSpec, list.back().getType()) + list.back().getTimeInt64() - 1;
-    list.push_back(MemCommand(MemCommand::NOP, 0, static_cast<double>(t)));
+    list.push_back(MemCommand(MemCommand::NOP, 0, t));
   }
 
   evaluate(memSpec, list, nbrofBanks);
@@ -167,25 +167,25 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
 // To get the time of completion of the issued command
 // Derived based on JEDEC specifications
 
-int CommandAnalysis::timeToCompletion(const MemorySpecification&
+int64_t CommandAnalysis::timeToCompletion(const MemorySpecification&
                                       memSpec, MemCommand::cmds type)
 {
-  int offset = 0;
+  int64_t offset = 0;
   const MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   const MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
 
   if (type == MemCommand::RD) {
-    offset = static_cast<int>(memTimingSpec.RL +
+    offset = memTimingSpec.RL +
                               memTimingSpec.DQSCK + 1 + (memArchSpec.burstLength /
-                                                         memArchSpec.dataRate));
+                                                         memArchSpec.dataRate);
   } else if (type == MemCommand::WR) {
-    offset = static_cast<int>(memTimingSpec.WL +
+    offset = memTimingSpec.WL +
                               (memArchSpec.burstLength / memArchSpec.dataRate) +
-                              memTimingSpec.WR);
+                              memTimingSpec.WR;
   } else if (type == MemCommand::ACT) {
-    offset = static_cast<int>(memTimingSpec.RCD);
+    offset = memTimingSpec.RCD;
   } else if ((type == MemCommand::PRE) || (type == MemCommand::PREA)) {
-    offset = static_cast<int>(memTimingSpec.RP);
+    offset = memTimingSpec.RP;
   }
   return offset;
 } // CommandAnalysis::timeToCompletion
@@ -193,7 +193,7 @@ int CommandAnalysis::timeToCompletion(const MemorySpecification&
 // Used to analyse a given list of commands and identify command timings
 // and memory state transitions
 void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
-                               vector<MemCommand>& cmd_list, int nbrofBanks)
+                               vector<MemCommand>& cmd_list, int64_t nbrofBanks)
 {
   // for each command identify timestamp, type and bank
   for (unsigned cmd_list_counter = 0; cmd_list_counter < cmd_list.size();

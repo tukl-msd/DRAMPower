@@ -89,13 +89,15 @@ int main(int argc, char* argv[])
       } else if (string(argv[i]) == "-p") {
         power_down = atoi(argv[i + 1]);
       } else {
-        if (string(argv[i]) == "-r")
+        if (string(argv[i]) == "-r") {
           term = 1;
+        }
         continue;
       }
     } else {
-      if (string(argv[i]) == "-r")
+      if (string(argv[i]) == "-r") {
         term = 1;
+      }
       continue;
     }
   }
@@ -142,8 +144,8 @@ int main(int argc, char* argv[])
     return error();
   }
 
-  unsigned min_size = interleaving * grouping * memArchSpec.burstLength
-                      * memArchSpec.width / 8;
+  unsigned min_size = static_cast<unsigned>(interleaving * grouping * memArchSpec.burstLength
+                      * memArchSpec.width / 8);
 
   if (size == 0) {
     src_size = min_size;
