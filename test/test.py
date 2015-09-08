@@ -159,7 +159,7 @@ class TestClean(unittest.TestCase):
         pattern = '*.[oad]'
         for root, dirnames, files in os.walk('.'):
             for f in files:
-                count += 1 if fnmatch.fnmatch(f, pattern) else 0
+                count += 1 if fnmatch.fnmatch(f, pattern) and not f.startswith('conftest') else 0
         self.assertEqual(count, 0, msg=self.shortDescription())
 
 if __name__ == '__main__':

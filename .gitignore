@@ -7,3 +7,5 @@ test/libdrampowertest/library_test
 *.gcda
 traces/*
 traces.zip
+.sconf_temp/
+.sconsign.dblite
