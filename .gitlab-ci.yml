@@ -1,0 +1,6 @@
+before_script:
+  - sudo apt-get install -y libxerces-c-dev
+
+job1:
+ script:
+ - make test COVERAGE=1
