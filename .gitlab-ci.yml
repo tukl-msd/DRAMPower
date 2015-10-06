@@ -1,5 +1,5 @@
 before_script:
-  - sudo apt-get install -y libxerces-c-dev
+  - sudo apt-get install -y libxerces-c-dev wget
 
 job1:
  script:
