@@ -508,13 +508,13 @@ int64_t cmdScheduler::getRWTP(int64_t transType, const MemorySpecification& memS
     case MemoryType::LPDDR2:
     case MemoryType::LPDDR3:
       tRWTP_init = memArchSpec.burstLength / memArchSpec.dataRate +
-                   max(0L, memTimingSpec.RTP - 2);
+                   max(0LL, memTimingSpec.RTP - 2LL);
       break;
 
     case MemoryType::DDR2:
       tRWTP_init = memTimingSpec.AL + memArchSpec.burstLength /
                    memArchSpec.dataRate +
-                   max(memTimingSpec.RTP, 2L) - 2;
+                   max(memTimingSpec.RTP, 2LL) - 2;
       break;
 
     case MemoryType::DDR3:

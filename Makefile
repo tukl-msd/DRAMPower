@@ -75,15 +75,9 @@ OPTCXXFLAGS ?=
 DBGCXXFLAGS ?= -g ${GCOVFLAGS}
 
 # Common warning flags shared by both C and C++.
-WARNFLAGS := -W -pedantic-errors -Wextra -Werror \
+WARNFLAGS := -W -pedantic-errors -Wextra \
              -Wformat -Wformat-nonliteral -Wpointer-arith \
-             -Wcast-align -Wconversion -Wall -Werror
-
-# Sum up the flags.
-CXXFLAGS := -O ${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
-
-# Linker flags.
-LDFLAGS := -Wall
+             -Wcast-align -Wconversion -Wall 
 
 ##########################################
 # Xerces settings
@@ -93,6 +87,12 @@ XERCES_ROOT ?= /usr
 XERCES_INC := $(XERCES_ROOT)/include
 XERCES_LIB := $(XERCES_ROOT)/lib
 XERCES_LDFLAGS := -L$(XERCES_LIB) -lxerces-c
+
+# Sum up the flags.
+CXXFLAGS := -O ${WARNFLAGS} -I${XERCES_INC} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
+
+# Linker flags.
+LDFLAGS := -Wall ${XERCES_LDFLAGS}
 
 ##########################################
 # Targets

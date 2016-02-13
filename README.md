@@ -20,7 +20,7 @@ This command will download a set of trace files from https://github.com/Sv3n/DRA
 
 The tool was verified on Ubuntu 14.04 using:
 
- * xerces-c (libxerces-c-dev) - v3.1 with Xerces development package
+ * xerces-c (libxerces-c-dev) - v3.1 with Xerces development package. If your Xerces package is not installed in /usr directory, Please specifiy the Xerces root directory when run the make command. For example __make XERCES_ROOT=/opt/local__.
  * gcc - v4.4.3
 
 ## 3. Directory Structure
