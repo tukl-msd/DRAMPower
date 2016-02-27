@@ -258,7 +258,7 @@ void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term,
 {
   const MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   const MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
-  const uint64_t nRanks = memArchSpec.nbrOfRanks;
+  const uint64_t nRanks = static_cast<uint64_t>(memArchSpec.nbrOfRanks);
   const char eUnit[] = " pJ";
 
   ios_base::fmtflags flags = cout.flags();
