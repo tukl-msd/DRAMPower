@@ -61,8 +61,7 @@ DEPENDENCIES := ${ALLSOURCES:.cc=.d}
 ##########################################
 
 # State what compiler we use.
-#clang++-3.6
-CXX := g++
+CXX ?= g++
 
 ifeq ($(COVERAGE),1)
 	GCOVFLAGS := -fprofile-arcs -ftest-coverage
