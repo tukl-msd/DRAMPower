@@ -98,17 +98,17 @@ int64_t MemCommand::getPrechargeOffset(const MemorySpecification& memSpec,
   // Read with auto-precharge
   if (type == MemCommand::RDA) {
     if (memType == MemoryType::DDR2) {
-      precharge_offset = B + AL - 2 + max(RTP, 2L);
+      precharge_offset = B + AL - 2 + max(RTP, int64_t(2));
     } else if (memType == MemoryType::DDR3) {
-      precharge_offset = AL + max(RTP, 4L);
+      precharge_offset = AL + max(RTP, int64_t(4));
     } else if (memType == MemoryType::DDR4) {
       precharge_offset = AL + RTP;
     } else if (memType == MemoryType::LPDDR) {
       precharge_offset = B;
     } else if (memType == MemoryType::LPDDR2) {
-      precharge_offset = B + max(0L, RTP - 2);
+      precharge_offset = B + max(int64_t(0), RTP - 2);
     } else if (memType == MemoryType::LPDDR3) {
-      precharge_offset = B + max(0L, RTP - 4);
+      precharge_offset = B + max(int64_t(0), RTP - 4);
     } else if (memType == MemoryType::WIDEIO_SDR) {
       precharge_offset = B;
     }
