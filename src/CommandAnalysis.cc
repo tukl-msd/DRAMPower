@@ -545,6 +545,9 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       } else if (mem_state == CommandAnalysis::MS_SREF) {
         sref_cycles += max(zero, timestamp - sref_cycle);
       }
+    } else {
+      printWarning("Unknown command given, exiting.", type, timestamp, bank);
+      exit(-1);
     }
   }
 } // CommandAnalysis::evaluate
