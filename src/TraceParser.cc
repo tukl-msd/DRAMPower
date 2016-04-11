@@ -50,12 +50,11 @@ TraceParser::TraceParser(int64_t nbrOfBanks) :
 
 Data::MemCommand TraceParser::parseLine(std::string line)
 {
-  MemCommand memcmd;
+  MemCommand memcmd(MemCommand::UNINITIALIZED, 0, 0);
   istringstream linestream(line);
   string item;
   int64_t item_val;
   unsigned itemnum = 0;
-  MemCommand::cmds type = MemCommand::NOP; // Initialized to prevent warning
 
   while (getline(linestream, item, ',')) {
     if (itemnum == 0) {
@@ -68,10 +67,8 @@ Data::MemCommand TraceParser::parseLine(std::string line)
     } else if (itemnum == 2) {
       stringstream bank(item);
       bank >> item_val;
-      memcmd.setType(type);
       memcmd.setBank(static_cast<unsigned>(item_val));
     }
-    type = memcmd.getType();
     itemnum++;
   }
   return memcmd;

@@ -86,10 +86,11 @@ class MemCommand {
     PUP_ACT   = 14,
     SREN      = 15,
     SREX      = 16,
-    NOP       = 17
+    NOP       = 17,
+    UNINITIALIZED = 18
   };
 
-  MemCommand();
+//  MemCommand();
   MemCommand(
     // Command Type
     MemCommand::cmds type,
@@ -136,13 +137,29 @@ class MemCommand {
     }
   }
 
-  static const unsigned int nCommands = 18;
+  static const unsigned int nCommands = 19;
 
   static std::string* getCommandTypeStrings()
   {
-    static std::string type_map[nCommands] = { "ACT",       "RD",      "WR",      "PRE",  "REF",
-                                               "END",       "RDA",     "WRA",     "PREA", "PDN_F_PRE","PDN_S_PRE",  "PDN_F_ACT",
-                                               "PDN_S_ACT", "PUP_PRE", "PUP_ACT", "SREN", "SREX",     "NOP" };
+    static std::string type_map[nCommands] = { "ACT",
+                                               "RD",
+                                               "WR",
+                                               "PRE",
+                                               "REF",
+                                               "END",
+                                               "RDA",
+                                               "WRA",
+                                               "PREA",
+                                               "PDN_F_PRE",
+                                               "PDN_S_PRE",
+                                               "PDN_F_ACT",
+                                               "PDN_S_ACT",
+                                               "PUP_PRE",
+                                               "PUP_ACT",
+                                               "SREN",
+                                               "SREX",
+                                               "NOP",
+                                               "UNINITIALIZED" };
 
     return type_map;
   }

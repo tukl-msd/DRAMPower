@@ -44,12 +44,12 @@
 using namespace Data;
 using namespace std;
 
-MemCommand::MemCommand() :
-  type(MemCommand::PRE),
-  bank(0),
-  timestamp(0)
-{
-}
+// MemCommand::MemCommand() :
+//   type(MemCommand::UNINITIALIZED),
+//   bank(0),
+//   timestamp(0)
+// {
+// }
 
 MemCommand::MemCommand(MemCommand::cmds type,
                        unsigned bank, int64_t timestamp) :
