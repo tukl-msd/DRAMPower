@@ -132,10 +132,10 @@ void CommandAnalysis::clear()
 void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
                                   std::vector<MemCommand>& list, bool lastupdate)
 {
-  if (init == 0) {
-    list.push_back(MemCommand(MemCommand::PREA, 0, 0));
-    init = 1;
-  }
+  // if (init == 0) {
+  //   list.push_back(MemCommand(MemCommand::PREA, 0, 0));
+  //   init = 1;
+  // }
 
   for (size_t i = 0; i < list.size(); ++i) {
     MemCommand& cmd = list[i];
