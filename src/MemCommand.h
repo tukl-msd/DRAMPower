@@ -114,7 +114,6 @@ class MemCommand {
   void setTime(int64_t _timestamp);
 
   // Get timestamp
-  double getTime() const;
   int64_t getTimeInt64() const;
 
   cmds typeWithoutAutoPrechargeFlag() const;
