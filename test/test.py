@@ -26,12 +26,12 @@ def extractFileToTmpFile(compressedFile):
 class TestBuild(unittest.TestCase):
     def test_make_wo_args_completes_returns_0(self):
         """ 'make -j4' should return 0 """
-        self.assertEqual(subprocess.call(['make', '-f', 'Makefile', '-j4'], stdout=devnull), 0)
+        self.assertEqual(subprocess.call(['make', '-f', 'Makefile', '-j4']), 0)
 
 
 class TestUsingBuildResult(unittest.TestCase):
     def buildDRAMPower(self):
-        self.assertEqual(subprocess.call(['make', '-f', 'Makefile', '-j4'], stdout=devnull), 0)
+        self.assertEqual(subprocess.call(['make', '-f', 'Makefile', '-j4']), 0)
 
     def setUp(self):
         self.buildDRAMPower()

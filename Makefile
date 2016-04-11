@@ -138,7 +138,7 @@ pretty:
 	uncrustify -c src/uncrustify.cfg $(ALLHEADERS) --no-backup
 
 test: traces
-	python test/test.py -v
+	python test/test_mac.py -v
 
 traces.zip:
 	wget --quiet --output-document=traces.zip https://github.com/Sv3n/DRAMPowerTraces/archive/master.zip
