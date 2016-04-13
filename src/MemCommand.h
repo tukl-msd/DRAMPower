@@ -93,7 +93,7 @@ class MemCommand {
 //  MemCommand();
   MemCommand(
     // Command Type
-    MemCommand::cmds type,
+    MemCommand::cmds type = UNINITIALIZED,
     // Target Bank
     unsigned         bank = 0,
     // Command Issue Timestamp (in cc)

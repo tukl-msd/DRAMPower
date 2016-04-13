@@ -69,7 +69,6 @@ CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
   s_pre_pdns          = 0;
   numberofsrefs       = 0;
 
-  init                = 0;
   zero                = 0;
 
   actcycles           = 0;
@@ -132,11 +131,6 @@ void CommandAnalysis::clear()
 void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
                                   std::vector<MemCommand>& list, bool lastupdate)
 {
-  // if (init == 0) {
-  //   list.push_back(MemCommand(MemCommand::PREA, 0, 0));
-  //   init = 1;
-  // }
-
   for (size_t i = 0; i < list.size(); ++i) {
     MemCommand& cmd = list[i];
     MemCommand::cmds cmdType = cmd.getType();
@@ -302,11 +296,8 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // Calculate the number of active cycles if the memory was in the
       // active state before, but there is a state transition to PRE now.
       // If not, update the number of precharged cycles and idle cycles.
-      if (timestamp == 0) {
-        numberofpres += 0;
-      } else {
-        numberofpres += num_active_banks;
-      }
+
+      numberofpres += num_active_banks;
 
       if (num_active_banks > 0) {
         actcycles += max(zero, timestamp - first_act_cycle);

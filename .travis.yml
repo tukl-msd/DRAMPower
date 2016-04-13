@@ -2,6 +2,7 @@ os:
   - osx
 matrix:
   allow_failures:
+    - os: linux
     - os: osx
 language: cpp
 compiler:
