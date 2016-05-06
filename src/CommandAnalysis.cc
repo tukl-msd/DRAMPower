@@ -57,6 +57,26 @@ bool commandSorter(const MemCommand& i, const MemCommand& j)
 CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
 {
   // Initializing all counters and variables
+  clearStats(0);
+
+  init                = 0;
+  zero                = 0;
+
+  bankstate.resize(nbrofBanks, 0);
+  last_states.resize(nbrofBanks);
+  mem_state  = 0;
+  num_active_banks  = 0;
+
+  cmd_list.clear();
+  full_cmd_list.resize(1, MemCommand::PRE);
+  cached_cmd.clear();
+  activation_cycle.resize(nbrofBanks, 0);
+}
+
+// function to clear counters
+void CommandAnalysis::clearStats(const int64_t timestamp)
+{
+  // reset accumulating counters to zero
 
   numberofacts        = 0;
   numberofpres        = 0;
@@ -68,9 +88,6 @@ CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
   f_pre_pdns          = 0;
   s_pre_pdns          = 0;
   numberofsrefs       = 0;
-
-  init                = 0;
-  zero                = 0;
 
   actcycles           = 0;
   precycles           = 0;
@@ -89,29 +106,29 @@ CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
   idlecycles_act      = 0;
   idlecycles_pre      = 0;
 
+  // reset count references to timestamp so that they are moved
+  // to start of next stats generation
+  first_act_cycle     = timestamp;
+  last_pre_cycle      = timestamp;
+  pdn_cycle           = timestamp;
+  sref_cycle          = timestamp;
+  end_act_op          = timestamp;
+  end_read_op         = timestamp;
+  end_write_op        = timestamp;
+
   latest_act_cycle    = -1;
-  latest_pre_cycle    = -1;
   latest_read_cycle   = -1;
   latest_write_cycle  = -1;
-  end_read_op         = 0;
-  end_write_op        = 0;
-  end_act_op          = 0;
 
-  first_act_cycle     = 0;
-  last_pre_cycle      = 0;
-
-  bankstate.resize(nbrofBanks, 0);
-  last_states.resize(nbrofBanks);
-  mem_state = 0;
-  num_active_banks  = 0;
-
-  sref_cycle = 0;
-  pdn_cycle  = 0;
-
-  cmd_list.clear();
-  full_cmd_list.resize(1, MemCommand::PRE);
-  cached_cmd.clear();
-  activation_cycle.resize(nbrofBanks, 0);
+  if (timestamp == 0) {
+    // set to -1 at beginning of simulation
+    latest_pre_cycle    = -1;
+  } else {
+    // NOTE: reference is adjusted by tRP (PRE delay) when updating counter
+    // could remove tRP to ensure counter starts at beginning of next block;
+    // currently simply setting to timestamp for simplicity
+    latest_pre_cycle    = timestamp;
+  }
 }
 
 // function to clear all arrays
