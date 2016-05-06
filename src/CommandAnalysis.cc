@@ -57,6 +57,22 @@ bool commandSorter(const MemCommand& i, const MemCommand& j)
 CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
 {
   // Initializing all counters and variables
+  clearStats(0);
+
+  bankstate.resize(nbrofBanks, 0);
+  last_states.resize(nbrofBanks);
+  mem_state  = 0;
+  num_active_banks  = 0;
+
+  cmd_list.clear();
+  full_cmd_list.resize(1, MemCommand::PRE);
+  cached_cmd.clear();
+  activation_cycle.resize(nbrofBanks, 0);
+}
+
+// function to clear counters
+void CommandAnalysis::clearStats(const int64_t timestamp)
+{
 
   numberofacts        = 0;
   numberofpres        = 0;
@@ -68,8 +84,6 @@ CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
   f_pre_pdns          = 0;
   s_pre_pdns          = 0;
   numberofsrefs       = 0;
-
-  zero                = 0;
 
   actcycles           = 0;
   precycles           = 0;
@@ -88,29 +102,28 @@ CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
   idlecycles_act      = 0;
   idlecycles_pre      = 0;
 
+  // reset count references to timestamp so that they are moved
+  // to start of next stats generation
+  first_act_cycle     = timestamp;
+  last_pre_cycle      = timestamp;
+  pdn_cycle           = timestamp;
+  sref_cycle          = timestamp;
+  end_act_op          = timestamp;
+  end_read_op         = timestamp;
+  end_write_op        = timestamp;
+
   latest_act_cycle    = -1;
-  latest_pre_cycle    = -1;
   latest_read_cycle   = -1;
   latest_write_cycle  = -1;
-  end_read_op         = 0;
-  end_write_op        = 0;
-  end_act_op          = 0;
 
-  first_act_cycle     = 0;
-  last_pre_cycle      = 0;
+  if (timestamp == 0) {
 
-  bankstate.resize(static_cast<size_t>(nbrofBanks), 0);
-  last_states.resize(static_cast<size_t>(nbrofBanks));
-  mem_state = 0;
-  num_active_banks  = 0;
+    latest_pre_cycle    = -1;
+  } else {
 
-  sref_cycle = 0;
-  pdn_cycle  = 0;
 
-  cmd_list.clear();
-  full_cmd_list.resize(1, MemCommand::PRE);
-  cached_cmd.clear();
-  activation_cycle.resize(static_cast<size_t>(nbrofBanks), 0);
+    latest_pre_cycle    = timestamp;
+  }
 }
 
 // function to clear all arrays
@@ -255,7 +268,6 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       latest_pre_cycle = last_pre_cycle;
       actcycles       += memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
       num_active_banks = 0;
-
       for (auto& b : bankstate) {
         b = 0;
       }
@@ -296,8 +308,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // Calculate the number of active cycles if the memory was in the
       // active state before, but there is a state transition to PRE now.
       // If not, update the number of precharged cycles and idle cycles.
-
-      numberofpres += num_active_banks;
+        numberofpres += num_active_banks;
 
       if (num_active_banks > 0) {
         actcycles += max(zero, timestamp - first_act_cycle);
@@ -338,9 +349,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // after powering-up. Update active and active idle cycles.
       printWarningIfNotActive("All banks are precharged! Incorrect use of Active Power-Down.", type, timestamp, bank);
       s_act_pdns++;
-
       last_states = bankstate;
-
       pdn_cycle  = timestamp;
       actcycles += max(zero, timestamp - first_act_cycle);
       idle_act_update(memSpec, latest_read_cycle, latest_write_cycle,

@@ -72,6 +72,11 @@ void libDRAMPower::clearState()
   counters.clear();
 }
 
+void libDRAMPower::clearCounters(int64_t timestamp)
+{
+  counters.clearStats(timestamp);
+}
+
 const Data::MemoryPowerModel::Energy& libDRAMPower::getEnergy() const
 {
   return mpm.energy;

@@ -132,11 +132,6 @@ void MemCommand::setTime(int64_t _timestamp)
   timestamp = _timestamp;
 }
 
-double MemCommand::getTime() const
-{
-  return static_cast<double>(timestamp);
-}
-
 int64_t MemCommand::getTimeInt64() const
 {
   return timestamp;

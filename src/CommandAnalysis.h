@@ -115,6 +115,9 @@ class CommandAnalysis {
   // Number of precharged auto-refresh cycles during self-refresh exit
   int64_t spup_ref_pre_cycles;
 
+  // function for clearing counters
+  void clearStats(const int64_t timestamp);
+
   // function for clearing arrays
   void clear();
 
