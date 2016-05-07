@@ -134,9 +134,6 @@ class CommandAnalysis {
   // Stores the memory commands for analysis
   std::vector<MemCommand> cmd_list;
 
-  // Stores all memory commands for analysis
-  std::vector<MemCommand> full_cmd_list;
-
   // To save states of the different banks, before entering active
   // power-down mode (slow/fast-exit).
   std::vector<int> last_states;

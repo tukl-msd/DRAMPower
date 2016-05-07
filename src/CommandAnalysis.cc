@@ -66,7 +66,6 @@ CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
   num_active_banks  = 0;
 
   cmd_list.clear();
-  full_cmd_list.resize(1, MemCommand::PRE);
   cached_cmd.clear();
   activation_cycle.resize(static_cast<size_t>(nbrofBanks), 0);
 }
@@ -133,7 +132,6 @@ void CommandAnalysis::clear()
 {
   cached_cmd.clear();
   cmd_list.clear();
-  full_cmd_list.clear();
   last_states.clear();
   bankstate.clear();
 }
