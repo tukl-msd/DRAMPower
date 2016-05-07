@@ -60,15 +60,15 @@ CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
   clearStats(0);
   zero = 0;
 
-  bankstate.resize(nbrofBanks, 0);
-  last_states.resize(nbrofBanks);
+  bankstate.resize(static_cast<size_t>(nbrofBanks), 0);
+  last_states.resize(static_cast<size_t>(nbrofBanks));
   mem_state  = 0;
   num_active_banks  = 0;
 
   cmd_list.clear();
   full_cmd_list.resize(1, MemCommand::PRE);
   cached_cmd.clear();
-  activation_cycle.resize(nbrofBanks, 0);
+  activation_cycle.resize(static_cast<size_t>(nbrofBanks), 0);
 }
 
 // function to clear counters
