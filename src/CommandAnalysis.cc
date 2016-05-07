@@ -58,6 +58,7 @@ CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
 {
   // Initializing all counters and variables
   clearStats(0);
+  zero = 0;
 
   bankstate.resize(nbrofBanks, 0);
   last_states.resize(nbrofBanks);
@@ -117,11 +118,12 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   latest_write_cycle  = -1;
 
   if (timestamp == 0) {
-
+    // set to -1 at beginning of simulation
     latest_pre_cycle    = -1;
   } else {
-
-
+    // NOTE: reference is adjusted by tRP (PRE delay) when updating counter
+    // could remove tRP to ensure counter starts at beginning of next block;
+    // currently simply setting to timestamp for simplicity
     latest_pre_cycle    = timestamp;
   }
 }
