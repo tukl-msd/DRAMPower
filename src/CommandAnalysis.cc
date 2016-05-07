@@ -203,14 +203,13 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                                vector<MemCommand>& cmd_list)
 {
   // for each command identify timestamp, type and bank
-  for (unsigned cmd_list_counter = 0; cmd_list_counter < cmd_list.size();
-       cmd_list_counter++) {
+  for (auto cmd : cmd_list) {
     // For command type
-    int type = cmd_list[cmd_list_counter].getType();
+    int type = cmd.getType();
     // For command bank
-    int bank = static_cast<int>(cmd_list[cmd_list_counter].getBank());
+    int bank = static_cast<int>(cmd.getBank());
     // Command Issue timestamp in clock cycles (cc)
-    int64_t timestamp = cmd_list[cmd_list_counter].getTimeInt64();
+    int64_t timestamp = cmd.getTimeInt64();
 
     if (type == MemCommand::ACT) {
       printWarningIfPoweredDown("Command issued while in power-down mode.", type, timestamp, bank);
