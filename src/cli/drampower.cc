@@ -60,13 +60,13 @@ int error()
 
 int main(int argc, char* argv[])
 {
-  unsigned trans        = 0, cmds = 0, memory = 0, size = 0, term = 0, power_down = 0;
+  int trans = 0, cmds = 0, memory = 0, size = 0, term = 0, power_down = 0;
 
   char*    src_trans    = { 0 };
   char*    src_cmds     = { 0 };
   char*    src_memory   = { 0 };
 
-  unsigned interleaving = 1, grouping = 1, src_size = 1, burst = 1;
+  int interleaving = 1, grouping = 1, src_size = 1, burst = 1;
 
   for (int i = 1; i < argc; i++) {
     if (i + 1 != argc) {
@@ -144,8 +144,7 @@ int main(int argc, char* argv[])
     return error();
   }
 
-  unsigned min_size = static_cast<unsigned>(interleaving * grouping * memArchSpec.burstLength
-                      * memArchSpec.width / 8);
+  int min_size = static_cast<int>(interleaving * grouping * memArchSpec.burstLength * memArchSpec.width / 8);
 
   if (size == 0) {
     src_size = min_size;

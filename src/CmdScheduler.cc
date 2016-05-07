@@ -84,9 +84,10 @@ void cmdScheduler::schedulingInitialization(const MemorySpecification& memSpec)
 {
   const MemTimingSpec& memTimingSpec = memSpec.memTimingSpec;
 
-  ACT.resize(2 * memSpec.memArchSpec.nbrOfBanks);
-  RDWR.resize(2 * memSpec.memArchSpec.nbrOfBanks);
-  PRE.resize(memSpec.memArchSpec.nbrOfBanks);
+  const size_t numBanks = static_cast<size_t>(memSpec.memArchSpec.nbrOfBanks);
+  ACT.resize(2 * numBanks);
+  RDWR.resize(2 * numBanks);
+  PRE.resize(numBanks);
   bankaccess = memSpec.memArchSpec.nbrOfBanks;
   if (!ACT.empty()) {
     ACT.erase(ACT.begin(), ACT.end());
@@ -118,7 +119,7 @@ void cmdScheduler::schedulingInitialization(const MemorySpecification& memSpec)
     cmd.Type = WRITE;
     cmd.name = "WRITE";
     cmd.time = -1;
-    RDWR[i].push_back(cmd);
+    RDWR[static_cast<size_t>(i)].push_back(cmd);
   }
   tREF             = memTimingSpec.REFI;
   transFinish.time = 0;
@@ -141,7 +142,7 @@ void cmdScheduler::getTrans(std::ifstream& trans_trace, const MemorySpecificatio
   transTime = 0;
   uint64_t newtranstime;
   uint64_t transAddr;
-  uint64_t transType = 1;
+  int64_t transType = 1;
   trans    TransItem;
 
   if (!transTrace.empty()) {
@@ -156,7 +157,7 @@ void cmdScheduler::getTrans(std::ifstream& trans_trace, const MemorySpecificatio
       if (itemnum == 0) {
         stringstream timestamp(item);
         timestamp >> newtranstime;
-        transTime = transTime + newtranstime;
+        transTime = transTime + static_cast<int64_t>(newtranstime);
       } else if (itemnum == 1) {
         if (item  == "write" || item == "WRITE") {
           transType = WRITE;
@@ -197,7 +198,6 @@ void cmdScheduler::getTrans(std::ifstream& trans_trace, const MemorySpecificatio
 // into commands.txt which will be used for power analysis.
 void cmdScheduler::analyticalScheduling(const MemorySpecification& memSpec)
 {
-  int64_t  Bs               = -1;
   int64_t  transType        = -1;
   int64_t timer          = 0;
   uint64_t  bankGroupPointer = 0;
@@ -205,10 +205,10 @@ void cmdScheduler::analyticalScheduling(const MemorySpecification& memSpec)
   bool collisionFound;
   physicalAddr PhysicalAddress;
   bool bankGroupSwitch  = false;
-  std::vector<uint64_t> bankPointer(nbrOfBankGroups, 0);
-  std::vector<int64_t>  bankAccessNum(nBanks, -1);
-  std::vector<bool> ACTSchedule(nBanks, false);
-  int64_t bankAddr    = -1;
+  std::vector<uint64_t> bankPointer(static_cast<size_t>(nbrOfBankGroups), 0);
+  std::vector<int64_t>  bankAccessNum(static_cast<size_t>(nBanks), -1);
+  std::vector<bool> ACTSchedule(static_cast<size_t>(nBanks), false);
+  uint64_t bankAddr   = 0;
   int64_t endTime     = 0;
   int64_t tComing_REF = 0;
 
@@ -219,9 +219,12 @@ void cmdScheduler::analyticalScheduling(const MemorySpecification& memSpec)
   for (uint64_t t = 0; t < transTrace.size(); t++) {
     cmdScheduling.erase(cmdScheduling.begin(), cmdScheduling.end());
 
-    for (int64_t i = 0; i < nBanks; i++) {
-      ACTSchedule[i]   = false;
-      bankAccessNum[i] = -1;
+    for (auto a : ACTSchedule) {
+      a = false;
+    }
+
+    for (auto& b : bankAccessNum) {
+      b = -1;
     }
 
     timingsGet      = false;
@@ -229,13 +232,13 @@ void cmdScheduler::analyticalScheduling(const MemorySpecification& memSpec)
 
     PhysicalAddress = memoryMap(transTrace[t], memSpec);
 
-    for (int64_t i = 0; i < nbrOfBankGroups; i++) {
-      bankPointer[i] = PhysicalAddress.bankAddr; // the bank pointer per group.
+    for (auto& b : bankPointer) {
+      b = PhysicalAddress.bankAddr; // the bank pointer per group.
     }
     bankGroupPointer = PhysicalAddress.bankGroupAddr;
 
-    endTime          = max(transFinish.time, PRE[transFinish.bank].time +
-                           static_cast<int>(memTimingSpec.RP));
+    endTime = max(transFinish.time, PRE[static_cast<size_t>(transFinish.bank)].time +
+                                    static_cast<int>(memTimingSpec.RP));
 
     // Before starting the scheduling for the next transaction, it has to
     // check whether it is necessary for implementing power down.
@@ -252,7 +255,7 @@ void cmdScheduler::analyticalScheduling(const MemorySpecification& memSpec)
                                memTimingSpec.REFI : 0); i++) {
         cmd.bank = 0;
         cmd.name = "REF";
-        cmd.time = max(max(max(transFinish.time, PRE[transFinish.bank].time + memTimingSpec.RP), tREF), startTime);
+        cmd.time = max(max(max(transFinish.time, PRE[static_cast<size_t>(transFinish.bank)].time + memTimingSpec.RP), tREF), startTime);
         if ((power_down == SELF_REFRESH && !Inselfrefresh) || power_down != SELF_REFRESH) {
           cmdScheduling.push_back(cmd);
           startTime = cmd.time + memTimingSpec.RFC;
@@ -264,7 +267,7 @@ void cmdScheduler::analyticalScheduling(const MemorySpecification& memSpec)
       }
     }
     ///////////////Execution Transactions///////////////////
-    Bs        = PhysicalAddress.bankAddr;
+    uint64_t Bs = PhysicalAddress.bankAddr;
     transType = transTrace[t].type;
 
     tRWTP     = getRWTP(transType, memSpec);
@@ -282,9 +285,8 @@ void cmdScheduler::analyticalScheduling(const MemorySpecification& memSpec)
               bankGroupSwitch = true;
             }
             // update to the current bank group address.
-            bankGroupAddr = PhysicalAddress.bankGroupAddr + j;
-            bankAddr      = bankGroupAddr * nBanks / nbrOfBankGroups +
-                            bankPointer[bankGroupAddr];
+            bankGroupAddr = PhysicalAddress.bankGroupAddr + static_cast<uint64_t>(j);
+            bankAddr = bankGroupAddr * static_cast<uint64_t>(nBanks) / nbrOfBankGroups + bankPointer[bankGroupAddr];
           } else   {
             bankAddr = Bs + i;
           }
@@ -314,7 +316,7 @@ void cmdScheduler::analyticalScheduling(const MemorySpecification& memSpec)
                              static_cast<int>(memTimingSpec.TAW));
             }
 
-            if ((i == 0) && (j == 0)) {
+            if (i == 0 && j == 0) {
               cmd.time = max(cmd.time, PreRDWR.time + 1);
               cmd.time = max(cmd.time, timer);
               cmd.time = max(startTime, cmd.time);
@@ -360,7 +362,7 @@ void cmdScheduler::analyticalScheduling(const MemorySpecification& memSpec)
           }
           for (int ACTBank = static_cast<int>(ACT.size() - 1);
                ACTBank >= 0; ACTBank--) {
-            if (ACT[ACTBank].bank == bankAddr) {
+            if (ACT[ACTBank].bank == static_cast<int64_t>(bankAddr)) {
               cmd.time = max(PreRDWR.time + tSwitch_init, ACT.back().time
                              + static_cast<int>(memTimingSpec.RCD));
               break;
@@ -394,7 +396,7 @@ void cmdScheduler::analyticalScheduling(const MemorySpecification& memSpec)
             PRE[bankAddr].name = "PRE";
             for (int ACTBank = static_cast<int>(ACT.size() - 1);
                  ACTBank >= 0; ACTBank--) {
-              if (ACT[ACTBank].bank == bankAddr) {
+              if (ACT[ACTBank].bank == static_cast<int64_t>(bankAddr)) {
                 PRE[bankAddr].time = max(ACT.back().time +
                                          static_cast<int>(memTimingSpec.RAS),
                                          PreRDWR.time + tRWTP);
@@ -508,13 +510,13 @@ int64_t cmdScheduler::getRWTP(int64_t transType, const MemorySpecification& memS
     case MemoryType::LPDDR2:
     case MemoryType::LPDDR3:
       tRWTP_init = memArchSpec.burstLength / memArchSpec.dataRate +
-                   max(0L, memTimingSpec.RTP - 2);
+                   max(int64_t(0), memTimingSpec.RTP - 2);
       break;
 
     case MemoryType::DDR2:
       tRWTP_init = memTimingSpec.AL + memArchSpec.burstLength /
                    memArchSpec.dataRate +
-                   max(memTimingSpec.RTP, 2L) - 2;
+                   max(memTimingSpec.RTP, int64_t(2)) - 2;
       break;
 
     case MemoryType::DDR3:

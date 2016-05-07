@@ -58,7 +58,7 @@ void libDRAMPower::doCommand(MemCommand::cmds type, int bank, int64_t timestamp)
 
 void libDRAMPower::updateCounters(bool lastUpdate)
 {
-  counters.getCommands(memSpec, memSpec.memArchSpec.nbrOfBanks, cmdList, lastUpdate);
+  counters.getCommands(memSpec, cmdList, lastUpdate);
   cmdList.clear();
 }
 

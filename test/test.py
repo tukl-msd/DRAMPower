@@ -80,11 +80,21 @@ class TestOutput(TestUsingBuildResult):
         self.tempFiles.append(cmdTrace)
         return cmdTrace
 
+    def get_LPDDR2_1066_short_trace_file(self):
+        cmdTrace = extractFileToTmpFile('test/data/LPDDR2-1066.commands.trace.gz')
+        self.tempFiles.append(cmdTrace)
+        return cmdTrace
+
     def test_LPDDR2_1066_matches_reference(self):
         """ drampower output for an LPDDR2-1066 trace matches reference """
         cmdTrace = self.get_LPDDR2_1066_trace_file()
         cmd = ['./drampower', '-m', 'memspecs/MICRON_2Gb_LPDDR2-1066-S4_16bit_A.xml', '-c', cmdTrace]
         self.run_and_compare_to_reference(cmd, 'test/reference/test_LPDDR2_1066_matches_reference.out')
+
+    def test_LPDDR2_1066_short_matches_reference(self):
+        """ drampower output for an LPDDR2-1066 trace matches reference """
+        cmd = ['./drampower', '-m', 'memspecs/MICRON_2Gb_LPDDR2-1066-S4_16bit_A.xml', '-c', 'test/data/LPDDR2-1066_short.commands.trace']
+        self.run_and_compare_to_reference(cmd, 'test/reference/test_LPDDR2_1066_short_matches_reference.out')
 
     def test_LPDDR2_1066_termination_matches_reference(self):
         """ drampower output for an LPDDR2-1066 trace with termination power enabled matches reference """

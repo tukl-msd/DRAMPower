@@ -123,12 +123,10 @@ class CommandAnalysis {
 
   // To identify auto-precharges
   void getCommands(const MemorySpecification& memSpec,
-                   const int64_t nbrofBanks,
                    std::vector<MemCommand>&   list,
                    bool                       lastupdate);
 
  private:
-  unsigned init;
   int64_t  zero;
   // Cached last read command from the file
   std::vector<MemCommand> cached_cmd;
@@ -180,8 +178,7 @@ class CommandAnalysis {
 
   // To perform timing analysis of a given set of commands and update command counters
   void evaluate(const MemorySpecification& memSpec,
-                std::vector<MemCommand>&   cmd_list,
-                int64_t                    nbrofBanks);
+                std::vector<MemCommand>&   cmd_list);
 
   // To calculate time of completion of any issued command
   int64_t timeToCompletion(const MemorySpecification& memSpec,
