@@ -31,7 +31,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Matthias Jung, Omar Naji
+ * Authors: Matthias Jung, Omar Naji, Subash Kannoth, Eder Zulian, Matthias Jung
  *
  */
 
@@ -47,7 +47,7 @@
 
 class libDRAMPower {
  public:
-  libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination);
+  libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination, bool bankwiseMode = false, int64_t bankwisePowerFactor = 100);
   ~libDRAMPower();
 
   void doCommand(Data::MemCommand::cmds type,
@@ -73,6 +73,8 @@ class libDRAMPower {
   Data::CommandAnalysis counters;
  private:
   bool includeIoAndTermination;
+  bool bankwiseMode;
+  int64_t bankwisePowerFactor;
   // Object of MemoryPowerModel which contains the results
   // Energies(pJ) stored in energy, Powers(mW) stored in power. Number of
   // each command stored in timings.

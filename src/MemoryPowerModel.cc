@@ -31,7 +31,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji
+ * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Subash Kannoth, Eder Zulian
  *
  */
 
@@ -41,7 +41,7 @@
 
 #include <cmath>  // For pow
 #include <iostream>  // fmtflags
-
+#include <algorithm>
 
 using namespace std;
 using namespace Data;
@@ -50,11 +50,20 @@ using namespace Data;
 
 void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
                                   const CommandAnalysis& c,
-                                  int term)
+                                  int term, bool bankwiseMode,
+                                  int64_t bwPowerFactor)
 {
   const MemTimingSpec& t                 = memSpec.memTimingSpec;
   const MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
   const MemPowerSpec&  mps               = memSpec.memPowerSpec;
+  const int64_t nbrofBanks               = memSpec.memArchSpec.nbrOfBanks;
+
+  energy.act_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
+  energy.pre_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
+  energy.read_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
+  energy.write_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
+  energy.act_stdby_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
+  energy.pre_stdby_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
 
   energy.act_energy          = 0.0;
   energy.pre_energy          = 0.0;
@@ -153,6 +162,21 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
   energy.ref_energy       = vdd0Domain.calcTivEnergy(c.numberofrefs   * t.RFC          , mps.idd5 - mps.idd3n);
   energy.pre_stdby_energy = vdd0Domain.calcTivEnergy(c.precycles, mps.idd2n);
   energy.act_stdby_energy = vdd0Domain.calcTivEnergy(c.actcycles, mps.idd3n);
+
+  // Using the number of cycles that at least one bank is active here
+  // But the current iddrho is less than idd3n
+  double iddrho = (static_cast<double>(bwPowerFactor) / 100.0) * (mps.idd3n - mps.idd2n) + mps.idd2n;
+  double eshared = vdd0Domain.calcTivEnergy(c.actcycles, iddrho);
+
+  for (int i = 0; i < nbrofBanks; i++) {
+    energy.act_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofactsBanks[i] * t.RAS, mps.idd0 - mps.idd3n);
+    energy.pre_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofpresBanks[i] * (t.RC - t.RAS), mps.idd0 - mps.idd2n);
+    energy.read_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofreadsBanks[i] * burstCc, mps.idd4r - mps.idd3n);
+    energy.write_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofwritesBanks[i] * burstCc, mps.idd4w - mps.idd3n);
+    energy.pre_stdby_energy_banks[i] = vdd0Domain.calcTivEnergy(c.precycles, mps.idd2n) / static_cast<double>(nbrofBanks);
+    energy.act_stdby_energy_banks[i] = vdd0Domain.calcTivEnergy(c.actcyclesBanks[i], (mps.idd3n - iddrho)) / static_cast<double>(nbrofBanks);
+  }
+
   // Idle energy in the active standby clock cycles
   energy.idle_energy_act  = vdd0Domain.calcTivEnergy(c.idlecycles_act, mps.idd3n);
   // Idle energy in the precharge standby clock cycles
@@ -200,6 +224,7 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
     energy.ref_energy       += vdd2Domain.calcTivEnergy(c.numberofrefs   * t.RFC          , mps.idd52 - mps.idd3n2);
     energy.pre_stdby_energy += vdd2Domain.calcTivEnergy(c.precycles, mps.idd2n2);
     energy.act_stdby_energy += vdd2Domain.calcTivEnergy(c.actcycles, mps.idd3n2);
+
     // Idle energy in the active standby clock cycles
     energy.idle_energy_act  += vdd2Domain.calcTivEnergy(c.idlecycles_act, mps.idd3n2);
     // Idle energy in the precharge standby clock cycles
@@ -243,28 +268,52 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
 
   // adding all energy components for the active rank and all background and idle
   // energy components for both ranks (in a dual-rank system)
-  energy.total_energy = energy.act_energy + energy.pre_energy + energy.read_energy +
-                        energy.write_energy + energy.ref_energy + energy.io_term_energy +
-                        static_cast<double>(memArchSpec.nbrOfRanks) * (energy.act_stdby_energy +
-                                                  energy.pre_stdby_energy + energy.sref_energy +
-                                                  energy.f_act_pd_energy + energy.f_pre_pd_energy + energy.s_act_pd_energy
-                                                  + energy.s_pre_pd_energy + energy.sref_ref_energy + energy.spup_ref_energy);
+  if (bankwiseMode) {
+    energy.total_energy = total(energy.act_energy_banks) + total(energy.pre_energy_banks) + total(energy.read_energy_banks) +
+                          total(energy.write_energy_banks) + energy.ref_energy + energy.io_term_energy +
+                          static_cast<double>(memArchSpec.nbrOfRanks) * ( (eshared + total(energy.act_stdby_energy_banks)) +
+                                                    energy.pre_stdby_energy + energy.sref_energy +
+                                                    energy.f_act_pd_energy + energy.f_pre_pd_energy + energy.s_act_pd_energy
+                                                    + energy.s_pre_pd_energy + energy.sref_ref_energy + energy.spup_ref_energy);
+  } else {
+    energy.total_energy = energy.act_energy + energy.pre_energy + energy.read_energy +
+                          energy.write_energy + energy.ref_energy + energy.io_term_energy +
+                          static_cast<double>(memArchSpec.nbrOfRanks) * (energy.act_stdby_energy +
+                                                    energy.pre_stdby_energy + energy.sref_energy +
+                                                    energy.f_act_pd_energy + energy.f_pre_pd_energy + energy.s_act_pd_energy
+                                                    + energy.s_pre_pd_energy + energy.sref_ref_energy + energy.spup_ref_energy);
+  }
 
   // Calculate the average power consumption
   power.average_power = energy.total_energy / (static_cast<double>(total_cycles) * t.clkPeriod);
 } // MemoryPowerModel::power_calc
 
-void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term, const CommandAnalysis& c) const
+void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term, const CommandAnalysis& c, bool bankwiseMode) const
 {
   const MemTimingSpec& memTimingSpec     = memSpec.memTimingSpec;
   const MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
   const uint64_t nRanks = static_cast<uint64_t>(memArchSpec.nbrOfRanks);
   const char eUnit[] = " pJ";
+  const int64_t nbrofBanks = memSpec.memArchSpec.nbrOfBanks;
+  double nRanksDouble = static_cast<double>(nRanks);
 
   ios_base::fmtflags flags = cout.flags();
   streamsize precision = cout.precision();
   cout.precision(0);
-  cout << "* Trace Details:" << fixed << endl
+
+  if (bankwiseMode) {
+    cout << endl << "* Bankwise Details:";
+    for (int i = 0; i < nbrofBanks; i++) {
+      cout << endl << "## @ Bank " << i << fixed
+        << endl << "  #ACT commands: " << c.numberofactsBanks[i]
+        << endl << "  #RD + #RDA commands: " << c.numberofreadsBanks[i]
+        << endl << "  #WR + #WRA commands: " << c.numberofwritesBanks[i]
+        << endl << "  #PRE (+ PREA) commands: " << c.numberofpresBanks[i];
+    }
+    cout << endl;
+  }
+
+  cout << endl << "* Trace Details:" << fixed << endl
        << endl << "#ACT commands: "                 << c.numberofacts
        << endl << "#RD + #RDA commands: "           << c.numberofreads
        << endl << "#WR + #WRA commands: "           << c.numberofwrites
@@ -300,6 +349,20 @@ void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term,
        << endl << "Total Trace Length (clock cycles): " << total_cycles
        << endl << "----------------------------------------" << endl;
 
+  if (bankwiseMode) {
+    cout << endl << "* Bankwise Details:";
+    for (int i = 0; i < nbrofBanks; i++) {
+      cout << endl << "## @ Bank " << i << fixed
+        << endl << "  ACT Cmd Energy: " << energy.act_energy_banks[i] << eUnit
+        << endl << "  PRE Cmd Energy: " << energy.pre_energy_banks[i] << eUnit
+        << endl << "  RD Cmd Energy: " << energy.read_energy_banks[i] << eUnit
+        << endl << "  WR Cmd Energy: " << energy.write_energy_banks[i] << eUnit
+        << endl << "  ACT Stdby Energy: " << nRanksDouble * energy.act_stdby_energy_banks[i] << eUnit
+        << endl << "  PRE Stdby Energy: " << nRanksDouble * energy.pre_stdby_energy_banks[i] << eUnit;
+    }
+    cout << endl;
+  }
+ 
   cout.precision(2);
   cout << endl << "* Trace Power and Energy Estimates:" << endl
        << endl << "ACT Cmd Energy: " << energy.act_energy   << eUnit
@@ -319,8 +382,6 @@ void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term,
            << endl << "WR Termination Energy (Idle rank): " << energy.write_oterm_energy << eUnit << endl;
     }
   }
-
-  double nRanksDouble = static_cast<double>(nRanks);
 
   cout <<         "ACT Stdby Energy: "                                                                      << nRanksDouble * energy.act_stdby_energy << eUnit
        << endl << "  Active Idle Energy: "                                                                  << nRanksDouble * energy.idle_energy_act << eUnit
@@ -397,3 +458,4 @@ double EnergyDomain::calcTivEnergy(int64_t cycles, double current) const
 {
   return static_cast<double>(cycles) * clkPeriod * current * voltage;
 }
+

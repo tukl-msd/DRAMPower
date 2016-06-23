@@ -31,7 +31,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji
+ * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Subash Kannoth, Eder Zulian
  *
  */
 
@@ -63,18 +63,23 @@ class CommandAnalysis {
 
   // Number of activate commands
   int64_t numberofacts;
+  std::vector<int64_t> numberofactsBanks;
   // Number of precharge commands
   int64_t numberofpres;
+  std::vector<int64_t> numberofpresBanks;
   // Number of reads commands
   int64_t numberofreads;
+  std::vector<int64_t> numberofreadsBanks;
   // Number of writes commands
   int64_t numberofwrites;
+  std::vector<int64_t> numberofwritesBanks;
   // Number of refresh commands
   int64_t numberofrefs;
   // Number of precharge cycles
   int64_t precycles;
   // Number of active cycles
   int64_t actcycles;
+  std::vector<int64_t> actcyclesBanks;
   // Number of Idle cycles in the active state
   int64_t idlecycles_act;
   // Number of Idle cycles in the precharge state
@@ -167,8 +172,11 @@ class CommandAnalysis {
   unsigned mem_state;
   unsigned num_active_banks;
 
+  int64_t num_banks;
+
   // Clock cycle of first activate command when memory state changes to ACT
   int64_t first_act_cycle;
+  std::vector<int64_t> first_act_cycle_banks;
 
   // Clock cycle of last precharge command when memory state changes to PRE
   int64_t last_pre_cycle;

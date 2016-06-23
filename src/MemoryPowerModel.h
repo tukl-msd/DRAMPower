@@ -31,13 +31,14 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji
+ * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Subash Kannoth, Eder Zulian
  *
  */
 
 #ifndef MEMORY_POWER_MODEL_H
 #define MEMORY_POWER_MODEL_H
 
+#include <numeric>
 #include "MemorySpecification.h"
 #include "CommandAnalysis.h"
 
@@ -48,7 +49,8 @@ class MemoryPowerModel {
   // command trace
   void power_calc(const MemorySpecification& memSpec,
                   const CommandAnalysis& c,
-                  int term);
+                  int term, bool bankwiseMode,
+                  int64_t bwPowerFactor);
 
   // Used to calculate self-refresh active energy
   static double engy_sref(double idd6,
@@ -67,24 +69,30 @@ class MemoryPowerModel {
   struct Energy {
     // Total energy of all activates
     double act_energy;
+    std::vector<double> act_energy_banks;
 
     // Total energy of all precharges
     double pre_energy;
+    std::vector<double> pre_energy_banks;
 
     // Total energy of all reads
     double read_energy;
+    std::vector<double> read_energy_banks;
 
     // Total energy of all writes
     double write_energy;
+    std::vector<double> write_energy_banks;
 
     // Total energy of all refreshes
     double ref_energy;
 
     // Total background energy of all active standby cycles
     double act_stdby_energy;
+    std::vector<double> act_stdby_energy_banks;
 
     // Total background energy of all precharge standby cycles
     double pre_stdby_energy;
+    std::vector<double> pre_stdby_energy_banks;
 
     // Total energy of idle cycles in the active mode
     double idle_energy_act;
@@ -147,7 +155,8 @@ class MemoryPowerModel {
   // Print the power and energy
   void power_print(const MemorySpecification& memSpec,
                    int                 term,
-                   const CommandAnalysis& c) const;
+                   const CommandAnalysis& c,
+                   bool bankwiseMode) const;
 
   // To derive IO and Termination Power measures using DRAM specification
   void io_term_power(const MemorySpecification& memSpec);
@@ -157,6 +166,8 @@ class MemoryPowerModel {
 
  private:
   double calcIoTermEnergy(int64_t cycles, double period, double power, int64_t numBits) const;
+  // Sum quantities (e.g., operations, energy, cycles) that are stored in a per bank basis returning the total amount.
+  template <typename T> T total(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
 };
 
 class EnergyDomain {

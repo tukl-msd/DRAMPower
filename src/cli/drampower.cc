@@ -31,7 +31,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Omar Naji
+ * Authors: Karthik Chandrasekar, Omar Naji, Subash Kannoth, Eder Zulian, Matthias Jung
  *
  */
 #include <ctime>
@@ -50,17 +50,23 @@ using namespace std;
 
 int error()
 {
-  cout << "Correct Usage: \n./drampower -m <memory spec (ID)> "
-               "[-t] <transactions trace> [-c] <commands trace> [-i] "
-               "<interleaving> [-g] <DDR4 bank group "
-               "interleaving> [-s] <request size> [-r] "
-               "[-p] < 1 - Power-Down, 2 - Self-Refresh>\n";
+  cout << "Correct Usage: \n./drampower -m <memory spec (ID)> " <<
+               "[-t] <transactions trace> " <<
+               "[-c] <commands trace> " <<
+               "[-i] <interleaving> " <<
+               "[-g] <DDR4 bank group interleaving> " <<
+               "[-s] <request size> " <<
+               "[-r] " <<
+               "[-p] <1 - Power-Down, 2 - Self-Refresh> " <<
+               "[-b] <bankwise power offset factor (0-100)>\n";
   return 1;
 }
 
 int main(int argc, char* argv[])
 {
   int trans = 0, cmds = 0, memory = 0, size = 0, term = 0, power_down = 0;
+  bool bankwiseMode = false;
+  unsigned bankwisePowerFactor = 100;
 
   char*    src_trans    = { 0 };
   char*    src_cmds     = { 0 };
@@ -88,6 +94,9 @@ int main(int argc, char* argv[])
         size     = 1;
       } else if (string(argv[i]) == "-p") {
         power_down = atoi(argv[i + 1]);
+      } else if (string(argv[i]) == "-b") {
+        bankwiseMode = true;
+        bankwisePowerFactor = atoi(argv[i + 1]);
       } else {
         if (string(argv[i]) == "-r") {
           term = 1;
@@ -100,6 +109,11 @@ int main(int argc, char* argv[])
       }
       continue;
     }
+  }
+
+  if (bankwisePowerFactor > 100) {
+      cout << endl << "Bankwise power offset factor out of range." << endl;
+      return error();
   }
 
   if (memory == 0) {
@@ -128,6 +142,11 @@ int main(int argc, char* argv[])
   MemorySpecification  memSpec(MemSpecParser::getMemSpecFromXML(src_memory));
 
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
+
+  if ((memArchSpec.twoVoltageDomains) && (bankwiseMode)){
+      cout << endl << "Bankwise simulation for Two-Voltage domain devices not supported." << endl;
+      return error();
+  }
 
   if (interleaving > memArchSpec.nbrOfBanks) {
     cout << "Interleaving > Number of Banks" << endl;
@@ -174,15 +193,21 @@ int main(int argc, char* argv[])
   tm*    starttm = localtime(&start);
   cout << "* Analysis start time: " << asctime(starttm);
   cout << "* Analyzing the input trace" << endl;
+  cout << "* Bankwise mode: ";
+  if (bankwiseMode) {
+    cout << "enabled (power offset factor is " << bankwisePowerFactor << "%)" << endl;
+  } else {
+    cout << "disabled" << endl;
+  }
 
   // Calculates average power consumption and energy for the input memory
   // command trace
   const int CMD_ANALYSIS_WINDOW_SIZE = 1000000;
   TraceParser traceparser(memSpec.memArchSpec.nbrOfBanks);
   traceparser.parseFile(memSpec, trace_file, CMD_ANALYSIS_WINDOW_SIZE, grouping, interleaving, burst, power_down, trans);
-  mpm.power_calc(memSpec, traceparser.counters, term);
+  mpm.power_calc(memSpec, traceparser.counters, term, bankwiseMode, bankwisePowerFactor);
 
-  mpm.power_print(memSpec, term, traceparser.counters);
+  mpm.power_print(memSpec, term, traceparser.counters, bankwiseMode);
   time_t end   = time(0);
   tm*    endtm = localtime(&end);
   cout << "* Power Computation End time: " << asctime(endtm);

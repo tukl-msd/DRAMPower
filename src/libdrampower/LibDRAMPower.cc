@@ -31,7 +31,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Matthias Jung, Omar Naji
+ * Authors: Matthias Jung, Omar Naji, Subash Kannoth, Eder Zulian, Matthias Jung
  *
  */
 
@@ -39,10 +39,12 @@
 
 using namespace Data;
 
-libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination) :
+libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination, bool bankwiseMode, int64_t bankwisePowerFactor) :
   memSpec(memSpec),
   counters(CommandAnalysis(memSpec.memArchSpec.nbrOfBanks)),
-  includeIoAndTermination(includeIoAndTermination)
+  includeIoAndTermination(includeIoAndTermination),
+  bankwiseMode(bankwiseMode),
+  bankwisePowerFactor(bankwisePowerFactor)
 {
 }
 
@@ -64,7 +66,7 @@ void libDRAMPower::updateCounters(bool lastUpdate)
 
 void libDRAMPower::calcEnergy()
 {
-  mpm.power_calc(memSpec, counters, includeIoAndTermination);
+  mpm.power_calc(memSpec, counters, includeIoAndTermination, bankwiseMode, bankwisePowerFactor);
 }
 
 void libDRAMPower::clearState()
