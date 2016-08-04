@@ -107,7 +107,7 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   first_act_cycle     = timestamp;
   last_pre_cycle      = timestamp;
   pdn_cycle           = timestamp;
-  sref_cycle          = timestamp;
+  sref_cycle_window   = timestamp;
   end_act_op          = timestamp;
   end_read_op         = timestamp;
   end_write_op        = timestamp;
@@ -119,6 +119,7 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   if (timestamp == 0) {
     // set to -1 at beginning of simulation
     latest_pre_cycle    = -1;
+    sref_cycle          = 0;
   } else {
     // NOTE: reference is adjusted by tRP (PRE delay) when updating counter
     // could remove tRP to ensure counter starts at beginning of next block;
@@ -445,6 +446,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       printWarningIfActive("One or more banks are active! SREF requires all banks to be precharged.", type, timestamp, bank);
       numberofsrefs++;
       sref_cycle = timestamp;
+      sref_cycle_window = timestamp;      
       precycles += max(zero, timestamp - last_pre_cycle);
       idle_pre_update(memSpec, timestamp, latest_pre_cycle);
       mem_state  = CommandAnalysis::MS_SREF;
@@ -459,7 +461,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
         cerr << "Incorrect use of Self-Refresh Power-Up!" << endl;
       }
       if (max(zero, timestamp - sref_cycle) >= memSpec.memTimingSpec.RFC) {
-        sref_cycles         += max(zero, timestamp - sref_cycle
+        sref_cycles         += max(zero, timestamp - sref_cycle_window
                                    - memSpec.memTimingSpec.RFC);
         sref_ref_act_cycles += memSpec.memTimingSpec.RFC -
                                memSpec.memTimingSpec.RP;
@@ -542,7 +544,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       } else if (mem_state == CommandAnalysis::MS_PDN_S_PRE) {
         s_pre_pdcycles += max(zero, timestamp - pdn_cycle);
       } else if (mem_state == CommandAnalysis::MS_SREF) {
-        sref_cycles += max(zero, timestamp - sref_cycle);
+        sref_cycles += max(zero, timestamp - sref_cycle_window);
       }
     } else {
       printWarning("Unknown command given, exiting.", type, timestamp, bank);

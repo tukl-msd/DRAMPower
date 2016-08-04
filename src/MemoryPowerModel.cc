@@ -65,7 +65,7 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
   energy.pre_stdby_energy    = 0.0;
   energy.idle_energy_act     = 0.0;
   energy.idle_energy_pre     = 0.0;
-  energy.total_energy        = 0.0;
+  energy.window_energy        = 0.0;
   energy.f_act_pd_energy     = 0.0;
   energy.f_pre_pd_energy     = 0.0;
   energy.s_act_pd_energy     = 0.0;
@@ -138,7 +138,7 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
                             + energy.read_oterm_energy + energy.write_oterm_energy;
   }
 
-  total_cycles = c.actcycles + c.precycles +
+  window_cycles = c.actcycles + c.precycles +
                  c.f_act_pdcycles + c.f_pre_pdcycles +
                  c.s_act_pdcycles + c.s_pre_pdcycles + c.sref_cycles
                  + c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
@@ -243,12 +243,18 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
 
   // adding all energy components for the active rank and all background and idle
   // energy components for both ranks (in a dual-rank system)
-  energy.total_energy = energy.act_energy + energy.pre_energy + energy.read_energy +
+  energy.window_energy = energy.act_energy + energy.pre_energy + energy.read_energy +
                         energy.write_energy + energy.ref_energy + energy.io_term_energy +
                         static_cast<double>(memArchSpec.nbrOfRanks) * (energy.act_stdby_energy +
                                                   energy.pre_stdby_energy + energy.sref_energy +
                                                   energy.f_act_pd_energy + energy.f_pre_pd_energy + energy.s_act_pd_energy
                                                   + energy.s_pre_pd_energy + energy.sref_ref_energy + energy.spup_ref_energy);
+
+  power.window_average_power = energy.window_energy / (static_cast<double>(window_cycles) * t.clkPeriod);
+
+  total_cycles += window_cycles;
+
+  energy.total_energy += energy.window_energy;
 
   // Calculate the average power consumption
   power.average_power = energy.total_energy / (static_cast<double>(total_cycles) * t.clkPeriod);

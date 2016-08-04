@@ -3,6 +3,7 @@ drampower
 *.o
 *.a
 test/libdrampowertest/library_test
+test/libdrampowertest/window_example
 *.gcno
 *.gcda
 traces/*

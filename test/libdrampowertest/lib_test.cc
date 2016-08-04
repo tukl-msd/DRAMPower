@@ -29,7 +29,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Matthias Jung, Omar Naji
+ * Authors: Matthias Jung, Omar Naji, Felipe S. Prado
  *
  */
 
@@ -66,8 +66,6 @@ int main(int argc, char* argv[])
         test.doCommand(MemCommand::ACT,0,86);
         test.doCommand(MemCommand::RDA,0,101);
         test.doCommand(MemCommand::ACT,2,102);
-        //This functionality is still not implemented.
-        test.updateCounters(false);
         test.doCommand(MemCommand::RDA,2,117);
         test.doCommand(MemCommand::ACT,5,119);
         test.doCommand(MemCommand::RDA,5,134);
@@ -81,9 +79,6 @@ int main(int argc, char* argv[])
         test.doCommand(MemCommand::WRA,4,247);
         // Need at least tWRAPDEN = AL + CWL + BL/2 + WR + 1 cycles between WR and PDN_F_PRE
         test.doCommand(MemCommand::PDN_F_PRE,3,265);
-
-        //set bool to true when this is the last update of the counters
-        test.updateCounters(true);
 
         // At the end of your simulation call the getEnergy(...)
         // function to print the power report
@@ -116,8 +111,6 @@ int main(int argc, char* argv[])
         //Powers per Rank
         std::cout << "Average Power" << "\t" << test.getPower().average_power << endl;
         //many other powers in test.getPower()
-
-        // Test clearState function.
-        test.clearState();
+	
         return 0;
 }

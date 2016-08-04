@@ -54,13 +54,9 @@ class libDRAMPower {
                  int                    bank,
                  int64_t                timestamp);
 
-  void updateCounters(bool lastUpdate);
-
-  void clearCounters(int64_t timestamp);
-
-  void clearState();
-
   void calcEnergy();
+
+  void calcWindowEnergy(int64_t timestamp);
 
   const Data::MemoryPowerModel::Energy& getEnergy() const;
   const Data::MemoryPowerModel::Power& getPower() const;
@@ -68,6 +64,12 @@ class libDRAMPower {
   // list of all commands
   std::vector<Data::MemCommand> cmdList;
  private:
+  void updateCounters(bool lastUpdate);
+
+  void clearCounters(int64_t timestamp);
+
+  void clearState();
+
   Data::MemorySpecification memSpec;
  public:
   Data::CommandAnalysis counters;

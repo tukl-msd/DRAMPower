@@ -62,7 +62,9 @@ class MemoryPowerModel {
                           double spup_ref_pre_cycles,
                           double clk);
 
-  int64_t total_cycles;
+  int64_t total_cycles = 0;
+
+  int64_t window_cycles;
 
   struct Energy {
     // Total energy of all activates
@@ -93,7 +95,10 @@ class MemoryPowerModel {
     double idle_energy_pre;
 
     // Total trace/pattern energy
-    double total_energy;
+    double total_energy = 0;
+
+    // Window energy
+    double window_energy;
 
     // Average Power
     double average_power;
@@ -142,6 +147,9 @@ class MemoryPowerModel {
 
     // Average Power
     double average_power;
+
+    // Window Average Power
+    double window_average_power;
   };
 
   // Print the power and energy

@@ -159,6 +159,9 @@ class CommandAnalysis {
 
   // Clock cycle when self-refresh was issued
   int64_t sref_cycle;
+  
+  // Self-Refresh clock cycle to be used to calculate a time window energy
+  int64_t sref_cycle_window;
 
   // Clock cycle when the latest power-down was issued
   int64_t pdn_cycle;
