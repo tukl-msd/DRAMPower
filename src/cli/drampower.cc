@@ -42,6 +42,7 @@
 
 #include "MemorySpecification.h"
 #include "MemoryPowerModel.h"
+#include "MemBankWiseParams.h"
 #include "xmlparser/MemSpecParser.h"
 #include "TraceParser.h"
 
@@ -58,7 +59,8 @@ int error()
                "[-s] <request size> " <<
                "[-r] " <<
                "[-p] <1 - Power-Down, 2 - Self-Refresh> " <<
-               "[-b] <bankwise power offset factor (0-100)>\n";
+               "[-b] <ρ - ACT Standby bankwise power offset factor (0-100), σ - Self-Refresh bankwise power offset factor (0-100)> "<<
+               "[-pasr] <Partial Array Self-Refresh mode (0 - 7)> \n";
   return 1;
 }
 
@@ -66,7 +68,10 @@ int main(int argc, char* argv[])
 {
   int trans = 0, cmds = 0, memory = 0, size = 0, term = 0, power_down = 0;
   bool bankwiseMode = false;
-  unsigned bankwisePowerFactor = 100;
+  bool bankPASRact = false;
+  unsigned bankwisePowerFactRho = 100;
+  unsigned bankwisePowerFactSigma = 100;
+  unsigned pasrMode = 0;
 
   char*    src_trans    = { 0 };
   char*    src_cmds     = { 0 };
@@ -95,8 +100,21 @@ int main(int argc, char* argv[])
       } else if (string(argv[i]) == "-p") {
         power_down = atoi(argv[i + 1]);
       } else if (string(argv[i]) == "-b") {
+        string bwTuple = argv[i + 1];
+        size_t idx;
         bankwiseMode = true;
-        bankwisePowerFactor = atoi(argv[i + 1]);
+        try{
+            idx = bwTuple.find(",");
+            bankwisePowerFactRho = stoi(bwTuple.substr(0, idx));
+            bwTuple.erase(0, idx +  1);
+            idx = bwTuple.find(",");
+            bankwisePowerFactSigma = stoi(bwTuple.substr(0, idx));
+        }catch(const std::exception& e) {
+            return error();
+        }
+      } else if (string(argv[i]) == "-pasr") {
+          pasrMode = atoi(argv[i + 1]);
+          bankPASRact = true;
       } else {
         if (string(argv[i]) == "-r") {
           term = 1;
@@ -111,8 +129,18 @@ int main(int argc, char* argv[])
     }
   }
 
-  if (bankwisePowerFactor > 100) {
-      cout << endl << "Bankwise power offset factor out of range." << endl;
+  if (bankwisePowerFactRho > 100) {
+      cout << endl << "ACT Standby bankwise power offset factor ρ out of range." << endl;
+      return error();
+  }
+
+  if (bankwisePowerFactSigma > 100) {
+      cout << endl << "Self-Refresh bankwise power offset factor σ out of range." << endl;
+      return error();
+  }
+
+  if (pasrMode > 7) {
+      cout << endl << "Wrong PASR mode." << endl;
       return error();
   }
 
@@ -142,6 +170,7 @@ int main(int argc, char* argv[])
   MemorySpecification  memSpec(MemSpecParser::getMemSpecFromXML(src_memory));
 
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
+  MemBankWiseParams memBwParams(bankwisePowerFactRho, bankwisePowerFactSigma ,bankPASRact,pasrMode, bankwiseMode,memArchSpec.nbrOfBanks);
 
   if ((memArchSpec.twoVoltageDomains) && (bankwiseMode)){
       cout << endl << "Bankwise simulation for Two-Voltage domain devices not supported." << endl;
@@ -161,6 +190,11 @@ int main(int argc, char* argv[])
   if (power_down > 2) {
     cout << "Incorrect power-down option" << endl;
     return error();
+  }
+
+  if ((!bankwiseMode) && (bankPASRact)){
+      cout<<endl<<"PASR cannot be activated when Bankwise mode is disabled."<<endl;
+      return error();
   }
 
   int min_size = static_cast<int>(interleaving * grouping * memArchSpec.burstLength * memArchSpec.width / 8);
@@ -195,17 +229,22 @@ int main(int argc, char* argv[])
   cout << "* Analyzing the input trace" << endl;
   cout << "* Bankwise mode: ";
   if (bankwiseMode) {
-    cout << "enabled (power offset factor is " << bankwisePowerFactor << "%)" << endl;
+    cout << "enabled (power offset factors  ρ=" << bankwisePowerFactRho << "% ,σ="<<bankwisePowerFactSigma<<"% )"<<endl;
   } else {
     cout << "disabled" << endl;
   }
-
+  cout << "* Partial Array Self-Refresh: ";
+  if (bankPASRact){
+      cout<<"enabled";
+  }else{
+       cout << "disabled" << endl;
+  }
   // Calculates average power consumption and energy for the input memory
   // command trace
   const int CMD_ANALYSIS_WINDOW_SIZE = 1000000;
   TraceParser traceparser(memSpec.memArchSpec.nbrOfBanks);
   traceparser.parseFile(memSpec, trace_file, CMD_ANALYSIS_WINDOW_SIZE, grouping, interleaving, burst, power_down, trans);
-  mpm.power_calc(memSpec, traceparser.counters, term, bankwiseMode, bankwisePowerFactor);
+  mpm.power_calc(memSpec, traceparser.counters, term, memBwParams);
 
   mpm.power_print(memSpec, term, traceparser.counters, bankwiseMode);
   time_t end   = time(0);

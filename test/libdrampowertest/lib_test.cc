@@ -56,7 +56,9 @@ int main(int argc, char* argv[])
         #else
             MemorySpecification memSpec;
         #endif
-        libDRAMPower test = libDRAMPower(memSpec, 0);
+        //Dummy object for testing ( Tests for Bankwise componets are not yet implemented )
+        MemBankWiseParams testmemBwParams(100, 100 ,0,0, 0,8);
+        libDRAMPower test = libDRAMPower(memSpec, 0, testmemBwParams);
         // During the simulation you can report activity
         // to DRAMPower with the doCommand(...) function:
         test.doCommand(MemCommand::ACT,0,35);

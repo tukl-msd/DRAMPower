@@ -44,10 +44,12 @@
 #include "CommandAnalysis.h"
 #include "MemoryPowerModel.h"
 #include "MemCommand.h"
+#include "MemBankWiseParams.h"
+
 
 class libDRAMPower {
  public:
-  libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination, bool bankwiseMode = false, int64_t bankwisePowerFactor = 100);
+  libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination,const Data::MemBankWiseParams& bwPowerParams);
   ~libDRAMPower();
 
   void doCommand(Data::MemCommand::cmds type,
@@ -74,7 +76,7 @@ class libDRAMPower {
  private:
   bool includeIoAndTermination;
   bool bankwiseMode;
-  int64_t bankwisePowerFactor;
+  Data:: MemBankWiseParams bwPowerParams;
   // Object of MemoryPowerModel which contains the results
   // Energies(pJ) stored in energy, Powers(mW) stored in power. Number of
   // each command stored in timings.

@@ -43,7 +43,7 @@ LIBS := src/libdrampower.a src/libdrampowerxml.a
 # Identifies the source files and derives name of object files.
 
 CLISOURCES := src/TraceParser.cc src/CmdScheduler.cc $(wildcard src/cli/*.cc)
-LIBSOURCES := $(wildcard src/libdrampower/*.cc) src/CommandAnalysis.cc src/MemArchitectureSpec.cc src/MemCommand.cc src/MemoryPowerModel.cc src/MemorySpecification.cc src/MemPowerSpec.cc src/MemTimingSpec.cc src/Parameter.cc src/Parametrisable.cc
+LIBSOURCES := $(wildcard src/libdrampower/*.cc) src/CommandAnalysis.cc src/MemArchitectureSpec.cc src/MemCommand.cc src/MemoryPowerModel.cc src/MemorySpecification.cc src/MemPowerSpec.cc src/MemTimingSpec.cc src/Parameter.cc src/Parametrisable.cc src/MemBankWiseParams.cc
 
 XMLPARSERSOURCES := $(wildcard src/xmlparser/*.cc)
 ALLSOURCES := $(wildcard src/cli/*.cc) $(wildcard src/*.cc) $(wildcard src/xmlparser/*.cc) $(wildcard src/libdrampower/*.cc)
