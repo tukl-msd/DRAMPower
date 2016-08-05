@@ -112,43 +112,6 @@ use the Makefile and make sure the Gcc and Xerces-c are installed. Then, run:
 ```
 make -j4
 ```
-
-This should show the following compilation message on the screen:
-```
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/xmlparser/MemSpecParser.d -iquote src -o src/xmlparser/MemSpecParser.o -c src/xmlparser/MemSpecParser.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/xmlparser/XMLHandler.d -iquote src -o src/xmlparser/XMLHandler.o -c src/xmlparser/XMLHandler.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/xmlparser/XMLParser.d -iquote src -o src/xmlparser/XMLParser.o -c src/xmlparser/XMLParser.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/CmdScheduler.d -iquote src -o src/CmdScheduler.o -c src/CmdScheduler.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/CommandAnalysis.d -iquote src -o src/CommandAnalysis.o -c src/CommandAnalysis.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/MemArchitectureSpec.d -iquote src -o src/MemArchitectureSpec.o -c src/MemArchitectureSpec.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/MemCommand.d -iquote src -o src/MemCommand.o -c src/MemCommand.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/MemoryPowerModel.d -iquote src -o src/MemoryPowerModel.o -c src/MemoryPowerModel.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/MemorySpecification.d -iquote src -o src/MemorySpecification.o -c src/MemorySpecification.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/MemPowerSpec.d -iquote src -o src/MemPowerSpec.o -c src/MemPowerSpec.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/MemTimingSpec.d -iquote src -o src/MemTimingSpec.o -c src/MemTimingSpec.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/Parameter.d -iquote src -o src/Parameter.o -c src/Parameter.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/Parametrisable.d -iquote src -o src/Parametrisable.o -c src/Parametrisable.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/TraceParser.d -iquote src -o src/TraceParser.o -c src/TraceParser.cc
-g++ -O -W -pedantic-errors -Wextra -Werror -Wformat -Wformat-nonliteral -Wpointer-arith -Wcast-align -Wconversion  -g  -std=c++0x -MMD -MF src/libdrampower/LibDRAMPower.d -iquote src -o src/libdrampower/LibDRAMPower.o -c src/libdrampower/LibDRAMPower.cc
-ar -cvr src/libdrampowerxml.a src/xmlparser/MemSpecParser.o src/xmlparser/XMLHandler.o src/xmlparser/XMLParser.o
-a - src/xmlparser/MemSpecParser.o
-a - src/xmlparser/XMLHandler.o
-a - src/xmlparser/XMLParser.o
-g++ -Wall -o drampower src/xmlparser/MemSpecParser.o src/xmlparser/XMLHandler.o src/xmlparser/XMLParser.o src/CmdScheduler.o src/CommandAnalysis.o src/MemArchitectureSpec.o src/MemCommand.o src/MemoryPowerModel.o src/MemorySpecification.o src/MemPowerSpec.o src/MemTimingSpec.o src/Parameter.o src/Parametrisable.o src/TraceParser.o -L/usr/lib -lxerces-c
-ar -cvr src/libdrampower.a src/CmdScheduler.o src/CommandAnalysis.o src/MemArchitectureSpec.o src/MemCommand.o src/MemoryPowerModel.o src/MemorySpecification.o src/MemPowerSpec.o src/MemTimingSpec.o src/Parameter.o src/Parametrisable.o src/TraceParser.o src/libdrampower/LibDRAMPower.o
-a - src/CmdScheduler.o
-a - src/CommandAnalysis.o
-a - src/MemArchitectureSpec.o
-a - src/MemCommand.o
-a - src/MemoryPowerModel.o
-a - src/MemorySpecification.o
-a - src/MemPowerSpec.o
-a - src/MemTimingSpec.o
-a - src/Parameter.o
-a - src/Parametrisable.o
-a - src/TraceParser.o
-a - src/libdrampower/LibDRAMPower.o
-```
 After this, run with the command trace or the transaction trace, as described before:
 ```
 ./drampower -m memspecs/MICRON_1Gb_DDR3-1066_8bit_G.xml -t traces/mediabench-epic.trace -r

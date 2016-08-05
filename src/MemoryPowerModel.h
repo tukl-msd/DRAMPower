@@ -31,7 +31,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji
+ * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Felipe S. Prado
  *
  */
 
@@ -62,7 +62,7 @@ class MemoryPowerModel {
                           double spup_ref_pre_cycles,
                           double clk);
 
-  int64_t total_cycles = 0;
+  int64_t total_cycles;
 
   int64_t window_cycles;
 
@@ -95,7 +95,7 @@ class MemoryPowerModel {
     double idle_energy_pre;
 
     // Total trace/pattern energy
-    double total_energy = 0;
+    double total_energy;
 
     // Window energy
     double window_energy;

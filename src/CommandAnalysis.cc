@@ -31,7 +31,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Sven Goossens
+ * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Sven Goossens, Felipe S. Prado
  *
  */
 
@@ -119,7 +119,7 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   if (timestamp == 0) {
     // set to -1 at beginning of simulation
     latest_pre_cycle    = -1;
-    sref_cycle          = 0;
+    sref_cycle          =  0;
   } else {
     // NOTE: reference is adjusted by tRP (PRE delay) when updating counter
     // could remove tRP to ensure counter starts at beginning of next block;

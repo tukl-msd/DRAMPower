@@ -31,7 +31,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji
+ * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Felipe S. Prado
  *
  */
 
@@ -65,7 +65,7 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
   energy.pre_stdby_energy    = 0.0;
   energy.idle_energy_act     = 0.0;
   energy.idle_energy_pre     = 0.0;
-  energy.window_energy        = 0.0;
+  energy.window_energy       = 0.0;
   energy.f_act_pd_energy     = 0.0;
   energy.f_pre_pd_energy     = 0.0;
   energy.s_act_pd_energy     = 0.0;
