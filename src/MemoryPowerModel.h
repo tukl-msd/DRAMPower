@@ -100,6 +100,7 @@ class MemoryPowerModel {
 
     // Total energy of all refreshes
     double ref_energy;
+    std::vector<double> ref_energy_banks;
 
     // Total background energy of all active standby cycles
     double act_stdby_energy;
@@ -119,6 +120,7 @@ class MemoryPowerModel {
 
     // Total trace/pattern energy
     double total_energy;
+    std::vector<double> total_energy_banks;
 
     // Average Power
     double average_power;
