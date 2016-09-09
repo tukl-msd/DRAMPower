@@ -60,8 +60,8 @@ CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
   clearStats(0);
   zero = 0;
 
-  bankstate.resize(static_cast<size_t>(nbrofBanks), 0);
-  last_states.resize(static_cast<size_t>(nbrofBanks));
+  bank_state.resize(static_cast<size_t>(nbrofBanks), BANK_PRECHARGED);
+  last_bank_state.resize(static_cast<size_t>(nbrofBanks), BANK_PRECHARGED);
   mem_state  = 0;
   num_active_banks  = 0;
 
@@ -132,8 +132,8 @@ void CommandAnalysis::clear()
 {
   cached_cmd.clear();
   cmd_list.clear();
-  last_states.clear();
-  bankstate.clear();
+  last_bank_state.clear();
+  bank_state.clear();
 }
 
 // Reads through the trace file, identifies the timestamp, command and bank
@@ -207,7 +207,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
     // For command type
     int type = cmd.getType();
     // For command bank
-    int bank = static_cast<int>(cmd.getBank());
+    unsigned bank = cmd.getBank();
     // Command Issue timestamp in clock cycles (cc)
     int64_t timestamp = cmd.getTimeInt64();
 
@@ -218,9 +218,9 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // state. Update the number of precharged/idle-precharged cycles.
       // If the bank is already active ignore the command and generate a
       // warning.
-      if (bankstate[static_cast<size_t>(bank)] == 0) {
+      if (bank_state[bank] == BANK_PRECHARGED) {
         numberofacts++;
-        bankstate[static_cast<size_t>(bank)] = 1;
+        bank_state[bank] = BANK_ACTIVE;
 
         if (num_active_banks == 0) {
           // Here a memory state transition to ACT is happening. Save the
@@ -240,7 +240,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       printWarningIfPoweredDown("Command issued while in power-down mode.", type, timestamp, bank);
       // If command is RD - update number of reads and read cycle. Check
       // for active idle cycles (if any).
-      if (bankstate[static_cast<size_t>(bank)] == 0) {
+      if (bank_state[bank] == BANK_PRECHARGED) {
         printWarning("Bank is not active!", type, timestamp, bank);
       }
       numberofreads++;
@@ -251,7 +251,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       printWarningIfPoweredDown("Command issued while in power-down mode.", type, timestamp, bank);
       // If command is WR - update number of writes and write cycle. Check
       // for active idle cycles (if any).
-      if (bankstate[static_cast<size_t>(bank)] == 0) {
+      if (bank_state[bank] == BANK_PRECHARGED) {
         printWarning("Bank is not active!", type, timestamp, bank);
       }
       numberofwrites++;
@@ -275,8 +275,8 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       latest_pre_cycle = last_pre_cycle;
       actcycles       += memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
       num_active_banks = 0;
-      for (auto& b : bankstate) {
-        b = 0;
+      for (auto& bs : bank_state) {
+        bs = BANK_PRECHARGED;
       }
     } else if (type == MemCommand::PRE) {
       printWarningIfPoweredDown("Command issued while in power-down mode.", type, timestamp, bank);
@@ -289,9 +289,9 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // warning.
 
       // Precharge only if the target bank is active
-      if (bankstate[static_cast<size_t>(bank)] == 1) {
+      if (bank_state[bank] == BANK_ACTIVE) {
         numberofpres++;
-        bankstate[static_cast<size_t>(bank)] = 0;
+        bank_state[bank] = BANK_PRECHARGED;
 
         // Since we got here, at least one bank is active
         assert(num_active_banks != 0);
@@ -338,8 +338,8 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
         // All banks precharged. Reset the counter of active banks and reset
         // the state for all banks to precharged.
         num_active_banks = 0;
-        for (auto& b : bankstate) {
-          b = 0;
+        for (auto& bs : bank_state) {
+          bs = BANK_PRECHARGED;
         }
       } else {
         printWarning("All banks are already precharged!", type, timestamp, bank);
@@ -352,7 +352,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // after powering-up. Update active and active idle cycles.
       printWarningIfNotActive("All banks are precharged! Incorrect use of Active Power-Down.", type, timestamp, bank);
       f_act_pdns++;
-      last_states = bankstate;
+      last_bank_state = bank_state;
       pdn_cycle  = timestamp;
       actcycles += max(zero, timestamp - first_act_cycle);
       idle_act_update(memSpec, latest_read_cycle, latest_write_cycle,
@@ -366,7 +366,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // after powering-up. Update active and active idle cycles.
       printWarningIfNotActive("All banks are precharged! Incorrect use of Active Power-Down.", type, timestamp, bank);
       s_act_pdns++;
-      last_states = bankstate;
+      last_bank_state = bank_state;
       pdn_cycle  = timestamp;
       actcycles += max(zero, timestamp - first_act_cycle);
       idle_act_update(memSpec, latest_read_cycle, latest_write_cycle,
@@ -423,9 +423,10 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       }
       num_active_banks = 0;
       mem_state = 0;
-      bankstate = last_states;
-      for (auto& a : last_states) {
-        num_active_banks += static_cast<unsigned int>(a);
+      bank_state = last_bank_state;
+      for (auto& bs : last_bank_state) {
+        if (bs == BANK_ACTIVE)
+          num_active_banks++;
       }
       first_act_cycle = timestamp;
     } else if (type == MemCommand::PUP_PRE) {
@@ -605,28 +606,28 @@ void CommandAnalysis::idle_pre_update(const MemorySpecification& memSpec,
   }
 }
 
-void CommandAnalysis::printWarningIfActive(const string& warning, int type, int64_t timestamp, int bank)
+void CommandAnalysis::printWarningIfActive(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
   if (num_active_banks != 0) {
     printWarning(warning, type, timestamp, bank);
   }
 }
 
-void CommandAnalysis::printWarningIfNotActive(const string& warning, int type, int64_t timestamp, int bank)
+void CommandAnalysis::printWarningIfNotActive(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
   if (num_active_banks == 0) {
     printWarning(warning, type, timestamp, bank);
   }
 }
 
-void CommandAnalysis::printWarningIfPoweredDown(const string& warning, int type, int64_t timestamp, int bank)
+void CommandAnalysis::printWarningIfPoweredDown(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
   if (mem_state != 0) {
     printWarning(warning, type, timestamp, bank);
   }
 }
 
-void CommandAnalysis::printWarning(const string& warning, int type, int64_t timestamp, int bank)
+void CommandAnalysis::printWarning(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
   cerr << "WARNING: " << warning << endl;
   cerr << "Command: " << type << ", Timestamp: " << timestamp <<
