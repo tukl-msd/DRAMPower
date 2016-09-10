@@ -9,3 +9,6 @@ traces/*
 traces.zip
 .sconf_temp/
 .sconsign.dblite
+*.swp
+*.swo
+cscope.*
