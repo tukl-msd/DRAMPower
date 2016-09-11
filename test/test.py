@@ -140,6 +140,7 @@ class TestLibDRAMPower(TestUsingBuildResult):
             os.unlink('lib_test.gcno')
 
     def test_libdrampower_output_matches_reference(self):
+        self.maxDiff = None  # Show full diff on error.
         """ libdrampower-based executable output should match reference """
         self.buildLibDRAMPowerExecutable()
 
