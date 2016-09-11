@@ -63,7 +63,6 @@ CommandAnalysis::CommandAnalysis(const int64_t nbrofBanks)
   bank_state.resize(static_cast<size_t>(nbrofBanks), BANK_PRECHARGED);
   last_bank_state.resize(static_cast<size_t>(nbrofBanks), BANK_PRECHARGED);
   mem_state  = 0;
-  num_active_banks  = 0;
 
   cmd_list.clear();
   cached_cmd.clear();
@@ -210,6 +209,8 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
     unsigned bank = cmd.getBank();
     // Command Issue timestamp in clock cycles (cc)
     int64_t timestamp = cmd.getTimeInt64();
+    // Get current number of active banks (according to bank_state[])
+    unsigned num_active_banks = get_num_active_banks();
 
     if (type == MemCommand::ACT) {
       printWarningIfPoweredDown("Command issued while in power-down mode.", type, timestamp, bank);
@@ -220,7 +221,6 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // warning.
       if (bank_state[bank] == BANK_PRECHARGED) {
         numberofacts++;
-        bank_state[bank] = BANK_ACTIVE;
 
         if (num_active_banks == 0) {
           // Here a memory state transition to ACT is happening. Save the
@@ -230,9 +230,8 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
           idle_pre_update(memSpec, timestamp, latest_pre_cycle);
         }
 
+        bank_state[bank] = BANK_ACTIVE;
         latest_act_cycle = timestamp;
-        // Adjust the number of active banks
-        num_active_banks++;
       } else {
         printWarning("Bank is already active!", type, timestamp, bank);
       }
@@ -274,7 +273,6 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                          memSpec.memTimingSpec.RP;
       latest_pre_cycle = last_pre_cycle;
       actcycles       += memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
-      num_active_banks = 0;
       for (auto& bs : bank_state) {
         bs = BANK_PRECHARGED;
       }
@@ -291,8 +289,6 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // Precharge only if the target bank is active
       if (bank_state[bank] == BANK_ACTIVE) {
         numberofpres++;
-        bank_state[bank] = BANK_PRECHARGED;
-
         // Since we got here, at least one bank is active
         assert(num_active_banks != 0);
 
@@ -306,9 +302,8 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                           latest_act_cycle, timestamp);
         }
 
+        bank_state[bank] = BANK_PRECHARGED;
         latest_pre_cycle = timestamp;
-        // Adjust the number of active banks
-        num_active_banks--;
       } else {
         printWarning("Bank is already precharged!", type, timestamp, bank);
       }
@@ -334,10 +329,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                         latest_act_cycle, timestamp);
 
         latest_pre_cycle = timestamp;
-
-        // All banks precharged. Reset the counter of active banks and reset
-        // the state for all banks to precharged.
-        num_active_banks = 0;
+        // Reset the state for all banks to precharged.
         for (auto& bs : bank_state) {
           bs = BANK_PRECHARGED;
         }
@@ -421,13 +413,8 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       } else if (mem_state != CommandAnalysis::MS_PDN_S_ACT || mem_state != CommandAnalysis::MS_PDN_F_ACT) {
         cerr << "Incorrect use of Active Power-Up!" << endl;
       }
-      num_active_banks = 0;
       mem_state = 0;
       bank_state = last_bank_state;
-      for (auto& bs : last_bank_state) {
-        if (bs == BANK_ACTIVE)
-          num_active_banks++;
-      }
       first_act_cycle = timestamp;
     } else if (type == MemCommand::PUP_PRE) {
       // If command is power-up in the precharged mode - check the power-down
@@ -455,7 +442,6 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
         cerr << "Incorrect use of Precharged Power-Up!" << endl;
       }
       mem_state      = 0;
-      num_active_banks = 0;
       last_pre_cycle = timestamp;
     } else if (type == MemCommand::SREN) {
       // If command is self-refresh - update number of self-refreshes,
@@ -541,7 +527,6 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
         }
       }
       mem_state = 0;
-      num_active_banks = 0;
     } else if (type == MemCommand::END || type == MemCommand::NOP) {
       // May be optionally used at the end of memory trace for better accuracy
       // Update all counters based on completion of operations.
@@ -606,16 +591,22 @@ void CommandAnalysis::idle_pre_update(const MemorySpecification& memSpec,
   }
 }
 
+// Returns the number of active banks based on the bank_state vector.
+unsigned CommandAnalysis::get_num_active_banks(void)
+{
+  return (unsigned)std::count(bank_state.begin(), bank_state.end(), BANK_ACTIVE);
+}
+
 void CommandAnalysis::printWarningIfActive(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
-  if (num_active_banks != 0) {
+  if (get_num_active_banks() != 0) {
     printWarning(warning, type, timestamp, bank);
   }
 }
 
 void CommandAnalysis::printWarningIfNotActive(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
-  if (num_active_banks == 0) {
+  if (get_num_active_banks() == 0) {
     printWarning(warning, type, timestamp, bank);
   }
 }

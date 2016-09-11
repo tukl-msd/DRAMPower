@@ -171,7 +171,6 @@ class CommandAnalysis {
 
   // Memory State
   unsigned mem_state;
-  unsigned num_active_banks;
 
   // Clock cycle of first activate command when memory state changes to ACT
   int64_t first_act_cycle;
@@ -198,6 +197,9 @@ class CommandAnalysis {
   void idle_pre_update(const MemorySpecification& memSpec,
                        int64_t                     timestamp,
                        int64_t                     latest_pre_cycle);
+
+  // Returns the number of active banks according to the bank_state vector.
+  unsigned get_num_active_banks(void);
 
   void printWarningIfActive(const std::string& warning, int type, int64_t timestamp, unsigned bank);
   void printWarningIfNotActive(const std::string& warning, int type, int64_t timestamp, unsigned bank);
