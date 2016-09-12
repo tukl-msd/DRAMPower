@@ -146,6 +146,25 @@ traces.zip:
 traces: traces.zip
 	unzip traces.zip && mkdir -p traces && mv DRAMPowerTraces-master/traces/* traces/ && rm -rf DRAMPowerTraces-master
 
+LCOV_OUTDIR = coverage_report
+coveragecheck: coveragecheckclean
+ifeq ($(CXX),g++)
+	hash lcov 2>/dev/null || { echo >&2 "I could not found lcov. Aborting."; exit 1; }
+	COVERAGE=1 $(MAKE) clean || { echo >&2 "make clean failed. Aborting."; exit 1; }
+	COVERAGE=1 $(MAKE) || { echo >&2 "make failed. Aborting."; exit 1; }
+	lcov --no-external -c -i -d . -o .coverage.base
+	COVERAGE=1 $(MAKE) test || { echo >&2 "make test failed. Aborting."; exit 1; }
+	lcov --no-external -c -d . -o .coverage.run
+	lcov -d . -a .coverage.base -a .coverage.run -o .coverage.total
+	genhtml -q --no-branch-coverage -o $(LCOV_OUTDIR) .coverage.total
+	rm -f .coverage.base .coverage.run .coverage.total
+else
+	@{ echo >&2 "The coveragecheck rule is not implemented for $(CXX). Aborting."; exit 1; }
+endif
+
+coveragecheckclean:
+	rm -rf $(LCOV_OUTDIR)
+
 .PHONY: clean pretty test traces
 
 -include $(DEPENDENCIES)
