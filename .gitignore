@@ -12,3 +12,5 @@ traces.zip
 *.swp
 *.swo
 cscope.*
+commands.trace
+coverage_report
