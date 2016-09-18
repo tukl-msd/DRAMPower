@@ -132,6 +132,12 @@ class CommandAnalysis {
                    bool                       lastupdate);
 
  private:
+  // Possible bank states are precharged or active
+  enum BankState {
+    BANK_PRECHARGED = 0,
+    BANK_ACTIVE
+  };
+
   int64_t  zero;
   // Cached last read command from the file
   std::vector<MemCommand> cached_cmd;
@@ -141,9 +147,9 @@ class CommandAnalysis {
 
   // To save states of the different banks, before entering active
   // power-down mode (slow/fast-exit).
-  std::vector<int> last_states;
+  std::vector<BankState> last_bank_state;
   // Bank state vector
-  std::vector<int> bankstate;
+  std::vector<BankState> bank_state;
 
   std::vector<int64_t> activation_cycle;
   // To keep track of the last ACT cycle
@@ -170,7 +176,6 @@ class CommandAnalysis {
 
   // Memory State
   unsigned mem_state;
-  unsigned num_active_banks;
 
   int64_t num_banks;
 
@@ -201,10 +206,13 @@ class CommandAnalysis {
                        int64_t                     timestamp,
                        int64_t                     latest_pre_cycle);
 
-  void printWarningIfActive(const std::string& warning, int type, int64_t timestamp, int bank);
-  void printWarningIfNotActive(const std::string& warning, int type, int64_t timestamp, int bank);
-  void printWarningIfPoweredDown(const std::string& warning, int type, int64_t timestamp, int bank);
-  void printWarning(const std::string& warning, int type, int64_t timestamp, int bank);
+  // Returns the number of active banks according to the bank_state vector.
+  unsigned get_num_active_banks(void);
+
+  void printWarningIfActive(const std::string& warning, int type, int64_t timestamp, unsigned bank);
+  void printWarningIfNotActive(const std::string& warning, int type, int64_t timestamp, unsigned bank);
+  void printWarningIfPoweredDown(const std::string& warning, int type, int64_t timestamp, unsigned bank);
+  void printWarning(const std::string& warning, int type, int64_t timestamp, unsigned bank);
 };
 }
 #endif // ifndef COMMAND_TIMINGS_H

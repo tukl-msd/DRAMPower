@@ -41,40 +41,37 @@
 #include <vector>
 #include <algorithm>
 
-namespace Data{
-    class MemBankWiseParams{
+namespace Data {
+  class MemBankWiseParams {
     public:
-        // Set of possible PASR modes
-        enum pasrModes{
-            PASR_0,
-            PASR_1,
-            PASR_2,
-            PASR_3,
-            PASR_4,
-            PASR_5,
-            PASR_6,
-            PASR_7
-        };
-        // List of active banks under the specified PASR mode
-        std::vector<int64_t> activeBanks;
-        // ACT Standby power factor
-        int64_t bwPowerFactRho;
-        // Self-Refresh power factor( true : Bankwise mode)
-        int64_t bwPowerFactSigma;
-        // Bankwise or Normal mode
-        bool bwMode;
-        // Wherther PASR is enabled ( true : enabled )
-        bool flgPASR;
+      // Set of possible PASR modes
+      enum pasrModes{
+        PASR_0,
+        PASR_1,
+        PASR_2,
+        PASR_3,
+        PASR_4,
+        PASR_5,
+        PASR_6,
+        PASR_7
+      };
+      // List of active banks under the specified PASR mode
+      std::vector<unsigned> activeBanks;
+      // ACT Standby power factor
+      int64_t bwPowerFactRho;
+      // Self-Refresh power factor( true : Bankwise mode)
+      int64_t bwPowerFactSigma;
+      // Bankwise or Normal mode
+      bool bwMode;
+      // Wherther PASR is enabled ( true : enabled )
+      bool flgPASR;
 
-        MemBankWiseParams(int64_t factRho,
-                          int64_t factSigma,
-                          bool hasPASR,
-                          int64_t pasrMode,
-                          bool opMode,
-                          int64_t nbrofBanks);
+      MemBankWiseParams(int64_t factRho, int64_t factSigma,
+                        bool hasPASR, int64_t pasrMode,
+                        bool opMode, unsigned nbrofBanks);
 
-
-        bool isBankAciveInPasr(const int64_t bankIdx) const;
-    };
+      bool isBankAciveInPasr(const unsigned bankIdx) const;
+  };
 }
+
 #endif // MEMBANKWISEPARAMS_H

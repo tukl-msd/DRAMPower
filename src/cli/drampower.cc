@@ -170,7 +170,9 @@ int main(int argc, char* argv[])
   MemorySpecification  memSpec(MemSpecParser::getMemSpecFromXML(src_memory));
 
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
-  MemBankWiseParams memBwParams(bankwisePowerFactRho, bankwisePowerFactSigma ,bankPASRact,pasrMode, bankwiseMode,memArchSpec.nbrOfBanks);
+  MemBankWiseParams memBwParams(bankwisePowerFactRho, bankwisePowerFactSigma,
+                                bankPASRact, pasrMode, bankwiseMode,
+                                (unsigned)memArchSpec.nbrOfBanks);
 
   if ((memArchSpec.twoVoltageDomains) && (bankwiseMode)){
       cout << endl << "Bankwise simulation for Two-Voltage domain devices not supported." << endl;
