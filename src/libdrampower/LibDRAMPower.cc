@@ -58,9 +58,9 @@ void libDRAMPower::doCommand(MemCommand::cmds type, int bank, int64_t timestamp)
   cmdList.push_back(cmd);
 }
 
-void libDRAMPower::updateCounters(bool lastUpdate)
+void libDRAMPower::updateCounters(bool lastUpdate, int64_t timestamp)
 {
-  counters.getCommands(memSpec, cmdList, lastUpdate);
+  counters.getCommands(memSpec, cmdList, lastUpdate, timestamp);
   cmdList.clear();
 }
 
@@ -73,7 +73,7 @@ void libDRAMPower::calcEnergy()
 void libDRAMPower::calcWindowEnergy(int64_t timestamp)
 {
   doCommand(MemCommand::NOP, 0, timestamp);
-  updateCounters(false);
+  updateCounters(false, timestamp);
   mpm.power_calc(memSpec, counters, includeIoAndTermination);
   clearCounters(timestamp);
 }

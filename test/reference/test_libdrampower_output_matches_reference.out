@@ -1,13 +1,17 @@
 * Parsing ../../memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml
-# of acts	9
-# of reads	8
-# of precharges	9
-ACT Cmd Energy	35013.9
-PRE Cmd Energy	11488.9
-Read Cmd Energy	14913.3
-Write Cmd Energy	1931.71
-ACT Std Energy	27516.7
-ACT Std Energy total ranks	27516.7
-PRE Std Energy	8631.89
-Total Energy	99496.4
-Average Power	200.119
+
+Number of ACTs: 9
+Number of RDs: 8
+Number of PREs: 9
+
+ACT Cmd Energy: 35013.88 pJ
+PRE Cmd Energy: 11488.93 pJ
+RD Cmd Energy: 14913.32 pJ
+WR Cmd Energy: 1931.71 pJ
+
+ACT Stdby Energy: 27516.70 pJ
+ACT Stdby Energy total ranks: 27516.70 pJ
+PRE Stdby Energy: 8631.89 pJ
+
+Total Trace Energy: 99496.44 pJ
+Average Power: 200.12 mW

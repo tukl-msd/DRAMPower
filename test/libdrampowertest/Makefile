@@ -30,7 +30,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Authors: Matthias Jung, Omar Naji, Sven Goossens, Felipe S. Prado
+# Authors: Matthias Jung, Omar Naji, Sven Goossens
 #
 
 ifeq ($(COVERAGE),1)

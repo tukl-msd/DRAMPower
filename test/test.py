@@ -44,6 +44,11 @@ class TestUsingBuildResult(unittest.TestCase):
             lines = f.readlines()
         return [x for x in lines if not x.startswith('*') and len(x) > 1]
 
+    def getResults(self, fName):
+        with open(fName, 'r') as f:
+            lines = f.readlines()
+        return [x for x in lines if x.startswith('Total Trace Energy')  or x.startswith('Average Power')]
+
     def tearDown(self):
         for f in self.tempFiles:
             try:
@@ -124,24 +129,24 @@ class TestOutput(TestUsingBuildResult):
 class TestLibDRAMPower(TestUsingBuildResult):
     testPath = 'test/libdrampowertest'
 
-    def buildLibDRAMPowerExecutable(self, useXerces=True):
+    def buildLibDRAMPowerExecutables(self, useXerces=True):
         xerces = 'USE_XERCES=%d' % (1 if useXerces else 0)
         coverage = 'COVERAGE=%d' % (1 if inCoverageTest() else 0)
         self.assertEqual(subprocess.call(['make', '-f', TestLibDRAMPower.testPath + '/Makefile', 'DRAMPOWER_PATH=.', xerces, coverage], stdout=devnull), 0)
 
     def test_libdrampower_with_xerces_test_builds(self):
         """ libdrampower-based executable build should return 0 """
-        self.buildLibDRAMPowerExecutable()
+        self.buildLibDRAMPowerExecutables()
 
     def test_libdrampower_without_xerces_test_builds(self):
         """ libdrampower-based executable build should return 0 """
-        self.buildLibDRAMPowerExecutable(useXerces=False)
+        self.buildLibDRAMPowerExecutables(useXerces=False)
         if inCoverageTest():
             os.unlink('lib_test.gcno')
 
     def test_libdrampower_output_matches_reference(self):
         """ libdrampower-based executable output should match reference """
-        self.buildLibDRAMPowerExecutable()
+        self.buildLibDRAMPowerExecutables()
 
         with open(self.tempFileName, 'w') as f:
             self.assertEqual(subprocess.call([TestLibDRAMPower.testPath + '/library_test',
@@ -158,6 +163,20 @@ class TestLibDRAMPower(TestUsingBuildResult):
         ref = self.getFilteredOutput('test/reference/test_libdrampower_output_matches_reference.out')
         self.assertListEqual(new, ref)
 
+    def test_window_example(self):
+        """ libdrampower-based window example output should match drampower output for LPDDR2-1066 with the window command trace """
+        self.buildLibDRAMPowerExecutables()
+        with open(self.tempFileName, 'w') as f:
+            self.assertEqual(subprocess.call(['./drampower', '-m',  'memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml', '-c', TestLibDRAMPower.testPath + '/window.trace'], stdout=f), 0)
+
+        drampower = self.getResults(self.tempFileName)
+
+        with open(self.tempFileName, 'w') as f:
+            self.assertEqual(subprocess.call([TestLibDRAMPower.testPath + '/window_example', 'memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml'], stdout=f), 0)
+
+        libdrampower = self.getResults(self.tempFileName)
+
+        self.assertEqual(drampower, libdrampower)
 
 class TestClean(unittest.TestCase):
     def setUp(self):

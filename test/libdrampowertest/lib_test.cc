@@ -33,6 +33,7 @@
  *
  */
 
+#include <iostream>
 #include <string>
 #include "libdrampower/LibDRAMPower.h"
 
@@ -45,72 +46,80 @@ using namespace Data;
 
 int main(int argc, char* argv[])
 {
-        assert(argc == 2);
-        //Setup of DRAMPower for your simulation
-        string filename;
-        //type path to memspec file
-        filename = argv[1];
-        //Parsing the Memspec specification of found in memspec folder
-        #if USE_XERCES
-            MemorySpecification memSpec(MemSpecParser::getMemSpecFromXML(filename));
-        #else
-            MemorySpecification memSpec;
-        #endif
-        libDRAMPower test = libDRAMPower(memSpec, 0);
-        // During the simulation you can report activity
-        // to DRAMPower with the doCommand(...) function:
-        test.doCommand(MemCommand::ACT,0,35);
-        test.doCommand(MemCommand::RDA,0,50);
-        test.doCommand(MemCommand::ACT,4,51);
-        test.doCommand(MemCommand::RDA,4,66);
-        test.doCommand(MemCommand::ACT,0,86);
-        test.doCommand(MemCommand::RDA,0,101);
-        test.doCommand(MemCommand::ACT,2,102);
-        test.doCommand(MemCommand::RDA,2,117);
-        test.doCommand(MemCommand::ACT,5,119);
-        test.doCommand(MemCommand::RDA,5,134);
-        test.doCommand(MemCommand::ACT,0,137);
-        test.doCommand(MemCommand::RDA,0,152);
-        test.doCommand(MemCommand::ACT,3,159);
-        test.doCommand(MemCommand::RDA,3,174);
-        test.doCommand(MemCommand::ACT,0,195);
-        test.doCommand(MemCommand::RDA,0,210);
-        test.doCommand(MemCommand::ACT,4,232);
-        test.doCommand(MemCommand::WRA,4,247);
-        // Need at least tWRAPDEN = AL + CWL + BL/2 + WR + 1 cycles between WR and PDN_F_PRE
-        test.doCommand(MemCommand::PDN_F_PRE,3,265);
+    assert(argc == 2);
+    //Setup of DRAMPower for your simulation
+    string filename;
+    //type path to memspec file
+    filename = argv[1];
+    //Parsing the Memspec specification of found in memspec folder
+#if USE_XERCES
+    MemorySpecification memSpec(MemSpecParser::getMemSpecFromXML(filename));
+#else
+    MemorySpecification memSpec;
+#endif
+    libDRAMPower test = libDRAMPower(memSpec, 0);
 
-        // At the end of your simulation call the getEnergy(...)
-        // function to print the power report
-        test.calcEnergy();
+    ios_base::fmtflags flags = cout.flags();
+    streamsize precision = cout.precision();
+    cout.precision(2);
+    cout << fixed << endl;
+    // During the simulation you can report activity
+    // to DRAMPower with the doCommand(...) function:
+    test.doCommand(MemCommand::ACT,0,35);
+    test.doCommand(MemCommand::RDA,0,50);
+    test.doCommand(MemCommand::ACT,4,51);
+    test.doCommand(MemCommand::RDA,4,66);
+    test.doCommand(MemCommand::ACT,0,86);
+    test.doCommand(MemCommand::RDA,0,101);
+    test.doCommand(MemCommand::ACT,2,102);
+    test.doCommand(MemCommand::RDA,2,117);
+    test.doCommand(MemCommand::ACT,5,119);
+    test.doCommand(MemCommand::RDA,5,134);
+    test.doCommand(MemCommand::ACT,0,137);
+    test.doCommand(MemCommand::RDA,0,152);
+    test.doCommand(MemCommand::ACT,3,159);
+    test.doCommand(MemCommand::RDA,3,174);
+    test.doCommand(MemCommand::ACT,0,195);
+    test.doCommand(MemCommand::RDA,0,210);
+    test.doCommand(MemCommand::ACT,4,232);
+    test.doCommand(MemCommand::WRA,4,247);
+    // Need at least tWRAPDEN = AL + CWL + BL/2 + WR + 1 cycles between WR and PDN_F_PRE
+    test.doCommand(MemCommand::PDN_F_PRE,3,265);
 
-        // Accesing the results:
+    // At the end of your simulation call the getEnergy(...)
+    // function to print the power report
+    test.calcEnergy();
 
-        // Number of issued Commands
-        std::cout << "# of acts" << "\t" <<test.counters.numberofacts << endl;
-        std::cout << "# of reads" << "\t" <<test.counters.numberofreads << endl;
-        std::cout << "# of precharges" << "\t" <<test.counters.numberofpres << endl;
-        // many other timing parameters in test.mpm.timings
+    // Accesing the results:
 
-        //ENERGIES per Rank
-        std::cout << "ACT Cmd Energy" << "\t" << test.getEnergy().act_energy << endl;
-        std::cout << "PRE Cmd Energy" << "\t" << test.getEnergy().pre_energy << endl;
-        std::cout << "Read Cmd Energy" << "\t" << test.getEnergy().read_energy << endl;
-        std::cout << "Write Cmd Energy" << "\t" << test.getEnergy().write_energy << endl;
-        //Standby Energy for 1 rank
-        //In total energy calculated for both ranks= test.memSpec.memArchSpec *
-        //test.getEnergy().act_stdby_energy
-        std::cout << "ACT Std Energy" << "\t" << test.getEnergy().act_stdby_energy << endl;
-        //total active standby energy for both ranks
-        std::cout << "ACT Std Energy total ranks" << "\t" << static_cast<double>(memSpec.memArchSpec.nbrOfRanks) *
-        test.getEnergy().act_stdby_energy << "\n" ;
-        std::cout << "PRE Std Energy" << "\t" << test.getEnergy().pre_stdby_energy << endl;
-        std::cout << "Total Energy" << "\t" << test.getEnergy().total_energy << endl;
-        //many other energies in test.mpm.energy
+    // Number of issued Commands
+    std::cout << "Number of ACTs: "  << test.counters.numberofacts << endl;
+    std::cout << "Number of RDs: " << test.counters.numberofreads << endl;
+    std::cout << "Number of PREs: " << test.counters.numberofpres << endl << endl;
+    // many other timing parameters in test.mpm.timings
 
-        //Powers per Rank
-        std::cout << "Average Power" << "\t" << test.getPower().average_power << endl;
-        //many other powers in test.getPower()
-	
-        return 0;
+    //ENERGIES per Rank
+    std::cout << "ACT Cmd Energy: " << test.getEnergy().act_energy << " pJ" << endl;
+    std::cout << "PRE Cmd Energy: " << test.getEnergy().pre_energy << " pJ" << endl;
+    std::cout << "RD Cmd Energy: " << test.getEnergy().read_energy << " pJ" << endl;
+    std::cout << "WR Cmd Energy: "  << test.getEnergy().write_energy << " pJ" << endl << endl;
+    //Standby Energy for 1 rank
+    //In total energy calculated for both ranks= test.memSpec.memArchSpec *
+    //test.getEnergy().act_stdby_energy
+    std::cout << "ACT Stdby Energy: "  << test.getEnergy().act_stdby_energy << " pJ" << endl;
+    //total active standby energy for both ranks
+    std::cout << "ACT Stdby Energy total ranks: "  << static_cast<double>(memSpec.memArchSpec.nbrOfRanks) *
+                 test.getEnergy().act_stdby_energy << " pJ" << endl ;
+    std::cout << "PRE Stdby Energy: " << test.getEnergy().pre_stdby_energy << " pJ" << endl << endl;
+    std::cout << "Total Trace Energy: " <<  test.getEnergy().total_energy << " pJ" <<  endl;
+    //many other energies in test.mpm.energy
+
+    //Powers per Rank
+    std::cout << "Average Power: " << test.getPower().average_power <<  " mW" <<  endl;
+    //many other powers in test.getPower()
+
+    cout.flags(flags);
+    cout.precision(precision);
+
+    return 0;
 }

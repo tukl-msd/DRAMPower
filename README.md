@@ -206,11 +206,14 @@ It also reports the simulation start/end times and the total simulation time in 
 The DRAMPower tool has an additional feature and can be used as a library.
 In order to use the library run "make lib", include src/libdrampower/LibDRAMPower.h in your project and
 link the file src/libdrampower.a with your project.
-Two examples for the usage of the library can be found in the folder test/libdrampowertest:lib_test.cc and window_test.cc
+Two examples for the usage of the library can be found in the folder test/libdrampowertest:lib_test.cc and window_example.cc
 
 ## 10. Authors & Acknowledgment
 
-The tool is based on the DRAM power model developed jointly by the Computer Engineering Research Group at TU Delft and the Electronic Systems Group at TU Eindhoven and verified by the Microelectronic System Design Research Group at TU Kaiserslautern with equivalent circuit-level simulations. This tool has been developed by Karthik Chandrasekar with Yonghui Li under the supervision of Dr. Benny Akesson and Prof. Kees Goossens. The IO and Termination Power measures have been employed from Micron's DRAM Power Calculator. If you decide to use DRAMPower in your research, please cite one of the following references:
+The tool is based on the DRAM power model developed jointly by the Computer Engineering Research Group at TU Delft and the Electronic Systems Group at TU Eindhoven
+and verified by the Microelectronic System Design Research Group at TU Kaiserslautern with equivalent circuit-level simulations. This tool has been developed by
+Karthik Chandrasekar with Yonghui Li under the supervision of Dr. Benny Akesson and Prof. Kees Goossens. The IO and Termination Power measures have been employed
+from Micron's DRAM Power Calculator. If you decide to use DRAMPower in your research, please cite one of the following references:
 
 **To cite the DRAMPower Tool:**
 ```

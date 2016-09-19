@@ -108,8 +108,12 @@ class CommandAnalysis {
 
   // Number of active auto-refresh cycles in self-refresh mode
   int64_t sref_ref_act_cycles;
+  // Number of active auto-refresh cycles in self-refresh mode already used to calculate the energy of previous windows
+  int64_t sref_ref_act_cycles_window;
   // Number of precharged auto-refresh cycles in self-refresh mode
-  int64_t sref_ref_pre_cycles;
+  int64_t sref_ref_pre_cycles;  
+  // Number of precharged auto-refresh cycles in self-refresh mode already used to calculate the energy of previous windows
+  int64_t sref_ref_pre_cycles_window;
   // Number of active auto-refresh cycles during self-refresh exit
   int64_t spup_ref_act_cycles;
   // Number of precharged auto-refresh cycles during self-refresh exit
@@ -124,7 +128,8 @@ class CommandAnalysis {
   // To identify auto-precharges
   void getCommands(const MemorySpecification& memSpec,
                    std::vector<MemCommand>&   list,
-                   bool                       lastupdate);
+                   bool                       lastupdate,
+                   int64_t timestamp = 0);
 
  private:
   int64_t  zero;
@@ -133,6 +138,9 @@ class CommandAnalysis {
 
   // Stores the memory commands for analysis
   std::vector<MemCommand> cmd_list;
+
+  //Stores the memory commands for the next window
+  std::vector<MemCommand> next_window_cmd_list;
 
   // To save states of the different banks, before entering active
   // power-down mode (slow/fast-exit).
