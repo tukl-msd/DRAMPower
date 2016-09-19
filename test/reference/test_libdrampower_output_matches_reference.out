@@ -1,11 +1,5 @@
 * Parsing ../../memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml
 
-WARNING: All banks is already precharged!
-Command: 8, Timestamp: 450, Bank: 0
-WARNING: Bank is already active!
-Command: 0, Timestamp: 550, Bank: 0
-WARNING: Bank is already precharged!
-Command: 3, Timestamp: 650, Bank: 0
 Number of ACTs: 11
 Number of RDs: 8
 Number of PREs: 11
