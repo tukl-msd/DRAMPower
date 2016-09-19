@@ -85,7 +85,21 @@ int main(int argc, char* argv[])
     test.doCommand(MemCommand::WRA,4,247);
     // Need at least tWRAPDEN = AL + CWL + BL/2 + WR + 1 cycles between WR and PDN_F_PRE
     test.doCommand(MemCommand::PDN_F_PRE,3,265);
-
+    // Exit from Precharge Power-down
+    test.doCommand(MemCommand::PUP_PRE,3,300);
+    // Activate bank 0
+    test.doCommand(MemCommand::ACT,0,350);
+    // Precharge all banks with bank 0 active
+    test.doCommand(MemCommand::PREA,0,400);
+    // Precharge all banks again
+    test.doCommand(MemCommand::PREA,0,450);
+    // Activate bank 0 twice
+    test.doCommand(MemCommand::ACT,0,500);
+    test.doCommand(MemCommand::ACT,0,550);
+    // Precharge bank 0 twice
+    test.doCommand(MemCommand::PRE,0,600);
+    test.doCommand(MemCommand::PRE,0,650);
+    
     // At the end of your simulation call the getEnergy(...)
     // function to print the power report
     test.calcEnergy();

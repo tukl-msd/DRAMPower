@@ -10,3 +10,8 @@ traces/*
 traces.zip
 .sconf_temp/
 .sconsign.dblite
+*.swp
+*.swo
+cscope.*
+commands.trace
+coverage_report

@@ -1,17 +1,23 @@
 * Parsing ../../memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml
 
-Number of ACTs: 9
+WARNING: All banks is already precharged!
+Command: 8, Timestamp: 450, Bank: 0
+WARNING: Bank is already active!
+Command: 0, Timestamp: 550, Bank: 0
+WARNING: Bank is already precharged!
+Command: 3, Timestamp: 650, Bank: 0
+Number of ACTs: 11
 Number of RDs: 8
-Number of PREs: 9
+Number of PREs: 11
 
-ACT Cmd Energy: 35013.88 pJ
-PRE Cmd Energy: 11488.93 pJ
+ACT Cmd Energy: 42794.75 pJ
+PRE Cmd Energy: 14042.03 pJ
 RD Cmd Energy: 14913.32 pJ
 WR Cmd Energy: 1931.71 pJ
 
-ACT Stdby Energy: 27516.70 pJ
-ACT Stdby Energy total ranks: 27516.70 pJ
-PRE Stdby Energy: 8631.89 pJ
+ACT Stdby Energy: 48792.50 pJ
+ACT Stdby Energy total ranks: 48792.50 pJ
+PRE Stdby Energy: 33676.55 pJ
 
-Total Trace Energy: 99496.44 pJ
-Average Power: 200.12 mW
+Total Trace Energy: 156978.24 pJ
+Average Power: 127.54 mW
