@@ -39,6 +39,15 @@
 
 using namespace Data;
 
+libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination) :
+  memSpec(memSpec),
+  counters(CommandAnalysis(memSpec.memArchSpec.nbrOfBanks)),
+  includeIoAndTermination(includeIoAndTermination)
+{
+    MemBankWiseParams p (100,100,false,0,false,static_cast<unsigned>(memSpec.memArchSpec.nbrOfBanks));
+    libDRAMPower DRAMPower = libDRAMPower(memSpec, 0, p);
+}
+
 libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination, const Data::MemBankWiseParams& bwPowerParams) :
   memSpec(memSpec),
   counters(CommandAnalysis(memSpec.memArchSpec.nbrOfBanks)),

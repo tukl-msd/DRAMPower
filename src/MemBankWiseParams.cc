@@ -39,6 +39,16 @@
 
 using namespace Data;
 /**
+ * Sets the default bankwise configurations.
+ */
+MemBankWiseParams::MemBankWiseParams():
+  bwPowerFactRho(100),
+  bwPowerFactSigma(100),
+  bwMode(false),
+  flgPASR(false)
+{
+}
+/**
  * Sets all the bankwise parameters required in bankwise mode
  */
 MemBankWiseParams::MemBankWiseParams(int64_t factRho, int64_t factSigma,
@@ -129,13 +139,22 @@ MemBankWiseParams::MemBankWiseParams(int64_t factRho, int64_t factSigma,
                    std::iota(activeBanks.begin(), activeBanks.end(), 7);
                    break;
                  }
+    default:{
+                   // PASR MODE 0
+                   // FULL ARRAY
+                   // |X X X X |
+                   // |X X X X |
+                   activeBanks.resize(nbrofBanks);
+                   std::iota(activeBanks.begin(), activeBanks.end(), 0);
+                   break;
+    }
   }
 }
 
 /**
  * Returns true if the given bank is active under the current PASR mode.
  */
-bool MemBankWiseParams::isBankAciveInPasr(const unsigned bankIdx) const
+bool MemBankWiseParams::isBankActiveInPasr(const unsigned bankIdx) const
 {
   return (std::find(activeBanks.begin(), activeBanks.end(), bankIdx)
       != activeBanks.end());

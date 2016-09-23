@@ -42,7 +42,8 @@ Total Trace Length (clock cycles): 41934
 ACT Cmd Energy: 14333358.35 pJ
 PRE Cmd Energy: 6196322.70 pJ
 RD Cmd Energy: 14531482.18 pJ
-WR Cmd Energy: 0.00 pJRD I/O Energy: 1036800.00 pJ
+WR Cmd Energy: 0.00 pJ
+RD I/O Energy: 1036800.00 pJ
 ACT Stdby Energy: 2966241.95 pJ
   Active Idle Energy: 0.00 pJ
   Active Power-Up Energy: 0.00 pJ

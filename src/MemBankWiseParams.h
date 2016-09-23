@@ -65,12 +65,13 @@ namespace Data {
       bool bwMode;
       // Wherther PASR is enabled ( true : enabled )
       bool flgPASR;
-
+      //Default constructor
+      MemBankWiseParams();
       MemBankWiseParams(int64_t factRho, int64_t factSigma,
                         bool hasPASR, int64_t pasrMode,
                         bool opMode, unsigned nbrofBanks);
 
-      bool isBankAciveInPasr(const unsigned bankIdx) const;
+      bool isBankActiveInPasr(const unsigned bankIdx) const;
   };
 }
 

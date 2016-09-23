@@ -506,24 +506,20 @@ double MemoryPowerModel::engy_sref_banks(double idd6, double idd3n, double idd5,
     // Dynamic componenents for PASR energy varying based on PASR mode
     double iddsigmaDynBanks;
     double pasr_energy_dyn;
-    // this compenets are distributed among all banks
-    double sref_energy_other = static_cast<double>(((idd5 - idd3n) * (sref_ref_act_cycles
-                                                  + spup_ref_act_cycles + sref_ref_pre_cycles + spup_ref_pre_cycles)) * vdd * clk)
-                                                  / static_cast<double>(nbrofBanks) ;
+    // This component is distributed among all banks
+    double sref_energy_shared;
     //Is PASR Active
     if (bwPowerParams.flgPASR){
-        //
-        sref_energy_other = (((idd5 - idd3n) * (sref_ref_act_cycles
+        sref_energy_shared = (((idd5 - idd3n) * (sref_ref_act_cycles
                                                           + spup_ref_act_cycles + sref_ref_pre_cycles + spup_ref_pre_cycles)) * vdd * clk)
                                                 / static_cast<double>(nbrofBanks);
-
-        if (bwPowerParams.isBankAciveInPasr(bnkIdx)){
-
+        //if the bank is active under current PASR mode
+        if (bwPowerParams.isBankActiveInPasr(bnkIdx)){
+            // Distribute the sref energy to the active banks
             iddsigmaDynBanks = (static_cast<double>(100 - bwPowerParams.bwPowerFactSigma) / (100.0 * static_cast<double>(nbrofBanks))) * idd6;
-            //
             pasr_energy_dyn = vdd * iddsigmaDynBanks * sref_cycles;
-            //
-            sref_energy_banks = sref_energy_other + pasr_energy_dyn + (esharedPASR /static_cast<double>(nbrofBanks));
+            // Add the static components
+            sref_energy_banks = sref_energy_shared + pasr_energy_dyn + (esharedPASR /static_cast<double>(nbrofBanks));
 
         }else{
             sref_energy_banks = (esharedPASR /static_cast<double>(nbrofBanks));

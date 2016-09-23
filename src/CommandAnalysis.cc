@@ -348,6 +348,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
         // to PRE is happening. Add to the counter the amount of cycles the
         // memory remained in the ACT state.
         actcycles += max(zero, timestamp - first_act_cycle);
+        last_pre_cycle = timestamp;
 
         for (unsigned b = 0; b < num_banks; b++) {
           if (bank_state[b] == BANK_ACTIVE) {
