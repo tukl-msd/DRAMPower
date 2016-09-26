@@ -639,8 +639,8 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
 
           sref_ref_act_cycles += sref_duration;
 
-          // FIXME: Here should be ((memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP) - sref_duration) to avoid overlapping !!
-          int64_t spup_act = memSpec.memTimingSpec.RFC - sref_duration;
+          int64_t spup_act = (memSpec.memTimingSpec.RFC -
+                              memSpec.memTimingSpec.RP) - sref_duration;
 
           spup_ref_act_cycles += spup_act;
           spup_ref_pre_cycles += memSpec.memTimingSpec.RP;
