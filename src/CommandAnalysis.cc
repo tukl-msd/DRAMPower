@@ -31,7 +31,11 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Sven Goossens
+ * Authors: Karthik Chandrasekar,
+ *          Matthias Jung,
+ *          Omar Naji,
+ *          Sven Goossens,
+ *          Éder F. Zulian
  *
  */
 
@@ -92,7 +96,7 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   s_pre_pdcycles      = 0;
   pup_act_cycles      = 0;
   pup_pre_cycles      = 0;
-  sref_cycles         = 0;
+  sref_cycles_idd6    = 0;
   spup_cycles         = 0;
   sref_ref_act_cycles = 0;
   sref_ref_pre_cycles = 0;
@@ -463,13 +467,63 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       if (mem_state != CommandAnalysis::MS_SREF) {
         cerr << "Incorrect use of Self-Refresh Power-Up!" << endl;
       }
-      if (max(zero, timestamp - sref_cycle) >= memSpec.memTimingSpec.RFC) {
-        sref_cycles         += max(zero, timestamp - sref_cycle
-                                   - memSpec.memTimingSpec.RFC);
+
+      // The total duration of self-refresh is given by the difference between
+      // the current clock cycle and the clock cycle of entering self-refresh.
+      int64_t sref_duration = timestamp - sref_cycle;
+
+      // Negative or zero duration should never happen.
+      assert(sref_duration > 0);
+
+      // The minimum time that the DRAM must remain in Self-Refresh is CKESR.
+      assert(sref_duration >= memSpec.memTimingSpec.CKESR);
+
+      if (sref_duration >= memSpec.memTimingSpec.RFC) {
+        /*
+         * Self-refresh Exit Context 1 (tSREF >= tRFC):
+         * The memory remained in self-refresh for a certain number of clock
+         * cycles greater than a refresh cycle time (RFC). Consequently, the
+         * initial auto-refresh accomplished.
+         *
+         *
+         *  SREFEN                              #                SREFX
+         *  |                                   #                ^
+         *  |                                   #                |
+         *  |<------------------------- tSREF ----------...----->|
+         *  |                                   #                |
+         *  |      Initial Auto-Refresh         #                |
+         *  v                                   #                |
+         *  ------------------------------------#-------...-----------------> t
+         *                                      #
+         *   <------------- tRFC -------------->#
+         *   <---- (tRFC - tRP) ----><-- tRP -->#
+         *               |                |
+         *               v                v
+         *     sref_ref_act_cycles     sref_ref_pre_cycles
+         *
+         *
+         * Summary:
+         * sref_cycles_idd6 += tSREF – tRFC
+         * sref_ref_act_cycles += tRFC - tRP
+         * sref_ref_pre_cycles += tRP
+         * spup_ref_act_cycles += 0
+         * spup_ref_pre_cycles += 0
+         *
+         */
+
+        // The initial auto-refresh consumes (IDD5 − IDD3N) over one refresh
+        // period (RFC) from the start of the self-refresh.
         sref_ref_act_cycles += memSpec.memTimingSpec.RFC -
                                memSpec.memTimingSpec.RP;
         sref_ref_pre_cycles += memSpec.memTimingSpec.RP;
         last_pre_cycle       = timestamp;
+
+        // The IDD6 current is consumed for the time period spent in the
+        // self-refresh mode, which excludes the time spent in finishing the
+        // initial auto-refresh.
+        sref_cycles_idd6 += sref_duration - memSpec.memTimingSpec.RFC;
+
+        // IDD2N current is consumed when exiting the self-refresh state.
         if (memSpec.memArchSpec.dll == false) {
           spup_cycles     += memSpec.memTimingSpec.XS;
           latest_pre_cycle = max(timestamp, timestamp +
@@ -481,18 +535,63 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                                  memSpec.memTimingSpec.XSDLL - memSpec.memTimingSpec.RCD
                                  - memSpec.memTimingSpec.RP);
         }
-      } else {
-        int64_t sref_diff = memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
-        int64_t sref_pre  = max(zero, timestamp - sref_cycle - sref_diff);
-        int64_t spup_pre  = memSpec.memTimingSpec.RP - sref_pre;
-        int64_t sref_act  = max(zero, timestamp - sref_cycle);
-        int64_t spup_act  = memSpec.memTimingSpec.RFC - sref_act;
 
-        if (max(zero, timestamp - sref_cycle) >= sref_diff) {
-          sref_ref_act_cycles += sref_diff;
-          sref_ref_pre_cycles += sref_pre;
+      } else {
+        // Self-refresh Exit Context 2 (tSREF < tRFC):
+        // Exit self-refresh before the completion of the initial
+        // auto-refresh.
+
+        // Number of active cycles needed by an auto-refresh.
+        int64_t ref_act_cycles = memSpec.memTimingSpec.RFC -
+                                 memSpec.memTimingSpec.RP;
+
+        if (sref_duration >= ref_act_cycles) {
+          /*
+           * Self-refresh Exit Context 2A (tSREF < tRFC && tSREF >= tRFC - tRP):
+           * The duration of self-refresh is equal or greater than the number
+           * of active cycles needed by the initial auto-refresh.
+           *
+           *
+           *  SREFEN                                          SREFX
+           *  |                                                ^         #
+           *  |                                                |         #
+           *  |<------------------ tSREF --------------------->|         #
+           *  |                                                |         #
+           *  |                                  Initial Auto-Refresh    #
+           *  v                                                |         #
+           *  -----------------------------------------------------------#--> t
+           *                                                             #
+           *   <------------------------ tRFC -------------------------->#
+           *   <------------- (tRFC - tRP)--------------><----- tRP ---->#
+           *           |                                 <-----><------->
+           *           v                                  |         |
+           *     sref_ref_act_cycles                      v         v
+           *                             sref_ref_pre_cycles spup_ref_pre_cycles
+           *
+           *
+           * Summary:
+           * sref_cycles_idd6 += 0
+           * sref_ref_act_cycles += tRFC - tRP
+           * sref_ref_pre_cycles += tSREF – (tRFC – tRP)
+           * spup_ref_act_cycles += 0
+           * spup_ref_pre_cycles += tRP – sref_ref_pre_cycles
+           *
+           */
+
+          // Number of precharged cycles (zero <= pre_cycles < RP)
+          int64_t pre_cycles = sref_duration - ref_act_cycles;
+
+          sref_ref_act_cycles += ref_act_cycles;
+          sref_ref_pre_cycles += pre_cycles;
+
+          // Number of precharged cycles during the self-refresh power-up. It
+          // is at maximum tRP (if pre_cycles is zero).
+          int64_t spup_pre = memSpec.memTimingSpec.RP - pre_cycles;
+
           spup_ref_pre_cycles += spup_pre;
+
           last_pre_cycle       = timestamp + spup_pre;
+
           if (memSpec.memArchSpec.dll == false) {
             spup_cycles     += memSpec.memTimingSpec.XS - spup_pre;
             latest_pre_cycle = max(timestamp, timestamp +
@@ -506,9 +605,46 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                                    spup_pre - memSpec.memTimingSpec.RP);
           }
         } else {
-          sref_ref_act_cycles += sref_act;
+          /*
+           * Self-refresh Exit Context 2B (tSREF < tRFC - tRP):
+           * self-refresh duration is shorter than the number of active cycles
+           * needed by the initial auto-refresh.
+           *
+           *
+           *  SREFEN                           SREFX
+           *  |                                  ^                        #
+           *  |                                  |                        #
+           *  |<-------------- tSREF ----------->|                        #
+           *  |                                  |                        #
+           *  |                       Initial Auto-Refresh                #
+           *  v                                  |                        #
+           *  ------------------------------------------------------------#--> t
+           *                                                              #
+           *   <------------------------ tRFC --------------------------->#
+           *   <-------------- (tRFC - tRP)-------------><------ tRP ---->#
+           *   <--------------------------------><------><--------------->
+           *               |                        |             |
+           *               v                        v             v
+           *     sref_ref_act_cycles    spup_ref_act_cycles spup_ref_pre_cycles
+           *
+           *
+           * Summary:
+           * sref_cycles_idd6 += 0
+           * sref_ref_act_cycles += tSREF
+           * sref_ref_pre_cycles += 0
+           * spup_ref_act_cycles += (tRFC – tRP) - tSREF
+           * spup_ref_pre_cycles += tRP
+           *
+           */
+
+          sref_ref_act_cycles += sref_duration;
+
+          // FIXME: Here should be ((memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP) - sref_duration) to avoid overlapping !!
+          int64_t spup_act = memSpec.memTimingSpec.RFC - sref_duration;
+
           spup_ref_act_cycles += spup_act;
           spup_ref_pre_cycles += memSpec.memTimingSpec.RP;
+
           last_pre_cycle       = timestamp + spup_act + memSpec.memTimingSpec.RP;
           if (memSpec.memArchSpec.dll == false) {
             spup_cycles     += memSpec.memTimingSpec.XS - spup_act -
@@ -546,7 +682,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       } else if (mem_state == CommandAnalysis::MS_PDN_S_PRE) {
         s_pre_pdcycles += max(zero, timestamp - pdn_cycle);
       } else if (mem_state == CommandAnalysis::MS_SREF) {
-        sref_cycles += max(zero, timestamp - sref_cycle);
+        sref_cycles_idd6 += max(zero, timestamp - sref_cycle);
       }
     } else {
       printWarning("Unknown command given, exiting.", type, timestamp, bank);

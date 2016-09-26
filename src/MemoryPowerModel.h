@@ -55,7 +55,7 @@ class MemoryPowerModel {
                           double idd3n,
                           double idd5,
                           double vdd,
-                          double sref_cycles,
+                          double sref_cycles_idd6,
                           double sref_ref_act_cycles,
                           double sref_ref_pre_cycles,
                           double spup_ref_act_cycles,

@@ -97,8 +97,9 @@ class CommandAnalysis {
   int64_t f_pre_pdcycles;
   // Number of clock cycles in slow-exit precharged power-down mode
   int64_t s_pre_pdcycles;
-  // Number of clock cycles in self-refresh mode
-  int64_t sref_cycles;
+  // Number of clock cycles in self-refresh mode (excludes the initial
+  // auto-refresh). During this time the current drawn is IDD6.
+  int64_t sref_cycles_idd6;
   // Number of clock cycles in activate power-up mode
   int64_t pup_act_cycles;
   // Number of clock cycles in precharged power-up mode
@@ -106,9 +107,11 @@ class CommandAnalysis {
   // Number of clock cycles in self-refresh power-up mode
   int64_t spup_cycles;
 
-  // Number of active auto-refresh cycles in self-refresh mode
+  // Number of active cycles for the initial auto-refresh when entering
+  // self-refresh mode.
   int64_t sref_ref_act_cycles;
-  // Number of precharged auto-refresh cycles in self-refresh mode
+  // Number of precharged cycles for the initial auto-refresh when entering
+  // self-refresh mode.
   int64_t sref_ref_pre_cycles;
   // Number of active auto-refresh cycles during self-refresh exit
   int64_t spup_ref_act_cycles;
