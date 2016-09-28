@@ -149,7 +149,7 @@ traces: traces.zip
 LCOV_OUTDIR = coverage_report
 coveragecheck: coveragecheckclean
 ifeq ($(CXX),g++)
-	hash lcov 2>/dev/null || { echo >&2 "I could not found lcov. Aborting."; exit 1; }
+	hash lcov 2>/dev/null || { echo >&2 "lcov could not be found. Aborting."; exit 1; }
 	COVERAGE=1 $(MAKE) clean || { echo >&2 "make clean failed. Aborting."; exit 1; }
 	COVERAGE=1 $(MAKE) || { echo >&2 "make failed. Aborting."; exit 1; }
 	lcov --no-external -c -i -d . -o .coverage.base
