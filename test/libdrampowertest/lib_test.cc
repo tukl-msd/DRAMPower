@@ -109,7 +109,9 @@ int main(int argc, char* argv[])
         // Accesing the results:
 
         // Number of issued Commands
-        std::cout << "# of acts" << "\t" <<test.counters.numberofacts << endl;
+        std::cout << "# of acts" << "\t" <<std::accumulate(test.counters.numberofactsBanks.begin(),
+                                                           test.counters.numberofactsBanks.end()
+                                                           ,0)<< endl;
         std::cout << "# of reads" << "\t" <<test.counters.numberofreads << endl;
         std::cout << "# of precharges" << "\t" <<test.counters.numberofpres << endl;
         // many other timing parameters in test.mpm.timings

@@ -102,6 +102,9 @@ class MemoryPowerModel {
     double ref_energy;
     std::vector<double> ref_energy_banks;
 
+    // Bankwise refresh energy
+    std::vector<double> refb_energy_banks;
+
     // Total background energy of all active standby cycles
     double act_stdby_energy;
     std::vector<double> act_stdby_energy_banks;

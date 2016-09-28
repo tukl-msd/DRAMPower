@@ -80,6 +80,11 @@ class TestOutput(TestUsingBuildResult):
         self.tempFiles.append(cmdTrace)
         return cmdTrace
 
+    def get_REFB_cmdTrace(self):
+        refBCmdTrace = extractFileToTmpFile('test/data/REFB.commands.trace.gz')
+        self.tempFiles.append(refBCmdTrace)
+        return refBCmdTrace
+
     def get_LPDDR2_1066_short_trace_file(self):
         cmdTrace = extractFileToTmpFile('test/data/LPDDR2-1066.commands.trace.gz')
         self.tempFiles.append(cmdTrace)
@@ -113,6 +118,12 @@ class TestOutput(TestUsingBuildResult):
         cmd = ['./drampower', '-m', 'memspecs/MICRON_4Gb_LPDDR3-1333_32bit_A.xml',
                               '-t', 'traces/mediabench-jpegencode.trace', '-p', '2']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_transaction_scheduler_with_self_refresh.out')
+
+    def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_bankwise_refresh(self):
+        """ drampower output for REFB trace matches reference """
+        refBCmdTrace = self.get_REFB_cmdTrace()
+        cmd = ['./drampower', '-m', 'memspecs/modified_MICRON_1Gb_DDR3-1600_8bit_G_3s.xml', '-c', refBCmdTrace]
+        self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3_1600_8bit_G_3s_bankwise_refresh.out')
 
     def test_broken_trace(self):
         """ running drampower with an invalid trace returns 0 """
