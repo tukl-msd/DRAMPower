@@ -473,10 +473,15 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       int64_t sref_duration = timestamp - sref_cycle;
 
       // Negative or zero duration should never happen.
-      assert(sref_duration > 0);
+      if (sref_duration <= 0) {
+        printWarning("Invalid Self-Refresh duration!", type, timestamp, bank);
+        sref_duration = 0;
+      }
 
       // The minimum time that the DRAM must remain in Self-Refresh is CKESR.
-      assert(sref_duration >= memSpec.memTimingSpec.CKESR);
+      if (sref_duration < memSpec.memTimingSpec.CKESR) {
+        printWarning("Self-Refresh duration < CKESR!", type, timestamp, bank);
+      }
 
       if (sref_duration >= memSpec.memTimingSpec.RFC) {
         /*
@@ -486,7 +491,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
          * initial auto-refresh accomplished.
          *
          *
-         *  SREFEN                              #                SREFX
+         *  SREN                                #              SREX
          *  |                                   #                ^
          *  |                                   #                |
          *  |<------------------------- tSREF ----------...----->|
@@ -552,7 +557,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
            * of active cycles needed by the initial auto-refresh.
            *
            *
-           *  SREFEN                                          SREFX
+           *  SREN                                           SREX
            *  |                                                ^         #
            *  |                                                |         #
            *  |<------------------ tSREF --------------------->|         #
@@ -611,7 +616,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
            * needed by the initial auto-refresh.
            *
            *
-           *  SREFEN                           SREFX
+           *  SREN                             SREX
            *  |                                  ^                        #
            *  |                                  |                        #
            *  |<-------------- tSREF ----------->|                        #

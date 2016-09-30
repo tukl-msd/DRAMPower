@@ -146,7 +146,8 @@ class TestLibDRAMPower(TestUsingBuildResult):
 
         with open(self.tempFileName, 'w') as f:
             self.assertEqual(subprocess.call([TestLibDRAMPower.testPath + '/library_test',
-                                              'memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml'], stdout=f), 0)
+                                              'memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml'],
+                                              stdout=f, stderr=devnull), 0)
             try:
                 """ Copy coverage statistics to test subfolder. Otherwise the coverage tool gets confused. """
                 if inCoverageTest():
