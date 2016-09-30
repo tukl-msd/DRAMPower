@@ -61,20 +61,18 @@ class CommandAnalysis {
   // Returns number of reads, writes, acts, pres and refs in the trace
   CommandAnalysis(const int64_t nbrofBanks);
 
-  // Number of activate commands
-  int64_t numberofacts;
+  // Number of activate commands per bank
   std::vector<int64_t> numberofactsBanks;
-  // Number of precharge commands
-  int64_t numberofpres;
+  // Number of precharge commands per bank
   std::vector<int64_t> numberofpresBanks;
-  // Number of reads commands
-  int64_t numberofreads;
+  // Number of reads commands per bank
   std::vector<int64_t> numberofreadsBanks;
-  // Number of writes commands
-  int64_t numberofwrites;
+  // Number of writes commands per bank
   std::vector<int64_t> numberofwritesBanks;
   // Number of refresh commands
   int64_t numberofrefs;
+  // Number of bankwise refresh commands
+  std::vector<int64_t> numberofrefbBanks;
   // Number of precharge cycles
   int64_t precycles;
   // Number of active cycles
