@@ -211,7 +211,7 @@ class MemoryPowerModel {
  private:
   double calcIoTermEnergy(int64_t cycles, double period, double power, int64_t numBits) const;
   // Sum quantities (e.g., operations, energy, cycles) that are stored in a per bank basis returning the total amount.
-  template <typename T> T total(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
+  template <typename T> T sum(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
 };
 
 class EnergyDomain {

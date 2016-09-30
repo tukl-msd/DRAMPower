@@ -88,9 +88,6 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   std::fill(numberofwritesBanks.begin(), numberofwritesBanks.end(), 0);
   std::fill(actcyclesBanks.begin(), actcyclesBanks.end(), 0);
 
-  numberofpres        = 0;
-  numberofreads       = 0;
-  numberofwrites      = 0;
   numberofrefs        = 0;
   f_act_pdns          = 0;
   s_act_pdns          = 0;
@@ -257,7 +254,6 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       if (bank_state[bank] == BANK_PRECHARGED) {
         printWarning("Bank is not active!", type, timestamp, bank);
       }
-      numberofreads++;
       numberofreadsBanks[bank]++;
       idle_act_update(memSpec, latest_read_cycle, latest_write_cycle,
                       latest_act_cycle, timestamp);
@@ -269,7 +265,6 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       if (bank_state[bank] == BANK_PRECHARGED) {
         printWarning("Bank is not active!", type, timestamp, bank);
       }
-      numberofwrites++;
       numberofwritesBanks[bank]++;
       idle_act_update(memSpec, latest_read_cycle, latest_write_cycle,
                       latest_act_cycle, timestamp);
@@ -297,7 +292,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       for (auto& bs : bank_state) {
         bs = BANK_PRECHARGED;
       }
-    } else if (type == MemCommand::REFB){
+    } else if (type == MemCommand::REFB) {
         // A REFB command requires a previous PRE command.
         if (bank_state[bank] == BANK_PRECHARGED) {
             // This previous PRE command handler is also responsible
@@ -309,7 +304,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
             // Length of the refresh : here we have an approximation, we consider tRP
             // also as act cycles because the bank will be precharged (stable) after tRP.
             actcyclesBanks[bank] += memSpec.memTimingSpec.RAS + memSpec.memTimingSpec.RP;
-        }else{
+        } else {
            printWarning("Bank must be precharged for REFB!", type, timestamp, bank);
         }
     } else if (type == MemCommand::PRE) {
@@ -324,7 +319,6 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
 
       // Precharge only if the target bank is active
       if (bank_state[bank] == BANK_ACTIVE) {
-        numberofpres++;
         numberofpresBanks[bank]++;
         actcyclesBanks[bank] += max(zero, timestamp - first_act_cycle_banks[bank]);
         // Since we got here, at least one bank is active
@@ -355,8 +349,6 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // active state before, but there is a state transition to PRE now.
 
       if (num_active_banks > 0) {
-        // Active banks are being precharged
-        numberofpres += num_active_banks;
         // At least one bank was active, therefore the current memory state is
         // ACT. Since all banks are being precharged a memory state transition
         // to PRE is happening. Add to the counter the amount of cycles the
@@ -366,6 +358,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
 
         for (unsigned b = 0; b < num_banks; b++) {
           if (bank_state[b] == BANK_ACTIVE) {
+            // Active banks are being precharged
             numberofpresBanks[b] += 1;
             actcyclesBanks[b] += max(zero, timestamp - first_act_cycle_banks[b]);
           }
