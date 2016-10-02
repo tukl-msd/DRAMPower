@@ -1,0 +1,318 @@
+* Parsing memspecs/MICRON_1Gb_DDR3-1600_8bit_G_3s.xml
+* Analysis start time: Sat Oct  1 02:33:55 2016
+* Analyzing the input trace
+* Bankwise mode: enabled (power offset factors  ρ=100% ,σ=100% )
+* Partial Array Self-Refresh: disabled
+
+* Bankwise Details:
+## @ Bank 0
+  #ACT commands: 11659
+  #RD + #RDA commands: 10344
+  #WR + #WRA commands: 1315
+  #PRE (+ PREA) commands: 11659
+## @ Bank 1
+  #ACT commands: 11256
+  #RD + #RDA commands: 9590
+  #WR + #WRA commands: 1666
+  #PRE (+ PREA) commands: 11256
+## @ Bank 2
+  #ACT commands: 11257
+  #RD + #RDA commands: 9960
+  #WR + #WRA commands: 1297
+  #PRE (+ PREA) commands: 11257
+## @ Bank 3
+  #ACT commands: 12251
+  #RD + #RDA commands: 10513
+  #WR + #WRA commands: 1738
+  #PRE (+ PREA) commands: 12251
+## @ Bank 4
+  #ACT commands: 11432
+  #RD + #RDA commands: 10164
+  #WR + #WRA commands: 1268
+  #PRE (+ PREA) commands: 11432
+## @ Bank 5
+  #ACT commands: 11584
+  #RD + #RDA commands: 10136
+  #WR + #WRA commands: 1448
+  #PRE (+ PREA) commands: 11584
+## @ Bank 6
+  #ACT commands: 12007
+  #RD + #RDA commands: 10628
+  #WR + #WRA commands: 1379
+  #PRE (+ PREA) commands: 12007
+## @ Bank 7
+  #ACT commands: 11459
+  #RD + #RDA commands: 10237
+  #WR + #WRA commands: 1222
+  #PRE (+ PREA) commands: 11459
+
+* Trace Details:
+
+#ACT commands: 92905
+#RD + #RDA commands: 81572
+#WR + #WRA commands: 11333
+#PRE (+ PREA) commands: 92905
+#REF commands: 6206
+#REFB commands: 0
+#Active Cycles: 3018157
+  #Active Idle Cycles: 390127
+  #Active Power-Up Cycles: 0
+    #Auto-Refresh Active cycles during Self-Refresh Power-Up: 0
+#Precharged Cycles: 35709906
+  #Precharged Idle Cycles: 34805772
+  #Precharged Power-Up Cycles: 0
+    #Auto-Refresh Precharged cycles during Self-Refresh Power-Up: 0
+  #Self-Refresh Power-Up Cycles: 0
+Total Idle Cycles (Active + Precharged): 35195899
+#Power-Downs: 0
+  #Active Fast-exit Power-Downs: 0
+  #Active Slow-exit Power-Downs: 0
+  #Precharged Fast-exit Power-Downs: 0
+  #Precharged Slow-exit Power-Downs: 0
+#Power-Down Cycles: 0
+  #Active Fast-exit Power-Down Cycles: 0
+  #Active Slow-exit Power-Down Cycles: 0
+    #Auto-Refresh Active cycles during Self-Refresh: 0
+  #Precharged Fast-exit Power-Down Cycles: 0
+  #Precharged Slow-exit Power-Down Cycles: 0
+    #Auto-Refresh Precharged cycles during Self-Refresh: 0
+#Auto-Refresh Cycles: 546128
+#Self-Refreshes: 0
+#Self-Refresh Cycles: 0
+----------------------------------------
+Total Trace Length (clock cycles): 38728063
+----------------------------------------
+
+* Bankwise Details:
+## @ Bank 0
+  ACT Cmd Energy: 15351405 pJ
+  PRE Cmd Energy: 5482645 pJ
+  RD Cmd Energy: 6978321 pJ
+  WR Cmd Energy: 921158 pJ
+  Auto-Refresh Energy: 15505769 pJ
+  Bankwise-Refresh Energy: 0 pJ
+  ACT Stdby Energy: 29504843 pJ
+  PRE Stdby Energy: 348757449 pJ
+  Active Idle Energy: 3813796 pJ
+  Precharge Idle Energy: 339927309 pJ
+  Fast-Exit Active Power-Down Energy: 0 pJ
+  Fast-Exit Precharged Power-Down Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy: 0 pJ
+  Slow-Exit Precharged Power-Down Energy: 0 pJ
+  Self-Refresh Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Self-Refresh Power-Up Energy: 0 pJ
+  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Active Power-Up Energy: 0 pJ
+  Precharged Power-Up Energy: 0 pJ
+  Total Energy: 422501589 pJ
+
+## @ Bank 1
+  ACT Cmd Energy: 14820775 pJ
+  PRE Cmd Energy: 5293134 pJ
+  RD Cmd Energy: 6469654 pJ
+  WR Cmd Energy: 1167033 pJ
+  Auto-Refresh Energy: 15505769 pJ
+  Bankwise-Refresh Energy: 0 pJ
+  ACT Stdby Energy: 29504843 pJ
+  PRE Stdby Energy: 348757449 pJ
+  Active Idle Energy: 3813796 pJ
+  Precharge Idle Energy: 339927309 pJ
+  Fast-Exit Active Power-Down Energy: 0 pJ
+  Fast-Exit Precharged Power-Down Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy: 0 pJ
+  Slow-Exit Precharged Power-Down Energy: 0 pJ
+  Self-Refresh Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Self-Refresh Power-Up Energy: 0 pJ
+  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Active Power-Up Energy: 0 pJ
+  Precharged Power-Up Energy: 0 pJ
+  Total Energy: 421518656 pJ
+
+## @ Bank 2
+  ACT Cmd Energy: 14822092 pJ
+  PRE Cmd Energy: 5293604 pJ
+  RD Cmd Energy: 6719265 pJ
+  WR Cmd Energy: 908548 pJ
+  Auto-Refresh Energy: 15505769 pJ
+  Bankwise-Refresh Energy: 0 pJ
+  ACT Stdby Energy: 29504843 pJ
+  PRE Stdby Energy: 348757449 pJ
+  Active Idle Energy: 3813796 pJ
+  Precharge Idle Energy: 339927309 pJ
+  Fast-Exit Active Power-Down Energy: 0 pJ
+  Fast-Exit Precharged Power-Down Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy: 0 pJ
+  Slow-Exit Precharged Power-Down Energy: 0 pJ
+  Self-Refresh Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Self-Refresh Power-Up Energy: 0 pJ
+  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Active Power-Up Energy: 0 pJ
+  Precharged Power-Up Energy: 0 pJ
+  Total Energy: 421511570 pJ
+
+## @ Bank 3
+  ACT Cmd Energy: 16130892 pJ
+  PRE Cmd Energy: 5761033 pJ
+  RD Cmd Energy: 7092333 pJ
+  WR Cmd Energy: 1217469 pJ
+  Auto-Refresh Energy: 15505769 pJ
+  Bankwise-Refresh Energy: 0 pJ
+  ACT Stdby Energy: 29504843 pJ
+  PRE Stdby Energy: 348757449 pJ
+  Active Idle Energy: 3813796 pJ
+  Precharge Idle Energy: 339927309 pJ
+  Fast-Exit Active Power-Down Energy: 0 pJ
+  Fast-Exit Precharged Power-Down Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy: 0 pJ
+  Slow-Exit Precharged Power-Down Energy: 0 pJ
+  Self-Refresh Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Self-Refresh Power-Up Energy: 0 pJ
+  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Active Power-Up Energy: 0 pJ
+  Precharged Power-Up Energy: 0 pJ
+  Total Energy: 423969786 pJ
+
+## @ Bank 4
+  ACT Cmd Energy: 15052514 pJ
+  PRE Cmd Energy: 5375898 pJ
+  RD Cmd Energy: 6856888 pJ
+  WR Cmd Energy: 888234 pJ
+  Auto-Refresh Energy: 15505769 pJ
+  Bankwise-Refresh Energy: 0 pJ
+  ACT Stdby Energy: 29504843 pJ
+  PRE Stdby Energy: 348757449 pJ
+  Active Idle Energy: 3813796 pJ
+  Precharge Idle Energy: 339927309 pJ
+  Fast-Exit Active Power-Down Energy: 0 pJ
+  Fast-Exit Precharged Power-Down Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy: 0 pJ
+  Slow-Exit Precharged Power-Down Energy: 0 pJ
+  Self-Refresh Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Self-Refresh Power-Up Energy: 0 pJ
+  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Active Power-Up Energy: 0 pJ
+  Precharged Power-Up Energy: 0 pJ
+  Total Energy: 421941595 pJ
+
+## @ Bank 5
+  ACT Cmd Energy: 15252653 pJ
+  PRE Cmd Energy: 5447376 pJ
+  RD Cmd Energy: 6837999 pJ
+  WR Cmd Energy: 1014324 pJ
+  Auto-Refresh Energy: 15505769 pJ
+  Bankwise-Refresh Energy: 0 pJ
+  ACT Stdby Energy: 29504843 pJ
+  PRE Stdby Energy: 348757449 pJ
+  Active Idle Energy: 3813796 pJ
+  Precharge Idle Energy: 339927309 pJ
+  Fast-Exit Active Power-Down Energy: 0 pJ
+  Fast-Exit Precharged Power-Down Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy: 0 pJ
+  Slow-Exit Precharged Power-Down Energy: 0 pJ
+  Self-Refresh Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Self-Refresh Power-Up Energy: 0 pJ
+  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Active Power-Up Energy: 0 pJ
+  Precharged Power-Up Energy: 0 pJ
+  Total Energy: 422320412 pJ
+
+## @ Bank 6
+  ACT Cmd Energy: 15809617 pJ
+  PRE Cmd Energy: 5646292 pJ
+  RD Cmd Energy: 7169914 pJ
+  WR Cmd Energy: 965990 pJ
+  Auto-Refresh Energy: 15505769 pJ
+  Bankwise-Refresh Energy: 0 pJ
+  ACT Stdby Energy: 29504843 pJ
+  PRE Stdby Energy: 348757449 pJ
+  Active Idle Energy: 3813796 pJ
+  Precharge Idle Energy: 339927309 pJ
+  Fast-Exit Active Power-Down Energy: 0 pJ
+  Fast-Exit Precharged Power-Down Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy: 0 pJ
+  Slow-Exit Precharged Power-Down Energy: 0 pJ
+  Self-Refresh Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Self-Refresh Power-Up Energy: 0 pJ
+  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Active Power-Up Energy: 0 pJ
+  Precharged Power-Up Energy: 0 pJ
+  Total Energy: 423359873 pJ
+
+## @ Bank 7
+  ACT Cmd Energy: 15088065 pJ
+  PRE Cmd Energy: 5388595 pJ
+  RD Cmd Energy: 6906136 pJ
+  WR Cmd Energy: 856011 pJ
+  Auto-Refresh Energy: 15505769 pJ
+  Bankwise-Refresh Energy: 0 pJ
+  ACT Stdby Energy: 29504843 pJ
+  PRE Stdby Energy: 348757449 pJ
+  Active Idle Energy: 3813796 pJ
+  Precharge Idle Energy: 339927309 pJ
+  Fast-Exit Active Power-Down Energy: 0 pJ
+  Fast-Exit Precharged Power-Down Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy: 0 pJ
+  Slow-Exit Precharged Power-Down Energy: 0 pJ
+  Self-Refresh Energy: 0 pJ
+  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
+  Self-Refresh Power-Up Energy: 0 pJ
+  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
+  Active Power-Up Energy: 0 pJ
+  Precharged Power-Up Energy: 0 pJ
+  Total Energy: 422006868 pJ
+
+
+* Trace Power and Energy Estimates:
+
+ACT Cmd Energy: 122328013.50 pJ
+PRE Cmd Energy: 43758255.00 pJ
+RD Cmd Energy: 55030510.50 pJ
+WR Cmd Energy: 7938766.50 pJACT Stdby Energy: 236038740.88 pJ
+  Active Idle Energy: 30510369.69 pJ
+  Active Power-Up Energy: 0.00 pJ
+    Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0.00 pJ
+PRE Stdby Energy: 2790059593.16 pJ
+  Precharge Idle Energy: 2719418473.58 pJ
+  Precharged Power-Up Energy: 0.00 pJ
+    Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0.00 pJ
+  Self-Refresh Power-Up Energy: 0.00 pJ
+Total Idle Energy (Active + Precharged): 2749928843.27 pJ
+Total Power-Down Energy: 0.00 pJ
+  Fast-Exit Active Power-Down Energy: 0.00 pJ
+  Slow-Exit Active Power-Down Energy: 0.00 pJ
+    Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0.00 pJ
+  Fast-Exit Precharged Power-Down Energy: 0.00 pJ
+  Slow-Exit Precharged Power-Down Energy: 0.00 pJ
+    Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0.00 pJ
+Auto-Refresh Energy: 124046148.60 pJ
+Bankwise-Refresh Energy: 0.00 pJ
+Self-Refresh Energy: 0.00 pJ
+----------------------------------------
+Total Trace Energy: 3379130349.39 pJ
+Average Power: 69.80 mW
+----------------------------------------
+* Power Computation End time: Sat Oct  1 02:33:56 2016
+* Total Simulation time: 1.22667 seconds
