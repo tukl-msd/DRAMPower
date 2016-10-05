@@ -46,6 +46,12 @@
 using namespace std;
 using namespace Data;
 
+MemoryPowerModel::MemoryPowerModel()
+{
+  total_cycles = 0;
+  energy.total_energy = 0;
+}
+
 // Calculate energy and average power consumption for the given command trace
 
 void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,

@@ -42,10 +42,9 @@ using namespace Data;
 libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination) :
   memSpec(memSpec),
   counters(CommandAnalysis(memSpec.memArchSpec.nbrOfBanks)),
-  includeIoAndTermination(includeIoAndTermination)
+  includeIoAndTermination(includeIoAndTermination),
+  mpm(MemoryPowerModel())
 {
-  mpm.total_cycles = 0;
-  mpm.energy.total_energy = 0;
 }
 
 libDRAMPower::~libDRAMPower()

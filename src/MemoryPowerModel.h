@@ -44,6 +44,9 @@
 namespace Data {
 class MemoryPowerModel {
  public:
+
+  MemoryPowerModel();
+
   // Calculate energy and average power consumption for the given memory
   // command trace
   void power_calc(const MemorySpecification& memSpec,
