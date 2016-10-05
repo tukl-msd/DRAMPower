@@ -110,11 +110,11 @@ class CommandAnalysis {
   // Number of active cycles for the initial auto-refresh when entering
   // self-refresh mode.
   int64_t sref_ref_act_cycles;
-  // Number of active auto-refresh cycles in self-refresh mode already used to calculate the energy of previous windows
+  // Number of active auto-refresh cycles in self-refresh mode already used to calculate the energy of the previous windows
   int64_t sref_ref_act_cycles_window;
   // Number of precharged auto-refresh cycles in self-refresh mode
   int64_t sref_ref_pre_cycles;  
-  // Number of precharged auto-refresh cycles in self-refresh mode already used to calculate the energy of previous window
+  // Number of precharged auto-refresh cycles in self-refresh mode already used to calculate the energy of the previous window
   int64_t sref_ref_pre_cycles_window;
   // Number of active auto-refresh cycles during self-refresh exit
   int64_t spup_ref_act_cycles;
