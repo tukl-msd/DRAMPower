@@ -91,11 +91,17 @@ int main(int argc, char* argv[])
         // Precharge all banks with bank 0 active
         test.doCommand(MemCommand::PREA,0,400);
         // Precharge all banks again
+        // XXX: For testing purpose only! Double precharge all should never
+        // happen. Warnings are generated.
         test.doCommand(MemCommand::PREA,0,450);
         // Activate bank 0 twice
+        // XXX: For testing purpose only! Double activate should never happen.
+        // Warnings are generated.
         test.doCommand(MemCommand::ACT,0,500);
         test.doCommand(MemCommand::ACT,0,550);
         // Precharge bank 0 twice
+        // XXX: For testing purpose only! Double precharge for the same bank
+        // should never happen. Warnings are generated.
         test.doCommand(MemCommand::PRE,0,600);
         test.doCommand(MemCommand::PRE,0,650);
 
