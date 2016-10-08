@@ -203,7 +203,7 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
   int64_t tRefBlocal = (t.REFB == 0) ? (t.RAS + t.RP) : (t.REFB);
 
   //Distribution of energy componets to each banks
-  for (int i = 0; i < nbrofBanks; i++) {
+  for (unsigned i = 0; i < nbrofBanks; i++) {
     energy.act_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofactsBanks[i] * t.RAS, mps.idd0 - ione);
     energy.pre_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofpresBanks[i] * (t.RP), mps.idd0 - ione);
     energy.read_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofreadsBanks[i] * burstCc, mps.idd4r - mps.idd3n);
@@ -331,7 +331,7 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
   // energy components for both ranks (in a dual-rank system)
   if (bwPowerParams.bwMode) {
         // Calculate total energy per bank.
-        for (int i = 0; i < nbrofBanks; i++) {
+        for (unsigned i = 0; i < nbrofBanks; i++) {
             energy.total_energy_banks[i] = energy.act_energy_banks[i] + energy.pre_energy_banks[i] + energy.read_energy_banks[i]
                                             + energy.ref_energy_banks[i] + energy.write_energy_banks[i] + energy.refb_energy_banks[i]
                                             + static_cast<double>(memArchSpec.nbrOfRanks) * energy.act_stdby_energy_banks[i]
@@ -369,7 +369,7 @@ void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term,
 
   if (bankwiseMode) {
     cout << endl << "* Bankwise Details:";
-    for (int i = 0; i < nbrofBanks; i++) {
+    for (unsigned i = 0; i < nbrofBanks; i++) {
       cout << endl << "## @ Bank " << i << fixed
         << endl << "  #ACT commands: " << c.numberofactsBanks[i]
         << endl << "  #RD + #RDA commands: " << c.numberofreadsBanks[i]
@@ -418,7 +418,7 @@ void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term,
 
   if (bankwiseMode) {
     cout << endl << "* Bankwise Details:";
-    for (int i = 0; i < nbrofBanks; i++) {
+    for (unsigned i = 0; i < nbrofBanks; i++) {
       cout << endl << "## @ Bank " << i << fixed
         << endl << "  ACT Cmd Energy: " << energy.act_energy_banks[i] << eUnit
         << endl << "  PRE Cmd Energy: " << energy.pre_energy_banks[i] << eUnit
@@ -517,7 +517,7 @@ double MemoryPowerModel::engy_sref_banks(double idd6, double idd3n, double idd5,
                                    double sref_ref_pre_cycles, double spup_ref_act_cycles,
                                    double spup_ref_pre_cycles, double clk,
                                    double esharedPASR, const MemBankWiseParams& bwPowerParams,
-                                   int bnkIdx, int64_t nbrofBanks)
+                                   unsigned bnkIdx, int64_t nbrofBanks)
 {
     // Bankwise Self-refresh energy
     double sref_energy_banks;

@@ -105,15 +105,15 @@ int main(int argc, char* argv[])
         bankwiseMode = true;
         try{
             idx = bwTuple.find(",");
-            bankwisePowerFactRho = stoi(bwTuple.substr(0, idx));
+            bankwisePowerFactRho = static_cast<unsigned>(stoi(bwTuple.substr(0, idx)));
             bwTuple.erase(0, idx +  1);
             idx = bwTuple.find(",");
-            bankwisePowerFactSigma = stoi(bwTuple.substr(0, idx));
+            bankwisePowerFactSigma = static_cast<unsigned>(stoi(bwTuple.substr(0, idx)));
         }catch(const std::exception& e) {
             return error();
         }
       } else if (string(argv[i]) == "-pasr") {
-          pasrMode = atoi(argv[i + 1]);
+          pasrMode = static_cast<unsigned>(atoi(argv[i + 1]));
           bankPASRact = true;
       } else {
         if (string(argv[i]) == "-r") {

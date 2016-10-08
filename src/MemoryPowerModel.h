@@ -76,7 +76,7 @@ class MemoryPowerModel {
                                 double clk,
                                 double esharedPASR,
                                 const MemBankWiseParams& bwPowerParams,
-                                int bnkIdx,
+                                unsigned bnkIdx,
                                 int64_t nbrofBanks);
 
   int64_t total_cycles;
