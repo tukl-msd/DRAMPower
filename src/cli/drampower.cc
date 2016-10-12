@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
   // Calculates average power consumption and energy for the input memory
   // command trace
   const int CMD_ANALYSIS_WINDOW_SIZE = 1000000;
-  TraceParser traceparser(memSpec.memArchSpec.nbrOfBanks);
+  TraceParser traceparser(memSpec);
   traceparser.parseFile(memSpec, trace_file, CMD_ANALYSIS_WINDOW_SIZE, grouping, interleaving, burst, power_down, trans);
   mpm.power_calc(memSpec, traceparser.counters, term);
 
