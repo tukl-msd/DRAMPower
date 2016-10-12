@@ -84,6 +84,11 @@ unsigned CommandAnalysis::nActiveBanks(void)
   return CommandAnalysis::get_num_active_banks();
 }
 
+bool CommandAnalysis::isPrecharged(unsigned bank)
+{
+    return bank_state[bank] == BANK_PRECHARGED;
+}
+
 void CommandAnalysis::printWarningIfActive(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
   if (get_num_active_banks() != 0) {

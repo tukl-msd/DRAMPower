@@ -244,7 +244,7 @@ void CommandAnalysis::evaluateCommands(vector<MemCommand>& cmd_list)
       exit(-1);
     }
   }
-} // CommandAnalysis::evaluate
+} // CommandAnalysis::evaluateCommands
 
 // To update idle period information whenever active cycles may be idle
 void CommandAnalysis::idle_act_update(int64_t latest_read_cycle, int64_t latest_write_cycle,

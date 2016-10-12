@@ -229,6 +229,8 @@ class CommandAnalysis {
   unsigned get_num_active_banks(void);
   unsigned nActiveBanks(void);
 
+  bool isPrecharged(unsigned bank);
+
   void printWarningIfActive(const std::string& warning, int type, int64_t timestamp, unsigned bank);
   void printWarningIfNotActive(const std::string& warning, int type, int64_t timestamp, unsigned bank);
   void printWarningIfPoweredDown(const std::string& warning, int type, int64_t timestamp, unsigned bank);

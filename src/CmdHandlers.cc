@@ -33,15 +33,10 @@
  *
  */
 
-// #include <cstdio>
-// #include <algorithm>  // std::count
-// #include <string>
-
 #include "CommandAnalysis.h"
 
 using std::cerr;
 using std::endl;
-using std::string;
 using std::max;
 
 using namespace Data;
@@ -55,7 +50,7 @@ void CommandAnalysis::handleAct(unsigned bank, int64_t timestamp)
   // state. Update the number of precharged/idle-precharged cycles.
   // If the bank is already active ignore the command and generate a
   // warning.
-  if (bank_state[bank] == BANK_PRECHARGED) {
+  if (isPrecharged(bank)) {
     numberofacts++;
 
     if (nActiveBanks() == 0) {
@@ -78,7 +73,7 @@ void CommandAnalysis::handleRd(unsigned bank, int64_t timestamp)
   printWarningIfPoweredDown("Command issued while in power-down mode.", MemCommand::RD, timestamp, bank);
   // If command is RD - update number of reads and read cycle. Check
   // for active idle cycles (if any).
-  if (bank_state[bank] == BANK_PRECHARGED) {
+  if (isPrecharged(bank)) {
     printWarning("Bank is not active!", MemCommand::RD, timestamp, bank);
   }
   numberofreads++;
@@ -92,7 +87,7 @@ void CommandAnalysis::handleWr(unsigned bank, int64_t timestamp)
   printWarningIfPoweredDown("Command issued while in power-down mode.", MemCommand::WR, timestamp, bank);
   // If command is WR - update number of writes and write cycle. Check
   // for active idle cycles (if any).
-  if (bank_state[bank] == BANK_PRECHARGED) {
+  if (isPrecharged(bank)) {
     printWarning("Bank is not active!", MemCommand::WR, timestamp, bank);
   }
   numberofwrites++;
@@ -570,30 +565,32 @@ void CommandAnalysis::handleNopEnd(int64_t timestamp)
   } else if (mem_state == CommandAnalysis::MS_PDN_S_PRE) {
     s_pre_pdcycles += max(zero, timestamp - pdn_cycle);
   } else if (mem_state == CommandAnalysis::MS_SREF) {
-    if (timestamp > sref_cycle + memSpec.memTimingSpec.RFC) {
-        if (sref_cycle_window <= sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP)) {
-            sref_ref_act_cycles += (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP) - sref_ref_act_cycles_window;
-            sref_ref_act_cycles_window = (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP);
-            sref_cycle_window = sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP);
-        }
-        if (sref_cycle_window <= sref_cycle + memSpec.memTimingSpec.RFC) {
-            sref_ref_pre_cycles += memSpec.memTimingSpec.RP - sref_ref_pre_cycles_window;
-            sref_ref_pre_cycles_window = memSpec.memTimingSpec.RP;
-            sref_cycle_window = sref_cycle + memSpec.memTimingSpec.RFC;
-        }
-        sref_cycles_idd6 += max(zero, timestamp - sref_cycle_window);
-    } else if (timestamp > sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP)) {
-        if(sref_cycle_window <= sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP)) {
-            sref_ref_act_cycles += (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP) - sref_ref_act_cycles_window;
-            sref_ref_act_cycles_window = (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP);
-            sref_cycle_window = sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP);
-        }
+    auto rfc_minus_rp = (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP);
 
-        sref_ref_pre_cycles_window += timestamp - sref_cycle_window;
-        sref_ref_pre_cycles += timestamp - sref_cycle_window;
+    if (timestamp > sref_cycle + memSpec.memTimingSpec.RFC) {
+      if (sref_cycle_window <= sref_cycle + rfc_minus_rp) {
+        sref_ref_act_cycles += rfc_minus_rp - sref_ref_act_cycles_window;
+        sref_ref_act_cycles_window = rfc_minus_rp;
+        sref_cycle_window = sref_cycle + rfc_minus_rp;
+      }
+      if (sref_cycle_window <= sref_cycle + memSpec.memTimingSpec.RFC) {
+        sref_ref_pre_cycles += memSpec.memTimingSpec.RP - sref_ref_pre_cycles_window;
+        sref_ref_pre_cycles_window = memSpec.memTimingSpec.RP;
+        sref_cycle_window = sref_cycle + memSpec.memTimingSpec.RFC;
+      }
+      sref_cycles_idd6 += max(zero, timestamp - sref_cycle_window);
+    } else if (timestamp > sref_cycle + rfc_minus_rp) {
+      
+      if (sref_cycle_window <= sref_cycle + rfc_minus_rp) {
+        sref_ref_act_cycles += rfc_minus_rp - sref_ref_act_cycles_window;
+        sref_ref_act_cycles_window = rfc_minus_rp;
+        sref_cycle_window = sref_cycle + rfc_minus_rp;
+      }
+      sref_ref_pre_cycles_window += timestamp - sref_cycle_window;
+      sref_ref_pre_cycles += timestamp - sref_cycle_window;
     } else {
-        sref_ref_act_cycles_window += timestamp - sref_cycle_window;
-        sref_ref_act_cycles += timestamp - sref_cycle_window;
+      sref_ref_act_cycles_window += timestamp - sref_cycle_window;
+      sref_ref_act_cycles += timestamp - sref_cycle_window;
     }
   }
 }
