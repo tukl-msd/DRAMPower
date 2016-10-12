@@ -31,7 +31,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Matthias Jung, Omar Naji
+ * Authors: Matthias Jung, Omar Naji, Felipe S. Prado
  *
  */
 
@@ -42,7 +42,8 @@ using namespace Data;
 libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination) :
   memSpec(memSpec),
   counters(CommandAnalysis(memSpec.memArchSpec.nbrOfBanks)),
-  includeIoAndTermination(includeIoAndTermination)
+  includeIoAndTermination(includeIoAndTermination),
+  mpm(MemoryPowerModel())
 {
 }
 
@@ -56,16 +57,26 @@ void libDRAMPower::doCommand(MemCommand::cmds type, int bank, int64_t timestamp)
   cmdList.push_back(cmd);
 }
 
-void libDRAMPower::updateCounters(bool lastUpdate)
+void libDRAMPower::updateCounters(bool lastUpdate, int64_t timestamp)
 {
-  counters.getCommands(memSpec, cmdList, lastUpdate);
+  counters.getCommands(memSpec, cmdList, lastUpdate, timestamp);
   cmdList.clear();
 }
 
 void libDRAMPower::calcEnergy()
 {
+  updateCounters(true);
   mpm.power_calc(memSpec, counters, includeIoAndTermination);
 }
+
+void libDRAMPower::calcWindowEnergy(int64_t timestamp)
+{
+  doCommand(MemCommand::NOP, 0, timestamp);
+  updateCounters(false, timestamp);
+  mpm.power_calc(memSpec, counters, includeIoAndTermination);
+  clearCounters(timestamp);
+}
+
 
 void libDRAMPower::clearState()
 {
