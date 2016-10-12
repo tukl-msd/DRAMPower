@@ -78,6 +78,12 @@ unsigned CommandAnalysis::get_num_active_banks(void)
   return (unsigned)std::count(bank_state.begin(), bank_state.end(), BANK_ACTIVE);
 }
 
+// Naming-standard compliant wrapper
+unsigned CommandAnalysis::nActiveBanks(void)
+{
+  return CommandAnalysis::get_num_active_banks();
+}
+
 void CommandAnalysis::printWarningIfActive(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
   if (get_num_active_banks() != 0) {

@@ -195,6 +195,23 @@ class CommandAnalysis {
   // To perform timing analysis of a given set of commands and update command counters
   void evaluateCommands(std::vector<MemCommand>& cmd_list);
 
+  // Handlers for commands that are getting processed
+  void handleAct(    unsigned bank, int64_t timestamp);
+  void handleRd(     unsigned bank, int64_t timestamp);
+  void handleWr(     unsigned bank, int64_t timestamp);
+  void handleRef(    unsigned bank, int64_t timestamp);
+  void handlePre(    unsigned bank, int64_t timestamp);
+  void handlePreA(   unsigned bank, int64_t timestamp);
+  void handlePdnFAct(unsigned bank, int64_t timestamp);
+  void handlePdnSAct(unsigned bank, int64_t timestamp);
+  void handlePdnFPre(unsigned bank, int64_t timestamp);
+  void handlePdnSPre(unsigned bank, int64_t timestamp);
+  void handlePupAct( int64_t timestamp);
+  void handlePupPre( int64_t timestamp);
+  void handleSREn(   unsigned bank, int64_t timestamp);
+  void handleSREx(   unsigned bank, int64_t timestamp);
+  void handleNopEnd( int64_t timestamp);
+
   // To calculate time of completion of any issued command
   int64_t timeToCompletion(MemCommand::cmds           type);
 
@@ -210,6 +227,7 @@ class CommandAnalysis {
 
   // Returns the number of active banks according to the bank_state vector.
   unsigned get_num_active_banks(void);
+  unsigned nActiveBanks(void);
 
   void printWarningIfActive(const std::string& warning, int type, int64_t timestamp, unsigned bank);
   void printWarningIfNotActive(const std::string& warning, int type, int64_t timestamp, unsigned bank);

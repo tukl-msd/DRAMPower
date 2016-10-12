@@ -46,6 +46,7 @@ CLISOURCES := src/TraceParser.cc src/CmdScheduler.cc $(wildcard src/cli/*.cc)
 LIBSOURCES := $(wildcard src/libdrampower/*.cc) \
 			  src/CommandAnalysis.cc \
 			  src/CAHelpers.cc \
+			  src/CmdHandlers.cc \
 			  src/MemArchitectureSpec.cc\
 			  src/MemCommand.cc\
 			  src/MemoryPowerModel.cc\
