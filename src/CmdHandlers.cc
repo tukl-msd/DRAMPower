@@ -77,8 +77,7 @@ void CommandAnalysis::handleRd(unsigned bank, int64_t timestamp)
     printWarning("Bank is not active!", MemCommand::RD, timestamp, bank);
   }
   numberofreads++;
-  idle_act_update(latest_read_cycle, latest_write_cycle,
-                  latest_act_cycle, timestamp);
+  idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
   latest_read_cycle = timestamp;
 }
 
@@ -91,8 +90,7 @@ void CommandAnalysis::handleWr(unsigned bank, int64_t timestamp)
     printWarning("Bank is not active!", MemCommand::WR, timestamp, bank);
   }
   numberofwrites++;
-  idle_act_update(latest_read_cycle, latest_write_cycle,
-                  latest_act_cycle, timestamp);
+  idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
   latest_write_cycle = timestamp;
 }
 
@@ -109,8 +107,7 @@ void CommandAnalysis::handleRef(unsigned bank, int64_t timestamp)
   idle_pre_update(timestamp, latest_pre_cycle);
   first_act_cycle  = timestamp;
   precycles       += max(zero, timestamp - last_pre_cycle);
-  last_pre_cycle   = timestamp + memSpec.memTimingSpec.RFC -
-                     memSpec.memTimingSpec.RP;
+  last_pre_cycle   = timestamp + memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
   latest_pre_cycle = last_pre_cycle;
   actcycles       += memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
   for (auto& bs : bank_state) {
@@ -141,8 +138,7 @@ void CommandAnalysis::handlePre(unsigned bank, int64_t timestamp)
       // counter.
       actcycles += max(zero, timestamp - first_act_cycle);
       last_pre_cycle = timestamp;
-      idle_act_update(latest_read_cycle, latest_write_cycle,
-                      latest_act_cycle, timestamp);
+      idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
     }
 
     bank_state[bank] = BANK_PRECHARGED;
@@ -172,8 +168,7 @@ void CommandAnalysis::handlePreA(unsigned bank, int64_t timestamp)
 
     actcycles += max(zero, timestamp - first_act_cycle);
     last_pre_cycle = timestamp;
-    idle_act_update(latest_read_cycle, latest_write_cycle,
-                    latest_act_cycle, timestamp);
+    idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
 
     latest_pre_cycle = timestamp;
     // Reset the state for all banks to precharged.
@@ -197,8 +192,7 @@ void CommandAnalysis::handlePdnFAct(unsigned bank, int64_t timestamp)
   last_bank_state = bank_state;
   pdn_cycle  = timestamp;
   actcycles += max(zero, timestamp - first_act_cycle);
-  idle_act_update(latest_read_cycle, latest_write_cycle,
-                  latest_act_cycle, timestamp);
+  idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
   mem_state  = CommandAnalysis::MS_PDN_F_ACT;
 }
 
@@ -214,8 +208,7 @@ void CommandAnalysis::handlePdnSAct(unsigned bank, int64_t timestamp)
   last_bank_state = bank_state;
   pdn_cycle  = timestamp;
   actcycles += max(zero, timestamp - first_act_cycle);
-  idle_act_update(latest_read_cycle, latest_write_cycle,
-                  latest_act_cycle, timestamp);
+  idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
   mem_state  = CommandAnalysis::MS_PDN_S_ACT;
 }
 
@@ -259,20 +252,15 @@ void CommandAnalysis::handlePupAct(int64_t timestamp)
   if (mem_state == CommandAnalysis::MS_PDN_F_ACT) {
     f_act_pdcycles  += max(zero, timestamp - pdn_cycle);
     pup_act_cycles  += t.XP;
-    latest_act_cycle = max(timestamp, timestamp +
-                           t.XP - t.RCD);
+    latest_act_cycle = max(timestamp, timestamp + t.XP - t.RCD);
   } else if (mem_state == CommandAnalysis::MS_PDN_S_ACT) {
     s_act_pdcycles += max(zero, timestamp - pdn_cycle);
     if (memSpec.memArchSpec.dll == false) {
       pup_act_cycles  += t.XP;
-      latest_act_cycle = max(timestamp, timestamp +
-                             t.XP - t.RCD);
+      latest_act_cycle = max(timestamp, timestamp + t.XP - t.RCD);
     } else {
-      pup_act_cycles  += t.XPDLL -
-                         t.RCD;
-      latest_act_cycle = max(timestamp, timestamp +
-                             t.XPDLL -
-                             (2 * t.RCD));
+      pup_act_cycles  += t.XPDLL - t.RCD;
+      latest_act_cycle = max(timestamp, timestamp + t.XPDLL - (2 * t.RCD));
     }
   } else {
     cerr << "Incorrect use of Active Power-Up!" << endl;
@@ -291,20 +279,15 @@ void CommandAnalysis::handlePupPre(int64_t timestamp)
   if (mem_state == CommandAnalysis::MS_PDN_F_PRE) {
     f_pre_pdcycles  += max(zero, timestamp - pdn_cycle);
     pup_pre_cycles  += t.XP;
-    latest_pre_cycle = max(timestamp, timestamp +
-                           t.XP - t.RP);
+    latest_pre_cycle = max(timestamp, timestamp + t.XP - t.RP);
   } else if (mem_state == CommandAnalysis::MS_PDN_S_PRE) {
     s_pre_pdcycles += max(zero, timestamp - pdn_cycle);
     if (memSpec.memArchSpec.dll == false) {
       pup_pre_cycles  += t.XP;
-      latest_pre_cycle = max(timestamp, timestamp +
-                             t.XP - t.RP);
+      latest_pre_cycle = max(timestamp, timestamp + t.XP - t.RP);
     } else {
-      pup_pre_cycles  += t.XPDLL -
-                         t.RCD;
-      latest_pre_cycle = max(timestamp, timestamp +
-                             t.XPDLL - t.RCD -
-                             t.RP);
+      pup_pre_cycles  += t.XPDLL - t.RCD;
+      latest_pre_cycle = max(timestamp, timestamp + t.XPDLL - t.RCD - t.RP);
     }
   } else {
     cerr << "Incorrect use of Precharged Power-Up!" << endl;
@@ -400,23 +383,18 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
     // self-refresh mode, which excludes the time spent in finishing the
     // initial auto-refresh.
     if (sref_cycle_window > sref_cycle + t.RFC) {
-        sref_cycles_idd6         += max(zero, timestamp - sref_cycle_window);
+        sref_cycles_idd6 += max(zero, timestamp - sref_cycle_window);
     } else {
-        sref_cycles_idd6         += max(zero, timestamp - sref_cycle
-                               - t.RFC);
+        sref_cycles_idd6 += max(zero, timestamp - sref_cycle - t.RFC);
     }
 
     // IDD2N current is consumed when exiting the self-refresh state.
     if (memSpec.memArchSpec.dll == false) {
       spup_cycles     += t.XS;
-      latest_pre_cycle = max(timestamp, timestamp +
-                             t.XS - t.RP);
+      latest_pre_cycle = max(timestamp, timestamp + t.XS - t.RP);
     } else {
-      spup_cycles     += t.XSDLL -
-                         t.RCD;
-      latest_pre_cycle = max(timestamp, timestamp +
-                             t.XSDLL - t.RCD
-                             - t.RP);
+      spup_cycles     += t.XSDLL - t.RCD;
+      latest_pre_cycle = max(timestamp, timestamp + t.XSDLL - t.RCD  - t.RP);
     }
 
   } else {
@@ -425,8 +403,7 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
     // auto-refresh.
 
     // Number of active cycles needed by an auto-refresh.
-    int64_t ref_act_cycles = t.RFC -
-                             t.RP;
+    int64_t ref_act_cycles = t.RFC - t.RP;
 
     if (sref_duration >= ref_act_cycles) {
       /*
@@ -477,15 +454,10 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
 
       if (memSpec.memArchSpec.dll == false) {
         spup_cycles     += t.XS - spup_pre;
-        latest_pre_cycle = max(timestamp, timestamp +
-                               t.XS - spup_pre -
-                               t.RP);
+        latest_pre_cycle = max(timestamp, timestamp + t.XS - spup_pre - t.RP);
       } else {
-        spup_cycles     += t.XSDLL -
-                           t.RCD - spup_pre;
-        latest_pre_cycle = max(timestamp, timestamp +
-                               t.XSDLL - t.RCD -
-                               spup_pre - t.RP);
+        spup_cycles     += t.XSDLL - t.RCD - spup_pre;
+        latest_pre_cycle = max(timestamp, timestamp + t.XSDLL - t.RCD - spup_pre - t.RP);
       }
     } else {
       /*
@@ -522,26 +494,18 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
 
       sref_ref_act_cycles += sref_duration - sref_ref_act_cycles_window;
 
-      int64_t spup_act = (t.RFC -
-                          t.RP) - sref_duration;
+      int64_t spup_act = (t.RFC - t.RP) - sref_duration;
 
       spup_ref_act_cycles += spup_act;
       spup_ref_pre_cycles += t.RP;
 
       last_pre_cycle       = timestamp + spup_act + t.RP;
       if (memSpec.memArchSpec.dll == false) {
-        spup_cycles     += t.XS - spup_act -
-                           t.RP;
-        latest_pre_cycle = max(timestamp, timestamp +
-                               t.XS - spup_act -
-                               (2 * t.RP));
+        spup_cycles     += t.XS - spup_act - t.RP;
+        latest_pre_cycle = max(timestamp, timestamp + t.XS - spup_act - (2 * t.RP));
       } else {
-        spup_cycles     += t.XSDLL -
-                           t.RCD - spup_act -
-                           t.RP;
-        latest_pre_cycle = max(timestamp, timestamp +
-                               t.XSDLL - t.RCD -
-                               spup_act - (2 * t.RP));
+        spup_cycles     += t.XSDLL - t.RCD - spup_act - t.RP;
+        latest_pre_cycle = max(timestamp, timestamp + t.XSDLL - t.RCD - spup_act - (2 * t.RP));
       }
     }
   }
