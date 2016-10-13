@@ -272,7 +272,7 @@ void CommandAnalysis::handlePupAct(int64_t timestamp)
                              memSpec.memTimingSpec.XPDLL -
                              (2 * memSpec.memTimingSpec.RCD));
     }
-  } else if (mem_state != CommandAnalysis::MS_PDN_S_ACT || mem_state != CommandAnalysis::MS_PDN_F_ACT) {
+  } else {
     cerr << "Incorrect use of Active Power-Up!" << endl;
   }
   mem_state = 0;
@@ -303,7 +303,7 @@ void CommandAnalysis::handlePupPre(int64_t timestamp)
                              memSpec.memTimingSpec.XPDLL - memSpec.memTimingSpec.RCD -
                              memSpec.memTimingSpec.RP);
     }
-  } else if (mem_state != CommandAnalysis::MS_PDN_S_PRE || mem_state != CommandAnalysis::MS_PDN_F_PRE) {
+  } else {
     cerr << "Incorrect use of Precharged Power-Up!" << endl;
   }
   mem_state      = 0;
