@@ -254,23 +254,25 @@ void CommandAnalysis::handlePupAct(int64_t timestamp)
   // and power-up cycles and the latest and first act cycle. Also, reset
   // all the individual bank states to the respective saved states
   // before entering power-down.
+  const MemTimingSpec& t = memSpec.memTimingSpec;
+
   if (mem_state == CommandAnalysis::MS_PDN_F_ACT) {
     f_act_pdcycles  += max(zero, timestamp - pdn_cycle);
-    pup_act_cycles  += memSpec.memTimingSpec.XP;
+    pup_act_cycles  += t.XP;
     latest_act_cycle = max(timestamp, timestamp +
-                           memSpec.memTimingSpec.XP - memSpec.memTimingSpec.RCD);
+                           t.XP - t.RCD);
   } else if (mem_state == CommandAnalysis::MS_PDN_S_ACT) {
     s_act_pdcycles += max(zero, timestamp - pdn_cycle);
     if (memSpec.memArchSpec.dll == false) {
-      pup_act_cycles  += memSpec.memTimingSpec.XP;
+      pup_act_cycles  += t.XP;
       latest_act_cycle = max(timestamp, timestamp +
-                             memSpec.memTimingSpec.XP - memSpec.memTimingSpec.RCD);
+                             t.XP - t.RCD);
     } else {
-      pup_act_cycles  += memSpec.memTimingSpec.XPDLL -
-                         memSpec.memTimingSpec.RCD;
+      pup_act_cycles  += t.XPDLL -
+                         t.RCD;
       latest_act_cycle = max(timestamp, timestamp +
-                             memSpec.memTimingSpec.XPDLL -
-                             (2 * memSpec.memTimingSpec.RCD));
+                             t.XPDLL -
+                             (2 * t.RCD));
     }
   } else {
     cerr << "Incorrect use of Active Power-Up!" << endl;
@@ -285,23 +287,24 @@ void CommandAnalysis::handlePupPre(int64_t timestamp)
   // If command is power-up in the precharged mode - check the power-down
   // exit-mode employed (fast or slow), update the number of power-down
   // and power-up cycles and the latest and last pre cycle.
+  const MemTimingSpec& t = memSpec.memTimingSpec;
   if (mem_state == CommandAnalysis::MS_PDN_F_PRE) {
     f_pre_pdcycles  += max(zero, timestamp - pdn_cycle);
-    pup_pre_cycles  += memSpec.memTimingSpec.XP;
+    pup_pre_cycles  += t.XP;
     latest_pre_cycle = max(timestamp, timestamp +
-                           memSpec.memTimingSpec.XP - memSpec.memTimingSpec.RP);
+                           t.XP - t.RP);
   } else if (mem_state == CommandAnalysis::MS_PDN_S_PRE) {
     s_pre_pdcycles += max(zero, timestamp - pdn_cycle);
     if (memSpec.memArchSpec.dll == false) {
-      pup_pre_cycles  += memSpec.memTimingSpec.XP;
+      pup_pre_cycles  += t.XP;
       latest_pre_cycle = max(timestamp, timestamp +
-                             memSpec.memTimingSpec.XP - memSpec.memTimingSpec.RP);
+                             t.XP - t.RP);
     } else {
-      pup_pre_cycles  += memSpec.memTimingSpec.XPDLL -
-                         memSpec.memTimingSpec.RCD;
+      pup_pre_cycles  += t.XPDLL -
+                         t.RCD;
       latest_pre_cycle = max(timestamp, timestamp +
-                             memSpec.memTimingSpec.XPDLL - memSpec.memTimingSpec.RCD -
-                             memSpec.memTimingSpec.RP);
+                             t.XPDLL - t.RCD -
+                             t.RP);
     }
   } else {
     cerr << "Incorrect use of Precharged Power-Up!" << endl;
@@ -334,6 +337,7 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
   // of cycles in the self-refresh mode and auto-refresh duration (RFC).
   // Set the last and latest precharge cycle accordingly and set the
   // memory state to 0.
+  const MemTimingSpec& t = memSpec.memTimingSpec;
   if (mem_state != CommandAnalysis::MS_SREF) {
     cerr << "Incorrect use of Self-Refresh Power-Up!" << endl;
   }
@@ -348,11 +352,11 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
   }
 
   // The minimum time that the DRAM must remain in Self-Refresh is CKESR.
-  if (sref_duration < memSpec.memTimingSpec.CKESR) {
+  if (sref_duration < t.CKESR) {
     printWarning("Self-Refresh duration < CKESR!", MemCommand::SREX, timestamp, bank);
   }
 
-  if (sref_duration >= memSpec.memTimingSpec.RFC) {
+  if (sref_duration >= t.RFC) {
     /*
      * Self-refresh Exit Context 1 (tSREF >= tRFC):
      * The memory remained in self-refresh for a certain number of clock
@@ -387,32 +391,32 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
 
     // The initial auto-refresh consumes (IDD5 − IDD3N) over one refresh
     // period (RFC) from the start of the self-refresh.
-    sref_ref_act_cycles += memSpec.memTimingSpec.RFC -
-                           memSpec.memTimingSpec.RP - sref_ref_act_cycles_window;
-    sref_ref_pre_cycles += memSpec.memTimingSpec.RP - sref_ref_pre_cycles_window;
+    sref_ref_act_cycles += t.RFC -
+                           t.RP - sref_ref_act_cycles_window;
+    sref_ref_pre_cycles += t.RP - sref_ref_pre_cycles_window;
     last_pre_cycle       = timestamp;
 
     // The IDD6 current is consumed for the time period spent in the
     // self-refresh mode, which excludes the time spent in finishing the
     // initial auto-refresh.
-    if (sref_cycle_window > sref_cycle + memSpec.memTimingSpec.RFC) {
+    if (sref_cycle_window > sref_cycle + t.RFC) {
         sref_cycles_idd6         += max(zero, timestamp - sref_cycle_window);
     } else {
         sref_cycles_idd6         += max(zero, timestamp - sref_cycle
-                               - memSpec.memTimingSpec.RFC);
+                               - t.RFC);
     }
 
     // IDD2N current is consumed when exiting the self-refresh state.
     if (memSpec.memArchSpec.dll == false) {
-      spup_cycles     += memSpec.memTimingSpec.XS;
+      spup_cycles     += t.XS;
       latest_pre_cycle = max(timestamp, timestamp +
-                             memSpec.memTimingSpec.XS - memSpec.memTimingSpec.RP);
+                             t.XS - t.RP);
     } else {
-      spup_cycles     += memSpec.memTimingSpec.XSDLL -
-                         memSpec.memTimingSpec.RCD;
+      spup_cycles     += t.XSDLL -
+                         t.RCD;
       latest_pre_cycle = max(timestamp, timestamp +
-                             memSpec.memTimingSpec.XSDLL - memSpec.memTimingSpec.RCD
-                             - memSpec.memTimingSpec.RP);
+                             t.XSDLL - t.RCD
+                             - t.RP);
     }
 
   } else {
@@ -421,8 +425,8 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
     // auto-refresh.
 
     // Number of active cycles needed by an auto-refresh.
-    int64_t ref_act_cycles = memSpec.memTimingSpec.RFC -
-                             memSpec.memTimingSpec.RP;
+    int64_t ref_act_cycles = t.RFC -
+                             t.RP;
 
     if (sref_duration >= ref_act_cycles) {
       /*
@@ -465,23 +469,23 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
 
       // Number of precharged cycles during the self-refresh power-up. It
       // is at maximum tRP (if pre_cycles is zero).
-      int64_t spup_pre = memSpec.memTimingSpec.RP - pre_cycles;
+      int64_t spup_pre = t.RP - pre_cycles;
 
       spup_ref_pre_cycles += spup_pre;
 
       last_pre_cycle       = timestamp + spup_pre;
 
       if (memSpec.memArchSpec.dll == false) {
-        spup_cycles     += memSpec.memTimingSpec.XS - spup_pre;
+        spup_cycles     += t.XS - spup_pre;
         latest_pre_cycle = max(timestamp, timestamp +
-                               memSpec.memTimingSpec.XS - spup_pre -
-                               memSpec.memTimingSpec.RP);
+                               t.XS - spup_pre -
+                               t.RP);
       } else {
-        spup_cycles     += memSpec.memTimingSpec.XSDLL -
-                           memSpec.memTimingSpec.RCD - spup_pre;
+        spup_cycles     += t.XSDLL -
+                           t.RCD - spup_pre;
         latest_pre_cycle = max(timestamp, timestamp +
-                               memSpec.memTimingSpec.XSDLL - memSpec.memTimingSpec.RCD -
-                               spup_pre - memSpec.memTimingSpec.RP);
+                               t.XSDLL - t.RCD -
+                               spup_pre - t.RP);
       }
     } else {
       /*
@@ -518,26 +522,26 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
 
       sref_ref_act_cycles += sref_duration - sref_ref_act_cycles_window;
 
-      int64_t spup_act = (memSpec.memTimingSpec.RFC -
-                          memSpec.memTimingSpec.RP) - sref_duration;
+      int64_t spup_act = (t.RFC -
+                          t.RP) - sref_duration;
 
       spup_ref_act_cycles += spup_act;
-      spup_ref_pre_cycles += memSpec.memTimingSpec.RP;
+      spup_ref_pre_cycles += t.RP;
 
-      last_pre_cycle       = timestamp + spup_act + memSpec.memTimingSpec.RP;
+      last_pre_cycle       = timestamp + spup_act + t.RP;
       if (memSpec.memArchSpec.dll == false) {
-        spup_cycles     += memSpec.memTimingSpec.XS - spup_act -
-                           memSpec.memTimingSpec.RP;
+        spup_cycles     += t.XS - spup_act -
+                           t.RP;
         latest_pre_cycle = max(timestamp, timestamp +
-                               memSpec.memTimingSpec.XS - spup_act -
-                               (2 * memSpec.memTimingSpec.RP));
+                               t.XS - spup_act -
+                               (2 * t.RP));
       } else {
-        spup_cycles     += memSpec.memTimingSpec.XSDLL -
-                           memSpec.memTimingSpec.RCD - spup_act -
-                           memSpec.memTimingSpec.RP;
+        spup_cycles     += t.XSDLL -
+                           t.RCD - spup_act -
+                           t.RP;
         latest_pre_cycle = max(timestamp, timestamp +
-                               memSpec.memTimingSpec.XSDLL - memSpec.memTimingSpec.RCD -
-                               spup_act - (2 * memSpec.memTimingSpec.RP));
+                               t.XSDLL - t.RCD -
+                               spup_act - (2 * t.RP));
       }
     }
   }
@@ -549,6 +553,8 @@ void CommandAnalysis::handleNopEnd(int64_t timestamp)
 {
   // May be optionally used at the end of memory trace for better accuracy
   // Update all counters based on completion of operations.
+  const MemTimingSpec& t = memSpec.memTimingSpec;
+
   if (nActiveBanks() > 0 && mem_state == MS_NOT_IN_PD) {
     actcycles += max(zero, timestamp - first_act_cycle);
     idle_act_update(latest_read_cycle, latest_write_cycle,
@@ -565,18 +571,18 @@ void CommandAnalysis::handleNopEnd(int64_t timestamp)
   } else if (mem_state == CommandAnalysis::MS_PDN_S_PRE) {
     s_pre_pdcycles += max(zero, timestamp - pdn_cycle);
   } else if (mem_state == CommandAnalysis::MS_SREF) {
-    auto rfc_minus_rp = (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP);
+    auto rfc_minus_rp = (t.RFC - t.RP);
 
-    if (timestamp > sref_cycle + memSpec.memTimingSpec.RFC) {
+    if (timestamp > sref_cycle + t.RFC) {
       if (sref_cycle_window <= sref_cycle + rfc_minus_rp) {
         sref_ref_act_cycles += rfc_minus_rp - sref_ref_act_cycles_window;
         sref_ref_act_cycles_window = rfc_minus_rp;
         sref_cycle_window = sref_cycle + rfc_minus_rp;
       }
-      if (sref_cycle_window <= sref_cycle + memSpec.memTimingSpec.RFC) {
-        sref_ref_pre_cycles += memSpec.memTimingSpec.RP - sref_ref_pre_cycles_window;
-        sref_ref_pre_cycles_window = memSpec.memTimingSpec.RP;
-        sref_cycle_window = sref_cycle + memSpec.memTimingSpec.RFC;
+      if (sref_cycle_window <= sref_cycle + t.RFC) {
+        sref_ref_pre_cycles += t.RP - sref_ref_pre_cycles_window;
+        sref_ref_pre_cycles_window = t.RP;
+        sref_cycle_window = sref_cycle + t.RFC;
       }
       sref_cycles_idd6 += max(zero, timestamp - sref_cycle_window);
     } else if (timestamp > sref_cycle + rfc_minus_rp) {
