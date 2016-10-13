@@ -54,7 +54,7 @@ class CommandAnalysis {
  public:
   // Power-Down and Self-refresh related memory states
   enum memstate {
-    MS_PDN_F_ACT = 10, MS_PDN_S_ACT = 11, MS_PDN_F_PRE = 12,
+    MS_NOT_IN_PD = 0, MS_PDN_F_ACT = 10, MS_PDN_S_ACT = 11, MS_PDN_F_PRE = 12,
     MS_PDN_S_PRE = 13, MS_SREF = 14
   };
 

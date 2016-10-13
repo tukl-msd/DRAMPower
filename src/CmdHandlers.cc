@@ -275,7 +275,7 @@ void CommandAnalysis::handlePupAct(int64_t timestamp)
   } else {
     cerr << "Incorrect use of Active Power-Up!" << endl;
   }
-  mem_state = 0;
+  mem_state = MS_NOT_IN_PD;
   bank_state = last_bank_state;
   first_act_cycle = timestamp;
 }
@@ -306,7 +306,7 @@ void CommandAnalysis::handlePupPre(int64_t timestamp)
   } else {
     cerr << "Incorrect use of Precharged Power-Up!" << endl;
   }
-  mem_state      = 0;
+  mem_state      = MS_NOT_IN_PD;
   last_pre_cycle = timestamp;
 }
 
@@ -541,7 +541,7 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
       }
     }
   }
-  mem_state = 0;
+  mem_state = MS_NOT_IN_PD;
 }
 
 
@@ -549,11 +549,11 @@ void CommandAnalysis::handleNopEnd(int64_t timestamp)
 {
   // May be optionally used at the end of memory trace for better accuracy
   // Update all counters based on completion of operations.
-  if (nActiveBanks() > 0 && mem_state == 0) {
+  if (nActiveBanks() > 0 && mem_state == MS_NOT_IN_PD) {
     actcycles += max(zero, timestamp - first_act_cycle);
     idle_act_update(latest_read_cycle, latest_write_cycle,
                     latest_act_cycle, timestamp);
-  } else if (nActiveBanks() == 0 && mem_state == 0) {
+  } else if (nActiveBanks() == 0 && mem_state == MS_NOT_IN_PD) {
     precycles += max(zero, timestamp - last_pre_cycle);
     idle_pre_update(timestamp, latest_pre_cycle);
   } else if (mem_state == CommandAnalysis::MS_PDN_F_ACT) {
