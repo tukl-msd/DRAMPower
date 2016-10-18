@@ -262,12 +262,12 @@ void CommandAnalysis::handlePupAct(int64_t timestamp)
   if (mem_state == CommandAnalysis::MS_PDN_F_ACT) {
     f_act_pdcycles  += zero_guard(timestamp - pdn_cycle, "pdn_cycle is in the future.");
     pup_act_cycles  += t.XP;
-    latest_act_cycle = timestamp + zero_guard(t.XP - t.RCD, "t.XP - t.RCD < 0");
+    latest_act_cycle = timestamp;
   } else if (mem_state == CommandAnalysis::MS_PDN_S_ACT) {
     s_act_pdcycles += zero_guard(timestamp - pdn_cycle, "pdn_cycle is in the future.");
     if (memSpec.memArchSpec.dll == false) {
       pup_act_cycles  += t.XP;
-      latest_act_cycle = timestamp + zero_guard(t.XP - t.RCD, "t.XP - t.RCD < 0");
+      latest_act_cycle = timestamp;
     } else {
       pup_act_cycles  += t.XPDLL - t.RCD;
       latest_act_cycle = timestamp + zero_guard(t.XPDLL - (2 * t.RCD), "t.XPDLL - (2 * t.RCD) < 0");
@@ -289,12 +289,12 @@ void CommandAnalysis::handlePupPre(int64_t timestamp)
   if (mem_state == CommandAnalysis::MS_PDN_F_PRE) {
     f_pre_pdcycles  += zero_guard(timestamp - pdn_cycle, "pdn_cycle is in the future.");
     pup_pre_cycles  += t.XP;
-    latest_pre_cycle = timestamp + zero_guard(t.XP - t.RP, "t.XP - t.RCD < 0");
+    latest_pre_cycle = timestamp;
   } else if (mem_state == CommandAnalysis::MS_PDN_S_PRE) {
     s_pre_pdcycles += zero_guard(timestamp - pdn_cycle, "pdn_cycle is in the future.");
     if (memSpec.memArchSpec.dll == false) {
       pup_pre_cycles  += t.XP;
-      latest_pre_cycle = timestamp + zero_guard(t.XP - t.RP, "t.XP - t.RCD < 0");
+      latest_pre_cycle = timestamp;
     } else {
       pup_pre_cycles  += t.XPDLL - t.RCD;
       latest_pre_cycle = timestamp + zero_guard(t.XPDLL - t.RCD - t.RP, "t.XPDLL - t.RCD - t.RP");
