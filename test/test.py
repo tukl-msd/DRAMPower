@@ -169,7 +169,7 @@ class TestLibDRAMPower(TestUsingBuildResult):
         self.assertListEqual(new, ref)
 
     def test_window_example(self):
-        """ libdrampower-based window example output should match drampower output for LPDDR2-1066 with the window command trace """
+        """ libdrampower-based window example output should match drampower output for DDR2-1066 with the window command trace """
         self.buildLibDRAMPowerExecutables()
         with open(self.tempFileName, 'w') as f:
             self.assertEqual(subprocess.call(['./drampower', '-m',  'memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml', '-c', TestLibDRAMPower.testPath + '/window.trace'], stdout=f), 0)

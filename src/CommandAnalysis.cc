@@ -97,7 +97,7 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   s_pre_pdcycles      = 0;
   pup_act_cycles      = 0;
   pup_pre_cycles      = 0;
-  sref_cycles_idd6    = 0;
+  sref_cycles         = 0;
   spup_cycles         = 0;
   sref_ref_act_cycles = 0;
   sref_ref_pre_cycles = 0;
@@ -531,7 +531,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
          *
          *
          * Summary:
-         * sref_cycles_idd6 += tSREF – tRFC
+         * sref_cycles += tSREF – tRFC
          * sref_ref_act_cycles += tRFC - tRP
          * sref_ref_pre_cycles += tRP
          * spup_ref_act_cycles += 0
@@ -550,9 +550,9 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
         // self-refresh mode, which excludes the time spent in finishing the
         // initial auto-refresh.
         if (sref_cycle_window > sref_cycle + memSpec.memTimingSpec.RFC) {
-            sref_cycles_idd6         += max(zero, timestamp - sref_cycle_window);
+            sref_cycles         += max(zero, timestamp - sref_cycle_window);
         } else {
-            sref_cycles_idd6         += max(zero, timestamp - sref_cycle
+            sref_cycles         += max(zero, timestamp - sref_cycle
                                    - memSpec.memTimingSpec.RFC);
         }
 
@@ -603,7 +603,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
            *
            *
            * Summary:
-           * sref_cycles_idd6 += 0
+           * sref_cycles += 0
            * sref_ref_act_cycles += tRFC - tRP
            * sref_ref_pre_cycles += tSREF – (tRFC – tRP)
            * spup_ref_act_cycles += 0
@@ -662,7 +662,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
            *
            *
            * Summary:
-           * sref_cycles_idd6 += 0
+           * sref_cycles += 0
            * sref_ref_act_cycles += tSREF
            * sref_ref_pre_cycles += 0
            * spup_ref_act_cycles += (tRFC – tRP) - tSREF
@@ -726,7 +726,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
                 sref_ref_pre_cycles_window = memSpec.memTimingSpec.RP;
                 sref_cycle_window = sref_cycle + memSpec.memTimingSpec.RFC;
             }
-            sref_cycles_idd6 += max(zero, timestamp - sref_cycle_window);
+            sref_cycles += max(zero, timestamp - sref_cycle_window);
         } else if (timestamp > sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP)) {
             if(sref_cycle_window <= sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP)) {
                 sref_ref_act_cycles += (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP) - sref_ref_act_cycles_window;
