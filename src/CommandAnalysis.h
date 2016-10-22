@@ -31,7 +31,12 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Subash Kannoth, Eder Zulian
+ * Authors: Karthik Chandrasekar
+ *          Matthias Jung
+ *          Omar Naji
+ *          Subash Kannoth
+ *          Éder F. Zulian
+ *          Felipe S. Prado
  *
  */
 
@@ -113,9 +118,12 @@ class CommandAnalysis {
   // Number of active cycles for the initial auto-refresh when entering
   // self-refresh mode.
   int64_t sref_ref_act_cycles;
-  // Number of precharged cycles for the initial auto-refresh when entering
-  // self-refresh mode.
+  // Number of active auto-refresh cycles in self-refresh mode already used to calculate the energy of the previous windows
+  int64_t sref_ref_act_cycles_window;
+  // Number of precharged auto-refresh cycles in self-refresh mode
   int64_t sref_ref_pre_cycles;
+  // Number of precharged auto-refresh cycles in self-refresh mode already used to calculate the energy of the previous window
+  int64_t sref_ref_pre_cycles_window;
   // Number of active auto-refresh cycles during self-refresh exit
   int64_t spup_ref_act_cycles;
   // Number of precharged auto-refresh cycles during self-refresh exit
@@ -130,7 +138,8 @@ class CommandAnalysis {
   // To identify auto-precharges
   void getCommands(const MemorySpecification& memSpec,
                    std::vector<MemCommand>&   list,
-                   bool                       lastupdate);
+                   bool                       lastupdate,
+                   int64_t timestamp = 0);
 
  private:
   // Possible bank states are precharged or active
@@ -145,6 +154,9 @@ class CommandAnalysis {
 
   // Stores the memory commands for analysis
   std::vector<MemCommand> cmd_list;
+
+  //Stores the memory commands for the next window
+  std::vector<MemCommand> next_window_cmd_list;
 
   // To save states of the different banks, before entering active
   // power-down mode (slow/fast-exit).
@@ -171,6 +183,9 @@ class CommandAnalysis {
 
   // Clock cycle when self-refresh was issued
   int64_t sref_cycle;
+
+  // Latest Self-Refresh clock cycle used to calculate the energy of the previous window
+  int64_t sref_cycle_window;
 
   // Clock cycle when the latest power-down was issued
   int64_t pdn_cycle;

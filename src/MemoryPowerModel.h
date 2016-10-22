@@ -31,7 +31,12 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Subash Kannoth, Eder Zulian
+ * Authors: Karthik Chandrasekar
+ *          Matthias Jung
+ *          Omar Naji
+ *          Subash Kannoth
+ *          Éder F. Zulian
+ *          Felipe S. Prado
  *
  */
 
@@ -46,6 +51,9 @@
 namespace Data {
 class MemoryPowerModel {
  public:
+
+  MemoryPowerModel();
+
   // Calculate energy and average power consumption for the given memory
   // command trace
   void power_calc(const MemorySpecification& memSpec,
@@ -80,6 +88,8 @@ class MemoryPowerModel {
                                 int64_t nbrofBanks);
 
   int64_t total_cycles;
+
+  int64_t window_cycles;
 
   struct Energy {
     // Total energy of all activates
@@ -124,6 +134,9 @@ class MemoryPowerModel {
     // Total trace/pattern energy
     double total_energy;
     std::vector<double> total_energy_banks;
+
+    // Window energy
+    double window_energy;
 
     // Average Power
     double average_power;
@@ -194,6 +207,9 @@ class MemoryPowerModel {
 
     // Average Power
     double average_power;
+
+    // Window Average Power
+    double window_average_power;
   };
 
   // Print the power and energy

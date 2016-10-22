@@ -31,7 +31,11 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Matthias Jung, Omar Naji, Subash Kannoth, Eder Zulian, Matthias Jung
+ * Authors: Matthias Jung
+ *          Omar Naji
+ *          Subash Kannoth
+ *          Éder F. Zulian
+ *          Felipe S. Prado
  *
  */
 
@@ -57,13 +61,9 @@ class libDRAMPower {
                  int                    bank,
                  int64_t                timestamp);
 
-  void updateCounters(bool lastUpdate);
-
-  void clearCounters(int64_t timestamp);
-
-  void clearState();
-
   void calcEnergy();
+
+  void calcWindowEnergy(int64_t timestamp);
 
   const Data::MemoryPowerModel::Energy& getEnergy() const;
   const Data::MemoryPowerModel::Power& getPower() const;
@@ -71,6 +71,12 @@ class libDRAMPower {
   // list of all commands
   std::vector<Data::MemCommand> cmdList;
  private:
+  void updateCounters(bool lastUpdate, int64_t timestamp = 0);
+
+  void clearCounters(int64_t timestamp);
+
+  void clearState();
+
   Data::MemorySpecification memSpec;
  public:
   Data::CommandAnalysis counters;

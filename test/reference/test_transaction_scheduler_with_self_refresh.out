@@ -1,5 +1,5 @@
 * Parsing memspecs/MICRON_4Gb_LPDDR3-1333_32bit_A.xml
-* Analysis start time: Mon Sep 26 16:33:03 2016
+* Analysis start time: Tue Sep 13 16:51:43 2016
 * Analyzing the input trace
 * Trace Details:
 
@@ -67,5 +67,6 @@ Self-Refresh Energy: 1901894904.16 pJ
 Total Trace Energy: 3217402424.11 pJ
 Average Power: 55.41 mW
 ----------------------------------------
-* Power Computation End time: Mon Sep 26 16:33:04 2016
-* Total Simulation time: 0.899619 seconds
+* Power Computation End time: Tue Sep 13 16:51:50 2016
+* Total Simulation time: 7.42 seconds
+

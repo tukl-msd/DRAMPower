@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     return error();
   }
 
-  MemoryPowerModel mpm;
+  MemoryPowerModel mpm = MemoryPowerModel();
 
   time_t start   = time(0);
   tm*    starttm = localtime(&start);

@@ -37,6 +37,7 @@
  *          Sven Goossens,
  *          Éder F. Zulian
  *          Subash Kannoth
+ *          Felipe S. Prado
  *
  */
 
@@ -121,25 +122,31 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   // to start of next stats generation
   std::fill(first_act_cycle_banks.begin(), first_act_cycle_banks.end(), timestamp);
   first_act_cycle     = timestamp;
-  last_pre_cycle      = timestamp;
+
   pdn_cycle           = timestamp;
-  sref_cycle          = timestamp;
+  sref_cycle_window   = timestamp;
+
   end_act_op          = timestamp;
   end_read_op         = timestamp;
   end_write_op        = timestamp;
 
-  latest_act_cycle    = -1;
   latest_read_cycle   = -1;
   latest_write_cycle  = -1;
 
   if (timestamp == 0) {
-    // set to -1 at beginning of simulation
-    latest_pre_cycle    = -1;
+    latest_pre_cycle = -1;
+    latest_act_cycle = -1;
+    sref_cycle = 0;
+    last_pre_cycle = 0;
+    sref_ref_act_cycles_window = 0;
+    sref_ref_pre_cycles_window = 0;
   } else {
-    // NOTE: reference is adjusted by tRP (PRE delay) when updating counter
-    // could remove tRP to ensure counter starts at beginning of next block;
-    // currently simply setting to timestamp for simplicity
-    latest_pre_cycle    = timestamp;
+    last_pre_cycle = max(timestamp,last_pre_cycle);
+
+    latest_pre_cycle = max(timestamp, latest_pre_cycle);
+
+    if (latest_act_cycle < timestamp)
+        latest_act_cycle = -1;
   }
 }
 
@@ -158,8 +165,12 @@ void CommandAnalysis::clear()
 // issued command timestamp, when the auto-precharge would kick in
 
 void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
-                                  std::vector<MemCommand>& list, bool lastupdate)
+                                  std::vector<MemCommand>& list, bool lastupdate, int64_t timestamp)
 {
+  if (!next_window_cmd_list.empty()) {
+    list.insert(list.begin(), next_window_cmd_list.begin(), next_window_cmd_list.end());
+    next_window_cmd_list.clear();
+  }
   for (size_t i = 0; i < list.size(); ++i) {
     MemCommand& cmd = list[i];
     MemCommand::cmds cmdType = cmd.getType();
@@ -173,6 +184,15 @@ void CommandAnalysis::getCommands(const Data::MemorySpecification& memSpec,
       int64_t preTime = max(cmd.getTimeInt64() + cmd.getPrechargeOffset(memSpec, cmdType),
                            activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.RAS);
       list.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), preTime));
+    }
+
+    if (!lastupdate && timestamp > 0) {
+      if(cmd.getTimeInt64() > timestamp)
+      {
+          MemCommand nextWindowCmd = list[i];
+          next_window_cmd_list.push_back(nextWindowCmd);
+          list.erase(find(list.begin(), list.end(), cmd));
+      }
     }
   }
   sort(list.begin(), list.end(), commandSorter);
@@ -352,12 +372,13 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       // which the memory state changes from ACT to PRE, aka last_pre_cycle).
       // Calculate the number of active cycles if the memory was in the
       // active state before, but there is a state transition to PRE now.
-
+      
       if (num_active_banks > 0) {
         // At least one bank was active, therefore the current memory state is
         // ACT. Since all banks are being precharged a memory state transition
         // to PRE is happening. Add to the counter the amount of cycles the
         // memory remained in the ACT state.
+	
         actcycles += max(zero, timestamp - first_act_cycle);
         last_pre_cycle = timestamp;
 
@@ -505,6 +526,9 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       printWarningIfActive("One or more banks are active! SREF requires all banks to be precharged.", type, timestamp, bank);
       numberofsrefs++;
       sref_cycle = timestamp;
+      sref_cycle_window = timestamp;
+      sref_ref_pre_cycles_window = 0;
+      sref_ref_act_cycles_window = 0;      
       precycles += max(zero, timestamp - last_pre_cycle);
       idle_pre_update(memSpec, timestamp, latest_pre_cycle);
       mem_state  = CommandAnalysis::MS_SREF;
@@ -518,7 +542,6 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       if (mem_state != CommandAnalysis::MS_SREF) {
         cerr << "Incorrect use of Self-Refresh Power-Up!" << endl;
       }
-
       // The total duration of self-refresh is given by the difference between
       // the current clock cycle and the clock cycle of entering self-refresh.
       int64_t sref_duration = timestamp - sref_cycle;
@@ -570,14 +593,19 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
         // The initial auto-refresh consumes (IDD5 − IDD3N) over one refresh
         // period (RFC) from the start of the self-refresh.
         sref_ref_act_cycles += memSpec.memTimingSpec.RFC -
-                               memSpec.memTimingSpec.RP;
-        sref_ref_pre_cycles += memSpec.memTimingSpec.RP;
+                               memSpec.memTimingSpec.RP - sref_ref_act_cycles_window;
+        sref_ref_pre_cycles += memSpec.memTimingSpec.RP - sref_ref_pre_cycles_window;
         last_pre_cycle       = timestamp;
 
         // The IDD6 current is consumed for the time period spent in the
         // self-refresh mode, which excludes the time spent in finishing the
         // initial auto-refresh.
-        sref_cycles += sref_duration - memSpec.memTimingSpec.RFC;
+        if (sref_cycle_window > sref_cycle + memSpec.memTimingSpec.RFC) {
+            sref_cycles         += max(zero, timestamp - sref_cycle_window);
+        } else {
+            sref_cycles         += max(zero, timestamp - sref_cycle
+                                   - memSpec.memTimingSpec.RFC);
+        }
 
         // IDD2N current is consumed when exiting the self-refresh state.
         if (memSpec.memArchSpec.dll == false) {
@@ -635,9 +663,9 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
            */
 
           // Number of precharged cycles (zero <= pre_cycles < RP)
-          int64_t pre_cycles = sref_duration - ref_act_cycles;
+          int64_t pre_cycles = sref_duration - ref_act_cycles - sref_ref_pre_cycles_window;
 
-          sref_ref_act_cycles += ref_act_cycles;
+          sref_ref_act_cycles += ref_act_cycles - sref_ref_act_cycles_window;
           sref_ref_pre_cycles += pre_cycles;
 
           // Number of precharged cycles during the self-refresh power-up. It
@@ -693,7 +721,7 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
            *
            */
 
-          sref_ref_act_cycles += sref_duration;
+          sref_ref_act_cycles += sref_duration - sref_ref_act_cycles_window;
 
           int64_t spup_act = (memSpec.memTimingSpec.RFC -
                               memSpec.memTimingSpec.RP) - sref_duration;
@@ -743,7 +771,31 @@ void CommandAnalysis::evaluate(const MemorySpecification& memSpec,
       } else if (mem_state == CommandAnalysis::MS_PDN_S_PRE) {
         s_pre_pdcycles += max(zero, timestamp - pdn_cycle);
       } else if (mem_state == CommandAnalysis::MS_SREF) {
-        sref_cycles += max(zero, timestamp - sref_cycle);
+        if (timestamp > sref_cycle + memSpec.memTimingSpec.RFC) {
+            if (sref_cycle_window <= sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP)) {
+                sref_ref_act_cycles += (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP) - sref_ref_act_cycles_window;
+                sref_ref_act_cycles_window = (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP);
+                sref_cycle_window = sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP);
+            }
+            if (sref_cycle_window <= sref_cycle + memSpec.memTimingSpec.RFC) {
+                sref_ref_pre_cycles += memSpec.memTimingSpec.RP - sref_ref_pre_cycles_window;
+                sref_ref_pre_cycles_window = memSpec.memTimingSpec.RP;
+                sref_cycle_window = sref_cycle + memSpec.memTimingSpec.RFC;
+            }
+            sref_cycles += max(zero, timestamp - sref_cycle_window);
+        } else if (timestamp > sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP)) {
+            if(sref_cycle_window <= sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP)) {
+                sref_ref_act_cycles += (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP) - sref_ref_act_cycles_window;
+                sref_ref_act_cycles_window = (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP);
+                sref_cycle_window = sref_cycle + (memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP);
+            }
+
+            sref_ref_pre_cycles_window += timestamp - sref_cycle_window;
+            sref_ref_pre_cycles += timestamp - sref_cycle_window;
+        } else {
+            sref_ref_act_cycles_window += timestamp - sref_cycle_window;
+            sref_ref_act_cycles += timestamp - sref_cycle_window;
+        }
       }
     } else {
       printWarning("Unknown command given, exiting.", type, timestamp, bank);
