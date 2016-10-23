@@ -45,7 +45,7 @@ using namespace Data;
 
 libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination) :
   memSpec(memSpec),
-  counters(CommandAnalysis(memSpec.memArchSpec.nbrOfBanks)),
+  counters(memSpec),
   includeIoAndTermination(includeIoAndTermination),
   mpm(MemoryPowerModel())
 {
@@ -55,7 +55,7 @@ libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAnd
 
 libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination, const Data::MemBankWiseParams& bwPowerParams) :
   memSpec(memSpec),
-  counters(CommandAnalysis(memSpec.memArchSpec.nbrOfBanks)),
+  counters(CommandAnalysis(memSpec)),
   includeIoAndTermination(includeIoAndTermination),
   bwPowerParams(bwPowerParams)
 {
@@ -73,7 +73,7 @@ void libDRAMPower::doCommand(MemCommand::cmds type, int bank, int64_t timestamp)
 
 void libDRAMPower::updateCounters(bool lastUpdate, int64_t timestamp)
 {
-  counters.getCommands(memSpec, cmdList, lastUpdate, timestamp);
+  counters.getCommands(cmdList, lastUpdate, timestamp);
   cmdList.clear();
 }
 
