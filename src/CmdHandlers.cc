@@ -376,7 +376,7 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
      *
      *
      * Summary:
-     * sref_cycles_idd6 += tSREF – tRFC
+     * sref_cycles += tSREF – tRFC
      * sref_ref_act_cycles += tRFC - tRP
      * sref_ref_pre_cycles += tRP
      * spup_ref_act_cycles += 0
@@ -395,9 +395,9 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
     // self-refresh mode, which excludes the time spent in finishing the
     // initial auto-refresh.
     if (sref_cycle_window > sref_cycle + t.RFC) {
-        sref_cycles_idd6 += zero_guard(timestamp - sref_cycle_window, "sref_cycle_window is in the future.");
+        sref_cycles += zero_guard(timestamp - sref_cycle_window, "sref_cycle_window is in the future.");
     } else {
-        sref_cycles_idd6 += zero_guard(timestamp - sref_cycle - t.RFC, "sref_cycle - t.RFC < 0");
+        sref_cycles += zero_guard(timestamp - sref_cycle - t.RFC, "sref_cycle - t.RFC < 0");
     }
 
     // IDD2N current is consumed when exiting the self-refresh state.
@@ -442,7 +442,7 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
        *
        *
        * Summary:
-       * sref_cycles_idd6 += 0
+       * sref_cycles += 0
        * sref_ref_act_cycles += tRFC - tRP
        * sref_ref_pre_cycles += tSREF – (tRFC – tRP)
        * spup_ref_act_cycles += 0
@@ -496,7 +496,7 @@ void CommandAnalysis::handleSREx(unsigned bank, int64_t timestamp)
        *
        *
        * Summary:
-       * sref_cycles_idd6 += 0
+       * sref_cycles += 0
        * sref_ref_act_cycles += tSREF
        * sref_ref_pre_cycles += 0
        * spup_ref_act_cycles += (tRFC – tRP) - tSREF
@@ -560,7 +560,7 @@ void CommandAnalysis::handleNopEnd(int64_t timestamp)
         sref_ref_pre_cycles_window = t.RP;
         sref_cycle_window = sref_cycle + t.RFC;
       }
-      sref_cycles_idd6 += zero_guard(timestamp - sref_cycle_window, "sref_cycle_window is in the future");
+      sref_cycles += zero_guard(timestamp - sref_cycle_window, "sref_cycle_window is in the future");
     } else if (timestamp > sref_cycle + rfc_minus_rp) {
       
       if (sref_cycle_window <= sref_cycle + rfc_minus_rp) {

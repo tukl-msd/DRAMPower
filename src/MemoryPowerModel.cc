@@ -146,7 +146,7 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
 
   window_cycles = c.actcycles + c.precycles +
                  c.f_act_pdcycles + c.f_pre_pdcycles +
-                 c.s_act_pdcycles + c.s_pre_pdcycles + c.sref_cycles_idd6
+                 c.s_act_pdcycles + c.s_pre_pdcycles + c.sref_cycles
                  + c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
                  c.spup_ref_act_cycles + c.spup_ref_pre_cycles;
 
@@ -175,7 +175,7 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
   // self-refresh cycles energy including a refresh per self-refresh entry
   energy.sref_energy = engy_sref(mps.idd6, mps.idd3n,
                                  mps.idd5, mps.vdd,
-                                 static_cast<double>(c.sref_cycles_idd6), static_cast<double>(c.sref_ref_act_cycles),
+                                 static_cast<double>(c.sref_cycles), static_cast<double>(c.sref_ref_act_cycles),
                                  static_cast<double>(c.sref_ref_pre_cycles), static_cast<double>(c.spup_ref_act_cycles),
                                  static_cast<double>(c.spup_ref_pre_cycles), t.clkPeriod);
 
@@ -221,7 +221,7 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
 
     energy.sref_energy      += engy_sref(mps.idd62, mps.idd3n2,
                                          mps.idd52, mps.vdd2,
-                                         static_cast<double>(c.sref_cycles_idd6), static_cast<double>(c.sref_ref_act_cycles),
+                                         static_cast<double>(c.sref_cycles), static_cast<double>(c.sref_ref_act_cycles),
                                          static_cast<double>(c.sref_ref_pre_cycles), static_cast<double>(c.spup_ref_act_cycles),
                                          static_cast<double>(c.spup_ref_pre_cycles), t.clkPeriod);
 
@@ -307,7 +307,7 @@ void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term,
        << endl << "    #Auto-Refresh Precharged cycles during Self-Refresh: "  << c.sref_ref_pre_cycles
        << endl << "#Auto-Refresh Cycles: "                                     << c.numberofrefs * memTimingSpec.RFC
        << endl << "#Self-Refreshes: "                                          << c.numberofsrefs
-       << endl << "#Self-Refresh Cycles: "                                     << c.sref_cycles_idd6
+       << endl << "#Self-Refresh Cycles: "                                     << c.sref_cycles
        << endl << "----------------------------------------"
        << endl << "Total Trace Length (clock cycles): " << total_cycles
        << endl << "----------------------------------------" << endl;
@@ -364,13 +364,13 @@ void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term,
 
 // Self-refresh active energy estimation (not including background energy)
 double MemoryPowerModel::engy_sref(double idd6, double idd3n, double idd5,
-                                   double vdd, double sref_cycles_idd6, double sref_ref_act_cycles,
+                                   double vdd, double sref_cycles, double sref_ref_act_cycles,
                                    double sref_ref_pre_cycles, double spup_ref_act_cycles,
                                    double spup_ref_pre_cycles, double clk)
 {
   double sref_energy;
 
-  sref_energy = ((idd6 * sref_cycles_idd6) + ((idd5 - idd3n) * (sref_ref_act_cycles
+  sref_energy = ((idd6 * sref_cycles) + ((idd5 - idd3n) * (sref_ref_act_cycles
                                                            + spup_ref_act_cycles + sref_ref_pre_cycles + spup_ref_pre_cycles)))
                 * vdd * clk;
   return sref_energy;

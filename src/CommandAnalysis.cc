@@ -100,7 +100,7 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   s_pre_pdcycles      = 0;
   pup_act_cycles      = 0;
   pup_pre_cycles      = 0;
-  sref_cycles_idd6    = 0;
+  sref_cycles    = 0;
   spup_cycles         = 0;
   sref_ref_act_cycles = 0;
   sref_ref_pre_cycles = 0;

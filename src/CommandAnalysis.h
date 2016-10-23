@@ -99,7 +99,7 @@ class CommandAnalysis {
   int64_t s_pre_pdcycles;
   // Number of clock cycles in self-refresh mode (excludes the initial
   // auto-refresh). During this time the current drawn is IDD6.
-  int64_t sref_cycles_idd6;
+  int64_t sref_cycles;
   // Number of clock cycles in activate power-up mode
   int64_t pup_act_cycles;
   // Number of clock cycles in precharged power-up mode

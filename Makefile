@@ -35,6 +35,7 @@
 # *
 # */
 
+include common.mk
 
 # Name of the generated binary.
 BINARY := drampower
@@ -56,6 +57,7 @@ LIBSOURCES := $(wildcard src/libdrampower/*.cc) \
 			  src/Parameter.cc\
 			  src/Parametrisable.cc
 
+
 XMLPARSERSOURCES := $(wildcard src/xmlparser/*.cc)
 ALLSOURCES := $(wildcard src/cli/*.cc) $(wildcard src/*.cc) $(wildcard src/xmlparser/*.cc) $(wildcard src/libdrampower/*.cc)
 ALLHEADERS := $(wildcard src/*.h) $(wildcard src/xmlparser/*.h) $(wildcard src/libdrampower/*.h)
@@ -67,38 +69,12 @@ ALLOBJECTS := ${ALLSOURCES:.cc=.o}
 
 DEPENDENCIES := ${ALLSOURCES:.cc=.d}
 
-##########################################
-# Compiler settings
-##########################################
-
-# State what compiler we use.
-CXX ?= g++
-
-ifeq ($(COVERAGE),1)
-	GCOVFLAGS := -fprofile-arcs -ftest-coverage
-else
-	GCOVFLAGS :=
-endif
-
-# Optimization flags. Usually you should not optimize until you have finished
-# debugging, except when you want to detect dead code.
-OPTCXXFLAGS ?=
-
-# Debugging flags.
-DBGCXXFLAGS ?= -g ${GCOVFLAGS}
-
-# Warning flags
-WARNFLAGS := -W -pedantic-errors -Wextra -Werror \
-             -Wformat -Wformat-nonliteral -Wpointer-arith \
-             -Wcast-align -Wconversion -Wall -Werror
-
 # Warning flags for deprecated files
 DEPWARNFLAGS := -W -pedantic-errors -Wextra -Werror \
              -Wformat -Wformat-nonliteral -Wpointer-arith \
              -Wcast-align -Wall -Werror
 
 # Sum up the flags.
-CXXFLAGS := -O ${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
 DEPCXXFLAGS := -O ${DEPWARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
 
 # Linker flags.
@@ -176,6 +152,5 @@ endif
 coveragecheckclean:
 	rm -rf $(LCOV_OUTDIR)
 
-.PHONY: clean pretty test traces
 
 -include $(DEPENDENCIES)
