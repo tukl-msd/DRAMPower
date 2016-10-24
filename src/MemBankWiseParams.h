@@ -40,6 +40,7 @@
 #include <stdint.h>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 
 namespace Data {
   class MemBankWiseParams {
