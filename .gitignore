@@ -15,3 +15,4 @@ traces.zip
 cscope.*
 commands.trace
 coverage_report
+.DS_Store

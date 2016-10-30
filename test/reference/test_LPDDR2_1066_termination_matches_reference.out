@@ -8,6 +8,7 @@
 #WR + #WRA commands: 0
 #PRE (+ PREA) commands: 4000
 #REF commands: 19
+#REFB commands: 0
 #Active Cycles: 41431
   #Active Idle Cycles: 0
   #Active Power-Up Cycles: 0
@@ -42,7 +43,8 @@ Total Trace Length (clock cycles): 41934
 ACT Cmd Energy: 14333358.35 pJ
 PRE Cmd Energy: 6196322.70 pJ
 RD Cmd Energy: 14531482.18 pJ
-WR Cmd Energy: 0.00 pJRD I/O Energy: 1036800.00 pJ
+WR Cmd Energy: 0.00 pJ
+RD I/O Energy: 1036800.00 pJ
 ACT Stdby Energy: 2966241.95 pJ
   Active Idle Energy: 0.00 pJ
   Active Power-Up Energy: 0.00 pJ
@@ -61,6 +63,7 @@ Total Power-Down Energy: 0.00 pJ
   Slow-Exit Precharged Power-Down Energy: 0.00 pJ
     Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0.00 pJ
 Auto-Refresh Energy: 379386.87 pJ
+Bankwise-Refresh Energy: 0.00 pJ
 Self-Refresh Energy: 0.00 pJ
 ----------------------------------------
 Total Trace Energy: 39471393.88 pJ

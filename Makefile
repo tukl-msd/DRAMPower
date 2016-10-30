@@ -55,8 +55,8 @@ LIBSOURCES := $(wildcard src/libdrampower/*.cc) \
 			  src/MemPowerSpec.cc\
 			  src/MemTimingSpec.cc\
 			  src/Parameter.cc\
-			  src/Parametrisable.cc
-
+			  src/Parametrisable.cc\
+			  src/MemBankWiseParams.cc
 
 XMLPARSERSOURCES := $(wildcard src/xmlparser/*.cc)
 ALLSOURCES := $(wildcard src/cli/*.cc) $(wildcard src/*.cc) $(wildcard src/xmlparser/*.cc) $(wildcard src/libdrampower/*.cc)

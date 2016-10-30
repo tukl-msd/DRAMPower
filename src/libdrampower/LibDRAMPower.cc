@@ -31,7 +31,11 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Matthias Jung, Omar Naji, Felipe S. Prado
+ * Authors: Matthias Jung
+ *          Omar Naji
+ *          Subash Kannoth
+ *          Éder F. Zulian
+ *          Felipe S. Prado
  *
  */
 
@@ -44,6 +48,16 @@ libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAnd
   counters(memSpec),
   includeIoAndTermination(includeIoAndTermination),
   mpm(MemoryPowerModel())
+{
+    MemBankWiseParams p (100,100,false,0,false,static_cast<unsigned>(memSpec.memArchSpec.nbrOfBanks));
+    libDRAMPower DRAMPower = libDRAMPower(memSpec, 0, p);
+}
+
+libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination, const Data::MemBankWiseParams& bwPowerParams) :
+  memSpec(memSpec),
+  counters(CommandAnalysis(memSpec)),
+  includeIoAndTermination(includeIoAndTermination),
+  bwPowerParams(bwPowerParams)
 {
 }
 
@@ -66,14 +80,14 @@ void libDRAMPower::updateCounters(bool lastUpdate, int64_t timestamp)
 void libDRAMPower::calcEnergy()
 {
   updateCounters(true);
-  mpm.power_calc(memSpec, counters, includeIoAndTermination);
+  mpm.power_calc(memSpec, counters, includeIoAndTermination, bwPowerParams);
 }
 
 void libDRAMPower::calcWindowEnergy(int64_t timestamp)
 {
   doCommand(MemCommand::NOP, 0, timestamp);
   updateCounters(false, timestamp);
-  mpm.power_calc(memSpec, counters, includeIoAndTermination);
+  mpm.power_calc(memSpec, counters, includeIoAndTermination, bwPowerParams);
   clearCounters(timestamp);
 }
 

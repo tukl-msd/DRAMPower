@@ -8,6 +8,7 @@
 #WR + #WRA commands: 11333
 #PRE (+ PREA) commands: 92905
 #REF commands: 14895
+#REFB commands: 0
 #Active Cycles: 3842707
   #Active Idle Cycles: 252533
   #Active Power-Up Cycles: 0
@@ -60,6 +61,7 @@ Total Power-Down Energy: 0.00 pJ
   Slow-Exit Precharged Power-Down Energy: 0.00 pJ
     Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0.00 pJ
 Auto-Refresh Energy: 412656260.87 pJ
+Bankwise-Refresh Energy: 0.00 pJ
 Self-Refresh Energy: 0.00 pJ
 ----------------------------------------
 Total Trace Energy: 3687457540.03 pJ

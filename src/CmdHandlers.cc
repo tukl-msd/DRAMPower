@@ -63,7 +63,7 @@ void CommandAnalysis::handleAct(unsigned bank, int64_t timestamp)
   // If the bank is already active ignore the command and generate a
   // warning.
   if (isPrecharged(bank)) {
-    numberofacts++;
+    numberofactsBanks[bank]++;
 
     if (nActiveBanks() == 0) {
       // Here a memory state transition to ACT is happening. Save the
@@ -88,7 +88,7 @@ void CommandAnalysis::handleRd(unsigned bank, int64_t timestamp)
   if (isPrecharged(bank)) {
     printWarning("Bank is not active!", MemCommand::RD, timestamp, bank);
   }
-  numberofreads++;
+  numberofreadsBanks[bank]++;
   idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
   latest_read_cycle = timestamp;
 }
@@ -101,7 +101,7 @@ void CommandAnalysis::handleWr(unsigned bank, int64_t timestamp)
   if (isPrecharged(bank)) {
     printWarning("Bank is not active!", MemCommand::WR, timestamp, bank);
   }
-  numberofwrites++;
+  numberofwritesBanks[bank]++;
   idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
   latest_write_cycle = timestamp;
 }
@@ -118,12 +118,34 @@ void CommandAnalysis::handleRef(unsigned bank, int64_t timestamp)
   numberofrefs++;
   idle_pre_update(timestamp, latest_pre_cycle);
   first_act_cycle  = timestamp;
+  std::fill(first_act_cycle_banks.begin(), first_act_cycle_banks.end(), timestamp);
   precycles       += zero_guard(timestamp - last_pre_cycle, "2 last_pre_cycle is in the future.");
   last_pre_cycle   = timestamp + memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
   latest_pre_cycle = last_pre_cycle;
   actcycles       += memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
+  for (auto &e : actcyclesBanks) {
+    e += memSpec.memTimingSpec.RFC - memSpec.memTimingSpec.RP;
+  }
   for (auto& bs : bank_state) {
     bs = BANK_PRECHARGED;
+  }
+}
+
+void CommandAnalysis::handleRefB(unsigned bank, int64_t timestamp)
+{
+  // A REFB command requires a previous PRE command.
+  if (isPrecharged(bank)) {
+    // This previous PRE command handler is also responsible for keeping the
+    // memory state updated.
+    // Here we consider that the memory state is not changed in order to keep
+    // things simple, since the transition from PRE to ACT state takes time.
+    numberofrefbBanks[bank]++;
+    // Length of the refresh: here we have an approximation, we consider tRP
+    // also as act cycles because the bank will be precharged (stable) after
+    // tRP.
+    actcyclesBanks[bank] += memSpec.memTimingSpec.RAS + memSpec.memTimingSpec.RP;
+  } else {
+    printWarning("Bank must be precharged for REFB!", MemCommand::REFB, timestamp, bank);
   }
 }
 
@@ -140,7 +162,8 @@ void CommandAnalysis::handlePre(unsigned bank, int64_t timestamp)
 
   // Precharge only if the target bank is active
   if (bank_state[bank] == BANK_ACTIVE) {
-    numberofpres++;
+    numberofpresBanks[bank]++;
+    actcyclesBanks[bank] += zero_guard(timestamp - first_act_cycle_banks[bank], "first_act_cycle is in the future (bank).");
     // Since we got here, at least one bank is active
     assert(nActiveBanks() != 0);
 
@@ -169,10 +192,9 @@ void CommandAnalysis::handlePreA(unsigned bank, int64_t timestamp)
   // which the memory state changes from ACT to PRE, aka last_pre_cycle).
   // Calculate the number of active cycles if the memory was in the
   // active state before, but there is a state transition to PRE now.
-  
+
   if (nActiveBanks() > 0) {
     // Active banks are being precharged
-    numberofpres += nActiveBanks();
     // At least one bank was active, therefore the current memory state is
     // ACT. Since all banks are being precharged a memory state transition
     // to PRE is happening. Add to the counter the amount of cycles the
@@ -180,6 +202,15 @@ void CommandAnalysis::handlePreA(unsigned bank, int64_t timestamp)
 
     actcycles += zero_guard(timestamp - first_act_cycle, "first_act_cycle is in the future.");
     last_pre_cycle = timestamp;
+
+    for (unsigned b = 0; b < num_banks; b++) {
+      if (bank_state[b] == BANK_ACTIVE) {
+        // Active banks are being precharged
+        numberofpresBanks[b] += 1;
+        actcyclesBanks[b] += zero_guard(timestamp - first_act_cycle_banks[b], "first_act_cycle is in the future (bank).");
+      }
+    }
+
     idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
 
     latest_pre_cycle = timestamp;
@@ -204,6 +235,11 @@ void CommandAnalysis::handlePdnFAct(unsigned bank, int64_t timestamp)
   last_bank_state = bank_state;
   pdn_cycle  = timestamp;
   actcycles += zero_guard(timestamp - first_act_cycle, "first_act_cycle is in the future.");
+  for (unsigned b = 0; b < num_banks; b++) {
+    if (bank_state[b] == BANK_ACTIVE) {
+      actcyclesBanks[b] += zero_guard(timestamp - first_act_cycle_banks[b], "first_act_cycle is in the future (bank).");
+    }
+  }
   idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
   mem_state  = CommandAnalysis::MS_PDN_F_ACT;
 }
@@ -220,6 +256,11 @@ void CommandAnalysis::handlePdnSAct(unsigned bank, int64_t timestamp)
   last_bank_state = bank_state;
   pdn_cycle  = timestamp;
   actcycles += zero_guard(timestamp - first_act_cycle, "first_act_cycle is in the future.");
+  for (unsigned b = 0; b < num_banks; b++) {
+    if (bank_state[b] == BANK_ACTIVE) {
+      actcyclesBanks[b] += zero_guard(timestamp - first_act_cycle_banks[b], "first_act_cycle is in the future (bank).");
+    }
+  }
   idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
   mem_state  = CommandAnalysis::MS_PDN_S_ACT;
 }
@@ -280,6 +321,7 @@ void CommandAnalysis::handlePupAct(int64_t timestamp)
   mem_state = MS_NOT_IN_PD;
   bank_state = last_bank_state;
   first_act_cycle = timestamp;
+  std::fill(first_act_cycle_banks.begin(), first_act_cycle_banks.end(), timestamp);
 }
 
 void CommandAnalysis::handlePupPre(int64_t timestamp)
@@ -318,7 +360,7 @@ void CommandAnalysis::handleSREn(unsigned bank, int64_t timestamp)
   sref_cycle = timestamp;
   sref_cycle_window = timestamp;
   sref_ref_pre_cycles_window = 0;
-  sref_ref_act_cycles_window = 0;      
+  sref_ref_act_cycles_window = 0;
   precycles += zero_guard(timestamp - last_pre_cycle, "5  last_pre_cycle is in the future.");
   idle_pre_update(timestamp, latest_pre_cycle);
   mem_state  = CommandAnalysis::MS_SREF;
@@ -530,6 +572,11 @@ void CommandAnalysis::handleNopEnd(int64_t timestamp)
   // May be optionally used at the end of memory trace for better accuracy
   // Update all counters based on completion of operations.
   const MemTimingSpec& t = memSpec.memTimingSpec;
+  for (unsigned b = 0; b < num_banks; b++) {
+    if (bank_state[b] == BANK_ACTIVE) {
+      actcyclesBanks[b] += zero_guard(timestamp - first_act_cycle_banks[b], "first_act_cycle is in the future (bank)");
+    }
+  }
 
   if (nActiveBanks() > 0 && mem_state == MS_NOT_IN_PD) {
     actcycles += zero_guard(timestamp - first_act_cycle, "first_act_cycle is in the future");
@@ -562,7 +609,7 @@ void CommandAnalysis::handleNopEnd(int64_t timestamp)
       }
       sref_cycles += zero_guard(timestamp - sref_cycle_window, "sref_cycle_window is in the future");
     } else if (timestamp > sref_cycle + rfc_minus_rp) {
-      
+
       if (sref_cycle_window <= sref_cycle + rfc_minus_rp) {
         sref_ref_act_cycles += rfc_minus_rp - sref_ref_act_cycles_window;
         sref_ref_act_cycles_window = rfc_minus_rp;

@@ -31,7 +31,12 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Matthias Jung, Omar Naji, Felipe S. Prado
+ * Authors: Karthik Chandrasekar
+ *          Matthias Jung
+ *          Omar Naji
+ *          Subash Kannoth
+ *          Éder F. Zulian
+ *          Felipe S. Prado
  *
  */
 
@@ -61,20 +66,23 @@ class CommandAnalysis {
   // Returns number of reads, writes, acts, pres and refs in the trace
   CommandAnalysis(const MemorySpecification& memSpec);
 
-  // Number of activate commands
-  int64_t numberofacts;
-  // Number of precharge commands
-  int64_t numberofpres;
-  // Number of reads commands
-  int64_t numberofreads;
-  // Number of writes commands
-  int64_t numberofwrites;
+  // Number of activate commands per bank
+  std::vector<int64_t> numberofactsBanks;
+  // Number of precharge commands per bank
+  std::vector<int64_t> numberofpresBanks;
+  // Number of reads commands per bank
+  std::vector<int64_t> numberofreadsBanks;
+  // Number of writes commands per bank
+  std::vector<int64_t> numberofwritesBanks;
   // Number of refresh commands
   int64_t numberofrefs;
+  // Number of bankwise refresh commands
+  std::vector<int64_t> numberofrefbBanks;
   // Number of precharge cycles
   int64_t precycles;
   // Number of active cycles
   int64_t actcycles;
+  std::vector<int64_t> actcyclesBanks;
   // Number of Idle cycles in the active state
   int64_t idlecycles_act;
   // Number of Idle cycles in the precharge state
@@ -113,7 +121,7 @@ class CommandAnalysis {
   // Number of active auto-refresh cycles in self-refresh mode already used to calculate the energy of the previous windows
   int64_t sref_ref_act_cycles_window;
   // Number of precharged auto-refresh cycles in self-refresh mode
-  int64_t sref_ref_pre_cycles;  
+  int64_t sref_ref_pre_cycles;
   // Number of precharged auto-refresh cycles in self-refresh mode already used to calculate the energy of the previous window
   int64_t sref_ref_pre_cycles_window;
   // Number of active auto-refresh cycles during self-refresh exit
@@ -176,7 +184,7 @@ class CommandAnalysis {
 
   // Clock cycle when self-refresh was issued
   int64_t sref_cycle;
-  
+
   // Latest Self-Refresh clock cycle used to calculate the energy of the previous window
   int64_t sref_cycle_window;
 
@@ -186,8 +194,11 @@ class CommandAnalysis {
   // Memory State
   unsigned mem_state;
 
+  int64_t num_banks;
+
   // Clock cycle of first activate command when memory state changes to ACT
   int64_t first_act_cycle;
+  std::vector<int64_t> first_act_cycle_banks;
 
   // Clock cycle of last precharge command when memory state changes to PRE
   int64_t last_pre_cycle;
@@ -200,6 +211,7 @@ class CommandAnalysis {
   void handleRd(     unsigned bank, int64_t timestamp);
   void handleWr(     unsigned bank, int64_t timestamp);
   void handleRef(    unsigned bank, int64_t timestamp);
+  void handleRefB(unsigned bank, int64_t timestamp);
   void handlePre(    unsigned bank, int64_t timestamp);
   void handlePreA(   unsigned bank, int64_t timestamp);
   void handlePdnFAct(unsigned bank, int64_t timestamp);

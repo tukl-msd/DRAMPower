@@ -10,7 +10,7 @@ The master branch of the repository should be regarded as the bleeding-edge vers
 
 ## 1. Installation
 
-Clone the repository, or download the zip file of the release you would like to use. The source code is available in src folder. src/cli/drampower.cc file gives the user interface, where the user can specify the memory to be employed and the command/transaction trace to be analyzed. To build, use:
+Clone the repository, or download the zip file of the release you would like to use. The source code is available in src folder. [drampower.cc](src/cli/drampower.cc) file gives the user interface, where the user can specify the memory to be employed and the command/transaction trace to be analyzed. To build, use:
 ```bash
 make -j4
 ```
@@ -36,7 +36,7 @@ An example is given in ```traces/commands.trace```
 
 The format it uses is: ```<timestamp>,<command>,<bank>```.
 For example, "500,ACT,2", where ACT is the command and 2 is the bank. Timestamp is in clock cycles (cc), the list of supported commands is
-mentioned in src/MemCommand.h and the bank is the target bank number. For non-bank-specific commands, bank can be set to 0. Rank need not be
+mentioned in [MemCommand.h](src/MemCommand.h) and the bank is the target bank number. For non-bank-specific commands, bank can be set to 0. Rank need not be
 specified. The timing correctness of the trace is not verified by the tool and is assumed to be accurate. However, warning messages are provided, to identify if the memory or bank state is inconsistent in the trace. A sample command trace is provided in the traces/ folder.
 
 ### Transaction Traces
@@ -53,7 +53,7 @@ Four sample MediaBench application transaction traces have been provided. The Me
 
 ## 5. Usage
 
-src/cli/drampower.cc is the main interface file, which accepts user inputs to specify memory to be employed and the command or transaction trace to be analyzed. If the transaction trace (DRAM command scheduler) is being used, the users can specify the degree of bank interleaving required, the request size and the use of power-down or self-refresh options. Also, for DDR4 memories bank group interleaving can be specified. Dual-rank DRAMs are not yet supported by the command scheduler. Note: Speculative use of power-down or self-refresh modes will increase the trace length due to the power-up latencies of these power-saving modes.
+[drampower.cc](src/cli/drampower.cc) is the main interface file, which accepts user inputs to specify memory to be employed and the command or transaction trace to be analyzed. If the transaction trace (DRAM command scheduler) is being used, the users can specify the degree of bank interleaving required, the request size and the use of power-down or self-refresh options. Also, for DDR4 memories bank group interleaving can be specified. Dual-rank DRAMs are not yet supported by the command scheduler. Note: Speculative use of power-down or self-refresh modes will increase the trace length due to the power-up latencies of these power-saving modes.
 
 To use DRAMPower at the command-level (command trace), after make, use the following:
 ```bash
@@ -108,7 +108,7 @@ To include these XMLs in your simulations, simply use them as the target memory.
 ## 8. Example Usage
 
 An example of using this tool is provided below. To compile the example,
-use the Makefile and make sure the Gcc and Xerces-c are installed. Then, run:
+use the Makefile and make sure the gcc and Xerces-c are installed. Then, run:
 ```
 make -j4
 ```
@@ -204,9 +204,9 @@ It also reports the simulation start/end times and the total simulation time in 
 ## 9. DRAMPower Library
 
 The DRAMPower tool has an additional feature and can be used as a library.
-In order to use the library run "make lib", include src/libdrampower/LibDRAMPower.h in your project and
+In order to use the library run "make lib", include [LibDRAMPower.h](src/libdrampower/LibDRAMPower.h) in your project and
 link the file src/libdrampower.a with your project.
-Two examples for the usage of the library can be found in the folder test/libdrampowertest:lib_test.cc and window_example.cc
+Examples for the usage of the library are [lib_test.cc](test/libdrampowertest/lib_test.cc) and [window_example.cc](test/libdrampowertest/window_example.cc).
 
 ## 10. Authors & Acknowledgment
 

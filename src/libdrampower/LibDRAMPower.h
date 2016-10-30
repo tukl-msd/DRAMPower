@@ -31,7 +31,11 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Matthias Jung, Omar Naji, Felipe S. Prado
+ * Authors: Matthias Jung
+ *          Omar Naji
+ *          Subash Kannoth
+ *          Éder F. Zulian
+ *          Felipe S. Prado
  *
  */
 
@@ -44,10 +48,13 @@
 #include "CommandAnalysis.h"
 #include "MemoryPowerModel.h"
 #include "MemCommand.h"
+#include "MemBankWiseParams.h"
+
 
 class libDRAMPower {
  public:
   libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination);
+  libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination,const Data::MemBankWiseParams& bwPowerParams);
   ~libDRAMPower();
 
   void doCommand(Data::MemCommand::cmds type,
@@ -75,6 +82,8 @@ class libDRAMPower {
   Data::CommandAnalysis counters;
  private:
   bool includeIoAndTermination;
+  bool bankwiseMode;
+  Data:: MemBankWiseParams bwPowerParams;
   // Object of MemoryPowerModel which contains the results
   // Energies(pJ) stored in energy, Powers(mW) stored in power. Number of
   // each command stored in timings.

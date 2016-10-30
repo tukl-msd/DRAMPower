@@ -36,6 +36,7 @@
  *          Omar Naji,
  *          Sven Goossens,
  *          Éder F. Zulian
+ *          Subash Kannoth
  *          Felipe S. Prado
  *
  */
@@ -65,6 +66,15 @@ CommandAnalysis::CommandAnalysis(const Data::MemorySpecification& memSpec) :
 {
   auto &nBanks = memSpec.memArchSpec.nbrOfBanks;
   // Initializing all counters and variables
+  numberofactsBanks.assign(static_cast<size_t>(nBanks), 0);
+  numberofpresBanks.assign(static_cast<size_t>(nBanks), 0);
+  numberofreadsBanks.assign(static_cast<size_t>(nBanks), 0);
+  numberofwritesBanks.assign(static_cast<size_t>(nBanks), 0);
+  actcyclesBanks.assign(static_cast<size_t>(nBanks), 0);
+  numberofrefbBanks.assign(static_cast<size_t>(nBanks), 0);
+
+  first_act_cycle_banks.resize(static_cast<size_t>(nBanks), 0);
+
   clearStats(0);
   zero = 0;
 
@@ -75,16 +85,18 @@ CommandAnalysis::CommandAnalysis(const Data::MemorySpecification& memSpec) :
   cmd_list.clear();
   cached_cmd.clear();
   activation_cycle.resize(static_cast<size_t>(nBanks), 0);
+  num_banks = nBanks;
 }
 
 // function to clear counters
 void CommandAnalysis::clearStats(const int64_t timestamp)
 {
+  std::fill(numberofactsBanks.begin(), numberofactsBanks.end(), 0);
+  std::fill(numberofpresBanks.begin(), numberofpresBanks.end(), 0);
+  std::fill(numberofreadsBanks.begin(), numberofreadsBanks.end(), 0);
+  std::fill(numberofwritesBanks.begin(), numberofwritesBanks.end(), 0);
+  std::fill(actcyclesBanks.begin(), actcyclesBanks.end(), 0);
 
-  numberofacts        = 0;
-  numberofpres        = 0;
-  numberofreads       = 0;
-  numberofwrites      = 0;
   numberofrefs        = 0;
   f_act_pdns          = 0;
   s_act_pdns          = 0;
@@ -100,7 +112,7 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   s_pre_pdcycles      = 0;
   pup_act_cycles      = 0;
   pup_pre_cycles      = 0;
-  sref_cycles    = 0;
+  sref_cycles         = 0;
   spup_cycles         = 0;
   sref_ref_act_cycles = 0;
   sref_ref_pre_cycles = 0;
@@ -111,6 +123,7 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
 
   // reset count references to timestamp so that they are moved
   // to start of next stats generation
+  std::fill(first_act_cycle_banks.begin(), first_act_cycle_banks.end(), timestamp);
   first_act_cycle     = timestamp;
 
   pdn_cycle           = timestamp;
@@ -190,7 +203,7 @@ void CommandAnalysis::getCommands(std::vector<MemCommand>& list, bool lastupdate
     // Add cycles at the end of the list
     int64_t t = timeToCompletion(list.back().getType()) + list.back().getTimeInt64() - 1;
     list.push_back(MemCommand(MemCommand::NOP, 0, t));
-  }  
+  }
 
   evaluateCommands(list);
 } // CommandAnalysis::getCommands
@@ -217,6 +230,8 @@ void CommandAnalysis::evaluateCommands(vector<MemCommand>& cmd_list)
       handleWr(bank, timestamp);
     } else if (type == MemCommand::REF) {
       handleRef(bank, timestamp);
+    } else if (type == MemCommand::REFB) {
+      handleRefB(bank, timestamp);
     } else if (type == MemCommand::PRE) {
       handlePre(bank, timestamp);
     } else if (type == MemCommand::PREA) {
