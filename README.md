@@ -42,8 +42,7 @@ specified. The timing correctness of the trace is not verified by the tool and i
 ### Transaction Traces
 If the transaction-level interface is being used, a transaction trace can be logged.
 
-The format it uses is: ```<timestamp>,<transaction_type>,<address>```.
-For example, "35,READ,0x80028", where READ/WRITE can be the transaction type and the logical address (32-bits long and byte addressable) less than the maximum supported DRAM capacity of 4GB (32Gb).
+The format it uses is: ```<time_interval>,<transaction_type>,<address>```. For example, "35,READ,0x80028", where 35 represent the time interval (in cycles) since the previous transaction. READ is the transaction type.  0x80028 is the logical address (32-bits long and byte addressable), which is less than the maximum supported DRAM capacity of 4GB (32Gb). 
 
 The tool uses a flexible and efficient memory map as follows: specified in HEX (0x). Timestamp is in clock cycles (cc) and maximum {row}-{bank}-{column}-{BI}-{BC}-{BGI}-{BL}
 Here, BI gives the degree of bank interleaving, BC gives the burst size (count), BGI gives the degree of bank group interleaving (for DDR4) and BL gives the burst length used by the device.
