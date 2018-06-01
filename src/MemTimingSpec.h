@@ -46,14 +46,19 @@ class MemTimingSpec : public virtual Parametrisable {
   void processParameters();
 
   double clkMhz;
+  int64_t RCB;
   int64_t RC;
   int64_t RCD;
   int64_t CCD;
   int64_t CCD_S;
   int64_t CCD_L;
+  int64_t RRDB;
+  int64_t RRDB_S;
+  int64_t RRDB_L;
   int64_t RRD;
   int64_t RRD_S;
   int64_t RRD_L;
+  int64_t FAWB;
   int64_t FAW;
   int64_t TAW;
   int64_t WTR;
@@ -61,9 +66,11 @@ class MemTimingSpec : public virtual Parametrisable {
   int64_t WTR_L;
   int64_t REFI;
   int64_t RL;
+  int64_t RPB;
   int64_t RP;
   int64_t RFC;
   int64_t REFB;
+  int64_t RASB;
   int64_t RAS;
   int64_t WL;
   int64_t AL;

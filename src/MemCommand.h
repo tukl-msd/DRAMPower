@@ -48,48 +48,52 @@ namespace Data {
 class MemCommand {
  public:
   /*
-   * 1. ACT - Activate
-   * 2. RD - Read
-   * 3. WR - Write
-   * 4. PRE - Explicit Precharge per bank
-   * 5. REF - Refresh all banks
-   * 6  REFB- Refresh a particular bank
-   * 7. END - To indicate end of trace
-   * 8. RDA - Read with auto-precharge
-   * 9. WRA - Write with auto-precharge
-   * 10. PREA - Precharge all banks
-   * 11. PDN_F_PRE - Precharge Power-down Entry command (Fast-Exit)
-   * 12. PDN_S_PRE - Precharge Power-down Entry command (Slow-Exit)
-   * 13. PDN_F_ACT - Active Power-down Entry command (Fast-Exit)
-   * 14. PDN_S_ACT - Active Power-down Entry command (Slow-Exit)
-   * 15. PUP_PRE - Precharge Power-down Exit
-   * 16. PUP_ACT - Active Power-down Exit
-   * 17. SREN - Self-Refresh Entry command
-   * 18. SREX - Self-refresh Exit
-   * 19. NOP - To indicate end of trace
+   * ACTB - Activate (RGR)
+   * ACT - Activate
+   * RD - Read
+   * WR - Write
+   * PREB - Explicit (RGR Precharge per bank)
+   * PRE - Explicit Precharge per bank
+   * REF - Refresh all banks
+   * REFB- Refresh a particular bank
+   * END - To indicate end of trace
+   * RDA - Read with auto-precharge
+   * WRA - Write with auto-precharge
+   * PREA - Precharge all banks
+   * PDN_F_PRE - Precharge Power-down Entry command (Fast-Exit)
+   * PDN_S_PRE - Precharge Power-down Entry command (Slow-Exit)
+   * PDN_F_ACT - Active Power-down Entry command (Fast-Exit)
+   * PDN_S_ACT - Active Power-down Entry command (Slow-Exit)
+   * PUP_PRE - Precharge Power-down Exit
+   * PUP_ACT - Active Power-down Exit
+   * SREN - Self-Refresh Entry command
+   * SREX - Self-refresh Exit
+   * NOP - To indicate end of trace
    */
 
   enum cmds {
-    ACT       = 0,
-    RD        = 1,
-    WR        = 2,
-    PRE       = 3,
-    REF       = 4,
-    REFB      = 5,
-    END       = 6,
-    RDA       = 7,
-    WRA       = 8,
-    PREA      = 9,
-    PDN_F_PRE = 10,
-    PDN_S_PRE = 11,
-    PDN_F_ACT = 12,
-    PDN_S_ACT = 13,
-    PUP_PRE   = 14,
-    PUP_ACT   = 15,
-    SREN      = 16,
-    SREX      = 17,
-    NOP       = 18,
-    UNINITIALIZED = 19
+    ACTB      ,
+    ACT       ,
+    RD        ,
+    WR        ,
+    PREB      ,
+    PRE       ,
+    REF       ,
+    REFB      ,
+    END       ,
+    RDA       ,
+    WRA       ,
+    PREA      ,
+    PDN_F_PRE ,
+    PDN_S_PRE ,
+    PDN_F_ACT ,
+    PDN_S_ACT ,
+    PUP_PRE   ,
+    PUP_ACT   ,
+    SREN      ,
+    SREX      ,
+    NOP       ,
+    UNINITIALIZED
   };
 
 //  MemCommand();
@@ -138,13 +142,15 @@ class MemCommand {
     }
   }
 
-  static const unsigned int nCommands = 20;
+  static const unsigned int nCommands = 22;
 
   static std::string* getCommandTypeStrings()
   {
-    static std::string type_map[nCommands] = { "ACT",
+    static std::string type_map[nCommands] = { "ACTB",
+                                               "ACT",
                                                "RD",
                                                "WR",
+                                               "PREB",
                                                "PRE",
                                                "REF",
                                                "REFB",

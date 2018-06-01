@@ -41,14 +41,19 @@ using namespace Data;
 
 MemTimingSpec::MemTimingSpec() :
   clkMhz(0.0),
+  RCB(16),
   RC(0),
   RCD(0),
   CCD(0),
   CCD_S(0),
   CCD_L(0),
+  RRDB(2),
+  RRDB_S(2),
+  RRDB_L(2),
   RRD(0),
   RRD_S(0),
   RRD_L(0),
+  FAWB(0),
   FAW(0),
   TAW(0),
   WTR(0),
@@ -56,9 +61,11 @@ MemTimingSpec::MemTimingSpec() :
   WTR_L(0),
   REFI(0),
   RL(0),
+  RPB(5),
   RP(0),
   RFC(0),
   REFB(0),
+  RASB(11),
   RAS(0),
   WL(0),
   AL(0),
@@ -78,24 +85,31 @@ MemTimingSpec::MemTimingSpec() :
 void MemTimingSpec::processParameters()
 {
   clkMhz    = getParamValWithDefault("clkMhz", 0.0);
+  RCB        = getParamValWithDefault("RCB", 5);
   RC        = getParamValWithDefault("RC", 0);
   RCD       = getParamValWithDefault("RCD", 0);
   CCD       = getParamValWithDefault("CCD", 0);
+  RRDB       = getParamValWithDefault("RRDB", 2);
   RRD       = getParamValWithDefault("RRD", 0);
   WTR       = getParamValWithDefault("WTR", 0);
   CCD_S     = getParamValWithDefault("CCD_S", 0);
   CCD_L     = getParamValWithDefault("CCD_L", 0);
+  RRDB_S     = getParamValWithDefault("RRDB_S", 2);
+  RRDB_L     = getParamValWithDefault("RRDB_L", 2);
   RRD_S     = getParamValWithDefault("RRD_S", 0);
   RRD_L     = getParamValWithDefault("RRD_L", 0);
   WTR_S     = getParamValWithDefault("WTR_S", 0);
   WTR_L     = getParamValWithDefault("WTR_L", 0);
   TAW       = getParamValWithDefault("TAW", 0);
+  FAWB       = getParamValWithDefault("FAWB", 0);
   FAW       = getParamValWithDefault("FAW", 0);
   REFI      = getParamValWithDefault("REFI", 0);
   RL        = getParamValWithDefault("RL", 0);
+  RPB        = getParamValWithDefault("RPB", 5);
   RP        = getParamValWithDefault("RP", 0);
   RFC       = getParamValWithDefault("RFC", 0);
   REFB      = getParamValWithDefault("REFB", 0);
+  RASB       = getParamValWithDefault("RAS", 11);
   RAS       = getParamValWithDefault("RAS", 0);
   WL        = getParamValWithDefault("WL", 0);
   AL        = getParamValWithDefault("AL", 0);

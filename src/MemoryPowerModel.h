@@ -93,10 +93,14 @@ class MemoryPowerModel {
 
   struct Energy {
     // Total energy of all activates
+    double actb_energy;
+    std::vector<double> actb_energy_banks;
     double act_energy;
     std::vector<double> act_energy_banks;
 
     // Total energy of all precharges
+    double preb_energy;
+    std::vector<double> preb_energy_banks;
     double pre_energy;
     std::vector<double> pre_energy_banks;
 
@@ -116,14 +120,20 @@ class MemoryPowerModel {
     std::vector<double> refb_energy_banks;
 
     // Total background energy of all active standby cycles
+    double actb_stdby_energy;
+    std::vector<double> actb_stdby_energy_banks;
     double act_stdby_energy;
     std::vector<double> act_stdby_energy_banks;
 
     // Total background energy of all precharge standby cycles
+    double preb_stdby_energy;
+    std::vector<double> preb_stdby_energy_banks;
     double pre_stdby_energy;
     std::vector<double> pre_stdby_energy_banks;
 
     // Total energy of idle cycles in the active mode
+    double idle_energy_actb;
+    std::vector<double> idle_energy_actb_banks;
     double idle_energy_act;
     std::vector<double> idle_energy_act_banks;
 

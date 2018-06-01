@@ -54,6 +54,32 @@ int64_t zero_guard(int64_t cycles_in, const char* warning)
   return max(zero, cycles_in);
 }
 
+void CommandAnalysis::handleActB(unsigned bank, int64_t timestamp)
+{
+  printWarningIfPoweredDown("Command issued while in power-down mode.", MemCommand::ACTB, timestamp, bank);
+  // If command is ACTB - update number of acts, bank state of the
+  // target bank, first and latest activation cycle and the memory
+  // state. Update the number of precharged/idle-precharged cycles.
+  // If the bank is already active ignore the command and generate a
+  // warning.
+  if (isPrecharged(bank)) {
+    numberofactbsBanks[bank]++;
+
+    if (nActiveBanks() == 0) {
+      // Here a memory state transition to ACT is happening. Save the
+      // number of cycles in precharge state (increment the counter).
+      first_act_cycle = timestamp;
+      precycles += zero_guard(timestamp - last_pre_cycle, "1 last_pre_cycle is in the future.");
+      idle_pre_update(timestamp, latest_pre_cycle, true);
+    }
+
+    bank_state[bank] = BANK_ACTIVE;
+    latest_act_cycle = timestamp;
+  } else {
+    printWarning("Bank is already active!", MemCommand::ACTB, timestamp, bank);
+  }
+}
+
 void CommandAnalysis::handleAct(unsigned bank, int64_t timestamp)
 {
   printWarningIfPoweredDown("Command issued while in power-down mode.", MemCommand::ACT, timestamp, bank);
@@ -146,6 +172,40 @@ void CommandAnalysis::handleRefB(unsigned bank, int64_t timestamp)
     actcyclesBanks[bank] += memSpec.memTimingSpec.RAS + memSpec.memTimingSpec.RP;
   } else {
     printWarning("Bank must be precharged for REFB!", MemCommand::REFB, timestamp, bank);
+  }
+}
+
+void CommandAnalysis::handlePreB(unsigned bank, int64_t timestamp)
+{
+  printWarningIfPoweredDown("Command issued while in power-down mode.", MemCommand::PREB, timestamp, bank);
+  // If command is explicit PREB - update number of precharges, bank
+  // state of the target bank and last and latest precharge cycle.
+  // Calculate the number of active cycles if the memory was in the
+  // active state before, but there is a state transition to PRE now
+  // (i.e., this is the last active bank).
+  // If the bank is already precharged ignore the command and generate a
+  // warning.
+
+  // Precharge only if the target bank is active
+  if (bank_state[bank] == BANK_ACTIVE) {
+    numberofprebsBanks[bank]++;
+    actcyclesBanks[bank] += zero_guard(timestamp - first_act_cycle_banks[bank], "first_act_cycle is in the future (bank).");
+    // Since we got here, at least one bank is active
+    assert(nActiveBanks() != 0);
+
+    if (nActiveBanks() == 1) {
+      // This is the last active bank. Therefore, here a memory state
+      // transition to PRE is happening. Let's increment the active cycle
+      // counter.
+      actcycles += zero_guard(timestamp - first_act_cycle, "first_act_cycle is in the future.");
+      last_pre_cycle = timestamp;
+      idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
+    }
+
+    bank_state[bank] = BANK_PRECHARGED;
+    latest_pre_cycle = timestamp;
+  } else {
+    printWarning("Bank is already precharged!", MemCommand::PREB, timestamp, bank);
   }
 }
 

@@ -66,10 +66,13 @@ CommandAnalysis::CommandAnalysis(const Data::MemorySpecification& memSpec) :
 {
   auto &nBanks = memSpec.memArchSpec.nbrOfBanks;
   // Initializing all counters and variables
+  numberofactbsBanks.assign(static_cast<size_t>(nBanks), 0);
   numberofactsBanks.assign(static_cast<size_t>(nBanks), 0);
+  numberofprebsBanks.assign(static_cast<size_t>(nBanks), 0);
   numberofpresBanks.assign(static_cast<size_t>(nBanks), 0);
   numberofreadsBanks.assign(static_cast<size_t>(nBanks), 0);
   numberofwritesBanks.assign(static_cast<size_t>(nBanks), 0);
+  actbcyclesBanks.assign(static_cast<size_t>(nBanks), 0);
   actcyclesBanks.assign(static_cast<size_t>(nBanks), 0);
   numberofrefbBanks.assign(static_cast<size_t>(nBanks), 0);
 
@@ -91,10 +94,13 @@ CommandAnalysis::CommandAnalysis(const Data::MemorySpecification& memSpec) :
 // function to clear counters
 void CommandAnalysis::clearStats(const int64_t timestamp)
 {
+  std::fill(numberofactbsBanks.begin(), numberofactbsBanks.end(), 0);
   std::fill(numberofactsBanks.begin(), numberofactsBanks.end(), 0);
+  std::fill(numberofprebsBanks.begin(), numberofprebsBanks.end(), 0);
   std::fill(numberofpresBanks.begin(), numberofpresBanks.end(), 0);
   std::fill(numberofreadsBanks.begin(), numberofreadsBanks.end(), 0);
   std::fill(numberofwritesBanks.begin(), numberofwritesBanks.end(), 0);
+  std::fill(actbcyclesBanks.begin(), actbcyclesBanks.end(), 0);
   std::fill(actcyclesBanks.begin(), actcyclesBanks.end(), 0);
 
   numberofrefs        = 0;
@@ -104,7 +110,9 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   s_pre_pdns          = 0;
   numberofsrefs       = 0;
 
+  actbcycles          = 0;
   actcycles           = 0;
+  prebcycles          = 0;
   precycles           = 0;
   f_act_pdcycles      = 0;
   s_act_pdcycles      = 0;
@@ -118,7 +126,9 @@ void CommandAnalysis::clearStats(const int64_t timestamp)
   sref_ref_pre_cycles = 0;
   spup_ref_act_cycles = 0;
   spup_ref_pre_cycles = 0;
+  idlecycles_actb     = 0;
   idlecycles_act      = 0;
+  idlecycles_preb     = 0;
   idlecycles_pre      = 0;
 
   // reset count references to timestamp so that they are moved
@@ -176,7 +186,7 @@ void CommandAnalysis::getCommands(std::vector<MemCommand>& list, bool lastupdate
   for (size_t i = 0; i < list.size(); ++i) {
     MemCommand& cmd = list[i];
     MemCommand::cmds cmdType = cmd.getType();
-    if (cmdType == MemCommand::ACT) {
+    if (cmdType == MemCommand::ACT || cmdType == MemCommand::ACTB) {
       activation_cycle[cmd.getBank()] = cmd.getTimeInt64();
     } else if (cmdType == MemCommand::RDA || cmdType == MemCommand::WRA) {
       // Remove auto-precharge flag from command
@@ -222,7 +232,9 @@ void CommandAnalysis::evaluateCommands(vector<MemCommand>& cmd_list)
     // Command Issue timestamp in clock cycles (cc)
     int64_t timestamp = cmd.getTimeInt64();
 
-    if (type == MemCommand::ACT) {
+    if (type == MemCommand::ACTB) {
+      handleActB(bank, timestamp);
+    } else if (type == MemCommand::ACT) {
       handleAct(bank, timestamp);
     } else if (type == MemCommand::RD) {
       handleRd(bank, timestamp);
@@ -232,6 +244,8 @@ void CommandAnalysis::evaluateCommands(vector<MemCommand>& cmd_list)
       handleRef(bank, timestamp);
     } else if (type == MemCommand::REFB) {
       handleRefB(bank, timestamp);
+    } else if (type == MemCommand::PREB) {
+      handlePreB(bank, timestamp);
     } else if (type == MemCommand::PRE) {
       handlePre(bank, timestamp);
     } else if (type == MemCommand::PREA) {
@@ -282,11 +296,14 @@ void CommandAnalysis::idle_act_update(int64_t latest_read_cycle, int64_t latest_
 } // CommandAnalysis::idle_act_update
 
 // To update idle period information whenever precharged cycles may be idle
-void CommandAnalysis::idle_pre_update(int64_t timestamp, int64_t latest_pre_cycle)
+void CommandAnalysis::idle_pre_update(int64_t timestamp, int64_t latest_pre_cycle, bool specialTimingFlag)
 {
   if (latest_pre_cycle > 0) {
-    idlecycles_pre += max(zero, timestamp - latest_pre_cycle -
-                          memSpec.memTimingSpec.RP);
+    if (specialTimingFlag) {
+      idlecycles_pre += max(zero, timestamp - latest_pre_cycle - memSpec.memTimingSpec.RPB);
+    } else {
+      idlecycles_pre += max(zero, timestamp - latest_pre_cycle - memSpec.memTimingSpec.RP);
+    }
   } else if (latest_pre_cycle == 0) {
     idlecycles_pre += max(zero, timestamp - latest_pre_cycle);
   }

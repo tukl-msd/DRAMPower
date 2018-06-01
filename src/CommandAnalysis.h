@@ -67,8 +67,10 @@ class CommandAnalysis {
   CommandAnalysis(const MemorySpecification& memSpec);
 
   // Number of activate commands per bank
+  std::vector<int64_t> numberofactbsBanks;
   std::vector<int64_t> numberofactsBanks;
   // Number of precharge commands per bank
+  std::vector<int64_t> numberofprebsBanks;
   std::vector<int64_t> numberofpresBanks;
   // Number of reads commands per bank
   std::vector<int64_t> numberofreadsBanks;
@@ -79,13 +81,18 @@ class CommandAnalysis {
   // Number of bankwise refresh commands
   std::vector<int64_t> numberofrefbBanks;
   // Number of precharge cycles
+  int64_t prebcycles;
   int64_t precycles;
   // Number of active cycles
+  int64_t actbcycles;
+  std::vector<int64_t> actbcyclesBanks;
   int64_t actcycles;
   std::vector<int64_t> actcyclesBanks;
   // Number of Idle cycles in the active state
+  int64_t idlecycles_actb;
   int64_t idlecycles_act;
   // Number of Idle cycles in the precharge state
+  int64_t idlecycles_preb;
   int64_t idlecycles_pre;
   // Number of fast-exit activate power-downs
   int64_t f_act_pdns;
@@ -207,11 +214,13 @@ class CommandAnalysis {
   void evaluateCommands(std::vector<MemCommand>& cmd_list);
 
   // Handlers for commands that are getting processed
+  void handleActB(   unsigned bank, int64_t timestamp);
   void handleAct(    unsigned bank, int64_t timestamp);
   void handleRd(     unsigned bank, int64_t timestamp);
   void handleWr(     unsigned bank, int64_t timestamp);
   void handleRef(    unsigned bank, int64_t timestamp);
   void handleRefB(unsigned bank, int64_t timestamp);
+  void handlePreB(   unsigned bank, int64_t timestamp);
   void handlePre(    unsigned bank, int64_t timestamp);
   void handlePreA(   unsigned bank, int64_t timestamp);
   void handlePdnFAct(unsigned bank, int64_t timestamp);
@@ -235,7 +244,8 @@ class CommandAnalysis {
 
   // To update idle period information whenever precharged cycles may be idle
   void idle_pre_update(int64_t                     timestamp,
-                       int64_t                     latest_pre_cycle);
+                       int64_t                     latest_pre_cycle,
+                       bool                        specialTimingFlag=false);
 
   // Returns the number of active banks according to the bank_state vector.
   unsigned get_num_active_banks(void);
