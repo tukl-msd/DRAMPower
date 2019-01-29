@@ -56,5 +56,5 @@ WARNFLAGS := -W -pedantic-errors -Wextra -Werror \
              -Wformat -Wformat-nonliteral -Wpointer-arith \
              -Wcast-align -Wconversion -Wall -Werror
 
-CXXFLAGS := -O ${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
+CXXFLAGS := -O ${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x -fPIC
 

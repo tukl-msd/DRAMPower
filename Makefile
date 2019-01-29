@@ -75,7 +75,7 @@ DEPWARNFLAGS := -W -pedantic-errors -Wextra -Werror \
              -Wcast-align -Wall -Werror
 
 # Sum up the flags.
-DEPCXXFLAGS := -O ${DEPWARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
+DEPCXXFLAGS := -O ${DEPWARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x -fPIC
 
 # Linker flags.
 LDFLAGS := -Wall
