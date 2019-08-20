@@ -50,8 +50,13 @@
 #include "MemCommand.h"
 #include "MemBankWiseParams.h"
 
+class libDRAMPowerDummy {
+ public:
+  virtual void doCommand(Data::MemCommand::cmds, int, int64_t) {}
+  virtual ~libDRAMPowerDummy() {}
+};
 
-class libDRAMPower {
+class libDRAMPower : public libDRAMPowerDummy {
  public:
   libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination);
   libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination,const Data::MemBankWiseParams& bwPowerParams);
