@@ -58,6 +58,7 @@ public:
 };
 
 class libDRAMPower : public libDRAMPowerDummy
+{
  public:
   libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination);
   libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination,const Data::MemBankWiseParams& bwPowerParams);
