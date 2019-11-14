@@ -40,6 +40,7 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
 
 #include "MemCommand.h"
 #include "MemorySpecification.h"
@@ -60,12 +61,7 @@ class TraceParser {
   // use this function for small traces ( no out-of-memory issue )
   void parseFile(Data::MemorySpecification memSpec,
                  std::ifstream&      trace,
-                 int                 window,
-                 int                 grouping,
-                 int                 interleaving,
-                 int                 burst,
-                 int                 powerdown,
-                 int                 trans);
+                 int                 window);
 };
 
 #endif // ifndef TRACE_PARSER_H
