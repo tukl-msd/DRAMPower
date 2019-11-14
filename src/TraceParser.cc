@@ -37,7 +37,6 @@
 #include "TraceParser.h"
 
 #include "CommandAnalysis.h"
-#include "CmdScheduler.h"
 
 using namespace Data;
 using namespace std;
@@ -74,50 +73,29 @@ Data::MemCommand TraceParser::parseLine(std::string line)
   return memcmd;
 } // TraceParser::parseLine
 
-void TraceParser::parseFile(MemorySpecification memSpec, std::ifstream& trace,
-                            int window, int grouping,  int interleaving, int burst,
-                            int powerdown, int trans)
+void TraceParser::parseFile(MemorySpecification memSpec, std::ifstream& trace, int window)
 {
   ifstream pwr_trace;
 
-  counters = CommandAnalysis(memSpec);
   int  nCommands  = 0;
   bool lastupdate = false;
-  if (trans) {
-    cmdScheduler cmdsched;
-    cmdsched.transTranslation(memSpec, trace, grouping, interleaving, burst, powerdown);
-    pwr_trace.open("commands.trace", ifstream::in);
-    std::string line;
-    while (getline(pwr_trace, line)) {
-      MemCommand cmdline = parseLine(line);
-      cmd_list.push_back(cmdline);
-      nCommands++;
-      if (nCommands == window) {
-        counters.getCommands(cmd_list, lastupdate);
-        nCommands = 0;
-        cmd_list.clear();
-      }
+  counters = CommandAnalysis(memSpec);
+
+  std::string line;
+  while (getline(trace, line)) {
+    MemCommand cmdline = parseLine(line);
+    cmd_list.push_back(cmdline);
+    nCommands++;
+    if (nCommands == window) {
+      counters.getCommands(cmd_list, lastupdate);
+      nCommands = 0;
+      cmd_list.clear();
     }
-    lastupdate = true;
-    counters.getCommands(cmd_list, lastupdate);
-    cmd_list.clear();
-    pwr_trace.close();
-  } else   {
-    std::string line;
-    while (getline(trace, line)) {
-      MemCommand cmdline = parseLine(line);
-      cmd_list.push_back(cmdline);
-      nCommands++;
-      if (nCommands == window) {
-        counters.getCommands(cmd_list, lastupdate);
-        nCommands = 0;
-        cmd_list.clear();
-      }
-    }
-    lastupdate = true;
-    counters.getCommands(cmd_list, lastupdate);
-    cmd_list.clear();
   }
+  lastupdate = true;
+  counters.getCommands(cmd_list, lastupdate);
+  cmd_list.clear();
+
   counters.clear();
   trace.close();
 } // TraceParser::parseFile
