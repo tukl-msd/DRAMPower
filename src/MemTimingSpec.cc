@@ -37,7 +37,7 @@
 
 #include "MemTimingSpec.h"
 
-using namespace Data;
+using namespace DRAMPower;
 
 MemTimingSpec::MemTimingSpec() :
   clkMhz(0.0),

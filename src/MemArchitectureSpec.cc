@@ -39,7 +39,7 @@
 
 #include <cassert>
 
-using namespace Data;
+using namespace DRAMPower;
 
 MemArchitectureSpec::MemArchitectureSpec() :
   burstLength(0),

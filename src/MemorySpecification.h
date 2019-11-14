@@ -47,7 +47,7 @@
 #include "Parametrisable.h"
 
 
-namespace Data {
+namespace DRAMPower {
 // Supported memory types
 class MemoryType {
  public:

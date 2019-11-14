@@ -38,7 +38,7 @@
 #include "MemorySpecification.h"
 
 using namespace std;
-using namespace Data;
+using namespace DRAMPower;
 
 // Set variable values from XML
 void MemorySpecification::processParameters()

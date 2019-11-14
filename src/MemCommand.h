@@ -44,7 +44,7 @@
 
 #include "MemorySpecification.h"
 
-namespace Data {
+namespace DRAMPower {
 class MemCommand {
  public:
   /*

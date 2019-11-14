@@ -42,7 +42,7 @@
 
 #include "Parametrisable.h"
 
-namespace Data {
+namespace DRAMPower {
 class MemArchitectureSpec : public virtual Parametrisable {
  public:
   MemArchitectureSpec();

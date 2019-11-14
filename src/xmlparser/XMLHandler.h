@@ -42,7 +42,7 @@
 
 #include <string>
 
-namespace Data {
+namespace DRAMPower {
 class XMLHandler : public XERCES_CPP_NAMESPACE_QUALIFIER DefaultHandler {
  public:
   XMLHandler();

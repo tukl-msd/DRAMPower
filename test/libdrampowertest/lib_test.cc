@@ -42,7 +42,7 @@
 #endif
 
 using namespace std;
-using namespace Data;
+using namespace DRAMPower;
 
 int main(int argc, char* argv[])
 {

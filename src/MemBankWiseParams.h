@@ -42,7 +42,7 @@
 #include <algorithm>
 #include <numeric>
 
-namespace Data {
+namespace DRAMPower {
   class MemBankWiseParams {
     public:
       // Set of possible PASR modes

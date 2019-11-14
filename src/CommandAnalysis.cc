@@ -47,7 +47,7 @@
 
 #include "CommandAnalysis.h"
 
-using namespace Data;
+using namespace DRAMPower;
 using namespace std;
 
 bool commandSorter(const MemCommand& i, const MemCommand& j)
@@ -59,7 +59,7 @@ bool commandSorter(const MemCommand& i, const MemCommand& j)
   }
 }
 
-CommandAnalysis::CommandAnalysis(const Data::MemorySpecification& memSpec) :
+CommandAnalysis::CommandAnalysis(const DRAMPower::MemorySpecification& memSpec) :
   memSpec(memSpec)
 
 {

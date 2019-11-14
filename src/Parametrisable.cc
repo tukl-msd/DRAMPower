@@ -40,7 +40,7 @@
 #include <iostream>
 #include <cstdlib>
 
-using namespace Data;
+using namespace DRAMPower;
 using namespace std;
 
 void Parametrisable::pushParameter(const Parameter& parameter)

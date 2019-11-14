@@ -46,7 +46,7 @@
 #include "xmlparser/MemSpecParser.h"
 #include "TraceParser.h"
 
-using namespace Data;
+using namespace DRAMPower;
 using namespace std;
 
 int error()
