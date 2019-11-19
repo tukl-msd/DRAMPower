@@ -32,26 +32,62 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Omar Naji, Subash Kannoth, Eder Zulian, Matthias Jung
+ * Authors: Subash Kannoth
  *
  */
-#include "CliHandler.h"
+#ifndef CLI_HANDLER_HPP
+#define CLI_HANLDER_HPP
 
-using namespace DRAMPower;
-using namespace std;
+#include <iostream>
+#include <string>
+#include <exception>
+#include <fstream>
+#include "MemorySpecification.h"
+#include "MemoryPowerModel.h"
+#include "MemBankWiseParams.h"
+#include "xmlparser/MemSpecParser.h"
+#include "TraceParser.h"
+#include "common/libraries/cli11.h"
+#include "common/version.hpp"
 
-int main(int argc, char* argv[])
-{
-  
-  try {
+namespace DRAMPower {
 
-    CliHandler cli(argc, argv);
-    cli.parse_arguments();
-    cli.run_simulation();
+constexpr static const char* MEM_SPEC("--mem_spec,-m");
+constexpr static const char* IO_TERM("--io_term,-r");
+constexpr static const char* CMD_TRACE("--command_trace,-c");
+constexpr static const char* BANK_WISE("--bank_wise,-b");
+constexpr static const char* PASR_MODE("--pasr,-s");
 
-    return EXIT_SUCCESS;
-  } catch(const std::exception& e) {
-    std::cerr << e.what() << std::endl;
-    return EXIT_FAILURE;
-  }
-} // main
+class CliHandler {
+public:
+  bool get_io_term_active() const;
+  const std::string& get_mem_spec_path() const;
+  const std::string& get_cmd_trace_path() const;
+  bool get_bank_wise_active() const;
+  int get_bank_wise_rho() const;
+  int get_bank_wise_sigma() const;
+  bool get_pasr_active() const;
+  int get_pasr_mode() const ;
+
+  void parse_arguments();
+  void run_simulation();
+
+  CliHandler(int _argc, char** _argv); 
+  ~CliHandler();
+private:
+  CliHandler() {}
+  CLI::App* app;
+
+  int argc;
+  char** argv;
+  bool io_term_active;
+  std::string mem_spec_path;
+  std::string cmd_trace_path;
+  std::vector<int> bank_wise_parms;
+  bool bank_wise_active;
+  int pasr_mode;
+  bool pasr_active;
+};
+
+}
+#endif
