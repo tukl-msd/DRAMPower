@@ -78,7 +78,7 @@ DEPWARNFLAGS := -W -pedantic-errors -Wextra -Werror \
 DEPCXXFLAGS := -O ${DEPWARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
 
 # Linker flags.
-LDFLAGS := -Wall
+LDFLAGS := -Wall -lstdc++
 
 ##########################################
 # Xerces settings
