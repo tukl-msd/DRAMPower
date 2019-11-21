@@ -43,7 +43,7 @@
 
 #include "Parameter.h"
 
-namespace Data {
+namespace DRAMPower {
 /**
  * Convenience class for the architectural components that are
  * parametrisable. The interface is shared and implemented only in

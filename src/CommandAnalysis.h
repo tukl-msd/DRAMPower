@@ -54,7 +54,7 @@
 #include "MemorySpecification.h"
 #include "Utils.h"
 
-namespace Data {
+namespace DRAMPower {
 class CommandAnalysis {
  public:
   // Power-Down and Self-refresh related memory states

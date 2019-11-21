@@ -49,7 +49,7 @@
 #include <algorithm>
 
 using namespace std;
-using namespace Data;
+using namespace DRAMPower;
 
 MemoryPowerModel::MemoryPowerModel()
 {

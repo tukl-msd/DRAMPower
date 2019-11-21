@@ -38,7 +38,7 @@
 
 #include "CommandAnalysis.h"
 
-using namespace Data;
+using namespace DRAMPower;
 using namespace std;
 
 TraceParser::TraceParser(const MemorySpecification& memSpec) :
@@ -47,7 +47,7 @@ TraceParser::TraceParser(const MemorySpecification& memSpec) :
 }
 
 
-Data::MemCommand TraceParser::parseLine(std::string line)
+DRAMPower::MemCommand TraceParser::parseLine(std::string line)
 {
   MemCommand memcmd(MemCommand::UNINITIALIZED, 0, 0);
   istringstream linestream(line);

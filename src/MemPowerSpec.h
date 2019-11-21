@@ -37,7 +37,7 @@
 
 #include "Parametrisable.h"
 
-namespace Data {
+namespace DRAMPower {
 class MemPowerSpec : public virtual Parametrisable {
  public:
   MemPowerSpec();

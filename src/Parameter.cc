@@ -40,7 +40,7 @@
 #include <iomanip>
 #include "Utils.h"
 
-using namespace Data;
+using namespace DRAMPower;
 using namespace std;
 
 Parameter::Parameter(const string& id, const string& type,
@@ -96,7 +96,7 @@ string Parameter::getValue() const
   return value;
 }
 
-Parameter Data::HexParameter(const string& id, int value)
+Parameter DRAMPower::HexParameter(const string& id, int value)
 {
   std::ostringstream ss;
 
@@ -105,12 +105,12 @@ Parameter Data::HexParameter(const string& id, int value)
   return Parameter(id, "int", ss.str());
 }
 
-Parameter Data::StringParameter(const string& id, const string& value)
+Parameter DRAMPower::StringParameter(const string& id, const string& value)
 {
   return Parameter(id, "string", value);
 }
 
-ostream& Data::operator<<(ostream& os, const Parameter& parameter)
+ostream& DRAMPower::operator<<(ostream& os, const Parameter& parameter)
 {
   os << "<parameter " <<
     "id=\"" << parameter.getId() << "\" " <<

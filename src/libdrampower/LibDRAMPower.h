@@ -52,17 +52,17 @@
 
 class libDRAMPowerDummy {
  public:
-  virtual void doCommand(Data::MemCommand::cmds, int, int64_t) {}
+  virtual void doCommand(DRAMPower::MemCommand::cmds, int, int64_t) {}
   virtual ~libDRAMPowerDummy() {}
 };
 
 class libDRAMPower : public libDRAMPowerDummy {
  public:
-  libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination);
-  libDRAMPower(const Data::MemorySpecification& memSpec, bool includeIoAndTermination,const Data::MemBankWiseParams& bwPowerParams);
+  libDRAMPower(const DRAMPower::MemorySpecification& memSpec, bool includeIoAndTermination);
+  libDRAMPower(const DRAMPower::MemorySpecification& memSpec, bool includeIoAndTermination,const DRAMPower::MemBankWiseParams& bwPowerParams);
   ~libDRAMPower();
 
-  void doCommand(Data::MemCommand::cmds type,
+  void doCommand(DRAMPower::MemCommand::cmds type,
                  int                    bank,
                  int64_t                timestamp);
 
@@ -70,11 +70,11 @@ class libDRAMPower : public libDRAMPowerDummy {
 
   void calcWindowEnergy(int64_t timestamp);
 
-  const Data::MemoryPowerModel::Energy& getEnergy() const;
-  const Data::MemoryPowerModel::Power& getPower() const;
+  const DRAMPower::MemoryPowerModel::Energy& getEnergy() const;
+  const DRAMPower::MemoryPowerModel::Power& getPower() const;
 
   // list of all commands
-  std::vector<Data::MemCommand> cmdList;
+  std::vector<DRAMPower::MemCommand> cmdList;
  private:
   void updateCounters(bool lastUpdate, int64_t timestamp = 0);
 
@@ -82,16 +82,16 @@ class libDRAMPower : public libDRAMPowerDummy {
 
   void clearState();
 
-  Data::MemorySpecification memSpec;
+  DRAMPower::MemorySpecification memSpec;
  public:
-  Data::CommandAnalysis counters;
+  DRAMPower::CommandAnalysis counters;
  private:
   bool includeIoAndTermination;
-  Data:: MemBankWiseParams bwPowerParams;
+  DRAMPower:: MemBankWiseParams bwPowerParams;
   // Object of MemoryPowerModel which contains the results
   // Energies(pJ) stored in energy, Powers(mW) stored in power. Number of
   // each command stored in timings.
-  Data::MemoryPowerModel mpm;
+  DRAMPower::MemoryPowerModel mpm;
 };
 
 #endif // ifndef LIB_DRAM_POWER_H

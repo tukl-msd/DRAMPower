@@ -41,7 +41,7 @@
 #include <string>
 #include <ostream>
 
-namespace Data {
+namespace DRAMPower {
 class Parameter {
  public:
   Parameter(const std::string& id, const std::string& type,
