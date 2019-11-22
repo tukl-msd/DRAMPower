@@ -29,7 +29,8 @@ The tool was verified on Ubuntu 14.04 using:
  * traces/     : 1 sample command trace (after the installation / compilation)
  * test/       : contains test script and reference output
 
-## 4. Command Trace Specification
+## 4. Trace Specification
+### Command Traces
 If the command-level interface is being used, a command trace can be logged in a file.
 An example is given in ```traces/commands.trace```
 
@@ -37,6 +38,9 @@ The format it uses is: ```<timestamp>,<command>,<bank>```.
 For example, "500,ACT,2", where ACT is the command and 2 is the bank. Timestamp is in clock cycles (cc), the list of supported commands is
 mentioned in [MemCommand.h](src/MemCommand.h) and the bank is the target bank number. For non-bank-specific commands, bank can be set to 0. Rank need not be
 specified. The timing correctness of the trace is not verified by the tool and is assumed to be accurate. However, warning messages are provided, to identify if the memory or bank state is inconsistent in the trace. A sample command trace is provided in the traces/ folder.
+
+### Transaction Traces
+This feature is obsolete and not supported any more. One can check out [commit](https://github.com/tukl-msd/DRAMPower/commit/0e24b8ebfa6144fc543d3acdcc3e6ad845dd98a9) to use this feature with an older version of DRAMPower, until which the feature is included. The usage and other details are documented. The future versions of DRAMPower will rely on simulators like [DRAMSys](https://www.jstage.jst.go.jp/article/ipsjtsldm/8/0/8_63/_article) and [Ramulator](https://github.com/CMU-SAFARI/ramulator) for this purpose.
 
 ## 5. Usage
 
