@@ -32,26 +32,15 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Omar Naji, Subash Kannoth, Eder Zulian, Matthias Jung
+ * Authors: Subash Kannoth
  *
  */
-#include "CliHandler.h"
+#ifndef DP_VERSION_H
+#define DP_VERSION_H
 
-using namespace DRAMPower;
-using namespace std;
+#define DRAM_POWER_VERSION_MAJOR 4
+#define DRAM_POWER_VERSION_MINOR 0
+#define DRAM_POWER_VERSION_PATCH 0
+#define DRAM_POWER_VERSION_STRING "4.0.0"
 
-int main(int argc, char* argv[])
-{
-  
-  try {
-
-    CliHandler cli(argc, argv);
-    cli.parse_arguments();
-    cli.run_simulation();
-
-    return EXIT_SUCCESS;
-  } catch(const std::exception& e) {
-    std::cerr << e.what() << std::endl;
-    return EXIT_FAILURE;
-  }
-} // main
+#endif

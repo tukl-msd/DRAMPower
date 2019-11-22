@@ -79,10 +79,6 @@ class TestOutput(TestUsingBuildResult):
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml', '-c', 'traces/commands.trace']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_commands_trace_output_matches_reference.out')
 
-    def test_no_arguments_error(self):
-        """ running drampower w/o arguments returns 1 """
-        self.assertEqual(subprocess.call(['./drampower'], stdout=devnull), 1)
-
     def get_LPDDR2_1066_trace_file(self):
         cmdTrace = extractFileToTmpFile('test/data/LPDDR2-1066.commands.trace.gz')
         self.tempFiles.append(cmdTrace)
@@ -119,192 +115,192 @@ class TestOutput(TestUsingBuildResult):
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_25_pasr_0(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 25% and PASR mode = 0 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,25' , '-pasr','0']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','25' , '-s','0']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_25_pasr_0_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_50_pasr_0(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 50% and PASR mode = 0 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,50' , '-pasr','0']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','50' , '-s','0']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_50_pasr_0_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_75_pasr_0(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 75% and PASR mode = 0 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,75' , '-pasr','0']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','75' , '-s','0']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_75_pasr_0_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_100_pasr_0(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 100% and PASR mode = 0 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,100' , '-pasr','0']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','100' , '-s','0']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_100_pasr_0_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_25_pasr_1(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 25% and PASR mode = 1 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,25' , '-pasr','1']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','25' , '-s','1']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_25_pasr_1_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_50_pasr_1(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 50% and PASR mode = 1 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,50' , '-pasr','1']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','50' , '-s','1']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_50_pasr_1_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_75_pasr_1(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 75% and PASR mode = 1 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,75' , '-pasr','1']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','75' , '-s','1']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_75_pasr_1_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_100_pasr_1(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 100% and PASR mode = 1 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,100' , '-pasr','1']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','100' , '-s','1']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_100_pasr_1_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_25_pasr_2(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 25% and PASR mode = 2 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,25' , '-pasr','2']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','25' , '-s','2']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_25_pasr_2_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_50_pasr_2(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 50% and PASR mode = 2 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,50' , '-pasr','2']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','50' , '-s','2']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_50_pasr_2_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_75_pasr_2(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 75% and PASR mode = 2 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,75' , '-pasr','2']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','75' , '-s','2']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_75_pasr_2_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_100_pasr_2(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 100% and PASR mode = 2 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,100' , '-pasr','2']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','100' , '-s','2']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_100_pasr_2_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_25_pasr_3(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 25% and PASR mode = 3 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,25' , '-pasr','3']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','25' , '-s','3']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_25_pasr_3_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_50_pasr_3(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 50% and PASR mode = 3 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,50' , '-pasr','3']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','50' , '-s','3']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_50_pasr_3_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_75_pasr_3(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 75% and PASR mode = 3 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,75' , '-pasr','3']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','75' , '-s','3']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_75_pasr_3_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_100_pasr_3(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 100% and PASR mode = 3 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,100' , '-pasr','3']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','100' , '-s','3']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_100_pasr_3_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_25_pasr_4(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 25% and PASR mode = 4 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,25' , '-pasr','4']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','25' , '-s','4']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_25_pasr_4_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_50_pasr_4(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 50% and PASR mode = 4 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,50' , '-pasr','4']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','50' , '-s','4']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_50_pasr_4_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_75_pasr_4(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 75% and PASR mode = 4 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,75' , '-pasr','4']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','75' , '-s','4']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_75_pasr_4_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_100_pasr_4(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 100% and PASR mode = 4 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,100' , '-pasr','4']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','100' , '-s','4']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_100_pasr_4_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_25_pasr_5(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 25% and PASR mode = 5 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,25' , '-pasr','5']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','25' , '-s','5']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_25_pasr_5_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_50_pasr_5(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 50% and PASR mode = 5 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,50' , '-pasr','5']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','50' , '-s','5']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_50_pasr_5_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_75_pasr_5(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 75% and PASR mode = 5 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,75' , '-pasr','5']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','75' , '-s','5']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_75_pasr_5_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_100_pasr_5(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 100% and PASR mode = 5 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,100' , '-pasr','5']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','100' , '-s','5']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_100_pasr_5_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_25_pasr_6(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 25% and PASR mode = 6 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,25' , '-pasr','6']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','25' , '-s','6']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_25_pasr_6_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_50_pasr_6(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 50% and PASR mode = 6 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,50' , '-pasr','6']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','50' , '-s','6']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_50_pasr_6_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_75_pasr_6(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 75% and PASR mode = 6 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,75' , '-pasr','6']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','75' , '-s','6']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_75_pasr_6_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_100_pasr_6(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 100% and PASR mode = 6 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,100' , '-pasr','6']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','100' , '-s','6']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_100_pasr_6_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_25_pasr_7(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 25% and PASR mode = 7 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,25' , '-pasr','7']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','25' , '-s','7']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_25_pasr_7_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_50_pasr_7(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 50% and PASR mode = 7 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,50' , '-pasr','7']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','50' , '-s','7']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_50_pasr_7_reference.out')
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_75_pasr_7(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 75% and PASR mode = 7 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,75' , '-pasr','7']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','75' , '-s','7']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_75_pasr_7_reference.out')
 
     def test_MICRON_1Gb_DDR3_1600_8bit_G_3s_Sigma_100_pasr_7(self):
         """Bank-wise drampower output for MICRONMICRON_1Gb_DDR3-1600_8bit_G with the PASR commands trace with Sigma = 100% and PASR mode = 7 """''
         cmd = ['./drampower', '-m', 'memspecs/MICRON_1Gb_DDR3-1600_8bit_G.xml',
-                              '-c', 'test/data/PASR.commands.trace', '-b', '100,100' , '-pasr','7']
+                              '-c', 'test/data/PASR.commands.trace', '-b', '100','100' , '-s','7']
         self.run_and_compare_to_reference(cmd, 'test/reference/test_MICRON_1Gb_DDR3-1600_8bit_G_Sigma_100_pasr_7_reference.out')
 
     def test_broken_trace(self):
