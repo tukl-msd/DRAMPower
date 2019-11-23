@@ -39,7 +39,7 @@ using std::cerr;
 using std::endl;
 using std::max;
 
-using namespace Data;
+using namespace DRAMPower;
 
 
 int64_t zero_guard(int64_t cycles_in, const char* warning)

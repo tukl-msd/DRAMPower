@@ -43,7 +43,7 @@
 
 XERCES_CPP_NAMESPACE_USE
 
-using namespace Data;
+using namespace DRAMPower;
 using namespace std;
 
 MemSpecParser::MemSpecParser() :

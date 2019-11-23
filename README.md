@@ -10,7 +10,7 @@ The master branch of the repository should be regarded as the bleeding-edge vers
 
 ## 1. Installation
 
-Clone the repository, or download the zip file of the release you would like to use. The source code is available in src folder. [drampower.cc](src/cli/drampower.cc) file gives the user interface, where the user can specify the memory to be employed and the command/transaction trace to be analyzed. To build, use:
+Clone the repository, or download the zip file of the release you would like to use. The source code is available in src folder. [drampower.cc](src/cli/drampower.cc) file gives the user interface, where the user can specify the memory to be employed and the commandtrace to be analyzed. To build, use:
 ```bash
 make -j4
 ```
@@ -26,7 +26,7 @@ The tool was verified on Ubuntu 14.04 using:
 ## 3. Directory Structure
  * src/: contains the source code of the DRAMPower tool that covers the power  model, the command scheduler and the trace analysis tool.
  * memspecs/   : contains the memory specification XMLs, which give the architectural, timing and current/voltage details for different DRAM memories.
- * traces/     : contains 4 sample DRAM transaction traces and 1 sample command trace (after the installation / compilation)
+ * traces/     : 1 sample command trace (after the installation / compilation)
  * test/       : contains test script and reference output
 
 ## 4. Trace Specification
@@ -40,46 +40,19 @@ mentioned in [MemCommand.h](src/MemCommand.h) and the bank is the target bank nu
 specified. The timing correctness of the trace is not verified by the tool and is assumed to be accurate. However, warning messages are provided, to identify if the memory or bank state is inconsistent in the trace. A sample command trace is provided in the traces/ folder.
 
 ### Transaction Traces
-If the transaction-level interface is being used, a transaction trace can be logged.
-
-The format it uses is: ```<time_interval>,<transaction_type>,<address>```. For example, "35,READ,0x80028", where 35 represent the time interval (in cycles) since the previous transaction. READ is the transaction type.  0x80028 is the logical address (32-bits long and byte addressable), which is less than the maximum supported DRAM capacity of 4GB (32Gb). 
-
-The tool uses a flexible and efficient memory map as follows: specified in HEX (0x). Timestamp is in clock cycles (cc) and maximum {row}-{bank}-{column}-{BI}-{BC}-{BGI}-{BL}
-Here, BI gives the degree of bank interleaving, BC gives the burst size (count), BGI gives the degree of bank group interleaving (for DDR4) and BL gives the burst length used by the device.
-Dual-Rank addressing is not yet supported. The BC and BL address bits are derived from the column address bits, whereas the BI and BGI bits are derived from the bank address bits.
-
-Four sample MediaBench application transaction traces have been provided. The MediaBench applications include: (1) EPIC Encoder, (2) JPEG Encoder, (3) H263 Encoder and (4) MPEG2 Encoder. These applications were independently executed on the SimpleScalar simulator with a 16KB L1 D-cache, 16KB L1 I-cache, 128KB L2 cache and 64-byte cache line configuration. We filtered out the L2 cache misses meant for the DRAM and logged them as transaction traces. These can be used with our command scheduler to generate equivalent command traces for any DRAM memory specified.
+This feature is obsolete and not supported any more. One can check out [commit](https://github.com/tukl-msd/DRAMPower/commit/0e24b8ebfa6144fc543d3acdcc3e6ad845dd98a9) to use this feature with an older version of DRAMPower, until which the feature is included. The usage and other details are documented. The future versions of DRAMPower will rely on simulators like [DRAMSys](https://www.jstage.jst.go.jp/article/ipsjtsldm/8/0/8_63/_article) and [Ramulator](https://github.com/CMU-SAFARI/ramulator) for this purpose.
 
 ## 5. Usage
 
-[drampower.cc](src/cli/drampower.cc) is the main interface file, which accepts user inputs to specify memory to be employed and the command or transaction trace to be analyzed. If the transaction trace (DRAM command scheduler) is being used, the users can specify the degree of bank interleaving required, the request size and the use of power-down or self-refresh options. Also, for DDR4 memories bank group interleaving can be specified. Dual-rank DRAMs are not yet supported by the command scheduler. Note: Speculative use of power-down or self-refresh modes will increase the trace length due to the power-up latencies of these power-saving modes.
+[drampower.cc](src/cli/drampower.cc) is the main interface file, which accepts user inputs to specify memory to be employed and the command trace to be analyzed.
 
 To use DRAMPower at the command-level (command trace), after make, use the following:
 ```bash
 ./drampower -m <memory spec (ID)> -c <commands trace>
 ```
-To use DRAMPower at the transaction-level (command scheduler), after make, use the
-following:
-```bash
-./drampower -m <memory spec (ID)> -t <transactions trace>
-```
-Additional options when using transactions trace [-t] include:
- * [-i] ```<interleaving>```
- * [-s] ```<request size>```
- * [-g] ```<DDR4 bank group interleaving>```
- * [-p] ```<0 - No Power-Down, 1 - Power-Down, 2 - Self-Refresh>```
-
-Also, when using either the commands trace or the transactions trace, the user can
-optionally include IO and Termination power estimates (obtained from Micron's DRAM
-Power Calculator). To enable the same, the '-r' flag can be employed in command line.
-
-If these options are not used, the default values assumed are:
-* interleaving = 1
-* request size = burst length * I/O width / 8 (in bytes) (from memory XMLs)
-* power saving = No power-down
-* bank group interleaving = 1
-* IO and termination = OFF (0)
-* Burst size (count) of 1
+Also,the user can optionally include IO and Termination power estimates (obtained from 
+Micron's DRAM Power Calculator). To enable the same, the '-r' flag can be employed in 
+command line.
 
 ## 6. Memory Specifications
 
@@ -111,33 +84,37 @@ use the Makefile and make sure the gcc and Xerces-c are installed. Then, run:
 ```
 make -j4
 ```
-After this, run with the command trace or the transaction trace, as described before:
+After this, run with the command trace, as described before:
 ```
-./drampower -m memspecs/MICRON_1Gb_DDR3-1066_8bit_G.xml -t traces/mediabench-epic.trace -r
+./drampower -m memspecs/MICRON_1Gb_DDR3-1066_8bit_G.xml -t traces/commands.trace -r
 ```
 The output should be something like this:
 
 ```
 * Parsing memspecs/MICRON_1Gb_DDR3-1066_8bit_G.xml
-* Analysis start time: Thu Aug  4 15:43:52 2016
+* Analysis start time: Tue Nov 19 15:10:26 2019
 * Analyzing the input trace
+* Bankwise mode: disabled
+* Partial Array Self-Refresh: disabled
+
 * Trace Details:
 
-#ACT commands: 96984
-#RD + #RDA commands: 67179
-#WR + #WRA commands: 29805
-#PRE (+ PREA) commands: 96984
-#REF commands: 13168
-#Active Cycles: 2519793
-  #Active Idle Cycles: 196851
+#ACT commands: 3040
+#RD + #RDA commands: 3040
+#WR + #WRA commands: 0
+#PRE (+ PREA) commands: 3040
+#REF commands: 38525
+#REFB commands: 0
+#Active Cycles: 2064100
+  #Active Idle Cycles: 9120
   #Active Power-Up Cycles: 0
     #Auto-Refresh Active cycles during Self-Refresh Power-Up: 0
-#Precharged Cycles: 52261474
-  #Precharged Idle Cycles: 51649629
+#Precharged Cycles: 158203271
+  #Precharged Idle Cycles: 157912282
   #Precharged Power-Up Cycles: 0
     #Auto-Refresh Precharged cycles during Self-Refresh Power-Up: 0
   #Self-Refresh Power-Up Cycles: 0
-Total Idle Cycles (Active + Precharged): 51846480
+Total Idle Cycles (Active + Precharged): 157921402
 #Power-Downs: 0
   #Active Fast-exit Power-Downs: 0
   #Active Slow-exit Power-Downs: 0
@@ -150,30 +127,28 @@ Total Idle Cycles (Active + Precharged): 51846480
   #Precharged Fast-exit Power-Down Cycles: 0
   #Precharged Slow-exit Power-Down Cycles: 0
     #Auto-Refresh Precharged cycles during Self-Refresh: 0
-#Auto-Refresh Cycles: 776912
+#Auto-Refresh Cycles: 2272975
 #Self-Refreshes: 0
 #Self-Refresh Cycles: 0
 ----------------------------------------
-Total Trace Length (clock cycles): 54781267
+Total Trace Length (clock cycles): 160267371
 ----------------------------------------
 
 * Trace Power and Energy Estimates:
 
-ACT Cmd Energy: 109175234.52 pJ
-PRE Cmd Energy: 47764165.10 pJ
-RD Cmd Energy: 49155365.85 pJ
-WR Cmd Energy: 23486116.32 pJRD I/O Energy: 20872124.58 pJ
-WR Termination Energy: 47419587.24 pJ
-ACT Stdby Energy: 283653996.25 pJ
-  Active Idle Energy: 22159587.24 pJ
+ACT Cmd Energy: 3422138.84 pJ
+PRE Cmd Energy: 1497185.74 pJ
+RD Cmd Energy: 2224390.24 pJ
+WR Cmd Energy: 0.00 pJACT Stdby Energy: 232356472.80 pJ
+  Active Idle Energy: 1026641.65 pJ
   Active Power-Up Energy: 0.00 pJ
     Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0.00 pJ
-PRE Stdby Energy: 5147706163.23 pJ
-  Precharge Idle Energy: 5087440004.69 pJ
+PRE Stdby Energy: 15582873785.18 pJ
+  Precharge Idle Energy: 15554211641.65 pJ
   Precharged Power-Up Energy: 0.00 pJ
     Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0.00 pJ
   Self-Refresh Power-Up Energy: 0.00 pJ
-Total Idle Energy (Active + Precharged): 5109599591.93 pJ
+Total Idle Energy (Active + Precharged): 15555238283.30 pJ
 Total Power-Down Energy: 0.00 pJ
   Fast-Exit Active Power-Down Energy: 0.00 pJ
   Slow-Exit Active Power-Down Energy: 0.00 pJ
@@ -181,15 +156,15 @@ Total Power-Down Energy: 0.00 pJ
   Fast-Exit Precharged Power-Down Energy: 0.00 pJ
   Slow-Exit Precharged Power-Down Energy: 0.00 pJ
     Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0.00 pJ
-Auto-Refresh Energy: 262371782.36 pJ
+Auto-Refresh Energy: 767608818.01 pJ
+Bankwise-Refresh Energy: 0.00 pJ
 Self-Refresh Energy: 0.00 pJ
 ----------------------------------------
-Total Trace Energy: 5991604535.46 pJ
-Average Power: 58.30 mW
+Total Trace Energy: 16589982790.81 pJ
+Average Power: 55.17 mW
 ----------------------------------------
-* Power Computation End time: Thu Aug  4 15:43:59 2016
-* Total Simulation time: 7 seconds
-*
+* Power Computation End time: Tue Nov 19 15:10:26 2019
+* Total Simulation time: 0.359375 seconds
 ```
 
 As can be noticed, the tool performs DRAM command scheduling and reports the number

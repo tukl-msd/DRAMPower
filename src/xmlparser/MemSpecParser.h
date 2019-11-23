@@ -44,7 +44,7 @@
 #include "Parametrisable.h"
 #include "MemorySpecification.h"
 
-namespace Data {
+namespace DRAMPower {
 class MemSpecParser : public XMLHandler {
  public:
   MemSpecParser();

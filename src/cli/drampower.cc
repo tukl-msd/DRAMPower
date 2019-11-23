@@ -46,7 +46,7 @@
 #include "xmlparser/MemSpecParser.h"
 #include "TraceParser.h"
 
-using namespace Data;
+using namespace DRAMPower;
 using namespace std;
 
 int error()
@@ -66,25 +66,21 @@ int error()
 
 int main(int argc, char* argv[])
 {
-  int trans = 0, cmds = 0, memory = 0, size = 0, term = 0, power_down = 0;
+  int cmds = 0, memory = 0, size = 0, term = 0, power_down = 0;
   bool bankwiseMode = false;
   bool bankPASRact = false;
   unsigned bankwisePowerFactRho = 100;
   unsigned bankwisePowerFactSigma = 100;
   unsigned pasrMode = 0;
 
-  char*    src_trans    = { 0 };
   char*    src_cmds     = { 0 };
   char*    src_memory   = { 0 };
 
-  int interleaving = 1, grouping = 1, src_size = 1, burst = 1;
+  int interleaving = 1, grouping = 1, src_size = 1;
 
   for (int i = 1; i < argc; i++) {
     if (i + 1 != argc) {
-      if (string(argv[i]) == "-t") {
-        src_trans = argv[i + 1];
-        trans     = 1;
-      } else if (string(argv[i]) == "-c") {
+      if (string(argv[i]) == "-c") {
         src_cmds = argv[i + 1];
         cmds     = 1;
       } else if (string(argv[i]) == "-m") {
@@ -150,18 +146,10 @@ int main(int argc, char* argv[])
   }
 
   ifstream fout;
-  if (trans) {
-    fout.open(src_trans);
-    if (fout.fail()) {
-      cout << "Transactions trace file not found!" << endl;
-      return error();
-    }
-  } else   {
-    fout.open(src_cmds);
-    if (fout.fail()) {
-      cout << "Commands trace file not found!" << endl;
-      return error();
-    }
+  fout.open(src_cmds);
+  if (fout.fail()) {
+    cout << "Commands trace file not found!" << endl;
+    return error();
   }
   fout.close();
 
@@ -207,16 +195,11 @@ int main(int argc, char* argv[])
     src_size = max(min_size, src_size);
   }
 
-  burst = src_size / min_size;
-  // transSize = BGI * BI * BC * BL.
-
   const clock_t begin_time = clock();
 
   ifstream trace_file;
 
-  if (trans) {
-    trace_file.open(src_trans, ifstream::in);
-  } else if (cmds) {
+  if (cmds) {
     trace_file.open(src_cmds, ifstream::in);
   } else {
     cout << "No transaction or command trace file specified!" << endl;
@@ -245,7 +228,7 @@ int main(int argc, char* argv[])
   // command trace
   const int CMD_ANALYSIS_WINDOW_SIZE = 1000000;
   TraceParser traceparser(memSpec);
-  traceparser.parseFile(memSpec, trace_file, CMD_ANALYSIS_WINDOW_SIZE, grouping, interleaving, burst, power_down, trans);
+  traceparser.parseFile(memSpec, trace_file, CMD_ANALYSIS_WINDOW_SIZE);
   mpm.power_calc(memSpec, traceparser.counters, term, memBwParams);
 
   mpm.power_print(memSpec, term, traceparser.counters, bankwiseMode);

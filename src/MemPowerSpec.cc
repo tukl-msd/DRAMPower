@@ -37,7 +37,7 @@
 
 #include "MemPowerSpec.h"
 
-using namespace Data;
+using namespace DRAMPower;
 
 MemPowerSpec::MemPowerSpec() :
   idd0(0.0),

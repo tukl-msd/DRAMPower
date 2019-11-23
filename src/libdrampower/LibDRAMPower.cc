@@ -41,7 +41,7 @@
 
 #include "LibDRAMPower.h"
 
-using namespace Data;
+using namespace DRAMPower;
 
 libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination) :
   memSpec(memSpec),
@@ -53,7 +53,7 @@ libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAnd
     libDRAMPower DRAMPower = libDRAMPower(memSpec, 0, p);
 }
 
-libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination, const Data::MemBankWiseParams& bwPowerParams) :
+libDRAMPower::libDRAMPower(const MemorySpecification& memSpec, bool includeIoAndTermination, const DRAMPower::MemBankWiseParams& bwPowerParams) :
   memSpec(memSpec),
   counters(CommandAnalysis(memSpec)),
   includeIoAndTermination(includeIoAndTermination),
@@ -102,12 +102,12 @@ void libDRAMPower::clearCounters(int64_t timestamp)
   counters.clearStats(timestamp);
 }
 
-const Data::MemoryPowerModel::Energy& libDRAMPower::getEnergy() const
+const DRAMPower::MemoryPowerModel::Energy& libDRAMPower::getEnergy() const
 {
   return mpm.energy;
 }
 
-const Data::MemoryPowerModel::Power& libDRAMPower::getPower() const
+const DRAMPower::MemoryPowerModel::Power& libDRAMPower::getPower() const
 {
   return mpm.power;
 }

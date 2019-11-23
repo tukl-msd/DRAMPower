@@ -37,7 +37,7 @@
 
 #include "MemBankWiseParams.h"
 
-using namespace Data;
+using namespace DRAMPower;
 /**
  * Sets the default bankwise configurations.
  */

@@ -48,7 +48,7 @@
 #include "MemBankWiseParams.h"
 #include "CommandAnalysis.h"
 
-namespace Data {
+namespace DRAMPower {
 class MemoryPowerModel {
  public:
 

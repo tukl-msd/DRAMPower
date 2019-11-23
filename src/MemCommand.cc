@@ -41,7 +41,7 @@
 
 #include "MemorySpecification.h"
 
-using namespace Data;
+using namespace DRAMPower;
 using namespace std;
 
 

@@ -47,7 +47,7 @@
 #include "Parametrisable.h"
 
 
-namespace Data {
+namespace DRAMPower {
 // Supported memory types
 class MemoryType {
  public:
@@ -159,7 +159,7 @@ class MemoryType {
         return 4.6;    // in mW
     } else if (val == DDR4) {
         // Conservative estimates based on Micron DDR3 Power Calculator
-        // using available termination resistance values from Micron DDR4 Datasheets
+        // using available termination resistance values from Micron DDR4 DRAMPowersheets
         return 3.7;    // in mW
     } else {
         return 0.0;
@@ -176,7 +176,7 @@ class MemoryType {
         return 21.2;    // in mW
     } else if (val == DDR4) {
         // Conservative estimates based on Micron DDR3 Power Calculator
-        // using available termination resistance values from Micron DDR4 Datasheets
+        // using available termination resistance values from Micron DDR4 DRAMPowersheets
         return 17.0;    // in mW
     } else {
         return 0.0;
@@ -193,7 +193,7 @@ class MemoryType {
         return 15.5;    // in mW
     } else if (val == DDR4) {
         // Conservative estimates based on Micron DDR3 Power Calculator
-        // using available termination resistance values from Micron DDR4 Datasheets
+        // using available termination resistance values from Micron DDR4 DRAMPowersheets
         return 12.4;    // in mW
     } else {
         return 0.0;
@@ -210,7 +210,7 @@ class MemoryType {
         return 15.4;    // in mW
     } else if (val == DDR4) {
         // Conservative estimates based on Micron DDR3 Power Calculator
-        // using available termination resistance values from Micron DDR4 Datasheets
+        // using available termination resistance values from Micron DDR4 DRAMPowersheets
         return 12.3;    // in mW
     } else {
         return 0.0;
@@ -238,5 +238,5 @@ class MemorySpecification : public virtual Parametrisable {
 
   static MemorySpecification getMemSpecFromXML(const std::string& id);
 };
-}  // namespace Data
+}  // namespace DRAMPower
 #endif // ifndef TOOLS_MEMORY_SPECIFICATION_H

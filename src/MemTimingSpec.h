@@ -39,7 +39,7 @@
 
 #include "Parametrisable.h"
 
-namespace Data {
+namespace DRAMPower {
 class MemTimingSpec : public virtual Parametrisable {
  public:
   MemTimingSpec();

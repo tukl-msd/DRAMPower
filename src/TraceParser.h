@@ -40,6 +40,7 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
 
 #include "MemCommand.h"
 #include "MemorySpecification.h"
@@ -48,24 +49,19 @@
 
 class TraceParser {
  public:
-  TraceParser(const Data::MemorySpecification& memSpec);
+  TraceParser(const DRAMPower::MemorySpecification& memSpec);
   // list of parsed commands
-  std::vector<Data::MemCommand> cmd_list;
+  std::vector<DRAMPower::MemCommand> cmd_list;
 
   // function for parsing one line of the trace
-  Data::MemCommand parseLine(std::string line);
+  DRAMPower::MemCommand parseLine(std::string line);
 
-  Data::CommandAnalysis counters;
+  DRAMPower::CommandAnalysis counters;
   // function for parsing the whole file.
   // use this function for small traces ( no out-of-memory issue )
-  void parseFile(Data::MemorySpecification memSpec,
+  void parseFile(DRAMPower::MemorySpecification memSpec,
                  std::ifstream&      trace,
-                 int                 window,
-                 int                 grouping,
-                 int                 interleaving,
-                 int                 burst,
-                 int                 powerdown,
-                 int                 trans);
+                 int                 window);
 };
 
 #endif // ifndef TRACE_PARSER_H

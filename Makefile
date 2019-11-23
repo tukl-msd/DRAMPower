@@ -43,7 +43,7 @@ LIBS := src/libdrampower.a src/libdrampowerxml.a
 
 # Identifies the source files and derives name of object files.
 
-CLISOURCES := src/TraceParser.cc src/CmdScheduler.cc $(wildcard src/cli/*.cc)
+CLISOURCES := src/TraceParser.cc $(wildcard src/cli/*.cc)
 LIBSOURCES := $(wildcard src/libdrampower/*.cc) \
 			  src/CommandAnalysis.cc \
 			  src/CAHelpers.cc \
@@ -78,7 +78,7 @@ DEPWARNFLAGS := -W -pedantic-errors -Wextra -Werror \
 DEPCXXFLAGS := -O ${DEPWARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
 
 # Linker flags.
-LDFLAGS := -Wall
+LDFLAGS := -Wall -lstdc++
 
 ##########################################
 # Xerces settings
@@ -97,9 +97,6 @@ all: ${BINARY} src/libdrampower.a parserlib traces
 
 $(BINARY): ${XMLPARSEROBJECTS} ${CLIOBJECTS} src/libdrampower.a
 	$(CXX) ${CXXFLAGS} $(LDFLAGS) -o $@ $^ -Lsrc/ $(XERCES_LDFLAGS) -ldrampower
-
-src/CmdScheduler.o: src/CmdScheduler.cc
-	$(CXX) ${DEPCXXFLAGS} -MMD -MF $(subst .o,.d,$@) -iquote src -o $@ -c $<
 
 # From .cpp to .o. Dependency files are generated here
 %.o: %.cc

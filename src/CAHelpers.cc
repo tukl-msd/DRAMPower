@@ -43,7 +43,7 @@ using std::cerr;
 using std::endl;
 using std::string;
 
-using namespace Data;
+using namespace DRAMPower;
 
 
 // To get the time of completion of the issued command
