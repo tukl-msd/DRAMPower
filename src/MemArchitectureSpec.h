@@ -2,6 +2,7 @@
  * Copyright (c) 2012-2014, TU Delft
  * Copyright (c) 2012-2014, TU Eindhoven
  * Copyright (c) 2012-2014, TU Kaiserslautern
+ * Copyright (c) 2012-2019, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +32,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Sven Goossens
+ * Authors: Karthik Chandrasekar, Sven Goossens, Subash Kannoth
  *
  */
 
@@ -40,13 +41,10 @@
 
 #include <stdint.h>
 
-#include "Parametrisable.h"
-
 namespace DRAMPower {
-class MemArchitectureSpec : public virtual Parametrisable {
+class MemArchitectureSpec {
  public:
   MemArchitectureSpec();
-  void processParameters();
 
   int64_t burstLength;
   int64_t nbrOfBanks;

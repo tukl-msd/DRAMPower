@@ -2,6 +2,7 @@
  * Copyright (c) 2012-2014, TU Delft
  * Copyright (c) 2012-2014, TU Eindhoven
  * Copyright (c) 2012-2014, TU Kaiserslautern
+ * Copyright (c) 2012-2019, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,17 +32,15 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Karthik Chandrasekar, Subash Kannoth
  *
  */
-
-#include "Parametrisable.h"
-
+#ifndef MEM_POWER_SPEC_H
+#define MEM_POWER_SPEC_H
 namespace DRAMPower {
-class MemPowerSpec : public virtual Parametrisable {
+class MemPowerSpec{
  public:
   MemPowerSpec();
-  void processParameters();
 
   double idd0;
   double idd02;
@@ -76,3 +75,4 @@ class MemPowerSpec : public virtual Parametrisable {
   double termWrPower;
 };
 }
+#endif

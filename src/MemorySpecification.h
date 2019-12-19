@@ -2,6 +2,7 @@
  * Copyright (c) 2012-2014, TU Delft
  * Copyright (c) 2012-2014, TU Eindhoven
  * Copyright (c) 2012-2014, TU Kaiserslautern
+ * Copyright (c) 2012-2019, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +32,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Karthik Chandrasekar, Subash Kannoth
  *
  */
 
@@ -44,8 +45,7 @@
 #include "MemArchitectureSpec.h"
 #include "MemTimingSpec.h"
 #include "MemPowerSpec.h"
-#include "Parametrisable.h"
-
+#include "MemSpecParser.h"
 
 namespace DRAMPower {
 // Supported memory types
@@ -93,27 +93,12 @@ class MemoryType {
     assert("Unknown memory type." && val != MEMORY_TYPE_INVALID);
   }
 
-  bool isLPDDRFamily() const
-  {
-    return val == LPDDR ||
-           val == LPDDR2 ||
-           val == LPDDR3 ||
-           val == WIDEIO_SDR;
-  }
-
   bool hasTwoVoltageDomains() const
   {
     return val == LPDDR ||
            val == LPDDR2 ||
            val == LPDDR3 ||
            val == WIDEIO_SDR ||
-           val == DDR4;
-  }
-
-  bool isDDRFamily() const
-  {
-    return val == DDR2 ||
-           val == DDR3 ||
            val == DDR4;
   }
 
@@ -131,92 +116,6 @@ class MemoryType {
            val == DDR4;
   }
 
-  double getCapacitance() const
-  {
-    // LPDDR1/2 memories only have IO Power (no ODT)
-    // LPDDR3 has optional ODT, but it is typically not used (reflections are elimitated by other means (layout))
-    // The capacitance values are conservative and based on Micron Mobile LPDDR2 Power Calculator
-
-    // LPDDR/2/3 IO Capacitance in mF
-    if (val == LPDDR) {
-        return 0.0000000045;
-    } else if (val == LPDDR2) {
-        return 0.0000000025;
-    } else if (val == LPDDR3) {
-        return 0.0000000018;
-    } else {
-        return 0.0;
-    }
-  }
-
-  double getIoPower() const
-  {
-    if (val == DDR2) {
-        // Conservative estimates based on Micron DDR2 Power Calculator
-        return 1.5;    // in mW
-    } else if (val == DDR3) {
-        // Conservative estimates based on Micron DDR3 Power Calculator
-        return 4.6;    // in mW
-    } else if (val == DDR4) {
-        // Conservative estimates based on Micron DDR3 Power Calculator
-        // using available termination resistance values from Micron DDR4 DRAMPowersheets
-        return 3.7;    // in mW
-    } else {
-        return 0.0;
-    }
-  }
-
-  double getWrOdtPower() const
-  {
-    if (val == DDR2) {
-        // Conservative estimates based on Micron DDR2 Power Calculator
-        return 8.2;    // in mW
-    } else if (val == DDR3) {
-        // Conservative estimates based on Micron DDR3 Power Calculator
-        return 21.2;    // in mW
-    } else if (val == DDR4) {
-        // Conservative estimates based on Micron DDR3 Power Calculator
-        // using available termination resistance values from Micron DDR4 DRAMPowersheets
-        return 17.0;    // in mW
-    } else {
-        return 0.0;
-    }
-  }
-
-  double getTermRdPower() const
-  {
-    if (val == DDR2) {
-        // Conservative estimates based on Micron DDR2 Power Calculator
-        return 13.1;    // in mW
-    } else if (val == DDR3) {
-        // Conservative estimates based on Micron DDR3 Power Calculator
-        return 15.5;    // in mW
-    } else if (val == DDR4) {
-        // Conservative estimates based on Micron DDR3 Power Calculator
-        // using available termination resistance values from Micron DDR4 DRAMPowersheets
-        return 12.4;    // in mW
-    } else {
-        return 0.0;
-    }
-  }
-
-  double getTermWrPower() const
-  {
-    if (val == DDR2) {
-        // Conservative estimates based on Micron DDR2 Power Calculator
-        return 14.6;    // in mW
-    } else if (val == DDR3) {
-        // Conservative estimates based on Micron DDR3 Power Calculator
-        return 15.4;    // in mW
-    } else if (val == DDR4) {
-        // Conservative estimates based on Micron DDR3 Power Calculator
-        // using available termination resistance values from Micron DDR4 DRAMPowersheets
-        return 12.3;    // in mW
-    } else {
-        return 0.0;
-    }
-  }
-
   operator MemoryType_t() const {
     return val;
   }
@@ -225,7 +124,7 @@ class MemoryType {
   MemoryType_t val;
 };
 
-class MemorySpecification : public virtual Parametrisable {
+class MemorySpecification : public MemSpecParser {
  public:
   std::string id;
   MemoryType  memoryType;
@@ -234,9 +133,10 @@ class MemorySpecification : public virtual Parametrisable {
   MemTimingSpec memTimingSpec;
   MemPowerSpec  memPowerSpec;
 
-  void processParameters();
+  MemorySpecification(const std::string& _mem_spec_json);
+  MemorySpecification(){}
+  ~MemorySpecification(){}
 
-  static MemorySpecification getMemSpecFromXML(const std::string& id);
 };
 }  // namespace DRAMPower
 #endif // ifndef TOOLS_MEMORY_SPECIFICATION_H

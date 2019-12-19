@@ -58,7 +58,7 @@ CliHandler::~CliHandler(){
 
 void CliHandler::parse_arguments(){
   
-  app = new CLI::App("dramPower");
+  app = new CLI::App("DRAMPower");
 
   try {
     app->add_flag(IO_TERM,
@@ -102,7 +102,6 @@ void CliHandler::parse_arguments(){
 
     bank_wise_active = !((bank_wise_parms.at(0) == -1) && (bank_wise_parms.at(1) = -1));
     pasr_active = !(pasr_mode == -1);
-    
   } catch (const CLI::ParseError &e) {
     app->exit(e);
     std::exit(EXIT_FAILURE);
@@ -156,9 +155,7 @@ int CliHandler::get_pasr_mode() const{
 }
 
 void CliHandler::run_simulation(){
-  MemorySpecification  memSpec(MemSpecParser::getMemSpecFromXML(get_mem_spec_path()));
-  // Replace the memory specification XML file with another in the same format
-  // from the memspecs folder
+  MemorySpecification  memSpec(JSONParser::readJsonFromFile(get_mem_spec_path()));
   MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
   MemBankWiseParams memBwParams(get_bank_wise_rho(), 
                                 get_bank_wise_sigma(),

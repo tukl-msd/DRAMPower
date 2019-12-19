@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2014, TU Delft, TU Eindhoven and TU Kaiserslautern
+ * Copyright (c) 2012-2014, TU Delft
+ * Copyright (c) 2012-2014, TU Eindhoven
+ * Copyright (c) 2012-2014, TU Kaiserslautern
+ * Copyright (c) 2012-2019, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,18 +32,17 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Matthias Jung, Omar Naji, Felipe S. Prado
+ * Authors: Matthias Jung, Omar Naji, Felipe S. Prado, Subash Kannoth
  *
  */
 
 // This example shows how the window feature of DRAMPower library
 // can be used in simulators like gem5, DRAMSys, etc.
-
 #include <iostream>
 #include <string>
 #include "libdrampower/LibDRAMPower.h"
-#if USE_XERCES
-    #include "xmlparser/MemSpecParser.h"
+#if USE_JSON
+    #include "MemSpecParser.h"
 #endif
 
 
@@ -55,8 +57,8 @@ int main(int argc, char* argv[])
     //type path to memspec file
     filename = argv[1];
     //Parsing the Memspec specification of found in memspec folder
-#if USE_XERCES
-    MemorySpecification memSpec(MemSpecParser::getMemSpecFromXML(filename));
+#if USE_JSON
+    MemorySpecification memSpec(MemSpecParser::readJsonFromFile(filename));
 #else
     MemorySpecification memSpec;
 #endif

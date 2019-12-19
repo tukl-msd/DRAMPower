@@ -35,56 +35,79 @@
  * Authors: Subash Kannoth
  *
  */
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include "MemorySpecification.h"
-#include "MemoryPowerModel.h"
-#include "MemBankWiseParams.h"
-#include "TraceParser.h"
-#include "common/version.h"
-#include "common/libraries/cli11/CLI11.h"
+#ifndef JSON_PARSER_EXCEPTIONS
+#define JSON_PARSER_EXCEPTIONS
 
+#include <exception>
+#include <string>
 
-namespace DRAMPower{
-
-constexpr const char* IO_TERM("--io_term,-r");
-constexpr const char* VERS("--version,-v");
-constexpr const char* MEM_SPEC("--mem_spec,-m");
-constexpr const char* CMD_TRACE("--cmd_trace,-c");
-constexpr const char* BANK_WISE("--bank_wise,-b");
-constexpr const char* PASR_MODE("--pasr,-s");
-
-class CliHandler{
+class JsonException : public std::exception {
 public:
-  CliHandler(int _argc, char** _argv);
-  ~CliHandler();
-
-  bool get_io_term_active() const;
-  const std::string& get_mem_spec_path() const;
-  const std::string& get_cmd_trace_path() const;
-  bool get_bank_wise_active() const;
-  int get_bank_wise_rho() const;
-  int get_bank_wise_sigma() const;
-  bool get_pasr_active() const;
-  int get_pasr_mode() const;
-
-  void parse_arguments();
-  void run_simulation();
-
-private:
-  CliHandler(){};
-  CLI::App* app;
-  int argc;
-  char** argv;
-  bool io_term_active;
-  std::string mem_spec_path;
-  std::string cmd_trace_path;
-  std::vector<int> bank_wise_parms;
-  bool bank_wise_active;
-  int pasr_mode;
-  bool pasr_active;
+  explicit JsonException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
 };
 
-}
+class JsonParseException : public std::exception {
+public:
+  explicit JsonParseException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
+};
 
+class JsonReadException : public std::exception {
+public:
+  explicit JsonReadException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
+};
+
+class UnknownException : public std::exception {
+public:
+  explicit UnknownException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
+};
+
+class SplitException : public std::exception {
+public:
+  explicit SplitException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
+};
+
+class FileReadException: public std::exception {
+public:
+  explicit FileReadException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
+};
+
+class ValidationException: public std::exception {
+public:
+  explicit ValidationException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
+};
+#endif

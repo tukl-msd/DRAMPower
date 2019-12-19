@@ -2,6 +2,7 @@
  * Copyright (c) 2012-2014, TU Delft
  * Copyright (c) 2012-2014, TU Eindhoven
  * Copyright (c) 2012-2014, TU Kaiserslautern
+ * Copyright (c) 2012-2019, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +32,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Karthik Chandrasekar, Subash Kannoth
  *
  */
 
@@ -40,21 +41,13 @@
 using namespace std;
 using namespace DRAMPower;
 
-// Set variable values from XML
-void MemorySpecification::processParameters()
-{
-  setVarFromParam(&id,"memoryId");
-  memoryType = getParamValWithDefault("memoryType", string("DDR3"));
-
-  if (hasParameter("memoryType")) {
-    memArchSpec.twoVoltageDomains = memoryType.hasTwoVoltageDomains();
-    memArchSpec.dll               = memoryType.hasDll();
-    memArchSpec.termination       = memoryType.hasTermination();
-
-    memPowerSpec.capacitance = memoryType.getCapacitance();
-    memPowerSpec.ioPower     = memoryType.getIoPower();
-    memPowerSpec.wrOdtPower  = memoryType.getWrOdtPower();
-    memPowerSpec.termRdPower = memoryType.getTermRdPower();
-    memPowerSpec.termWrPower = memoryType.getTermWrPower();
-  }
+// Set variable values from JSON
+MemorySpecification::MemorySpecification(const std::string& _mem_spec_json){
+  parse(_mem_spec_json);
+  MemoryType memType(getMemoryType());
+  memoryType = memType;
+  id = getMemoryId();
+  memArchSpec = getMemArchitectureSpec();
+  memPowerSpec = getMemPowerSpec();
+  memTimingSpec = getMemTimingSpec();
 }
