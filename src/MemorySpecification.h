@@ -93,29 +93,6 @@ class MemoryType {
     assert("Unknown memory type." && val != MEMORY_TYPE_INVALID);
   }
 
-  bool hasTwoVoltageDomains() const
-  {
-    return val == LPDDR ||
-           val == LPDDR2 ||
-           val == LPDDR3 ||
-           val == WIDEIO_SDR ||
-           val == DDR4;
-  }
-
-  bool hasDll() const
-  {
-    return val == DDR2 ||
-           val == DDR3 ||
-           val == DDR4;
-  }
-
-  bool hasTermination() const
-  {
-    return val == DDR2 ||
-           val == DDR3 ||
-           val == DDR4;
-  }
-
   operator MemoryType_t() const {
     return val;
   }
