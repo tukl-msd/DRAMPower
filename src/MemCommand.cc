@@ -103,6 +103,10 @@ int64_t MemCommand::getPrechargeOffset(const MemorySpecification& memSpec,
       precharge_offset = B + max(int64_t(0), RTP - 2);
     } else if (memType == MemoryType::LPDDR3) {
       precharge_offset = B + max(int64_t(0), RTP - 4);
+    } else if(memType == MemoryType::LPDD4){
+      precharge_offset = B - 8 + RTP + 3 ;
+    } else if (memType == MemoryType::HBM2) {
+      precharge_offset = RTP;
     } else if (memType == MemoryType::WIDEIO_SDR) {
       precharge_offset = B;
     }
@@ -119,6 +123,10 @@ int64_t MemCommand::getPrechargeOffset(const MemorySpecification& memSpec,
       precharge_offset = B +  WL + WR + 1;
     } else if (memType == MemoryType::LPDDR3) {
       precharge_offset = B +  WL + WR + 1;
+    } else if(memType == MemoryType::LPDD4) {
+      precharge_offset = B + WL + WR + 1 + 3;
+    } else if(memType == MemoryType::HBM2) {
+      precharge_offset = B + WL + WR; 
     } else if (memType == MemoryType::WIDEIO_SDR) {
       precharge_offset = B + WL + WR - 1;
     }

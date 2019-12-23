@@ -58,6 +58,8 @@ class MemoryType {
     LPDDR,
     LPDDR2,
     LPDDR3,
+    LPDD4,
+    HBM2,
     WIDEIO_SDR,
     MEMORY_TYPE_INVALID
   };
@@ -87,6 +89,10 @@ class MemoryType {
       val = LPDDR2;
     } else if (_val == "LPDDR3") {
       val = LPDDR3;
+    } else if(_val == "LPDDR4") {
+      val = LPDD4;
+    } else if(_val == "HBM2"){
+      val = HBM2;
     } else if (_val == "WIDEIO_SDR") {
       val = WIDEIO_SDR;
     }
