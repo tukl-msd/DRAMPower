@@ -18,7 +18,7 @@ This command will download a set of trace files from https://github.com/Sv3n/DRA
 
 ## 2. Required Packages
 
-The tool was verified on Ubuntu >= 14.04 using. For building a gcc or clang is required which supports C++11.
+The tool was verified on Ubuntu >= 14.04. For building a gcc or clang is required which supports C++11.
 
 ## 3. Directory Structure
  * src/: contains the source code of the DRAMPower tool that covers the power  model, the command scheduler and the trace analysis tool.
@@ -70,7 +70,7 @@ The table below gives a detailed overview of the available CLI options.
 | --------------|--------------|:------------------------------------------|:----------|:------|
 | ```-r``` | ```--io_term```  | The user can optionally include IO and Termination power estimates (obtained from Micron's DRAM Power Calculator)  | Optional | Flag  |
 | ```-m``` |```--mem_spec``` | The memory specification file (JSON format) for the corresponding memory to be analyzed. The file contains the necessary DRAM specific parameters to start power simulation.| Mandatory | String | 
-| ```-c``` |```--cmd_trace```| The command trace file, which is a special file format for specifying memory controller commands. The syntactic details about command trace is described in [section](###commandtraces) .|  Mandatory | String |
+| ```-c``` |```--cmd_trace```| The command trace file, which is a special file format for specifying memory controller commands. The syntactic details about command trace is described in Trace Specification/ Command Traces above .|  Mandatory | String |
 | ```-b``` |```--bank_wise```| By default the DRAMPower calculated the power consumption for the complete DRAM as a whole. If the option is specified, a bank-wise granular power calculation is performed. The first argument is ρ, which is the ACT standby power factor which determines the minimum current when at least one bank is active. The second parameter is σ, which is partial array self-refresh power offset factor which determines the minimum current when 7 out of 8 banks are in self-refresh mode. Note that both ρ and σ are vendor-specific. Details about both the parameters are in [4] | Optional | 2 x Integers separated by space [0-100]|
 | ```-s``` |```--pasr```     | Enables the Partial Array Self Refresh Mode. Note that this mode can only be enabled during the bank-wise (above) simulation is performed  | Optional  | Integer [0-7]  |
 
