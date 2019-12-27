@@ -57,6 +57,8 @@ const DRAMPower::MemArchitectureSpec& MemSpecParser::getMemArchitectureSpec() {
     return ((_mem_type == "LPDDR")     ||
             (_mem_type == "LPDDR2")    ||
             (_mem_type == "LPDDR3")    ||
+            (_mem_type == "LPDDR4")    ||
+            (_mem_type == "HBM2")      ||       
             (_mem_type == "WIDEIO_SDR")||
             (_mem_type == "DDR4" ));
   };
@@ -137,7 +139,7 @@ const DRAMPower::MemTimingSpec& MemSpecParser::getMemTimingSpec() {
   validateElements({MEM_TIME_SPEC});
   
   memTimingSpec.clkMhz    = getElementValWithDefault<double>(CLK_MHZ, 0.0);
-  memTimingSpec.RC        = getElementValWithDefault<int64_t>(RC, 0.0);
+  memTimingSpec.RC        = getElementValWithDefault<int64_t>(RC, 0);
   memTimingSpec.RCD       = getElementValWithDefault<int64_t>(RCD, 0);
   memTimingSpec.CCD       = getElementValWithDefault<int64_t>(CCD, 0);    
   memTimingSpec.CCD_S     = getElementValWithDefault<int64_t>(CCD_S, 0);
