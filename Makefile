@@ -87,7 +87,7 @@ LDFLAGS := -Wall -lstdc++
 # Targets
 ##########################################
 
-all: ${BINARY} src/libdrampower.a parserlib traces
+all: ${BINARY} lib parserlib traces
 
 $(BINARY): ${JSONPARSEROBJECTS} ${CLIOBJECTS} src/libdrampower.a
 	$(CXX) ${CXXFLAGS} $(LDFLAGS) -o $@ $^
@@ -95,6 +95,8 @@ $(BINARY): ${JSONPARSEROBJECTS} ${CLIOBJECTS} src/libdrampower.a
 # From .cpp to .o. Dependency files are generated here
 %.o: %.cc
 	$(CXX) ${CXXFLAGS} -MMD -MF $(subst .o,.d,$@) -iquote src -o $@ -c $<
+
+lib: src/libdrampower.a
 
 src/libdrampower.a: ${LIBOBJECTS}
 	ar -cvr src/libdrampower.a ${LIBOBJECTS}
