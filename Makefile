@@ -2,6 +2,7 @@
 # * Copyright (c) 2012-2014, TU Delft
 # * Copyright (c) 2012-2014, TU Eindhoven
 # * Copyright (c) 2012-2014, TU Kaiserslautern
+# * Copyright (c) 2012-2019, Fraunhofer IESE
 # * All rights reserved.
 # *
 # * Redistribution and use in source and binary forms, with or without
@@ -31,7 +32,10 @@
 # * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # *
-# * Authors: Karthik Chandrasekar, Benny Akesson, Sven Goossens
+# * Authors: Karthik Chandrasekar
+# *          Benny Akesson
+# *          Sven Goossens
+# *          Subash Kannoth
 # *
 # */
 
@@ -39,7 +43,7 @@ include common.mk
 
 # Name of the generated binary.
 BINARY := drampower
-LIBS := src/libdrampower.a src/libdrampowerxml.a
+LIBS := src/libdrampower.a src/libdrampowerjson.a
 
 # Identifies the source files and derives name of object files.
 
@@ -54,16 +58,15 @@ LIBSOURCES := $(wildcard src/libdrampower/*.cc) \
 			  src/MemorySpecification.cc\
 			  src/MemPowerSpec.cc\
 			  src/MemTimingSpec.cc\
-			  src/Parameter.cc\
-			  src/Parametrisable.cc\
-			  src/MemBankWiseParams.cc
+			  src/MemBankWiseParams.cc\
+			  src/MemSpecParser.cc\
 
-XMLPARSERSOURCES := $(wildcard src/xmlparser/*.cc)
-ALLSOURCES := $(wildcard src/cli/*.cc) $(wildcard src/*.cc) $(wildcard src/xmlparser/*.cc) $(wildcard src/libdrampower/*.cc)
-ALLHEADERS := $(wildcard src/*.h) $(wildcard src/xmlparser/*.h) $(wildcard src/libdrampower/*.h)
+JSONPARSERSOURCES := $(wildcard src/jsonparser/*.cc)
+ALLSOURCES := $(wildcard src/cli/*.cc) $(wildcard src/*.cc) $(wildcard src/jsonparser/*.cc) $(wildcard src/libdrampower/*.cc)
+ALLHEADERS := $(wildcard src/*.h) $(wildcard src/jsonparser/*.h) $(wildcard src/libdrampower/*.h)
 
 CLIOBJECTS := ${CLISOURCES:.cc=.o}
-XMLPARSEROBJECTS := ${XMLPARSERSOURCES:.cc=.o}
+JSONPARSEROBJECTS := ${JSONPARSERSOURCES:.cc=.o}
 LIBOBJECTS := ${LIBSOURCES:.cc=.o}
 ALLOBJECTS := ${ALLSOURCES:.cc=.o}
 
@@ -81,32 +84,25 @@ DEPCXXFLAGS := -O ${DEPWARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
 LDFLAGS := -Wall -lstdc++
 
 ##########################################
-# Xerces settings
-##########################################
-
-XERCES_ROOT ?= /usr
-XERCES_INC := $(XERCES_ROOT)/include
-XERCES_LIB := $(XERCES_ROOT)/lib
-XERCES_LDFLAGS := -L$(XERCES_LIB) -lxerces-c
-
-##########################################
 # Targets
 ##########################################
 
-all: ${BINARY} src/libdrampower.a parserlib traces
+all: ${BINARY} lib parserlib traces
 
-$(BINARY): ${XMLPARSEROBJECTS} ${CLIOBJECTS} src/libdrampower.a
-	$(CXX) ${CXXFLAGS} $(LDFLAGS) -o $@ $^ -Lsrc/ $(XERCES_LDFLAGS) -ldrampower
+$(BINARY): ${JSONPARSEROBJECTS} ${CLIOBJECTS} src/libdrampower.a
+	$(CXX) ${CXXFLAGS} $(LDFLAGS) -o $@ $^
 
 # From .cpp to .o. Dependency files are generated here
 %.o: %.cc
 	$(CXX) ${CXXFLAGS} -MMD -MF $(subst .o,.d,$@) -iquote src -o $@ -c $<
 
+lib: src/libdrampower.a
+
 src/libdrampower.a: ${LIBOBJECTS}
 	ar -cvr src/libdrampower.a ${LIBOBJECTS}
 
-parserlib: ${XMLPARSEROBJECTS}
-	ar -cvr src/libdrampowerxml.a ${XMLPARSEROBJECTS}
+parserlib: ${JSONPARSEROBJECTS}
+	ar -cvr src/libdrampowerjson.a ${JSONPARSEROBJECTS}
 
 clean:
 	$(RM) $(ALLOBJECTS) $(DEPENDENCIES) $(BINARY) $(LIBS)

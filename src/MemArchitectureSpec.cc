@@ -2,6 +2,7 @@
  * Copyright (c) 2012-2014, TU Delft
  * Copyright (c) 2012-2014, TU Eindhoven
  * Copyright (c) 2012-2014, TU Kaiserslautern
+ * Copyright (c) 2012-2019, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +32,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Karthik Chandrasekar, Subash Kannoth
  *
  */
 
@@ -56,19 +57,3 @@ MemArchitectureSpec::MemArchitectureSpec() :
 {
 }
 
-void MemArchitectureSpec::processParameters()
-{
-  // Load all parameters in our member variables
-  nbrOfBanks      = getParamValWithDefault("nbrOfBanks", 1);
-  nbrOfRanks      = getParamValWithDefault("nbrOfRanks", 1);
-  nbrOfBankGroups = getParamValWithDefault("nbrOfBankGroups", 1);
-  dataRate        = getParamValWithDefault("dataRate", 1);
-  burstLength     = getParamValWithDefault("burstLength", 1);
-  nbrOfColumns    = getParamValWithDefault("nbrOfColumns", 1);
-  nbrOfRows       = getParamValWithDefault("nbrOfRows", 1);
-  width           = getParamValWithDefault("width", 1);
-  assert("memory width should be a multiple of 8" && (width % 8) == 0);
-  dll             = getParamValWithDefault("dll", false);
-  twoVoltageDomains = getParamValWithDefault("twoVoltageDomains", false);
-  termination       = getParamValWithDefault("termination", false);
-}

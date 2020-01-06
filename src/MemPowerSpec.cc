@@ -2,6 +2,7 @@
  * Copyright (c) 2012-2014, TU Delft
  * Copyright (c) 2012-2014, TU Eindhoven
  * Copyright (c) 2012-2014, TU Kaiserslautern
+ * Copyright (c) 2012-2019, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +32,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar
+ * Authors: Karthik Chandrasekar, Subash Kannoth
  *
  */
 
@@ -73,37 +74,3 @@ MemPowerSpec::MemPowerSpec() :
 {
 }
 
-void MemPowerSpec::processParameters()
-{
-  idd0    = getParamValWithDefault("idd0", 0.0);
-  idd02   = getParamValWithDefault("idd02", 0.0);
-  idd2p0  = getParamValWithDefault("idd2p0", 0.0);
-  idd2p02 = getParamValWithDefault("idd2p02", 0.0);
-  idd2p1  = getParamValWithDefault("idd2p1", 0.0);
-  idd2p12 = getParamValWithDefault("idd2p12", 0.0);
-  idd2n   = getParamValWithDefault("idd2n", 0.0);
-  idd2n2  = getParamValWithDefault("idd2n2", 0.0);
-  idd3p0  = getParamValWithDefault("idd3p0", 0.0);
-  idd3p02 = getParamValWithDefault("idd3p02", 0.0);
-  idd3p1  = getParamValWithDefault("idd3p1", 0.0);
-  idd3p12 = getParamValWithDefault("idd3p12", 0.0);
-  idd3n   = getParamValWithDefault("idd3n", 0.0);
-  idd3n2  = getParamValWithDefault("idd3n2", 0.0);
-  idd4r   = getParamValWithDefault("idd4r", 0.0);
-  idd4r2  = getParamValWithDefault("idd4r2", 0.0);
-  idd4w   = getParamValWithDefault("idd4w", 0.0);
-  idd4w2  = getParamValWithDefault("idd4w2", 0.0);
-  idd5    = getParamValWithDefault("idd5", 0.0);
-  idd52   = getParamValWithDefault("idd52", 0.0);
-  idd5B   = getParamValWithDefault("idd5B", 0.0);
-  idd6    = getParamValWithDefault("idd6", 0.0);
-  idd62   = getParamValWithDefault("idd62", 0.0);
-  vdd     = getParamValWithDefault("vdd", 0.0);
-  vdd2    = getParamValWithDefault("vdd2", 0.0);
-
-  capacitance = getParamValWithDefault("capacitance", 0.0);
-  ioPower     = getParamValWithDefault("ioPower", 0.0);
-  wrOdtPower  = getParamValWithDefault("wrOdtPower", 0.0);
-  termRdPower = getParamValWithDefault("termRdPower", 0.0);
-  termWrPower = getParamValWithDefault("termWrPower", 0.0);
-} // MemPowerSpec::processParameters

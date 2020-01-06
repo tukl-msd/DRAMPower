@@ -346,9 +346,9 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
         for (unsigned i = 0; i < nbrofBanks; i++) {
             energy.total_energy_banks[i] = energy.act_energy_banks[i] + energy.pre_energy_banks[i] + energy.read_energy_banks[i]
                                             + energy.ref_energy_banks[i] + energy.write_energy_banks[i] + energy.refb_energy_banks[i]
-                                            + static_cast<double>(memArchSpec.nbrOfRanks) * energy.act_stdby_energy_banks[i]
+                                            + static_cast<double>(memArchSpec.nbrOfRanks) * (energy.act_stdby_energy_banks[i]
                                             + energy.pre_stdby_energy_banks[i] + energy.f_pre_pd_energy_banks[i] + energy.s_act_pd_energy_banks[i]
-                                            + energy.s_pre_pd_energy_banks[i]+ energy.sref_ref_energy_banks[i] + energy.spup_ref_energy_banks[i];
+                                            + energy.s_pre_pd_energy_banks[i]+ energy.sref_ref_energy_banks[i] + energy.spup_ref_energy_banks[i]);
       }
       // Calculate total energy for all banks.
       energy.window_energy = sum(energy.total_energy_banks) + energy.io_term_energy;

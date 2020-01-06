@@ -1,6 +1,7 @@
 # Copyright (c) 2012-2014, TU Delft
 # Copyright (c) 2012-2014, TU Eindhoven
 # Copyright (c) 2012-2014, TU Kaiserslautern
+# Copyright (c) 2012-2019, Fraunhofer IESE
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +31,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Authors: Matthias Jung, Omar Naji, Sven Goossens
+# Authors: Matthias Jung, Omar Naji, Sven Goossens, Subash Kannoth
 #
 
 ifeq ($(COVERAGE),1)
@@ -56,21 +57,22 @@ CXXFLAGS := -O ${WARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
 
 DRAMPOWER_PATH ?= ../..
 MYPATH := ${DRAMPOWER_PATH}/test/libdrampowertest
-USE_XERCES ?= 1
+USE_JSON ?= 1
 
 # Name of the generated binary.
 BINARY := ${MYPATH}/library_test
 BINARY2 := ${MYPATH}/window_example
 
-ifeq ($(USE_XERCES),1)
-	LIBS := -lxerces-c -ldrampowerxml -ldrampower
+ifeq ($(USE_JSON),1)
+	LIBS := -ldrampowerjson -ldrampower
 else
 	LIBS := -ldrampower
 endif
 
+
 all:
-	g++ ${MYPATH}/lib_test.cc ${CXXFLAGS} -iquote ${DRAMPOWER_PATH}/src -DUSE_XERCES=${USE_XERCES} -L${DRAMPOWER_PATH}/src/ ${LIBS} -o $(BINARY)
-	g++ ${MYPATH}/window_example.cc ${CXXFLAGS} -iquote ${DRAMPOWER_PATH}/src -DUSE_XERCES=${USE_XERCES} -L${DRAMPOWER_PATH}/src/ ${LIBS} -o $(BINARY2)
+	g++ ${MYPATH}/lib_test.cc ${CXXFLAGS} -iquote ${DRAMPOWER_PATH}/src -DUSE_JSON=${USE_JSON} -L${DRAMPOWER_PATH}/src/ ${LIBS} -o $(BINARY)
+	g++ ${MYPATH}/window_example.cc ${CXXFLAGS} -iquote ${DRAMPOWER_PATH}/src -DUSE_JSON=${USE_JSON} -L${DRAMPOWER_PATH}/src/ ${LIBS} -o $(BINARY2)
 
 clean:
 	rm -f $(BINARY)
@@ -80,7 +82,7 @@ coverageclean:
 	$(RM) lib_test.gcno lib_test.gcda
 
 test: all
-	./$(BINARY)  ${DRAMPOWER_PATH}/memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml
-	./$(BINARY2) ${DRAMPOWER_PATH}/memspecs/MICRON_1Gb_DDR2-1066_16bit_H.xml
+	./$(BINARY)  ${DRAMPOWER_PATH}/memspecs/MICRON_1Gb_DDR2-1066_16bit_H.json
+	./$(BINARY2) ${DRAMPOWER_PATH}/memspecs/MICRON_1Gb_DDR2-1066_16bit_H.json
 
 .PHONY: clean test

@@ -32,94 +32,82 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Subash Kannoth
+ * Authors: Subash Kannoth
  *
  */
+#ifndef JSON_PARSER_EXCEPTIONS
+#define JSON_PARSER_EXCEPTIONS
 
-#ifndef TOOLS_MEMORY_SPECIFICATION_H
-#define TOOLS_MEMORY_SPECIFICATION_H
-
-#include <cassert>
+#include <exception>
 #include <string>
 
-#include "MemArchitectureSpec.h"
-#include "MemTimingSpec.h"
-#include "MemPowerSpec.h"
-#include "MemSpecParser.h"
-
-namespace DRAMPower {
-// Supported memory types
-class MemoryType {
- public:
-  enum MemoryType_t {
-    DDR2 = 0,
-    DDR3,
-    DDR4,
-    LPDDR,
-    LPDDR2,
-    LPDDR3,
-    LPDD4,
-    HBM2,
-    WIDEIO_SDR,
-    MEMORY_TYPE_INVALID
-  };
-
-  MemoryType(MemoryType_t _val) :
-    val(_val)
-  {
+class JsonException : public std::exception {
+public:
+  explicit JsonException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
   }
-
-  MemoryType() :
-    val(MEMORY_TYPE_INVALID)
-  {
-  }
-
-  MemoryType(const std::string& _val) :
-    val(MEMORY_TYPE_INVALID)
-  {
-    if (_val == "DDR2") {
-      val = DDR2;
-    } else if (_val == "DDR3") {
-      val = DDR3;
-    } else if (_val == "DDR4") {
-      val = DDR4;
-    } else if (_val == "LPDDR") {
-      val = LPDDR;
-    } else if (_val == "LPDDR2") {
-      val = LPDDR2;
-    } else if (_val == "LPDDR3") {
-      val = LPDDR3;
-    } else if(_val == "LPDDR4") {
-      val = LPDD4;
-    } else if(_val == "HBM2"){
-      val = HBM2;
-    } else if (_val == "WIDEIO_SDR") {
-      val = WIDEIO_SDR;
-    }
-    assert("Unknown memory type." && val != MEMORY_TYPE_INVALID);
-  }
-
-  operator MemoryType_t() const {
-    return val;
-  }
-
- private:
-  MemoryType_t val;
+protected:
+  std::string msg;
 };
 
-class MemorySpecification : public MemSpecParser {
- public:
-  std::string id;
-  MemoryType  memoryType;
-
-  MemArchitectureSpec memArchSpec;
-  MemTimingSpec memTimingSpec;
-  MemPowerSpec  memPowerSpec;
-
-  MemorySpecification(const std::string& _mem_spec_json);
-  MemorySpecification(){}
-  ~MemorySpecification(){}
-
+class JsonParseException : public std::exception {
+public:
+  explicit JsonParseException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
 };
-}  // namespace DRAMPower
-#endif // ifndef TOOLS_MEMORY_SPECIFICATION_H
+
+class JsonReadException : public std::exception {
+public:
+  explicit JsonReadException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
+};
+
+class UnknownException : public std::exception {
+public:
+  explicit UnknownException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
+};
+
+class SplitException : public std::exception {
+public:
+  explicit SplitException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
+};
+
+class FileReadException: public std::exception {
+public:
+  explicit FileReadException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
+};
+
+class ValidationException: public std::exception {
+public:
+  explicit ValidationException(const std::string& _msg) : msg(_msg){}
+  virtual char const* what() const throw(){
+      return msg.c_str();
+  }
+protected:
+  std::string msg;
+};
+#endif

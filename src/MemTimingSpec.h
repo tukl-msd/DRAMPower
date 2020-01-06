@@ -2,6 +2,7 @@
  * Copyright (c) 2012-2014, TU Delft
  * Copyright (c) 2012-2014, TU Eindhoven
  * Copyright (c) 2012-2014, TU Kaiserslautern
+ * Copyright (c) 2012-2019, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,19 +32,17 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar, Sven Goossens
+ * Authors: Karthik Chandrasekar, Sven Goossens, Subash Kannoth
  *
  */
-
+#ifndef MEM_TIMING_SPEC
+#define MEM_TIMING_SPEC
 #include <stdint.h>
 
-#include "Parametrisable.h"
-
 namespace DRAMPower {
-class MemTimingSpec : public virtual Parametrisable {
+class MemTimingSpec{
  public:
   MemTimingSpec();
-  void processParameters();
 
   double clkMhz;
   int64_t RC;
@@ -79,3 +78,4 @@ class MemTimingSpec : public virtual Parametrisable {
   double   clkPeriod;
 };
 }
+#endif

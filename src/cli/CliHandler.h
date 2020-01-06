@@ -41,7 +41,6 @@
 #include "MemorySpecification.h"
 #include "MemoryPowerModel.h"
 #include "MemBankWiseParams.h"
-#include "xmlparser/MemSpecParser.h"
 #include "TraceParser.h"
 #include "common/version.h"
 #include "common/libraries/cli11/CLI11.h"
