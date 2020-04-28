@@ -62,20 +62,20 @@ class MemoryPowerModel {
                   const MemBankWiseParams& bwPowerParams);
 
   // Used to calculate self-refresh active energy
-  static double engy_sref(double idd6,
-                          double idd3n,
-                          double idd5,
-                          double vdd,
+  static double engy_sref(double idd61,
+                          double idd3n1,
+                          double idd51,
+                          double vdd1,
                           double sref_cycles_idd6,
                           double sref_ref_act_cycles,
                           double sref_ref_pre_cycles,
                           double spup_ref_act_cycles,
                           double spup_ref_pre_cycles,
                           double clk);
-  static double engy_sref_banks(double idd6,
-                                double idd3n,
-                                double idd5,
-                                double vdd,
+  static double engy_sref_banks(double idd61,
+                                double idd3n1,
+                                double idd51,
+                                double vdd1,
                                 double sref_cycles,
                                 double sref_ref_act_cycles,
                                 double sref_ref_pre_cycles,

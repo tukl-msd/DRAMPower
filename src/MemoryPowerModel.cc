@@ -184,55 +184,55 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
                  + c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
                  c.spup_ref_act_cycles + c.spup_ref_pre_cycles;
 
-  EnergyDomain vdd0Domain(mps.vdd, t.clkPeriod);
+  EnergyDomain vdd0Domain(mps.vdd1, t.clkPeriod);
 
-  energy.act_energy       = vdd0Domain.calcTivEnergy(sum(c.numberofactsBanks) * t.RAS          , mps.idd0 - mps.idd3n);
-  energy.pre_energy       = vdd0Domain.calcTivEnergy(sum(c.numberofpresBanks) * (t.RC - t.RAS) , mps.idd0 - mps.idd2n);
-  energy.read_energy      = vdd0Domain.calcTivEnergy(sum(c.numberofreadsBanks) * burstCc        , mps.idd4r - mps.idd3n);
-  energy.write_energy     = vdd0Domain.calcTivEnergy(sum(c.numberofwritesBanks) * burstCc        , mps.idd4w - mps.idd3n);
-  energy.ref_energy       = vdd0Domain.calcTivEnergy(c.numberofrefs   * t.RFC          , mps.idd5 - mps.idd3n);
-  energy.pre_stdby_energy = vdd0Domain.calcTivEnergy(c.precycles, mps.idd2n);
-  energy.act_stdby_energy = vdd0Domain.calcTivEnergy(c.actcycles, mps.idd3n);
+  energy.act_energy       = vdd0Domain.calcTivEnergy(sum(c.numberofactsBanks) * t.RAS          , mps.idd01 - mps.idd3n1);
+  energy.pre_energy       = vdd0Domain.calcTivEnergy(sum(c.numberofpresBanks) * (t.RC - t.RAS) , mps.idd01 - mps.idd2n1);
+  energy.read_energy      = vdd0Domain.calcTivEnergy(sum(c.numberofreadsBanks) * burstCc        , mps.idd4r - mps.idd3n1);
+  energy.write_energy     = vdd0Domain.calcTivEnergy(sum(c.numberofwritesBanks) * burstCc        , mps.idd4w - mps.idd3n1);
+  energy.ref_energy       = vdd0Domain.calcTivEnergy(c.numberofrefs   * t.RFC          , mps.idd51 - mps.idd3n1);
+  energy.pre_stdby_energy = vdd0Domain.calcTivEnergy(c.precycles, mps.idd2n1);
+  energy.act_stdby_energy = vdd0Domain.calcTivEnergy(c.actcycles, mps.idd3n1);
 
   // Using the number of cycles that at least one bank is active here
-  // But the current iddrho is less than idd3n
-  double iddrho = (static_cast<double>(bwPowerParams.bwPowerFactRho) / 100.0) * (mps.idd3n - mps.idd2n) + mps.idd2n;
+  // But the current iddrho is less than idd3n1
+  double iddrho = (static_cast<double>(bwPowerParams.bwPowerFactRho) / 100.0) * (mps.idd3n1 - mps.idd2n1) + mps.idd2n1;
   double esharedActStdby = vdd0Domain.calcTivEnergy(c.actcycles, iddrho);
   // Fixed componenent for PASR
-  double iddsigma = (static_cast<double>(bwPowerParams.bwPowerFactSigma) / 100.0) * mps.idd6;
+  double iddsigma = (static_cast<double>(bwPowerParams.bwPowerFactSigma) / 100.0) * mps.idd61;
   double esharedPASR = vdd0Domain.calcTivEnergy(c.sref_cycles, iddsigma);
   // ione is Active background current for a single bank. When a single bank is Active
   //,all the other remainig (B-1) banks will consume  a current of iddrho (based on factor Rho)
-  // So to derrive ione we add (B-1)*iddrho to the idd3n and distribute it to each banks.
-  double ione = (mps.idd3n + (iddrho * (static_cast<double>(nbrofBanks - 1)))) / (static_cast<double>(nbrofBanks));
+  // So to derrive ione we add (B-1)*iddrho to the idd3n1 and distribute it to each banks.
+  double ione = (mps.idd3n1 + (iddrho * (static_cast<double>(nbrofBanks - 1)))) / (static_cast<double>(nbrofBanks));
   // If memory specification does not provide  bank wise refresh current,
   // approximate it to single bank background current removed from
   // single bank active current
-  double idd5Blocal = (mps.idd5B == 0.0) ? (mps.idd0 - ione) :(mps.idd5B);
+  double idd5Blocal = (mps.idd5B == 0.0) ? (mps.idd01 - ione) :(mps.idd5B);
   // if memory specification does not provide the REFB timing approximate it
   // to time of ACT + PRE
   int64_t tRefBlocal = (t.REFB == 0) ? (t.RAS + t.RP) : (t.REFB);
 
   //Distribution of energy componets to each banks
   for (unsigned i = 0; i < nbrofBanks; i++) {
-    energy.act_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofactsBanks[i] * t.RAS, mps.idd0 - ione);
-    energy.pre_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofpresBanks[i] * (t.RP), mps.idd0 - ione);
-    energy.read_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofreadsBanks[i] * burstCc, mps.idd4r - mps.idd3n);
-    energy.write_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofwritesBanks[i] * burstCc, mps.idd4w - mps.idd3n);
-    energy.ref_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofrefs * t.RFC, mps.idd5 - mps.idd3n) / static_cast<double>(nbrofBanks);
+    energy.act_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofactsBanks[i] * t.RAS, mps.idd01 - ione);
+    energy.pre_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofpresBanks[i] * (t.RP), mps.idd01 - ione);
+    energy.read_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofreadsBanks[i] * burstCc, mps.idd4r - mps.idd3n1);
+    energy.write_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofwritesBanks[i] * burstCc, mps.idd4w - mps.idd3n1);
+    energy.ref_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofrefs * t.RFC, mps.idd51 - mps.idd3n1) / static_cast<double>(nbrofBanks);
     energy.refb_energy_banks[i] = vdd0Domain.calcTivEnergy(c.numberofrefbBanks[i] * tRefBlocal, idd5Blocal);
-    energy.pre_stdby_energy_banks[i] = vdd0Domain.calcTivEnergy(c.precycles, mps.idd2n) / static_cast<double>(nbrofBanks);
-    energy.act_stdby_energy_banks[i] = vdd0Domain.calcTivEnergy(c.actcyclesBanks[i], (mps.idd3n - iddrho) / static_cast<double>(nbrofBanks))
+    energy.pre_stdby_energy_banks[i] = vdd0Domain.calcTivEnergy(c.precycles, mps.idd2n1) / static_cast<double>(nbrofBanks);
+    energy.act_stdby_energy_banks[i] = vdd0Domain.calcTivEnergy(c.actcyclesBanks[i], (mps.idd3n1 - iddrho) / static_cast<double>(nbrofBanks))
                                         + esharedActStdby / static_cast<double>(nbrofBanks);
-    energy.idle_energy_act_banks[i] = vdd0Domain.calcTivEnergy(c.idlecycles_act, mps.idd3n) / static_cast<double>(nbrofBanks);
-    energy.idle_energy_pre_banks[i] = vdd0Domain.calcTivEnergy(c.idlecycles_pre, mps.idd2n) / static_cast<double>(nbrofBanks);
+    energy.idle_energy_act_banks[i] = vdd0Domain.calcTivEnergy(c.idlecycles_act, mps.idd3n1) / static_cast<double>(nbrofBanks);
+    energy.idle_energy_pre_banks[i] = vdd0Domain.calcTivEnergy(c.idlecycles_pre, mps.idd2n1) / static_cast<double>(nbrofBanks);
     energy.f_act_pd_energy_banks[i] = vdd0Domain.calcTivEnergy(c.f_act_pdcycles, mps.idd3p1) / static_cast<double>(nbrofBanks);
     energy.f_pre_pd_energy_banks[i] = vdd0Domain.calcTivEnergy(c.f_pre_pdcycles, mps.idd2p1) / static_cast<double>(nbrofBanks);
     energy.s_act_pd_energy_banks[i] = vdd0Domain.calcTivEnergy(c.s_act_pdcycles, mps.idd3p0) / static_cast<double>(nbrofBanks);
     energy.s_pre_pd_energy_banks[i] = vdd0Domain.calcTivEnergy(c.s_pre_pdcycles, mps.idd2p0) / static_cast<double>(nbrofBanks);
 
-    energy.sref_energy_banks[i] = engy_sref_banks(mps.idd6, mps.idd3n,
-                                            mps.idd5, mps.vdd,
+    energy.sref_energy_banks[i] = engy_sref_banks(mps.idd61, mps.idd3n1,
+                                            mps.idd51, mps.vdd1,
                                             static_cast<double>(c.sref_cycles), static_cast<double>(c.sref_ref_act_cycles),
                                             static_cast<double>(c.sref_ref_pre_cycles), static_cast<double>(c.spup_ref_act_cycles),
                                             static_cast<double>(c.spup_ref_pre_cycles), t.clkPeriod,esharedPASR,bwPowerParams,i,nbrofBanks
@@ -241,18 +241,18 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
     energy.sref_ref_pre_energy_banks[i] = vdd0Domain.calcTivEnergy(c.sref_ref_pre_cycles, mps.idd2p0) / static_cast<double>(nbrofBanks);
     energy.sref_ref_energy_banks[i] = energy.sref_ref_act_energy_banks[i] + energy.sref_ref_pre_energy_banks[i] ;//
 
-    energy.spup_energy_banks[i] = vdd0Domain.calcTivEnergy(c.spup_cycles, mps.idd2n) / static_cast<double>(nbrofBanks);
-    energy.spup_ref_act_energy_banks[i] = vdd0Domain.calcTivEnergy(c.spup_ref_act_cycles, mps.idd3n) / static_cast<double>(nbrofBanks);//
-    energy.spup_ref_pre_energy_banks[i] = vdd0Domain.calcTivEnergy(c.spup_ref_pre_cycles, mps.idd2n) / static_cast<double>(nbrofBanks);
+    energy.spup_energy_banks[i] = vdd0Domain.calcTivEnergy(c.spup_cycles, mps.idd2n1) / static_cast<double>(nbrofBanks);
+    energy.spup_ref_act_energy_banks[i] = vdd0Domain.calcTivEnergy(c.spup_ref_act_cycles, mps.idd3n1) / static_cast<double>(nbrofBanks);//
+    energy.spup_ref_pre_energy_banks[i] = vdd0Domain.calcTivEnergy(c.spup_ref_pre_cycles, mps.idd2n1) / static_cast<double>(nbrofBanks);
     energy.spup_ref_energy_banks[i] = ( energy.spup_ref_act_energy + energy.spup_ref_pre_energy ) / static_cast<double>(nbrofBanks);
-    energy.pup_act_energy_banks[i] = vdd0Domain.calcTivEnergy(c.pup_act_cycles, mps.idd3n) / static_cast<double>(nbrofBanks);
-    energy.pup_pre_energy_banks[i] = vdd0Domain.calcTivEnergy(c.pup_pre_cycles, mps.idd2n) / static_cast<double>(nbrofBanks);
+    energy.pup_act_energy_banks[i] = vdd0Domain.calcTivEnergy(c.pup_act_cycles, mps.idd3n1) / static_cast<double>(nbrofBanks);
+    energy.pup_pre_energy_banks[i] = vdd0Domain.calcTivEnergy(c.pup_pre_cycles, mps.idd2n1) / static_cast<double>(nbrofBanks);
   }
 
   // Idle energy in the active standby clock cycles
-  energy.idle_energy_act  = vdd0Domain.calcTivEnergy(c.idlecycles_act, mps.idd3n);
+  energy.idle_energy_act  = vdd0Domain.calcTivEnergy(c.idlecycles_act, mps.idd3n1);
   // Idle energy in the precharge standby clock cycles
-  energy.idle_energy_pre  = vdd0Domain.calcTivEnergy(c.idlecycles_pre, mps.idd2n);
+  energy.idle_energy_pre  = vdd0Domain.calcTivEnergy(c.idlecycles_pre, mps.idd2n1);
   // fast-exit active power-down cycles energy
   energy.f_act_pd_energy  = vdd0Domain.calcTivEnergy(c.f_act_pdcycles, mps.idd3p1);
   // fast-exit precharged power-down cycles energy
@@ -263,8 +263,8 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
   energy.s_pre_pd_energy  = vdd0Domain.calcTivEnergy(c.s_pre_pdcycles, mps.idd2p0);
 
   // self-refresh cycles energy including a refresh per self-refresh entry
-  energy.sref_energy = engy_sref(mps.idd6, mps.idd3n,
-                                 mps.idd5, mps.vdd,
+  energy.sref_energy = engy_sref(mps.idd61, mps.idd3n1,
+                                 mps.idd51, mps.vdd1,
                                  static_cast<double>(c.sref_cycles), static_cast<double>(c.sref_ref_act_cycles),
                                  static_cast<double>(c.sref_ref_pre_cycles), static_cast<double>(c.spup_ref_act_cycles),
                                  static_cast<double>(c.spup_ref_pre_cycles), t.clkPeriod);
@@ -274,15 +274,15 @@ void MemoryPowerModel::power_calc(const MemorySpecification& memSpec,
   // background energy during precharged auto-refresh cycles in self-refresh
   energy.sref_ref_pre_energy = vdd0Domain.calcTivEnergy(c.sref_ref_pre_cycles, mps.idd2p0);
   // background energy during active auto-refresh cycles in self-refresh exit
-  energy.spup_ref_act_energy = vdd0Domain.calcTivEnergy(c.spup_ref_act_cycles, mps.idd3n);
+  energy.spup_ref_act_energy = vdd0Domain.calcTivEnergy(c.spup_ref_act_cycles, mps.idd3n1);
   // background energy during precharged auto-refresh cycles in self-refresh exit
-  energy.spup_ref_pre_energy = vdd0Domain.calcTivEnergy(c.spup_ref_pre_cycles, mps.idd2n);
+  energy.spup_ref_pre_energy = vdd0Domain.calcTivEnergy(c.spup_ref_pre_cycles, mps.idd2n1);
   // self-refresh power-up cycles energy -- included
-  energy.spup_energy         = vdd0Domain.calcTivEnergy(c.spup_cycles, mps.idd2n);
+  energy.spup_energy         = vdd0Domain.calcTivEnergy(c.spup_cycles, mps.idd2n1);
   // active power-up cycles energy - same as active standby -- included
-  energy.pup_act_energy      = vdd0Domain.calcTivEnergy(c.pup_act_cycles, mps.idd3n);
+  energy.pup_act_energy      = vdd0Domain.calcTivEnergy(c.pup_act_cycles, mps.idd3n1);
   // precharged power-up cycles energy - same as precharged standby -- included
-  energy.pup_pre_energy      = vdd0Domain.calcTivEnergy(c.pup_pre_cycles, mps.idd2n);
+  energy.pup_pre_energy      = vdd0Domain.calcTivEnergy(c.pup_pre_cycles, mps.idd2n1);
 
   // similar equations as before to support multiple voltage domains in LPDDR2
   // and WIDEIO memories
@@ -516,22 +516,22 @@ void MemoryPowerModel::power_print(const MemorySpecification& memSpec, int term,
 } // MemoryPowerModel::power_print
 
 // Self-refresh active energy estimation (not including background energy)
-double MemoryPowerModel::engy_sref(double idd6, double idd3n, double idd5,
-                                   double vdd, double sref_cycles, double sref_ref_act_cycles,
+double MemoryPowerModel::engy_sref(double idd61, double idd3n1, double idd51,
+                                   double vdd1, double sref_cycles, double sref_ref_act_cycles,
                                    double sref_ref_pre_cycles, double spup_ref_act_cycles,
                                    double spup_ref_pre_cycles, double clk)
 {
   double sref_energy;
 
-  sref_energy = ((idd6 * sref_cycles) + ((idd5 - idd3n) * (sref_ref_act_cycles
+  sref_energy = ((idd61 * sref_cycles) + ((idd51 - idd3n1) * (sref_ref_act_cycles
                                                            + spup_ref_act_cycles + sref_ref_pre_cycles + spup_ref_pre_cycles)))
-                * vdd * clk;
+                * vdd1 * clk;
   return sref_energy;
 }
 
 // Self-refresh active energy estimation per banks
-double MemoryPowerModel::engy_sref_banks(double idd6, double idd3n, double idd5,
-                                   double vdd, double sref_cycles, double sref_ref_act_cycles,
+double MemoryPowerModel::engy_sref_banks(double idd61, double idd3n1, double idd51,
+                                   double vdd1, double sref_cycles, double sref_ref_act_cycles,
                                    double sref_ref_pre_cycles, double spup_ref_act_cycles,
                                    double spup_ref_pre_cycles, double clk,
                                    double esharedPASR, const MemBankWiseParams& bwPowerParams,
@@ -546,14 +546,14 @@ double MemoryPowerModel::engy_sref_banks(double idd6, double idd3n, double idd5,
     double sref_energy_shared;
     //Is PASR Active
     if (bwPowerParams.flgPASR){
-        sref_energy_shared = (((idd5 - idd3n) * (sref_ref_act_cycles
-                                                          + spup_ref_act_cycles + sref_ref_pre_cycles + spup_ref_pre_cycles)) * vdd * clk)
+        sref_energy_shared = (((idd51 - idd3n1) * (sref_ref_act_cycles
+                                                          + spup_ref_act_cycles + sref_ref_pre_cycles + spup_ref_pre_cycles)) * vdd1 * clk)
                                                 / static_cast<double>(nbrofBanks);
         //if the bank is active under current PASR mode
         if (bwPowerParams.isBankActiveInPasr(bnkIdx)){
             // Distribute the sref energy to the active banks
-            iddsigmaDynBanks = (static_cast<double>(100 - bwPowerParams.bwPowerFactSigma) / (100.0 * static_cast<double>(nbrofBanks))) * idd6;
-            pasr_energy_dyn = vdd * iddsigmaDynBanks * sref_cycles;
+            iddsigmaDynBanks = (static_cast<double>(100 - bwPowerParams.bwPowerFactSigma) / (100.0 * static_cast<double>(nbrofBanks))) * idd61;
+            pasr_energy_dyn = vdd1 * iddsigmaDynBanks * sref_cycles;
             // Add the static components
             sref_energy_banks = sref_energy_shared + pasr_energy_dyn + (esharedPASR /static_cast<double>(nbrofBanks));
 
@@ -565,9 +565,9 @@ double MemoryPowerModel::engy_sref_banks(double idd6, double idd3n, double idd5,
     else{
 
 
-            sref_energy_banks = (((idd6 * sref_cycles) + ((idd5 - idd3n) * (sref_ref_act_cycles
+            sref_energy_banks = (((idd61 * sref_cycles) + ((idd51 - idd3n1) * (sref_ref_act_cycles
                                                 + spup_ref_act_cycles + sref_ref_pre_cycles + spup_ref_pre_cycles)))
-                                                * vdd * clk)
+                                                * vdd1 * clk)
                                                 / static_cast<double>(nbrofBanks);
     }
     return sref_energy_banks;

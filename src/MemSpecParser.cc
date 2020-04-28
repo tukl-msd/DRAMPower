@@ -102,30 +102,30 @@ const DRAMPower::MemPowerSpec& MemSpecParser::getMemPowerSpec() {
 
   validateElements({MEM_POWR_SPEC});
 
-  memPowerSpec.idd0        = getElementValWithDefault<double>(IDD_0, 0.0);
+  memPowerSpec.idd01       = getElementValWithDefault<double>(IDD_01, 0.0);
   memPowerSpec.idd02       = getElementValWithDefault<double>(IDD_02, 0.0);
   memPowerSpec.idd2p0      = getElementValWithDefault<double>(IDD_2P0, 0.0);
   memPowerSpec.idd2p02     = getElementValWithDefault<double>(IDD_2P02, 0.0);
   memPowerSpec.idd2p1      = getElementValWithDefault<double>(IDD_2P1, 0.0);
   memPowerSpec.idd2p12     = getElementValWithDefault<double>(IDD_2P12, 0.0);
-  memPowerSpec.idd2n       = getElementValWithDefault<double>(IDD_2N, 0.0);
+  memPowerSpec.idd2n1      = getElementValWithDefault<double>(IDD_2N1, 0.0);
   memPowerSpec.idd2n2      = getElementValWithDefault<double>(IDD_2N2, 0.0);
   memPowerSpec.idd3p0      = getElementValWithDefault<double>(IDD_3P0, 0.0);
   memPowerSpec.idd3p02     = getElementValWithDefault<double>(IDD_3P02, 0.0);
   memPowerSpec.idd3p1      = getElementValWithDefault<double>(IDD_3P1, 0.0);
   memPowerSpec.idd3p12     = getElementValWithDefault<double>(IDD_3P12, 0.0);
-  memPowerSpec.idd3n       = getElementValWithDefault<double>(IDD_3N, 0.0);
+  memPowerSpec.idd3n1      = getElementValWithDefault<double>(IDD_3N1, 0.0);
   memPowerSpec.idd3n2      = getElementValWithDefault<double>(IDD_3N2, 0.0);
   memPowerSpec.idd4r       = getElementValWithDefault<double>(IDD_4R, 0.0);
   memPowerSpec.idd4r2      = getElementValWithDefault<double>(IDD_4R2, 0.0);
   memPowerSpec.idd4w       = getElementValWithDefault<double>(IDD_4W, 0.0);
   memPowerSpec.idd4w2      = getElementValWithDefault<double>(IDD_4W2, 0.0);
-  memPowerSpec.idd5        = getElementValWithDefault<double>(IDD_5, 0.0);
+  memPowerSpec.idd51       = getElementValWithDefault<double>(IDD_51, 0.0);
   memPowerSpec.idd52       = getElementValWithDefault<double>(IDD_52, 0.0);
   memPowerSpec.idd5B       = getElementValWithDefault<double>(IDD_5B, 0.0);
-  memPowerSpec.idd6        = getElementValWithDefault<double>(IDD_6, 0.0);
+  memPowerSpec.idd61       = getElementValWithDefault<double>(IDD_6, 0.0);
   memPowerSpec.idd62       = getElementValWithDefault<double>(IDD_62, 0.0);
-  memPowerSpec.vdd         = getElementValWithDefault<double>(VDD, 0.0);
+  memPowerSpec.vdd1        = getElementValWithDefault<double>(VDD1, 0.0);
   memPowerSpec.vdd2        = getElementValWithDefault<double>(VDD2, 0.0);
   memPowerSpec.capacitance = getElementValWithDefault<double>(CAPCITANCE, 0.0);
   memPowerSpec.ioPower     = getElementValWithDefault<double>(IO_POWER, 0.0);

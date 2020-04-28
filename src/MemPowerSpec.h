@@ -42,30 +42,30 @@ class MemPowerSpec{
  public:
   MemPowerSpec();
 
-  double idd0;
+  double idd01;
   double idd02;
   double idd2p0;
   double idd2p02;
   double idd2p1;
   double idd2p12;
-  double idd2n;
+  double idd2n1;
   double idd2n2;
   double idd3p0;
   double idd3p02;
   double idd3p1;
   double idd3p12;
-  double idd3n;
+  double idd3n1;
   double idd3n2;
   double idd4r;
   double idd4r2;
   double idd4w;
   double idd4w2;
-  double idd5;
+  double idd51;
   double idd52;
   double idd5B;
-  double idd6;
+  double idd61;
   double idd62;
-  double vdd;
+  double vdd1;
   double vdd2;
 
   double capacitance;
