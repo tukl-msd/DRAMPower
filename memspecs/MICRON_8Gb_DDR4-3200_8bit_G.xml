@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!DOCTYPE memspec SYSTEM "memspec.dtd">
+<memspec>
+  <parameter id="memoryId"         value="MICRON_8Gb_DDR4-3200_8bit_G"            />
+  <parameter id="memoryType"       value="DDR4"                                     />
+  <parameter id="datasheet"        value="8gb_ddr4_sdram.pdf"  />
+  <parameter id="JEDEC"            value="JESD79-4"                                 />
+  <parameter id="dieRevision"      value="G"                                        />
+  <parameter id="speedBin"         value="DDR4-3200AA"                               />
+  <parameter id="vendorSpeedGrade" value="-062E"                                     />
+  <parameter id="capacity"         value="8Gb"                                      />
+  <memarchitecturespec>
+    <parameter id="burstLength"     value="8"                                              />
+    <parameter id="dataRate"        value="2"                                              />
+    <parameter id="nbrOfBanks"      value="16" />
+    <parameter id="nbrOfBankGroups" value="4"                                              />
+    <parameter id="nbrOfColumns"    value="1024"                                           />
+    <parameter id="nbrOfRows"       value="65536"                                          />
+    <parameter id="width"           value="8"                                              />
+  </memarchitecturespec>
+  <memtimingspec>
+    <parameter id="AL"        value="0"                                  />
+    <parameter id="CCD_L"     value="8"                                  />
+    <parameter id="CCD_S"     value="4"                                  />
+    <parameter id="CKE"       value="8"                                  />
+    <parameter id="CKESR"     value="9"                                  />
+    <parameter id="CL"        value="22"                                 />
+    <parameter id="clkMhz"    value="1600"                               />
+    <parameter id="clkMhzMin" value="1066" />
+    <parameter id="DQSCK"     value="2"                                  />
+    <parameter id="LAW"       value="34" />
+    <parameter id="PA"        value="2" />
+    <parameter id="RAS"       value="52"                                 />
+    <parameter id="RC"        value="74"                                 />
+    <parameter id="RCD"       value="22"                                 />
+    <parameter id="REFI"      value="12480" />
+    <parameter id="RFC"       value="560"                                />
+    <parameter id="RL"        value="22"                                 />
+    <parameter id="RP"        value="22"                                 />
+    <parameter id="RRD_L"     value="8"                                  />
+    <parameter id="RRD_S"     value="4"                                  />
+    <parameter id="RTP"       value="12"                                 />
+    <parameter id="WL"        value="16" />
+    <parameter id="WR"        value="24"                                 />
+    <parameter id="WTR_L"     value="12"                                  />
+    <parameter id="WTR_S"     value="4"                                  />
+    <parameter id="XP"        value="10"                                  />
+    <parameter id="XPDLL"     value="0" />
+    <parameter id="XS"        value="576"                                />
+    <parameter id="XSDLL"     value="1024"                                />
+  </memtimingspec>
+  <mempowerspec>
+    <parameter id="idd0"   value="57"  />
+    <parameter id="idd02"  value="3" />
+    <parameter id="idd2n"  value="37"  />
+    <parameter id="idd2p0" value="25"   />
+    <parameter id="idd2p1" value="25"   />
+    <parameter id="idd3n"  value="56"   />
+    <parameter id="idd3n2"  value="3"   />
+    <parameter id="idd3p0" value="43"   />
+    <parameter id="idd3p1" value="43"   />
+    <parameter id="idd4r"  value="168"  />
+    <parameter id="idd4w"  value="155" />
+    <parameter id="idd5"   value="66"  />
+    <parameter id="idd52" value="5" />
+    <parameter id="idd6"   value="31" />
+    <parameter id="idd62"  value="5" />
+    <parameter id="vdd"    value="1.2"    />
+    <parameter id="vdd2"   value="2.5"    />
+  </mempowerspec>
+</memspec>
