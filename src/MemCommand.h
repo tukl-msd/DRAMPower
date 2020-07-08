@@ -130,7 +130,8 @@ class MemCommand {
   bool operator==(const MemCommand& other) const
   {
     if ((getType() == other.getType()) &&
-        (getBank() == other.getBank())
+        (getBank() == other.getBank()) &&
+        (getTimeInt64() == other.getTimeInt64())
         ) {
       return true;
     } else {
