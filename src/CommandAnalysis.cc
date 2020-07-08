@@ -173,26 +173,27 @@ void CommandAnalysis::getCommands(std::vector<MemCommand>& list, bool lastupdate
     next_window_cmd_list.clear();
   }
   for (size_t i = 0; i < list.size(); ++i) {
-    MemCommand& cmd = list[i];
-    MemCommand::cmds cmdType = cmd.getType();
+    MemCommand* cmd = &list[i];
+    MemCommand::cmds cmdType = cmd->getType();
     if (cmdType == MemCommand::ACT) {
-      activation_cycle[cmd.getBank()] = cmd.getTimeInt64();
+      activation_cycle[cmd->getBank()] = cmd->getTimeInt64();
     } else if (cmdType == MemCommand::RDA || cmdType == MemCommand::WRA) {
       // Remove auto-precharge flag from command
-      cmd.setType(cmd.typeWithoutAutoPrechargeFlag());
+      cmd->setType(cmd->typeWithoutAutoPrechargeFlag());
 
       // Add the auto precharge to the list of cached_cmds
-      int64_t preTime = max(cmd.getTimeInt64() + cmd.getPrechargeOffset(memSpec, cmdType),
-                           activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.RAS);
-      list.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), preTime));
+      int64_t preTime = max(cmd->getTimeInt64() + cmd->getPrechargeOffset(memSpec, cmdType),
+                           activation_cycle[cmd->getBank()] + memSpec.memTimingSpec.RAS);
+      list.push_back(MemCommand(MemCommand::PRE, cmd->getBank(), preTime));
     }
 
+    cmd = &list[i];
     if (!lastupdate && timestamp > 0) {
-      if(cmd.getTimeInt64() > timestamp)
+      if(cmd->getTimeInt64() > timestamp)
       {
           MemCommand nextWindowCmd = list[i];
           next_window_cmd_list.push_back(nextWindowCmd);
-          list.erase(find(list.begin(), list.end(), cmd));
+          list.erase(find(list.begin(), list.end(), *cmd));
       }
     }
   }
