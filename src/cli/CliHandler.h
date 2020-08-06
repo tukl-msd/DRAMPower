@@ -68,7 +68,7 @@ public:
   int get_bank_wise_sigma() const;
   bool get_pasr_active() const;
   int get_pasr_mode() const;
-
+  void logo();
   void parse_arguments();
   void run_simulation();
 

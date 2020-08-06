@@ -46,8 +46,10 @@ int main(int argc, char* argv[])
   try {
 
     CliHandler cli(argc, argv);
+    cli.logo();
     cli.parse_arguments();
     cli.run_simulation();
+
 
     return EXIT_SUCCESS;
   } catch(const std::exception& e) {
