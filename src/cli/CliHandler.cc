@@ -56,6 +56,32 @@ CliHandler::~CliHandler(){
   delete(app);
 }
 
+void CliHandler::logo()
+{
+#define BLUETXT(s)  std::string(("\u001b[38;5;20m"+std::string((s))+"\033[0m"))
+#define DBLUETXT(s) std::string(("\u001b[38;5;18m"+std::string((s))+"\033[0m"))
+#define LBLUETXT(s) std::string(("\u001b[38;5;14m"+std::string((s))+"\033[0m"))
+#define BLACKTXT(s)  std::string(("\u001b[38;5;232m"+std::string((s))+"\033[0m"))
+#define BOLDTXT(s)   std::string(("\033[1;37m"+std::string((s))+"\033[0m"))
+    cout << std::endl
+         << BLACKTXT("■ ■ ")<< DBLUETXT("■  ")
+         << BOLDTXT("DRAMPower, Copyright (c) 2020")
+         << std::endl
+         << BLACKTXT("■ ") << DBLUETXT("■ ") << BLUETXT("■  ")
+         << "TU Eindhoven, TU Delft, TU Kaiserslautern"
+         << std::endl
+         << DBLUETXT("■ ") << BLUETXT("■ ") << LBLUETXT("■  " )
+         << "Fraunhofer IESE"
+         << std::endl
+         << std::endl;
+#undef GREENTXT
+#undef DGREENTXT
+#undef LGREENTXT
+#undef BLACKTXT
+#undef BOLDTXT
+}
+
+
 void CliHandler::parse_arguments(){
   
   app = new CLI::App("DRAMPower");
@@ -66,15 +92,11 @@ void CliHandler::parse_arguments(){
                   "IO and Termination");
 
     app->add_flag_function(VERS,
-                          [](bool){
-                            std::cout << "Version " << DRAM_POWER_VERSION_STRING << std::endl
-                                      << "Copyright (c) 2012-2014, TU Delft          " << std::endl
-                                      << "Copyright (c) 2012-2014, TU Eindhoven      " << std::endl
-                                      << "Copyright (c) 2012-2014, TU Kaiserslautern " << std::endl
-                                      << "Copyright (c) 2012-2019, Fraunhofer IESE   " << std::endl;
-                            std::exit(EXIT_SUCCESS);
-                          },
-                          "Display DRAMPower version information");
+                           [&](bool){
+                             logo();
+                             std::exit(EXIT_SUCCESS);
+                           },
+                           "Display DRAMPower version information");
 
     app->add_option(MEM_SPEC,
                     mem_spec_path,
