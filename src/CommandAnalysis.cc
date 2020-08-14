@@ -193,10 +193,15 @@ void CommandAnalysis::getCommands(std::vector<MemCommand>& list, bool lastupdate
       {
           MemCommand nextWindowCmd = list[i];
           next_window_cmd_list.push_back(nextWindowCmd);
-          list.erase(find(list.begin(), list.end(), *cmd));
       }
     }
   }
+  //Delete everything that's been moved into the next_window_cmd_list from the list
+  for (size_t i = 0; i < next_window_cmd_list.size(); ++i) {
+      MemCommand cmd = next_window_cmd_list[i];
+      list.erase(find(list.begin(), list.end(), cmd));
+  }
+
   sort(list.begin(), list.end(), commandSorter);
 
   if (lastupdate && list.empty() == false) {
