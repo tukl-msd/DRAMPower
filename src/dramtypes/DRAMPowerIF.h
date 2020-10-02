@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2012-2014, TU Delft
  * Copyright (c) 2012-2014, TU Eindhoven
- * Copyright (c) 2012-2016, TU Kaiserslautern
+ * Copyright (c) 2012-2014, TU Kaiserslautern
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,49 +31,45 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Subash Kannoth, Matthias Jung, Eder Zulian
+ * Authors: Matthias Jung
+ *          Omar Naji
+ *          Subash Kannoth
+ *          Éder F. Zulian
+ *          Felipe S. Prado
  *
  */
-#ifndef MEMBANKWISEPARAMS_H
-#define MEMBANKWISEPARAMS_H
+
+#ifndef DRAM_POWER_IF_H
+#define DRAM_POWER_IF_H
 
 #include <stdint.h>
 #include <vector>
-#include <algorithm>
-#include <numeric>
 
-namespace DRAMPower {
-  class MemBankWiseParams {
-    public:
-      // Set of possible PASR modes
-      enum pasrModes{
-        PASR_0,
-        PASR_1,
-        PASR_2,
-        PASR_3,
-        PASR_4,
-        PASR_5,
-        PASR_6,
-        PASR_7
-      };
-      // List of active banks under the specified PASR mode
-      std::vector<unsigned> activeBanks;
-      // ACT Standby power factor
-      int64_t bwPowerFactRho;
-      // Self-Refresh power factor( true : Bankwise mode)
-      int64_t bwPowerFactSigma;
-      // Bankwise or Normal mode
-      bool bwMode;
-      // Wherther PASR is enabled ( true : enabled )
-      bool flgPASR;
-      //Default constructor
-      MemBankWiseParams();
-      MemBankWiseParams(int64_t factRho, int64_t factSigma,
-                        bool hasPASR, int64_t pasrMode,
-                        bool opMode, unsigned nbrofBanks);
+#include "MemCommand.h"
 
-      bool isBankActiveInPasr(const unsigned bankIdx) const;
-  };
-}
 
-#endif // MEMBANKWISEPARAMS_H
+class DRAMPowerIF{
+ public:
+    virtual ~DRAMPowerIF(){}
+
+    void doCommand(DRAMPower::MemCommand::cmds type,
+                 int                    bank,
+                 int64_t                timestamp);
+
+    virtual void calcEnergy() = 0;
+
+    virtual void calcWindowEnergy(int64_t timestamp) = 0;
+
+    virtual double getEnergy() = 0;
+
+    virtual  double getPower() = 0;
+
+    virtual void powerPrint() = 0;
+
+    virtual void clearCountersWrapper() = 0;
+
+    // list of all commands
+    std::vector<DRAMPower::MemCommand> cmdList;
+};
+
+#endif // ifndef LIB_DRAM_POWER_H

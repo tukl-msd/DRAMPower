@@ -42,7 +42,6 @@
 #include <cassert>
 #include <string>
 
-#include "MemorySpecification.h"
 
 namespace DRAMPower {
 class MemCommand {
@@ -120,10 +119,6 @@ class MemCommand {
   int64_t getTimeInt64() const;
 
   cmds typeWithoutAutoPrechargeFlag() const;
-
-  // To calculate precharge offset after read or write with auto-precharge
-  int64_t getPrechargeOffset(const MemorySpecification& memSpec,
-                         MemCommand::cmds           type) const;
 
   // To check for equivalence
 

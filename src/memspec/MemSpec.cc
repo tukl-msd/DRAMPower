@@ -1,0 +1,157 @@
+/*
+ * Copyright (c) 2015, University of Kaiserslautern
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
+ * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Authors:
+ *    Lukas Steiner
+ */
+
+#include "MemSpec.h"
+
+using json = nlohmann::json;
+
+MemSpec::MemSpec(nlohmann::json &memspec){
+      memArchSpec.numberOfChannels = parseUint(memspec["memarchitecturespec"]["nbrOfChannels"],"nbrOfChannels");
+      memArchSpec.numberOfRanks=parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
+      memArchSpec.numberOfBanks=parseUint(memspec["memarchitecturespec"]["nbrOfBanks"],"nbrOfBanks");
+      memArchSpec.numberOfDevicesOnDIMM = parseUint(memspec["memarchitecturespec"]["nbrOfDevicesOnDIMM"],"nbrOfDevicesOnDIMM");
+      memArchSpec.numberOfBankGroups = 1;//parseUint(memspec["memarchitecturespec"]["nbrOfBankGroups"],"nbrOfBankGroups");
+      memArchSpec.banksPerRank = memArchSpec.numberOfBanks/memArchSpec.numberOfRanks;
+      memArchSpec.groupsPerRank = memArchSpec.numberOfBankGroups / memArchSpec.numberOfRanks;
+      memArchSpec.banksPerGroup = memArchSpec.numberOfBanks / memArchSpec.numberOfBankGroups;
+      memArchSpec.numberOfRows = (parseUint(memspec["memarchitecturespec"]["nbrOfRows"],"nbrOfRows"));
+      memArchSpec.numberOfColumns = (parseUint(memspec["memarchitecturespec"]["nbrOfColumns"],"nbrOfColumns"));
+      memArchSpec.burstLength = (parseUint(memspec["memarchitecturespec"]["burstLength"],"burstLength"));
+      memArchSpec.dataRate = (parseUint(memspec["memarchitecturespec"]["dataRate"],"dataRate"));
+      memArchSpec.bitWidth = (parseUint(memspec["memarchitecturespec"]["width"],"width"));
+      memoryId = (parseString(memspec["memoryId"], "memoryId"));
+      memoryType = (parseString(memspec["memoryType"], "memoryType"));
+}
+
+MemSpec::~MemSpec()
+{
+}
+
+bool MemSpec::parseBool(json &obj, std::string name)
+{
+    if (!obj.empty())
+    {
+        if (obj.is_boolean())
+            return obj;
+        else
+            throw std::invalid_argument("Expected type for '" + name + "': bool");
+    }
+    else
+        throw std::invalid_argument("Query json: Parameter " + name + "' not found");
+}
+
+unsigned MemSpec::parseUint(json &obj, std::string name)
+{
+    if (!obj.empty())
+    {
+        if (obj.is_number_unsigned())
+            return obj;
+        else
+            throw std::invalid_argument("Expected type for '" + name + "': unsigned int");
+    }
+    else
+
+        throw std::invalid_argument("Query json: Parameter " + name + "' not found");
+}
+
+double MemSpec::parseUdouble(json &obj, std::string name)
+{
+    if (!obj.empty())
+    {
+        if (obj.is_number() && (obj > 0))
+            return obj;
+        else
+            throw std::invalid_argument("Expected type for '" + name + "': positive double");
+    }
+    else
+
+        throw std::invalid_argument("Query json: Parameter " + name + "' not found");
+}
+
+double MemSpec::parseUdoubleWithDefault(json &obj, std::string name)
+{
+    if (!obj.empty())
+    {
+        if (obj.is_number() && (obj > 0))
+            return obj;
+        else
+            throw std::invalid_argument("Expected type for '" + name + "': positive double");
+    }
+    else{
+        std::cout << "Parameter " + name + " not found: parsed with zero.\n";
+        return 0.0;
+    }
+}
+std::string MemSpec::parseString(json &obj, std::string name)
+{
+    if (!obj.empty())
+    {
+        if (obj.is_string())
+            return obj;
+        else
+            throw std::invalid_argument("Expected type for '" + name + "': string");
+    }
+    else
+        throw std::invalid_argument("Query json: Parameter " + name + "' not found");
+}
+
+int64_t MemSpec::getRAS(){
+    throw std::invalid_argument("memory type does not contain timing parameter RAS");
+}
+
+int64_t MemSpec::getRP(){
+    throw std::invalid_argument("memory type does not contain timing parameter RP");
+}
+int64_t MemSpec::getRCD(){
+    throw std::invalid_argument("memory type does not contain timing parameter RCD");
+}
+int64_t MemSpec::getRFC(){
+    throw std::invalid_argument("memory type does not contain timing parameter RFC");
+}
+int64_t MemSpec::getXP(){
+    throw std::invalid_argument("memory type does not contain timing parameter XP");
+}
+
+int64_t MemSpec::getCKESR(){
+    throw std::invalid_argument("memory type does not contain timing parameter CKESR");
+}
+int64_t MemSpec::getExitSREFtime(){
+    throw std::invalid_argument("memory type does not contain timing parameter exitSREF");
+}
+
+int64_t MemSpec::getXPDLL(){
+    throw std::invalid_argument("memory type does not contain timing parameter XPDLL");
+}
+

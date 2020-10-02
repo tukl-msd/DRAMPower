@@ -82,7 +82,7 @@ coverageclean:
 	$(RM) lib_test.gcno lib_test.gcda
 
 test: all
-	./$(BINARY)  ${DRAMPOWER_PATH}/memspecs/MICRON_1Gb_DDR2-1066_16bit_H.json
-	./$(BINARY2) ${DRAMPOWER_PATH}/memspecs/MICRON_1Gb_DDR2-1066_16bit_H.json
+	./$(BINARY)  ${DRAMPOWER_PATH}/memspecs/MICRON_1Gb_DDR3-1066_8bit_G.json
+	./$(BINARY2) ${DRAMPOWER_PATH}/memspecs/MICRON_1Gb_DDR3-1066_8bit_G.json
 
 .PHONY: clean test

@@ -39,7 +39,6 @@
 
 #include <algorithm>  // for max
 
-#include "MemorySpecification.h"
 
 using namespace DRAMPower;
 using namespace std;
@@ -74,7 +73,7 @@ unsigned MemCommand::getBank() const
 }
 
 // For auto-precharge with read or write - to calculate cycle of precharge
-int64_t MemCommand::getPrechargeOffset(const MemorySpecification& memSpec,
+/*int64_t MemCommand::getPrechargeOffset(const MemorySpecification& memSpec,
                                    MemCommand::cmds           type) const
 {
   int64_t precharge_offset = 0;
@@ -133,7 +132,7 @@ int64_t MemCommand::getPrechargeOffset(const MemorySpecification& memSpec,
   }
 
   return precharge_offset;
-} // MemCommand::getPrechargeOffset
+}*/ // MemCommand::getPrechargeOffset
 
 void MemCommand::setTime(int64_t _timestamp)
 {

@@ -48,22 +48,12 @@ LIBS := src/libdrampower.a src/libdrampowerjson.a
 # Identifies the source files and derives name of object files.
 
 CLISOURCES := src/TraceParser.cc $(wildcard src/cli/*.cc)
-LIBSOURCES := $(wildcard src/libdrampower/*.cc) \
-			  src/CommandAnalysis.cc \
-			  src/CAHelpers.cc \
-			  src/CmdHandlers.cc \
-			  src/MemArchitectureSpec.cc\
-			  src/MemCommand.cc\
-			  src/MemoryPowerModel.cc\
-			  src/MemorySpecification.cc\
-			  src/MemPowerSpec.cc\
-			  src/MemTimingSpec.cc\
-			  src/MemBankWiseParams.cc\
-			  src/MemSpecParser.cc\
+LIBSOURCES := src/Counters.cc src/MemCommand.cc $(wildcard src/memspec/*.cc) $(wildcard src/dramtypes/*.cc) 
+			
 
 JSONPARSERSOURCES := $(wildcard src/jsonparser/*.cc)
-ALLSOURCES := $(wildcard src/cli/*.cc) $(wildcard src/*.cc) $(wildcard src/jsonparser/*.cc) $(wildcard src/libdrampower/*.cc)
-ALLHEADERS := $(wildcard src/*.h) $(wildcard src/jsonparser/*.h) $(wildcard src/libdrampower/*.h)
+ALLSOURCES := $(wildcard src/cli/*.cc) $(wildcard src/*.cc) $(wildcard src/jsonparser/*.cc) $(wildcard src/memspec/*.cc) $(wildcard src/dramtypes/*.cc)
+ALLHEADERS := $(wildcard src/*.h) $(wildcard src/jsonparser/*.h) $(wildcard src/memspec/*.h) $(wildcard src/dramtypes/*.h)
 
 CLIOBJECTS := ${CLISOURCES:.cc=.o}
 JSONPARSEROBJECTS := ${JSONPARSERSOURCES:.cc=.o}
@@ -84,10 +74,19 @@ DEPCXXFLAGS := -O ${DEPWARNFLAGS} ${DBGCXXFLAGS} ${OPTCXXFLAGS} -std=c++0x
 LDFLAGS := -Wall -lstdc++
 
 ##########################################
+# Xerces settings
+##########################################
+
+XERCES_ROOT ?= /usr
+XERCES_INC := $(XERCES_ROOT)/include
+XERCES_LIB := $(XERCES_ROOT)/lib
+XERCES_LDFLAGS := -L$(XERCES_LIB) -lxerces-c
+
+##########################################
 # Targets
 ##########################################
 
-all: ${BINARY} lib parserlib traces
+all: ${BINARY} src/libdrampower.a parserlib traces
 
 $(BINARY): ${JSONPARSEROBJECTS} ${CLIOBJECTS} src/libdrampower.a
 	$(CXX) ${CXXFLAGS} $(LDFLAGS) -o $@ $^

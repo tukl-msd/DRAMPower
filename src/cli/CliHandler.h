@@ -38,9 +38,10 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "MemorySpecification.h"
-#include "MemoryPowerModel.h"
-#include "MemBankWiseParams.h"
+#include "./memspec/MemSpec.h"
+#include "./memspec/MemSpecDDR3.h"
+#include "./dramtypes/DRAMPowerIF.h"
+#include "./dramtypes/DDR3.h"
 #include "TraceParser.h"
 #include "common/version.h"
 #include "common/libraries/cli11/CLI11.h"
@@ -63,11 +64,7 @@ public:
   bool get_io_term_active() const;
   const std::string& get_mem_spec_path() const;
   const std::string& get_cmd_trace_path() const;
-  bool get_bank_wise_active() const;
-  int get_bank_wise_rho() const;
-  int get_bank_wise_sigma() const;
-  bool get_pasr_active() const;
-  int get_pasr_mode() const;
+  void loadMemSpec(const std::string &memspecUri);
   void logo();
   void parse_arguments();
   void run_simulation();
@@ -80,10 +77,12 @@ private:
   bool io_term_active;
   std::string mem_spec_path;
   std::string cmd_trace_path;
-  std::vector<int> bank_wise_parms;
-  bool bank_wise_active;
-  int pasr_mode;
-  bool pasr_active;
+
+  TraceParser traceparser;
+
+  DRAMPowerIF *dramPower;
+
+  std::vector<DRAMPower::MemCommand> cmd_list;
 };
 
 }

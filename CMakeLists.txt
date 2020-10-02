@@ -4,23 +4,26 @@ cmake_minimum_required(VERSION 3.10)
 project(DRAMPower)
 
 include_directories(src/
-                    src/libdrampower
+                    src/dramtypes
+                    src/memspec
                     src/cli)
 
-add_library(DRAMPower src/libdrampower/LibDRAMPower.cc
+add_library(DRAMPower src/cli/drampower.cc
             src/cli/CliHandler.cc
-            src/cli/drampower.cc
-            src/CommandAnalysis.cc
-            src/MemArchitectureSpec.cc
-            src/MemBankWiseParams.cc
-            src/MemSpecParser.cc
+            src/dramtypes/DRAMPowerIF.cc
+            src/dramtypes/DDR3.cc
+            src/memspec/MemSpec.cc
+            src/memspec/MemSpecDDR3.cc
             src/MemCommand.cc
-            src/MemPowerSpec.cc
-            src/MemTimingSpec.cc
-            src/MemoryPowerModel.cc
-            src/MemorySpecification.cc
+            src/Counters.cc
             src/TraceParser.cc
-            src/CAHelpers.cc
-            src/CmdHandlers.cc
-            src/MemBankWiseParams.cc
-            )
+)
+
+add_executable(DRAMPowerCli
+    src/cli/drampower.cc
+    src/cli/CliHandler.cc
+)
+
+target_link_libraries(DRAMPowerCli
+    DRAMPower
+)

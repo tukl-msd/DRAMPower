@@ -51,11 +51,11 @@
 #include <string>
 
 #include "MemCommand.h"
-#include "MemorySpecification.h"
 #include "Utils.h"
+#include "./memspec/MemSpecDDR3.h"
 
 namespace DRAMPower {
-class CommandAnalysis {
+class Counters {
  public:
   // Power-Down and Self-refresh related memory states
   enum memstate {
@@ -64,7 +64,9 @@ class CommandAnalysis {
   };
 
   // Returns number of reads, writes, acts, pres and refs in the trace
-  CommandAnalysis(const MemorySpecification& memSpec);
+  Counters(MemSpec& memspec);
+
+  MemSpec *memSpec;
 
   // Number of activate commands per bank
   std::vector<int64_t> numberofactsBanks;
@@ -130,18 +132,40 @@ class CommandAnalysis {
   int64_t spup_ref_pre_cycles;
 
   // function for clearing counters
-  void clearStats(const int64_t timestamp);
+  void clearCounters(const int64_t timestamp);
 
   // function for clearing arrays
   void clear();
 
-  // To identify auto-precharges
-  void getCommands(std::vector<MemCommand>&   list,
-                   bool                       lastupdate,
-                   int64_t timestamp = 0);
+
+  void getCommands(std::vector<MemCommand>& list,
+                             bool lastupdate,
+                             int64_t timestamp);
+
+
+  // Handlers for commands that are getting processed
+  void handleAct(    unsigned bank, int64_t timestamp);
+  void handleRd(     unsigned bank, int64_t timestamp);
+  void handleWr(     unsigned bank, int64_t timestamp);
+  void handleRef(    unsigned bank, int64_t timestamp);
+  void handleRefB(   unsigned bank, int64_t timestamp);
+  void handlePre(    unsigned bank, int64_t timestamp);
+  void handlePreA(   unsigned bank, int64_t timestamp);
+  void handlePdnFAct(unsigned bank, int64_t timestamp);
+  void handlePdnSAct(unsigned bank, int64_t timestamp);
+  void handlePdnFPre(unsigned bank, int64_t timestamp);
+  void handlePdnSPre(unsigned bank, int64_t timestamp);
+  void handlePupAct( int64_t timestamp);
+  void handlePupPre( int64_t timestamp);
+  void handleSREn(   unsigned bank, int64_t timestamp);
+  void handleSREx(   unsigned bank, int64_t timestamp);
+  void handleNopEnd( int64_t timestamp);
+
+  void printWarning(const std::string& warning, int type, int64_t timestamp, unsigned bank);
 
  private:
-  MemorySpecification memSpec;
+
+  //MemSpec memSpec;
 
   // Possible bank states are precharged or active
   enum BankState {
@@ -203,29 +227,14 @@ class CommandAnalysis {
   // Clock cycle of last precharge command when memory state changes to PRE
   int64_t last_pre_cycle;
 
-  // To perform timing analysis of a given set of commands and update command counters
-  void evaluateCommands(std::vector<MemCommand>& cmd_list);
-
-  // Handlers for commands that are getting processed
-  void handleAct(    unsigned bank, int64_t timestamp);
-  void handleRd(     unsigned bank, int64_t timestamp);
-  void handleWr(     unsigned bank, int64_t timestamp);
-  void handleRef(    unsigned bank, int64_t timestamp);
-  void handleRefB(unsigned bank, int64_t timestamp);
-  void handlePre(    unsigned bank, int64_t timestamp);
-  void handlePreA(   unsigned bank, int64_t timestamp);
-  void handlePdnFAct(unsigned bank, int64_t timestamp);
-  void handlePdnSAct(unsigned bank, int64_t timestamp);
-  void handlePdnFPre(unsigned bank, int64_t timestamp);
-  void handlePdnSPre(unsigned bank, int64_t timestamp);
-  void handlePupAct( int64_t timestamp);
-  void handlePupPre( int64_t timestamp);
-  void handleSREn(   unsigned bank, int64_t timestamp);
-  void handleSREx(   unsigned bank, int64_t timestamp);
-  void handleNopEnd( int64_t timestamp);
-
-  // To calculate time of completion of any issued command
-  int64_t timeToCompletion(MemCommand::cmds           type);
+  int64_t RAS; //rename
+//  int64_t RP;
+//  int64_t RCD;
+//  int64_t RFC;
+//  int64_t XP;
+//  int64_t XPDLL;
+//  int64_t CKESR;
+//  int64_t ExitSREFtime;
 
   // To update idle period information whenever active cycles may be idle
   void idle_act_update(int64_t                     latest_read_cycle,
@@ -246,7 +255,6 @@ class CommandAnalysis {
   void printWarningIfActive(const std::string& warning, int type, int64_t timestamp, unsigned bank);
   void printWarningIfNotActive(const std::string& warning, int type, int64_t timestamp, unsigned bank);
   void printWarningIfPoweredDown(const std::string& warning, int type, int64_t timestamp, unsigned bank);
-  void printWarning(const std::string& warning, int type, int64_t timestamp, unsigned bank);
 };
 }
 #endif // ifndef COMMAND_TIMINGS_H

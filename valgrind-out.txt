@@ -1,0 +1,1130 @@
+==11615== Memcheck, a memory error detector
+==11615== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==11615== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==11615== Command: ./drampower -m memspecs/MICRON_1Gb_DDR3-1066_8bit_G.json -c traces/commands.trace -r
+==11615== Parent PID: 27653
+==11615== 
+--11615-- 
+--11615-- Valgrind options:
+--11615--    --leak-check=full
+--11615--    --show-leak-kinds=all
+--11615--    --track-origins=yes
+--11615--    --verbose
+--11615--    --log-file=valgrind-out.txt
+--11615-- Contents of /proc/version:
+--11615--   Linux version 5.4.0-48-generic (buildd@lcy01-amd64-023) (gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)) #52~18.04.1-Ubuntu SMP Thu Sep 10 12:50:22 UTC 2020
+--11615-- 
+--11615-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-avx-avx2-bmi
+--11615-- Page sizes: currently 4096, max supported 4096
+--11615-- Valgrind library directory: /usr/lib/valgrind
+--11615-- Reading syms from /home/lulys96/Hiwi/DRAMPower/drampower
+--11615-- Reading syms from /lib/x86_64-linux-gnu/ld-2.27.so
+--11615--   Considering /lib/x86_64-linux-gnu/ld-2.27.so ..
+--11615--   .. CRC mismatch (computed ac9397f6 wanted d0d82632)
+--11615--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/ld-2.27.so ..
+--11615--   .. CRC is valid
+--11615-- Reading syms from /usr/lib/valgrind/memcheck-amd64-linux
+--11615--   Considering /usr/lib/valgrind/memcheck-amd64-linux ..
+--11615--   .. CRC mismatch (computed 41ddb025 wanted 9972f546)
+--11615--    object doesn't have a symbol table
+--11615--    object doesn't have a dynamic symbol table
+--11615-- Scheduler: using generic scheduler lock implementation.
+--11615-- Reading suppressions file: /usr/lib/valgrind/default.supp
+==11615== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-11615-by-lulys96-on-???
+==11615== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-11615-by-lulys96-on-???
+==11615== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-11615-by-lulys96-on-???
+==11615== 
+==11615== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==11615== don't want to do, unless you know exactly what you're doing,
+==11615== or are doing some strange experiment):
+==11615==   /usr/lib/valgrind/../../bin/vgdb --pid=11615 ...command...
+==11615== 
+==11615== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==11615==   /path/to/gdb ./drampower
+==11615== and then give GDB the following command
+==11615==   target remote | /usr/lib/valgrind/../../bin/vgdb --pid=11615
+==11615== --pid is optional if only one valgrind process is running
+==11615== 
+--11615-- REDIR: 0x401f320 (ld-linux-x86-64.so.2:strlen) redirected to 0x580608c1 (???)
+--11615-- REDIR: 0x401f100 (ld-linux-x86-64.so.2:index) redirected to 0x580608db (???)
+--11615-- Reading syms from /usr/lib/valgrind/vgpreload_core-amd64-linux.so
+--11615--   Considering /usr/lib/valgrind/vgpreload_core-amd64-linux.so ..
+--11615--   .. CRC mismatch (computed 50df1b30 wanted 4800a4cf)
+--11615--    object doesn't have a symbol table
+--11615-- Reading syms from /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so
+--11615--   Considering /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so ..
+--11615--   .. CRC mismatch (computed f893b962 wanted 95ee359e)
+--11615--    object doesn't have a symbol table
+==11615== WARNING: new redirection conflicts with existing -- ignoring it
+--11615--     old: 0x0401f320 (strlen              ) R-> (0000.0) 0x580608c1 ???
+--11615--     new: 0x0401f320 (strlen              ) R-> (2007.0) 0x04c32db0 strlen
+--11615-- REDIR: 0x401d390 (ld-linux-x86-64.so.2:strcmp) redirected to 0x4c33ee0 (strcmp)
+--11615-- REDIR: 0x401f860 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4c374f0 (mempcpy)
+--11615-- Reading syms from /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+--11615--    object doesn't have a symbol table
+--11615-- Reading syms from /lib/x86_64-linux-gnu/libgcc_s.so.1
+--11615--    object doesn't have a symbol table
+--11615-- Reading syms from /lib/x86_64-linux-gnu/libc-2.27.so
+--11615--   Considering /lib/x86_64-linux-gnu/libc-2.27.so ..
+--11615--   .. CRC mismatch (computed c2c067b2 wanted d73adc7f)
+--11615--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libc-2.27.so ..
+--11615--   .. CRC is valid
+--11615-- Reading syms from /lib/x86_64-linux-gnu/libm-2.27.so
+--11615--   Considering /lib/x86_64-linux-gnu/libm-2.27.so ..
+--11615--   .. CRC mismatch (computed 4cce394c wanted e22acdb4)
+--11615--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libm-2.27.so ..
+--11615--   .. CRC is valid
+--11615-- REDIR: 0x547bce0 (libc.so.6:memmove) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547adb0 (libc.so.6:strncpy) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547bfc0 (libc.so.6:strcasecmp) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547a800 (libc.so.6:strcat) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547ade0 (libc.so.6:rindex) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547d830 (libc.so.6:rawmemchr) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547be50 (libc.so.6:mempcpy) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547bc80 (libc.so.6:bcmp) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547ad70 (libc.so.6:strncmp) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547a870 (libc.so.6:strcmp) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547bdb0 (libc.so.6:memset) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x5499160 (libc.so.6:wcschr) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547ad10 (libc.so.6:strnlen) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547a8e0 (libc.so.6:strcspn) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547c010 (libc.so.6:strncasecmp) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547a8b0 (libc.so.6:strcpy) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547c150 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547ae10 (libc.so.6:strpbrk) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547a830 (libc.so.6:index) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547ace0 (libc.so.6:strlen) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x5485730 (libc.so.6:memrchr) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547c060 (libc.so.6:strcasecmp_l) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547bc50 (libc.so.6:memchr) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x5499f20 (libc.so.6:wcslen) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547b0c0 (libc.so.6:strspn) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547bf90 (libc.so.6:stpncpy) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547bf60 (libc.so.6:stpcpy) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547d860 (libc.so.6:strchrnul) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x547c0b0 (libc.so.6:strncasecmp_l) redirected to 0x4a2a6e0 (_vgnU_ifunc_wrapper)
+--11615-- REDIR: 0x556b630 (libc.so.6:__strrchr_avx2) redirected to 0x4c32730 (rindex)
+--11615-- REDIR: 0x54740e0 (libc.so.6:malloc) redirected to 0x4c2faa0 (malloc)
+--11615-- REDIR: 0x556b800 (libc.so.6:__strlen_avx2) redirected to 0x4c32cf0 (strlen)
+--11615-- REDIR: 0x5567e10 (libc.so.6:__memcmp_avx2_movbe) redirected to 0x4c35e00 (bcmp)
+--11615-- REDIR: 0x5546fd0 (libc.so.6:__strcmp_ssse3) redirected to 0x4c33da0 (strcmp)
+--11615-- REDIR: 0x556bd40 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x4c366e0 (memmove)
+--11615-- REDIR: 0x4ecf280 (libstdc++.so.6:operator new(unsigned long)) redirected to 0x4c30110 (operator new(unsigned long))
+--11615-- REDIR: 0x4ecd390 (libstdc++.so.6:operator delete(void*)) redirected to 0x4c311d0 (operator delete(void*))
+--11615-- REDIR: 0x556bd20 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x4c37130 (mempcpy)
+--11615-- REDIR: 0x5567690 (libc.so.6:__memchr_avx2) redirected to 0x4c33f80 (memchr)
+--11615-- REDIR: 0x54770a0 (libc.so.6:calloc) redirected to 0x4c31a70 (calloc)
+--11615-- REDIR: 0x547b600 (libc.so.6:__GI_strstr) redirected to 0x4c37760 (__strstr_sse2)
+--11615-- REDIR: 0x4ecf330 (libstdc++.so.6:operator new[](unsigned long)) redirected to 0x4c30830 (operator new[](unsigned long))
+--11615-- REDIR: 0x4ecd3c0 (libstdc++.so.6:operator delete[](void*)) redirected to 0x4c316d0 (operator delete[](void*))
+--11615-- REDIR: 0x54749c0 (libc.so.6:free) redirected to 0x4c30cd0 (free)
+--11615-- REDIR: 0x556b440 (libc.so.6:__strchrnul_avx2) redirected to 0x4c37020 (strchrnul)
+--11615-- REDIR: 0x556b990 (libc.so.6:__strnlen_avx2) redirected to 0x4c32c90 (strnlen)
+==11615== Invalid read of size 8
+==11615==    at 0x15E4A6: DRAMPower::Counters::getCommands(std::vector<DRAMPower::MemCommand, std::allocator<DRAMPower::MemCommand> >&, bool, long) (Counters.cc:228)
+==11615==    by 0x158D1D: DRAMPower::DRAMPowerDDR3::updateCounters(bool, long) (DDR3.cc:55)
+==11615==    by 0x15A275: DRAMPower::DRAMPowerDDR3::calcEnergy() (DDR3.cc:18)
+==11615==    by 0x128794: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:186)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615==  Address 0x1ffefff790 is on thread 1's stack
+==11615==  288 bytes below stack pointer
+==11615== 
+==11615== Invalid read of size 8
+==11615==    at 0x15E4A9: DRAMPower::Counters::getCommands(std::vector<DRAMPower::MemCommand, std::allocator<DRAMPower::MemCommand> >&, bool, long) (Counters.cc:228)
+==11615==    by 0x158D1D: DRAMPower::DRAMPowerDDR3::updateCounters(bool, long) (DDR3.cc:55)
+==11615==    by 0x15A275: DRAMPower::DRAMPowerDDR3::calcEnergy() (DDR3.cc:18)
+==11615==    by 0x128794: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:186)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615==  Address 0x18 is not stack'd, malloc'd or (recently) free'd
+==11615== 
+==11615== 
+==11615== Process terminating with default action of signal 11 (SIGSEGV)
+==11615==  Access not within mapped region at address 0x18
+==11615==    at 0x15E4A9: DRAMPower::Counters::getCommands(std::vector<DRAMPower::MemCommand, std::allocator<DRAMPower::MemCommand> >&, bool, long) (Counters.cc:228)
+==11615==    by 0x158D1D: DRAMPower::DRAMPowerDDR3::updateCounters(bool, long) (DDR3.cc:55)
+==11615==    by 0x15A275: DRAMPower::DRAMPowerDDR3::calcEnergy() (DDR3.cc:18)
+==11615==    by 0x128794: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:186)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615==  If you believe this happened as a result of a stack
+==11615==  overflow in your program's main thread (unlikely but
+==11615==  possible), you can try to increase the size of the
+==11615==  main thread stack using the --main-stacksize= flag.
+==11615==  The main thread stack size used in this run was 8388608.
+==11615== 
+==11615== HEAP SUMMARY:
+==11615==     in use at exit: 220,195 bytes in 74 blocks
+==11615==   total heap usage: 450 allocs, 376 frees, 450,694 bytes allocated
+==11615== 
+==11615== Searching for pointers to 74 not-freed blocks
+==11615== Checked 289,352 bytes
+==11615== 
+==11615== 19 bytes in 1 blocks are still reachable in loss record 1 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x114033: void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) (basic_string.tcc:219)
+==11615==    by 0x139720: _M_construct_aux<char*> (basic_string.h:236)
+==11615==    by 0x139720: _M_construct<char*> (basic_string.h:255)
+==11615==    by 0x139720: basic_string (basic_string.h:440)
+==11615==    by 0x139720: Validator (CLI11.h:1569)
+==11615==    by 0x139720: CLI::detail::NonexistentPathValidator::NonexistentPathValidator() (CLI11.h:1787)
+==11615==    by 0x1289B9: __static_initialization_and_destruction_0 (CLI11.h:1869)
+==11615==    by 0x1289B9: _GLOBAL__sub_I_CliHandler.cc (CliHandler.cc:194)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 19 bytes in 1 blocks are still reachable in loss record 2 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x114033: void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) (basic_string.tcc:219)
+==11615==    by 0x139720: _M_construct_aux<char*> (basic_string.h:236)
+==11615==    by 0x139720: _M_construct<char*> (basic_string.h:255)
+==11615==    by 0x139720: basic_string (basic_string.h:440)
+==11615==    by 0x139720: Validator (CLI11.h:1569)
+==11615==    by 0x139720: CLI::detail::NonexistentPathValidator::NonexistentPathValidator() (CLI11.h:1787)
+==11615==    by 0x14EC0C: __static_initialization_and_destruction_0 (CLI11.h:1869)
+==11615==    by 0x14EC0C: _GLOBAL__sub_I_drampower.cc (drampower.cc:59)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 19 bytes in 1 blocks are still reachable in loss record 3 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x114033: void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) (basic_string.tcc:219)
+==11615==    by 0x14725C: _M_construct_aux<char*> (basic_string.h:236)
+==11615==    by 0x14725C: _M_construct<char*> (basic_string.h:255)
+==11615==    by 0x14725C: basic_string (basic_string.h:440)
+==11615==    by 0x14725C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x126AE8: add_flag<bool> (CLI11.h:4327)
+==11615==    by 0x126AE8: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:87)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 20 bytes in 1 blocks are still reachable in loss record 4 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x114033: void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) (basic_string.tcc:219)
+==11615==    by 0x14725C: _M_construct_aux<char*> (basic_string.h:236)
+==11615==    by 0x14725C: _M_construct<char*> (basic_string.h:255)
+==11615==    by 0x14725C: basic_string (basic_string.h:440)
+==11615==    by 0x14725C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x148EC3: CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool) (CLI11.h:4117)
+==11615==    by 0x127303: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:103)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 24 bytes in 1 blocks are still reachable in loss record 5 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x1483D2: __shared_count<CLI::Formatter*> (shared_ptr_base.h:584)
+==11615==    by 0x1483D2: __shared_count<CLI::Formatter*> (shared_ptr_base.h:595)
+==11615==    by 0x1483D2: __shared_ptr<CLI::Formatter> (shared_ptr_base.h:1079)
+==11615==    by 0x1483D2: shared_ptr<CLI::Formatter> (shared_ptr.h:129)
+==11615==    by 0x1483D2: CLI::App::App(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, CLI::App*) (CLI11.h:3870)
+==11615==    by 0x1266ED: App (CLI11.h:3907)
+==11615==    by 0x1266ED: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:84)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 24 bytes in 1 blocks are still reachable in loss record 6 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x1486C0: __shared_count<CLI::ConfigINI*> (shared_ptr_base.h:584)
+==11615==    by 0x1486C0: __shared_count<CLI::ConfigINI*> (shared_ptr_base.h:595)
+==11615==    by 0x1486C0: __shared_ptr<CLI::ConfigINI> (shared_ptr_base.h:1079)
+==11615==    by 0x1486C0: shared_ptr<CLI::ConfigINI> (shared_ptr.h:129)
+==11615==    by 0x1486C0: CLI::App::App(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, CLI::App*) (CLI11.h:3870)
+==11615==    by 0x1266ED: App (CLI11.h:3907)
+==11615==    by 0x1266ED: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:84)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 26 bytes in 1 blocks are still reachable in loss record 7 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x114033: void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) (basic_string.tcc:219)
+==11615==    by 0x14725C: _M_construct_aux<char*> (basic_string.h:236)
+==11615==    by 0x14725C: _M_construct<char*> (basic_string.h:255)
+==11615==    by 0x14725C: basic_string (basic_string.h:440)
+==11615==    by 0x14725C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x148EC3: CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool) (CLI11.h:4117)
+==11615==    by 0x1270A0: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:98)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 28 bytes in 1 blocks are still reachable in loss record 8 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x114033: void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) (basic_string.tcc:219)
+==11615==    by 0x15A5FE: _M_construct_aux<char*> (basic_string.h:236)
+==11615==    by 0x15A5FE: _M_construct<char*> (basic_string.h:255)
+==11615==    by 0x15A5FE: basic_string (basic_string.h:440)
+==11615==    by 0x15A5FE: MemSpec (MemSpec.h:47)
+==11615==    by 0x15A5FE: MemSpecDDR3 (MemSpecDDR3.h:41)
+==11615==    by 0x15A5FE: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 9 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x139CC8: Validator (CLI11.h:1569)
+==11615==    by 0x139CC8: CLI::detail::ExistingFileValidator::ExistingFileValidator() (CLI11.h:1736)
+==11615==    by 0x128947: __static_initialization_and_destruction_0 (CLI11.h:1860)
+==11615==    by 0x128947: _GLOBAL__sub_I_CliHandler.cc (CliHandler.cc:194)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 10 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x139E2E: Validator (CLI11.h:1569)
+==11615==    by 0x139E2E: CLI::detail::ExistingDirectoryValidator::ExistingDirectoryValidator() (CLI11.h:1754)
+==11615==    by 0x12896D: __static_initialization_and_destruction_0 (CLI11.h:1863)
+==11615==    by 0x12896D: _GLOBAL__sub_I_CliHandler.cc (CliHandler.cc:194)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 11 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x13428C: Validator (CLI11.h:1569)
+==11615==    by 0x13428C: CLI::detail::ExistingPathValidator::ExistingPathValidator() (CLI11.h:1772)
+==11615==    by 0x128993: __static_initialization_and_destruction_0 (CLI11.h:1866)
+==11615==    by 0x128993: _GLOBAL__sub_I_CliHandler.cc (CliHandler.cc:194)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 12 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x139730: Validator (CLI11.h:1569)
+==11615==    by 0x139730: CLI::detail::NonexistentPathValidator::NonexistentPathValidator() (CLI11.h:1787)
+==11615==    by 0x1289B9: __static_initialization_and_destruction_0 (CLI11.h:1869)
+==11615==    by 0x1289B9: _GLOBAL__sub_I_CliHandler.cc (CliHandler.cc:194)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 13 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x139896: Validator (CLI11.h:1569)
+==11615==    by 0x139896: CLI::detail::IPV4Validator::IPV4Validator() (CLI11.h:1802)
+==11615==    by 0x1289DF: __static_initialization_and_destruction_0 (CLI11.h:1872)
+==11615==    by 0x1289DF: _GLOBAL__sub_I_CliHandler.cc (CliHandler.cc:194)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 14 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x139B62: Validator (CLI11.h:1569)
+==11615==    by 0x139B62: CLI::detail::PositiveNumber::PositiveNumber() (CLI11.h:1827)
+==11615==    by 0x128A05: __static_initialization_and_destruction_0 (CLI11.h:1875)
+==11615==    by 0x128A05: _GLOBAL__sub_I_CliHandler.cc (CliHandler.cc:194)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 15 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x1399FC: Validator (CLI11.h:1569)
+==11615==    by 0x1399FC: CLI::detail::Number::Number() (CLI11.h:1844)
+==11615==    by 0x128A2B: __static_initialization_and_destruction_0 (CLI11.h:1878)
+==11615==    by 0x128A2B: _GLOBAL__sub_I_CliHandler.cc (CliHandler.cc:194)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 16 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x139CC8: Validator (CLI11.h:1569)
+==11615==    by 0x139CC8: CLI::detail::ExistingFileValidator::ExistingFileValidator() (CLI11.h:1736)
+==11615==    by 0x14EB9A: __static_initialization_and_destruction_0 (CLI11.h:1860)
+==11615==    by 0x14EB9A: _GLOBAL__sub_I_drampower.cc (drampower.cc:59)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 17 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x139E2E: Validator (CLI11.h:1569)
+==11615==    by 0x139E2E: CLI::detail::ExistingDirectoryValidator::ExistingDirectoryValidator() (CLI11.h:1754)
+==11615==    by 0x14EBC0: __static_initialization_and_destruction_0 (CLI11.h:1863)
+==11615==    by 0x14EBC0: _GLOBAL__sub_I_drampower.cc (drampower.cc:59)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 18 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x13428C: Validator (CLI11.h:1569)
+==11615==    by 0x13428C: CLI::detail::ExistingPathValidator::ExistingPathValidator() (CLI11.h:1772)
+==11615==    by 0x14EBE6: __static_initialization_and_destruction_0 (CLI11.h:1866)
+==11615==    by 0x14EBE6: _GLOBAL__sub_I_drampower.cc (drampower.cc:59)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 19 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x139730: Validator (CLI11.h:1569)
+==11615==    by 0x139730: CLI::detail::NonexistentPathValidator::NonexistentPathValidator() (CLI11.h:1787)
+==11615==    by 0x14EC0C: __static_initialization_and_destruction_0 (CLI11.h:1869)
+==11615==    by 0x14EC0C: _GLOBAL__sub_I_drampower.cc (drampower.cc:59)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 20 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x139896: Validator (CLI11.h:1569)
+==11615==    by 0x139896: CLI::detail::IPV4Validator::IPV4Validator() (CLI11.h:1802)
+==11615==    by 0x14EC32: __static_initialization_and_destruction_0 (CLI11.h:1872)
+==11615==    by 0x14EC32: _GLOBAL__sub_I_drampower.cc (drampower.cc:59)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 21 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x139B62: Validator (CLI11.h:1569)
+==11615==    by 0x139B62: CLI::detail::PositiveNumber::PositiveNumber() (CLI11.h:1827)
+==11615==    by 0x14EC58: __static_initialization_and_destruction_0 (CLI11.h:1875)
+==11615==    by 0x14EC58: _GLOBAL__sub_I_drampower.cc (drampower.cc:59)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 22 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:268)
+==11615==    by 0x12C4C3: _M_init_functor (std_function.h:239)
+==11615==    by 0x12C4C3: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, void, void>(CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}) (std_function.h:693)
+==11615==    by 0x1399FC: Validator (CLI11.h:1569)
+==11615==    by 0x1399FC: CLI::detail::Number::Number() (CLI11.h:1844)
+==11615==    by 0x14EC7E: __static_initialization_and_destruction_0 (CLI11.h:1878)
+==11615==    by 0x14EC7E: _GLOBAL__sub_I_drampower.cc (drampower.cc:59)
+==11615==    by 0x15FA2C: __libc_csu_init (in /home/lulys96/Hiwi/DRAMPower/drampower)
+==11615==    by 0x53FEB27: (below main) (libc-start.c:266)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 23 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x148674: CLI::App::App(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, CLI::App*) (CLI11.h:3864)
+==11615==    by 0x1266ED: App (CLI11.h:3907)
+==11615==    by 0x1266ED: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:84)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 24 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12FAD9: allocate (new_allocator.h:111)
+==11615==    by 0x12FAD9: allocate (alloc_traits.h:436)
+==11615==    by 0x12FAD9: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12FAD9: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x12FAD9: _Vector_base (stl_vector.h:138)
+==11615==    by 0x12FAD9: std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::vector(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (stl_vector.h:328)
+==11615==    by 0x146823: _Head_base<std::vector<std::__cxx11::basic_string<char> >&> (tuple:133)
+==11615==    by 0x146823: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x146823: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x146823: tuple<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:647)
+==11615==    by 0x146823: CLI::detail::get_names(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (CLI11.h:1394)
+==11615==    by 0x146D7B: CLI::Option::Option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, CLI::App*) (CLI11.h:2941)
+==11615==    by 0x14729C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x1480F8: CLI::Option* CLI::App::add_flag<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CLI11.h:4288)
+==11615==    by 0x126846: set_help_flag (CLI11.h:4227)
+==11615==    by 0x126846: App (CLI11.h:3908)
+==11615==    by 0x126846: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:84)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 25 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12FAD9: allocate (new_allocator.h:111)
+==11615==    by 0x12FAD9: allocate (alloc_traits.h:436)
+==11615==    by 0x12FAD9: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12FAD9: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x12FAD9: _Vector_base (stl_vector.h:138)
+==11615==    by 0x12FAD9: std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::vector(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (stl_vector.h:328)
+==11615==    by 0x14688B: _Head_base<std::vector<std::__cxx11::basic_string<char> >&> (tuple:133)
+==11615==    by 0x14688B: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x14688B: tuple<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:647)
+==11615==    by 0x14688B: CLI::detail::get_names(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (CLI11.h:1394)
+==11615==    by 0x146D7B: CLI::Option::Option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, CLI::App*) (CLI11.h:2941)
+==11615==    by 0x14729C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x1480F8: CLI::Option* CLI::App::add_flag<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CLI11.h:4288)
+==11615==    by 0x126846: set_help_flag (CLI11.h:4227)
+==11615==    by 0x126846: App (CLI11.h:3908)
+==11615==    by 0x126846: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:84)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 26 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12FAD9: allocate (new_allocator.h:111)
+==11615==    by 0x12FAD9: allocate (alloc_traits.h:436)
+==11615==    by 0x12FAD9: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12FAD9: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x12FAD9: _Vector_base (stl_vector.h:138)
+==11615==    by 0x12FAD9: std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::vector(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (stl_vector.h:328)
+==11615==    by 0x146823: _Head_base<std::vector<std::__cxx11::basic_string<char> >&> (tuple:133)
+==11615==    by 0x146823: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x146823: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x146823: tuple<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:647)
+==11615==    by 0x146823: CLI::detail::get_names(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (CLI11.h:1394)
+==11615==    by 0x146D7B: CLI::Option::Option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, CLI::App*) (CLI11.h:2941)
+==11615==    by 0x14729C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x126AE8: add_flag<bool> (CLI11.h:4327)
+==11615==    by 0x126AE8: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:87)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 27 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12FAD9: allocate (new_allocator.h:111)
+==11615==    by 0x12FAD9: allocate (alloc_traits.h:436)
+==11615==    by 0x12FAD9: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12FAD9: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x12FAD9: _Vector_base (stl_vector.h:138)
+==11615==    by 0x12FAD9: std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::vector(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (stl_vector.h:328)
+==11615==    by 0x14688B: _Head_base<std::vector<std::__cxx11::basic_string<char> >&> (tuple:133)
+==11615==    by 0x14688B: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x14688B: tuple<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:647)
+==11615==    by 0x14688B: CLI::detail::get_names(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (CLI11.h:1394)
+==11615==    by 0x146D7B: CLI::Option::Option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, CLI::App*) (CLI11.h:2941)
+==11615==    by 0x14729C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x126AE8: add_flag<bool> (CLI11.h:4327)
+==11615==    by 0x126AE8: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:87)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 28 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12CA53: _M_clone (std_function.h:192)
+==11615==    by 0x12CA53: std::_Function_base::_Base_manager<CLI::App::add_flag_function(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<void (long)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)#1}>::_M_manager(std::_Any_data&, std::_Function_base::_Base_manager<CLI::App::add_flag_function(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<void (long)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)#1}> const&, std::_Manager_operation) (std_function.h:227)
+==11615==    by 0x12C8B3: std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>::function(std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)> const&) (std_function.h:677)
+==11615==    by 0x14726F: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x126EF3: add_flag_function (CLI11.h:4380)
+==11615==    by 0x126EF3: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:91)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 29 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12FAD9: allocate (new_allocator.h:111)
+==11615==    by 0x12FAD9: allocate (alloc_traits.h:436)
+==11615==    by 0x12FAD9: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12FAD9: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x12FAD9: _Vector_base (stl_vector.h:138)
+==11615==    by 0x12FAD9: std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::vector(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (stl_vector.h:328)
+==11615==    by 0x146823: _Head_base<std::vector<std::__cxx11::basic_string<char> >&> (tuple:133)
+==11615==    by 0x146823: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x146823: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x146823: tuple<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:647)
+==11615==    by 0x146823: CLI::detail::get_names(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (CLI11.h:1394)
+==11615==    by 0x146D7B: CLI::Option::Option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, CLI::App*) (CLI11.h:2941)
+==11615==    by 0x14729C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x126EF3: add_flag_function (CLI11.h:4380)
+==11615==    by 0x126EF3: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:91)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 30 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12FAD9: allocate (new_allocator.h:111)
+==11615==    by 0x12FAD9: allocate (alloc_traits.h:436)
+==11615==    by 0x12FAD9: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12FAD9: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x12FAD9: _Vector_base (stl_vector.h:138)
+==11615==    by 0x12FAD9: std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::vector(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (stl_vector.h:328)
+==11615==    by 0x14688B: _Head_base<std::vector<std::__cxx11::basic_string<char> >&> (tuple:133)
+==11615==    by 0x14688B: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x14688B: tuple<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:647)
+==11615==    by 0x14688B: CLI::detail::get_names(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (CLI11.h:1394)
+==11615==    by 0x146D7B: CLI::Option::Option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, CLI::App*) (CLI11.h:2941)
+==11615==    by 0x14729C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x126EF3: add_flag_function (CLI11.h:4380)
+==11615==    by 0x126EF3: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:91)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 31 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12FAD9: allocate (new_allocator.h:111)
+==11615==    by 0x12FAD9: allocate (alloc_traits.h:436)
+==11615==    by 0x12FAD9: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12FAD9: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x12FAD9: _Vector_base (stl_vector.h:138)
+==11615==    by 0x12FAD9: std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::vector(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (stl_vector.h:328)
+==11615==    by 0x146823: _Head_base<std::vector<std::__cxx11::basic_string<char> >&> (tuple:133)
+==11615==    by 0x146823: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x146823: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x146823: tuple<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:647)
+==11615==    by 0x146823: CLI::detail::get_names(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (CLI11.h:1394)
+==11615==    by 0x146D7B: CLI::Option::Option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, CLI::App*) (CLI11.h:2941)
+==11615==    by 0x14729C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x148EC3: CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool) (CLI11.h:4117)
+==11615==    by 0x1270A0: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:98)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 32 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12FAD9: allocate (new_allocator.h:111)
+==11615==    by 0x12FAD9: allocate (alloc_traits.h:436)
+==11615==    by 0x12FAD9: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12FAD9: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x12FAD9: _Vector_base (stl_vector.h:138)
+==11615==    by 0x12FAD9: std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::vector(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (stl_vector.h:328)
+==11615==    by 0x14688B: _Head_base<std::vector<std::__cxx11::basic_string<char> >&> (tuple:133)
+==11615==    by 0x14688B: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x14688B: tuple<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:647)
+==11615==    by 0x14688B: CLI::detail::get_names(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (CLI11.h:1394)
+==11615==    by 0x146D7B: CLI::Option::Option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, CLI::App*) (CLI11.h:2941)
+==11615==    by 0x14729C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x148EC3: CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool) (CLI11.h:4117)
+==11615==    by 0x1270A0: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:98)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 33 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x131DC8: _M_clone (std_function.h:192)
+==11615==    by 0x131DC8: std::_Function_base::_Base_manager<CLI::Option::type_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}>::_M_manager(std::_Any_data&, std::_Function_base::_Base_manager<CLI::Option::type_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}> const&, std::_Manager_operation) (std_function.h:227)
+==11615==    by 0x12C79F: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function(std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()> const&) (std_function.h:677)
+==11615==    by 0x148FED: operator= (std_function.h:482)
+==11615==    by 0x148FED: type_name_fn (CLI11.h:3560)
+==11615==    by 0x148FED: type_name (CLI11.h:3566)
+==11615==    by 0x148FED: CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool) (CLI11.h:4120)
+==11615==    by 0x1270A0: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:98)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 34 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x1343E2: _M_clone (std_function.h:192)
+==11615==    by 0x1343E2: std::_Function_base::_Base_manager<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}>::_M_manager(std::_Any_data&, std::_Function_base::_Base_manager<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}> const&, std::_Manager_operation) (std_function.h:227)
+==11615==    by 0x12C79F: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function(std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()> const&) (std_function.h:677)
+==11615==    by 0x1270D4: Validator (CLI11.h:1551)
+==11615==    by 0x1270D4: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:102)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 35 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12FAD9: allocate (new_allocator.h:111)
+==11615==    by 0x12FAD9: allocate (alloc_traits.h:436)
+==11615==    by 0x12FAD9: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12FAD9: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x12FAD9: _Vector_base (stl_vector.h:138)
+==11615==    by 0x12FAD9: std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::vector(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (stl_vector.h:328)
+==11615==    by 0x146823: _Head_base<std::vector<std::__cxx11::basic_string<char> >&> (tuple:133)
+==11615==    by 0x146823: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x146823: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x146823: tuple<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:647)
+==11615==    by 0x146823: CLI::detail::get_names(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (CLI11.h:1394)
+==11615==    by 0x146D7B: CLI::Option::Option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, CLI::App*) (CLI11.h:2941)
+==11615==    by 0x14729C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x148EC3: CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool) (CLI11.h:4117)
+==11615==    by 0x127303: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:103)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 36 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12FAD9: allocate (new_allocator.h:111)
+==11615==    by 0x12FAD9: allocate (alloc_traits.h:436)
+==11615==    by 0x12FAD9: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12FAD9: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x12FAD9: _Vector_base (stl_vector.h:138)
+==11615==    by 0x12FAD9: std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::vector(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (stl_vector.h:328)
+==11615==    by 0x14688B: _Head_base<std::vector<std::__cxx11::basic_string<char> >&> (tuple:133)
+==11615==    by 0x14688B: _Tuple_impl<std::vector<std::__cxx11::basic_string<char> >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:218)
+==11615==    by 0x14688B: tuple<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&> (tuple:647)
+==11615==    by 0x14688B: CLI::detail::get_names(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) (CLI11.h:1394)
+==11615==    by 0x146D7B: CLI::Option::Option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, CLI::App*) (CLI11.h:2941)
+==11615==    by 0x14729C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x148EC3: CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool) (CLI11.h:4117)
+==11615==    by 0x127303: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:103)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 37 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x131DC8: _M_clone (std_function.h:192)
+==11615==    by 0x131DC8: std::_Function_base::_Base_manager<CLI::Option::type_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}>::_M_manager(std::_Any_data&, std::_Function_base::_Base_manager<CLI::Option::type_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}> const&, std::_Manager_operation) (std_function.h:227)
+==11615==    by 0x12C79F: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function(std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()> const&) (std_function.h:677)
+==11615==    by 0x148FED: operator= (std_function.h:482)
+==11615==    by 0x148FED: type_name_fn (CLI11.h:3560)
+==11615==    by 0x148FED: type_name (CLI11.h:3566)
+==11615==    by 0x148FED: CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool) (CLI11.h:4120)
+==11615==    by 0x127303: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:103)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 38 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x1343E2: _M_clone (std_function.h:192)
+==11615==    by 0x1343E2: std::_Function_base::_Base_manager<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}>::_M_manager(std::_Any_data&, std::_Function_base::_Base_manager<CLI::Validator::Validator(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}> const&, std::_Manager_operation) (std_function.h:227)
+==11615==    by 0x12C79F: std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>::function(std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()> const&) (std_function.h:677)
+==11615==    by 0x127337: Validator (CLI11.h:1551)
+==11615==    by 0x127337: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:107)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 39 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x13F472: allocate (new_allocator.h:111)
+==11615==    by 0x13F472: allocate (alloc_traits.h:436)
+==11615==    by 0x13F472: _M_allocate (stl_vector.h:172)
+==11615==    by 0x13F472: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&) (vector.tcc:406)
+==11615==    by 0x13F596: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::emplace_back<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&) (vector.tcc:105)
+==11615==    by 0x1496EC: push_back (stl_vector.h:954)
+==11615==    by 0x1496EC: CLI::Option::_add_result(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&) (CLI11.h:3643)
+==11615==    by 0x14A17C: add_result (CLI11.h:3476)
+==11615==    by 0x14A17C: CLI::App::_parse_arg(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, CLI::detail::Classifier) (CLI11.h:6168)
+==11615==    by 0x14E8C2: CLI::App::_parse_single(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool&) (CLI11.h:5931)
+==11615==    by 0x1278C5: _parse (CLI11.h:5845)
+==11615==    by 0x1278C5: parse (CLI11.h:4999)
+==11615==    by 0x1278C5: parse (CLI11.h:4929)
+==11615==    by 0x1278C5: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:109)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 40 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12F9B4: allocate (new_allocator.h:111)
+==11615==    by 0x12F9B4: allocate (alloc_traits.h:436)
+==11615==    by 0x12F9B4: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12F9B4: void std::vector<CLI::Option*, std::allocator<CLI::Option*> >::_M_realloc_insert<CLI::Option*>(__gnu_cxx::__normal_iterator<CLI::Option**, std::vector<CLI::Option*, std::allocator<CLI::Option*> > >, CLI::Option*&&) (vector.tcc:406)
+==11615==    by 0x12FA7B: void std::vector<CLI::Option*, std::allocator<CLI::Option*> >::emplace_back<CLI::Option*>(CLI::Option*&&) (vector.tcc:105)
+==11615==    by 0x14A1B9: push_back (stl_vector.h:954)
+==11615==    by 0x14A1B9: CLI::App::_parse_arg(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, CLI::detail::Classifier) (CLI11.h:6169)
+==11615==    by 0x14E8C2: CLI::App::_parse_single(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool&) (CLI11.h:5931)
+==11615==    by 0x1278C5: _parse (CLI11.h:5845)
+==11615==    by 0x1278C5: parse (CLI11.h:4999)
+==11615==    by 0x1278C5: parse (CLI11.h:4929)
+==11615==    by 0x1278C5: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:109)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 41 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15EB74: allocate (new_allocator.h:111)
+==11615==    by 0x15EB74: allocate (alloc_traits.h:436)
+==11615==    by 0x15EB74: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15EB74: std::vector<DRAMPower::Counters::BankState, std::allocator<DRAMPower::Counters::BankState> >::_M_fill_insert(__gnu_cxx::__normal_iterator<DRAMPower::Counters::BankState*, std::vector<DRAMPower::Counters::BankState, std::allocator<DRAMPower::Counters::BankState> > >, unsigned long, DRAMPower::Counters::BankState const&) (vector.tcc:505)
+==11615==    by 0x15C7E3: resize (stl_vector.h:712)
+==11615==    by 0x15C7E3: DRAMPower::Counters::Counters(MemSpec&) (Counters.cc:90)
+==11615==    by 0x15ADA2: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 32 bytes in 1 blocks are still reachable in loss record 42 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15EB74: allocate (new_allocator.h:111)
+==11615==    by 0x15EB74: allocate (alloc_traits.h:436)
+==11615==    by 0x15EB74: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15EB74: std::vector<DRAMPower::Counters::BankState, std::allocator<DRAMPower::Counters::BankState> >::_M_fill_insert(__gnu_cxx::__normal_iterator<DRAMPower::Counters::BankState*, std::vector<DRAMPower::Counters::BankState, std::allocator<DRAMPower::Counters::BankState> > >, unsigned long, DRAMPower::Counters::BankState const&) (vector.tcc:505)
+==11615==    by 0x15C7FC: resize (stl_vector.h:712)
+==11615==    by 0x15C7FC: DRAMPower::Counters::Counters(MemSpec&) (Counters.cc:91)
+==11615==    by 0x15ADA2: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 33 bytes in 1 blocks are still reachable in loss record 43 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x114033: void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) (basic_string.tcc:219)
+==11615==    by 0x14725C: _M_construct_aux<char*> (basic_string.h:236)
+==11615==    by 0x14725C: _M_construct<char*> (basic_string.h:255)
+==11615==    by 0x14725C: basic_string (basic_string.h:440)
+==11615==    by 0x14725C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x1480F8: CLI::Option* CLI::App::add_flag<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CLI11.h:4288)
+==11615==    by 0x126846: set_help_flag (CLI11.h:4227)
+==11615==    by 0x126846: App (CLI11.h:3908)
+==11615==    by 0x126846: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:84)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 38 bytes in 1 blocks are still reachable in loss record 44 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x114033: void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) (basic_string.tcc:219)
+==11615==    by 0x14725C: _M_construct_aux<char*> (basic_string.h:236)
+==11615==    by 0x14725C: _M_construct<char*> (basic_string.h:255)
+==11615==    by 0x14725C: basic_string (basic_string.h:440)
+==11615==    by 0x14725C: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x126EF3: add_flag_function (CLI11.h:4380)
+==11615==    by 0x126EF3: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:91)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 64 bytes in 1 blocks are still reachable in loss record 45 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x148371: CLI::App::App(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, CLI::App*) (CLI11.h:3767)
+==11615==    by 0x1266ED: App (CLI11.h:3907)
+==11615==    by 0x1266ED: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:84)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 64 bytes in 1 blocks are still reachable in loss record 46 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12DC4C: allocate (new_allocator.h:111)
+==11615==    by 0x12DC4C: allocate (alloc_traits.h:436)
+==11615==    by 0x12DC4C: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12DC4C: void std::vector<std::unique_ptr<CLI::Option, std::default_delete<CLI::Option> >, std::allocator<std::unique_ptr<CLI::Option, std::default_delete<CLI::Option> > > >::_M_realloc_insert<>(__gnu_cxx::__normal_iterator<std::unique_ptr<CLI::Option, std::default_delete<CLI::Option> >*, std::vector<std::unique_ptr<CLI::Option, std::default_delete<CLI::Option> >, std::allocator<std::unique_ptr<CLI::Option, std::default_delete<CLI::Option> > > > >) (vector.tcc:406)
+==11615==    by 0x147235: emplace_back<> (vector.tcc:105)
+==11615==    by 0x147235: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4084)
+==11615==    by 0x148EC3: CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool) (CLI11.h:4117)
+==11615==    by 0x127303: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:103)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 64 bytes in 1 blocks are still reachable in loss record 47 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15E705: allocate (new_allocator.h:111)
+==11615==    by 0x15E705: allocate (alloc_traits.h:436)
+==11615==    by 0x15E705: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15E705: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x15E705: _Vector_base (stl_vector.h:138)
+==11615==    by 0x15E705: vector (stl_vector.h:297)
+==11615==    by 0x15E705: std::vector<long, std::allocator<long> >::_M_fill_assign(unsigned long, long const&) (vector.tcc:242)
+==11615==    by 0x15C5E2: assign (stl_vector.h:502)
+==11615==    by 0x15C5E2: DRAMPower::Counters::Counters(MemSpec&) (Counters.cc:78)
+==11615==    by 0x15ADA2: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 64 bytes in 1 blocks are still reachable in loss record 48 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15E705: allocate (new_allocator.h:111)
+==11615==    by 0x15E705: allocate (alloc_traits.h:436)
+==11615==    by 0x15E705: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15E705: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x15E705: _Vector_base (stl_vector.h:138)
+==11615==    by 0x15E705: vector (stl_vector.h:297)
+==11615==    by 0x15E705: std::vector<long, std::allocator<long> >::_M_fill_assign(unsigned long, long const&) (vector.tcc:242)
+==11615==    by 0x15C5FB: assign (stl_vector.h:502)
+==11615==    by 0x15C5FB: DRAMPower::Counters::Counters(MemSpec&) (Counters.cc:79)
+==11615==    by 0x15ADA2: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 64 bytes in 1 blocks are still reachable in loss record 49 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15E705: allocate (new_allocator.h:111)
+==11615==    by 0x15E705: allocate (alloc_traits.h:436)
+==11615==    by 0x15E705: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15E705: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x15E705: _Vector_base (stl_vector.h:138)
+==11615==    by 0x15E705: vector (stl_vector.h:297)
+==11615==    by 0x15E705: std::vector<long, std::allocator<long> >::_M_fill_assign(unsigned long, long const&) (vector.tcc:242)
+==11615==    by 0x15C614: assign (stl_vector.h:502)
+==11615==    by 0x15C614: DRAMPower::Counters::Counters(MemSpec&) (Counters.cc:80)
+==11615==    by 0x15ADA2: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 64 bytes in 1 blocks are still reachable in loss record 50 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15E705: allocate (new_allocator.h:111)
+==11615==    by 0x15E705: allocate (alloc_traits.h:436)
+==11615==    by 0x15E705: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15E705: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x15E705: _Vector_base (stl_vector.h:138)
+==11615==    by 0x15E705: vector (stl_vector.h:297)
+==11615==    by 0x15E705: std::vector<long, std::allocator<long> >::_M_fill_assign(unsigned long, long const&) (vector.tcc:242)
+==11615==    by 0x15C62D: assign (stl_vector.h:502)
+==11615==    by 0x15C62D: DRAMPower::Counters::Counters(MemSpec&) (Counters.cc:81)
+==11615==    by 0x15ADA2: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 64 bytes in 1 blocks are still reachable in loss record 51 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15E705: allocate (new_allocator.h:111)
+==11615==    by 0x15E705: allocate (alloc_traits.h:436)
+==11615==    by 0x15E705: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15E705: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x15E705: _Vector_base (stl_vector.h:138)
+==11615==    by 0x15E705: vector (stl_vector.h:297)
+==11615==    by 0x15E705: std::vector<long, std::allocator<long> >::_M_fill_assign(unsigned long, long const&) (vector.tcc:242)
+==11615==    by 0x15C648: assign (stl_vector.h:502)
+==11615==    by 0x15C648: DRAMPower::Counters::Counters(MemSpec&) (Counters.cc:82)
+==11615==    by 0x15ADA2: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 64 bytes in 1 blocks are still reachable in loss record 52 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15E705: allocate (new_allocator.h:111)
+==11615==    by 0x15E705: allocate (alloc_traits.h:436)
+==11615==    by 0x15E705: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15E705: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x15E705: _Vector_base (stl_vector.h:138)
+==11615==    by 0x15E705: vector (stl_vector.h:297)
+==11615==    by 0x15E705: std::vector<long, std::allocator<long> >::_M_fill_assign(unsigned long, long const&) (vector.tcc:242)
+==11615==    by 0x15C662: assign (stl_vector.h:502)
+==11615==    by 0x15C662: DRAMPower::Counters::Counters(MemSpec&) (Counters.cc:83)
+==11615==    by 0x15ADA2: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 64 bytes in 1 blocks are still reachable in loss record 53 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15E920: allocate (new_allocator.h:111)
+==11615==    by 0x15E920: allocate (alloc_traits.h:436)
+==11615==    by 0x15E920: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15E920: std::vector<long, std::allocator<long> >::_M_fill_insert(__gnu_cxx::__normal_iterator<long*, std::vector<long, std::allocator<long> > >, unsigned long, long const&) (vector.tcc:505)
+==11615==    by 0x15C6BE: resize (stl_vector.h:712)
+==11615==    by 0x15C6BE: DRAMPower::Counters::Counters(MemSpec&) (Counters.cc:85)
+==11615==    by 0x15ADA2: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 64 bytes in 1 blocks are still reachable in loss record 54 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15E920: allocate (new_allocator.h:111)
+==11615==    by 0x15E920: allocate (alloc_traits.h:436)
+==11615==    by 0x15E920: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15E920: std::vector<long, std::allocator<long> >::_M_fill_insert(__gnu_cxx::__normal_iterator<long*, std::vector<long, std::allocator<long> > >, unsigned long, long const&) (vector.tcc:505)
+==11615==    by 0x15C815: resize (stl_vector.h:712)
+==11615==    by 0x15C815: DRAMPower::Counters::Counters(MemSpec&) (Counters.cc:96)
+==11615==    by 0x15ADA2: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 64 bytes in 2 blocks are still reachable in loss record 55 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x114033: void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) (basic_string.tcc:219)
+==11615==    by 0x14A683: _M_construct_aux<char*> (basic_string.h:236)
+==11615==    by 0x14A683: _M_construct<char*> (basic_string.h:255)
+==11615==    by 0x14A683: basic_string (basic_string.h:440)
+==11615==    by 0x14A683: CLI::App::_parse_arg(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, CLI::detail::Classifier) (CLI11.h:6215)
+==11615==    by 0x14E8C2: CLI::App::_parse_single(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool&) (CLI11.h:5931)
+==11615==    by 0x1278C5: _parse (CLI11.h:5845)
+==11615==    by 0x1278C5: parse (CLI11.h:4999)
+==11615==    by 0x1278C5: parse (CLI11.h:4929)
+==11615==    by 0x1278C5: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:109)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 64 bytes in 2 blocks are still reachable in loss record 56 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x13F472: allocate (new_allocator.h:111)
+==11615==    by 0x13F472: allocate (alloc_traits.h:436)
+==11615==    by 0x13F472: _M_allocate (stl_vector.h:172)
+==11615==    by 0x13F472: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&) (vector.tcc:406)
+==11615==    by 0x13F596: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::emplace_back<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&) (vector.tcc:105)
+==11615==    by 0x1496EC: push_back (stl_vector.h:954)
+==11615==    by 0x1496EC: CLI::Option::_add_result(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&) (CLI11.h:3643)
+==11615==    by 0x14A69A: add_result (CLI11.h:3483)
+==11615==    by 0x14A69A: CLI::App::_parse_arg(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, CLI::detail::Classifier) (CLI11.h:6215)
+==11615==    by 0x14E8C2: CLI::App::_parse_single(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool&) (CLI11.h:5931)
+==11615==    by 0x1278C5: _parse (CLI11.h:5845)
+==11615==    by 0x1278C5: parse (CLI11.h:4999)
+==11615==    by 0x1278C5: parse (CLI11.h:4929)
+==11615==    by 0x1278C5: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:109)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 73 bytes in 2 blocks are still reachable in loss record 57 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x4F60AC6: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_assign(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25)
+==11615==    by 0x131CD6: assign (basic_string.h:1356)
+==11615==    by 0x131CD6: operator= (basic_string.h:685)
+==11615==    by 0x131CD6: lexical_cast<std::__cxx11::basic_string<char> > (CLI11.h:1216)
+==11615==    by 0x131CD6: operator() (CLI11.h:4115)
+==11615==    by 0x131CD6: std::_Function_handler<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >), CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool)::{lambda(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)#1}>::_M_invoke(std::_Any_data const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&&) (std_function.h:302)
+==11615==    by 0x12C8FB: std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>::operator()(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >) const (std_function.h:706)
+==11615==    by 0x14CAB4: CLI::Option::run_callback() (CLI11.h:3370)
+==11615==    by 0x14D0E0: CLI::App::_process_callbacks() (CLI11.h:5614)
+==11615==    by 0x128021: _process (CLI11.h:5762)
+==11615==    by 0x128021: _parse (CLI11.h:5847)
+==11615==    by 0x128021: parse (CLI11.h:4999)
+==11615==    by 0x128021: parse (CLI11.h:4929)
+==11615==    by 0x128021: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:109)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 104 bytes in 1 blocks are still reachable in loss record 58 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12F552: allocate (new_allocator.h:111)
+==11615==    by 0x12F552: allocate (alloc_traits.h:436)
+==11615==    by 0x12F552: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12F552: void std::vector<CLI::Validator, std::allocator<CLI::Validator> >::_M_realloc_insert<CLI::Validator>(__gnu_cxx::__normal_iterator<CLI::Validator*, std::vector<CLI::Validator, std::allocator<CLI::Validator> > >, CLI::Validator&&) (vector.tcc:406)
+==11615==    by 0x12F7C0: void std::vector<CLI::Validator, std::allocator<CLI::Validator> >::emplace_back<CLI::Validator>(CLI::Validator&&) (vector.tcc:105)
+==11615==    by 0x127144: push_back (stl_vector.h:954)
+==11615==    by 0x127144: check (CLI11.h:2994)
+==11615==    by 0x127144: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:102)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 104 bytes in 1 blocks are still reachable in loss record 59 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12F552: allocate (new_allocator.h:111)
+==11615==    by 0x12F552: allocate (alloc_traits.h:436)
+==11615==    by 0x12F552: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12F552: void std::vector<CLI::Validator, std::allocator<CLI::Validator> >::_M_realloc_insert<CLI::Validator>(__gnu_cxx::__normal_iterator<CLI::Validator*, std::vector<CLI::Validator, std::allocator<CLI::Validator> > >, CLI::Validator&&) (vector.tcc:406)
+==11615==    by 0x12F7C0: void std::vector<CLI::Validator, std::allocator<CLI::Validator> >::emplace_back<CLI::Validator>(CLI::Validator&&) (vector.tcc:105)
+==11615==    by 0x1273A7: push_back (stl_vector.h:954)
+==11615==    by 0x1273A7: check (CLI11.h:2994)
+==11615==    by 0x1273A7: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:107)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 136 bytes in 1 blocks are still reachable in loss record 60 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15A890: allocate (new_allocator.h:111)
+==11615==    by 0x15A890: allocate (alloc_traits.h:436)
+==11615==    by 0x15A890: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15A890: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x15A890: _Vector_base (stl_vector.h:138)
+==11615==    by 0x15A890: vector (stl_vector.h:328)
+==11615==    by 0x15A890: MemSpecDDR3 (MemSpecDDR3.h:41)
+==11615==    by 0x15A890: DRAMPower::DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3&, bool) (DDR3.cc:10)
+==11615==    by 0x128312: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 528 bytes in 1 blocks are still reachable in loss record 61 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x147279: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x1480F8: CLI::Option* CLI::App::add_flag<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CLI11.h:4288)
+==11615==    by 0x126846: set_help_flag (CLI11.h:4227)
+==11615==    by 0x126846: App (CLI11.h:3908)
+==11615==    by 0x126846: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:84)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 528 bytes in 1 blocks are still reachable in loss record 62 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x147279: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x126AE8: add_flag<bool> (CLI11.h:4327)
+==11615==    by 0x126AE8: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:87)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 528 bytes in 1 blocks are still reachable in loss record 63 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x147279: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x147A2C: CLI::App::_add_flag_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:4264)
+==11615==    by 0x126EF3: add_flag_function (CLI11.h:4380)
+==11615==    by 0x126EF3: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:91)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 528 bytes in 1 blocks are still reachable in loss record 64 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x147279: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x148EC3: CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool) (CLI11.h:4117)
+==11615==    by 0x1270A0: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:98)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 528 bytes in 1 blocks are still reachable in loss record 65 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x147279: CLI::App::add_option(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, std::function<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > ()>) (CLI11.h:4086)
+==11615==    by 0x148EC3: CLI::Option* CLI::App::add_option<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool) (CLI11.h:4117)
+==11615==    by 0x127303: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:103)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 648 bytes in 1 blocks are still reachable in loss record 66 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x126671: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:84)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 1,040 bytes in 1 blocks are still reachable in loss record 67 of 71
+==11615==    at 0x4C31B25: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x54203AE: __new_exitfn (cxa_atexit.c:109)
+==11615==    by 0x5420538: __internal_atexit (cxa_atexit.c:40)
+==11615==    by 0x5420538: __cxa_atexit (cxa_atexit.c:66)
+==11615==    by 0x13117C: CLI::detail::to_flag_value(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (CLI11.h:1098)
+==11615==    by 0x13193F: bool CLI::detail::lexical_cast<bool, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool&) (CLI11.h:1188)
+==11615==    by 0x131A8E: operator() (CLI11.h:4325)
+==11615==    by 0x131A8E: std::_Function_handler<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >), CLI::Option* CLI::App::add_flag<bool, (CLI::detail::enabler)0>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)#1}>::_M_invoke(std::_Any_data const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&&) (std_function.h:302)
+==11615==    by 0x12C8FB: std::function<bool (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)>::operator()(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >) const (std_function.h:706)
+==11615==    by 0x14C80D: CLI::Option::run_callback() (CLI11.h:3348)
+==11615==    by 0x14D0E0: CLI::App::_process_callbacks() (CLI11.h:5614)
+==11615==    by 0x128021: _process (CLI11.h:5762)
+==11615==    by 0x128021: _parse (CLI11.h:5847)
+==11615==    by 0x128021: parse (CLI11.h:4999)
+==11615==    by 0x128021: parse (CLI11.h:4929)
+==11615==    by 0x128021: DRAMPower::CliHandler::parse_arguments() (CliHandler.cc:109)
+==11615==    by 0x14EAC8: main (drampower.cc:50)
+==11615== 
+==11615== 1,888 bytes in 1 blocks are still reachable in loss record 68 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x128300: DRAMPower::CliHandler::loadMemSpec(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (CliHandler.cc:143)
+==11615==    by 0x1284E7: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:169)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 48,640 bytes in 1 blocks are still reachable in loss record 69 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x124C9E: allocate (new_allocator.h:111)
+==11615==    by 0x124C9E: allocate (alloc_traits.h:436)
+==11615==    by 0x124C9E: _M_allocate (stl_vector.h:172)
+==11615==    by 0x124C9E: _M_create_storage (stl_vector.h:187)
+==11615==    by 0x124C9E: _Vector_base (stl_vector.h:138)
+==11615==    by 0x124C9E: vector (stl_vector.h:328)
+==11615==    by 0x124C9E: TraceParser::parseFile(std::basic_ifstream<char, std::char_traits<char> >&) (TraceParser.cc:82)
+==11615==    by 0x128714: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:183)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 65,536 bytes in 1 blocks are still reachable in loss record 70 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x12593B: allocate (new_allocator.h:111)
+==11615==    by 0x12593B: allocate (alloc_traits.h:436)
+==11615==    by 0x12593B: _M_allocate (stl_vector.h:172)
+==11615==    by 0x12593B: void std::vector<DRAMPower::MemCommand, std::allocator<DRAMPower::MemCommand> >::_M_realloc_insert<DRAMPower::MemCommand const&>(__gnu_cxx::__normal_iterator<DRAMPower::MemCommand*, std::vector<DRAMPower::MemCommand, std::allocator<DRAMPower::MemCommand> > >, DRAMPower::MemCommand const&) (vector.tcc:406)
+==11615==    by 0x124C46: push_back (stl_vector.h:948)
+==11615==    by 0x124C46: TraceParser::parseFile(std::basic_ifstream<char, std::char_traits<char> >&) (TraceParser.cc:78)
+==11615==    by 0x128714: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:183)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== 97,280 bytes in 1 blocks are still reachable in loss record 71 of 71
+==11615==    at 0x4C3017F: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11615==    by 0x15F011: allocate (new_allocator.h:111)
+==11615==    by 0x15F011: allocate (alloc_traits.h:436)
+==11615==    by 0x15F011: _M_allocate (stl_vector.h:172)
+==11615==    by 0x15F011: void std::vector<DRAMPower::MemCommand, std::allocator<DRAMPower::MemCommand> >::_M_realloc_insert<DRAMPower::MemCommand>(__gnu_cxx::__normal_iterator<DRAMPower::MemCommand*, std::vector<DRAMPower::MemCommand, std::allocator<DRAMPower::MemCommand> > >, DRAMPower::MemCommand&&) (vector.tcc:406)
+==11615==    by 0x15F129: void std::vector<DRAMPower::MemCommand, std::allocator<DRAMPower::MemCommand> >::emplace_back<DRAMPower::MemCommand>(DRAMPower::MemCommand&&) (vector.tcc:105)
+==11615==    by 0x15DF67: push_back (stl_vector.h:954)
+==11615==    by 0x15DF67: DRAMPower::Counters::getCommands(std::vector<DRAMPower::MemCommand, std::allocator<DRAMPower::MemCommand> >&, bool, long) (Counters.cc:206)
+==11615==    by 0x158D1D: DRAMPower::DRAMPowerDDR3::updateCounters(bool, long) (DDR3.cc:55)
+==11615==    by 0x15A275: DRAMPower::DRAMPowerDDR3::calcEnergy() (DDR3.cc:18)
+==11615==    by 0x128794: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:186)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615== 
+==11615== LEAK SUMMARY:
+==11615==    definitely lost: 0 bytes in 0 blocks
+==11615==    indirectly lost: 0 bytes in 0 blocks
+==11615==      possibly lost: 0 bytes in 0 blocks
+==11615==    still reachable: 220,195 bytes in 74 blocks
+==11615==         suppressed: 0 bytes in 0 blocks
+==11615== 
+==11615== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)
+==11615== 
+==11615== 1 errors in context 1 of 2:
+==11615== Invalid read of size 8
+==11615==    at 0x15E4A9: DRAMPower::Counters::getCommands(std::vector<DRAMPower::MemCommand, std::allocator<DRAMPower::MemCommand> >&, bool, long) (Counters.cc:228)
+==11615==    by 0x158D1D: DRAMPower::DRAMPowerDDR3::updateCounters(bool, long) (DDR3.cc:55)
+==11615==    by 0x15A275: DRAMPower::DRAMPowerDDR3::calcEnergy() (DDR3.cc:18)
+==11615==    by 0x128794: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:186)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615==  Address 0x18 is not stack'd, malloc'd or (recently) free'd
+==11615== 
+==11615== 
+==11615== 1 errors in context 2 of 2:
+==11615== Invalid read of size 8
+==11615==    at 0x15E4A6: DRAMPower::Counters::getCommands(std::vector<DRAMPower::MemCommand, std::allocator<DRAMPower::MemCommand> >&, bool, long) (Counters.cc:228)
+==11615==    by 0x158D1D: DRAMPower::DRAMPowerDDR3::updateCounters(bool, long) (DDR3.cc:55)
+==11615==    by 0x15A275: DRAMPower::DRAMPowerDDR3::calcEnergy() (DDR3.cc:18)
+==11615==    by 0x128794: DRAMPower::CliHandler::run_simulation() (CliHandler.cc:186)
+==11615==    by 0x14EAD0: main (drampower.cc:51)
+==11615==  Address 0x1ffefff790 is on thread 1's stack
+==11615==  288 bytes below stack pointer
+==11615== 
+==11615== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)
