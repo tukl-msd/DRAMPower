@@ -233,29 +233,6 @@ int64_t MemSpecDDR3::timeToCompletion(DRAMPower::MemCommand::cmds type)
   return offset;
 } // MemSpecDDR3::timeToCompletion
 
-
-int64_t MemSpecDDR3::getRAS(){
-    return memTimingSpec.tRAS;
-}
-
-int64_t MemSpecDDR3::getRP(){
-    return memTimingSpec.tRP;
-}
-int64_t MemSpecDDR3::getRCD(){
-    return memTimingSpec.tRCD;
-}
-int64_t MemSpecDDR3::getRFC(){
-    return memTimingSpec.tRFC;
-}
-int64_t MemSpecDDR3::getXP(){
-    return memTimingSpec.tXP;
-}
-int64_t MemSpecDDR3::getXPDLL(){
-    return memTimingSpec.tXPDLL;
-}
-int64_t MemSpecDDR3::getCKESR(){
-    return memTimingSpec.tCKESR;
-}
 int64_t MemSpecDDR3::getExitSREFtime(){
     return memTimingSpec.tXSDLL - memTimingSpec.tRCD;
 }

@@ -15,7 +15,8 @@ add_library(DRAMPower src/cli/drampower.cc
             src/memspec/MemSpec.cc
             src/memspec/MemSpecDDR3.cc
             src/MemCommand.cc
-            src/Counters.cc
+            src/counters/Counters.cc
+            src/counters/CountersDDR3.cc
             src/TraceParser.cc
 )
 

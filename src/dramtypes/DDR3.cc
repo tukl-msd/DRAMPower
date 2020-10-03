@@ -16,15 +16,10 @@ DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3& memSpec, bool includeIoAndTermination)
 void DRAMPowerDDR3::calcEnergy()
 {
   updateCounters(true);
-  cout << endl << "  updateCounters success ";
   energy.clearEnergy(memSpec.memArchSpec.numberOfBanks);
-  cout << endl << "  clearEnergy success ";
   power.clearIOPower();
-  cout << endl << "  clear Power success ";
   if (includeIoAndTermination) calcIoTermEnergy();
-  cout << endl << "  IO calc success ";
   bankPowerCalc();
-  cout << endl << "  calc success ";
 }
 
 void DRAMPowerDDR3::calcWindowEnergy(int64_t timestamp)
@@ -170,10 +165,11 @@ void DRAMPowerDDR3::bankPowerCalc()
   const MemSpecDDR3::MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
   const MemSpecDDR3::BankWiseParams& bwPowerParams = memSpec.bwParams;
   const int64_t nbrofBanks               = memSpec.memArchSpec.numberOfBanks;
+  const Counters& c = counters;
+
   int vddIdx=0;
   for (auto mps : memSpec.memPowerSpec) {
 
-    const Counters& c = counters;
 
     int64_t burstCc = memArchSpec.burstLength / memArchSpec.dataRate;
 
@@ -254,6 +250,12 @@ void DRAMPowerDDR3::bankPowerCalc()
     energy.window_energy = sum(energy.window_energy_per_vdd) + energy.io_term_energy;
 
     power.window_average_power = energy.window_energy / (static_cast<double>(window_cycles) * t.tCK);
+
+    window_cycles = c.actcycles + c.precycles +
+                     c.f_act_pdcycles + c.f_pre_pdcycles +
+                     c.s_act_pdcycles + c.s_pre_pdcycles + c.sref_cycles
+                     + c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
+                     c.spup_ref_act_cycles + c.spup_ref_pre_cycles;
 
     total_cycles += window_cycles;
 
@@ -427,10 +429,14 @@ void DRAMPowerDDR3::powerPrint()
         << endl << "  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<< nRanksDouble * energy.spup_ref_pre_energy_banks[i] << eUnit
         << endl << "  Active Power-Up Energy: "<< nRanksDouble * energy.pup_act_energy_banks[i] << eUnit
         << endl << "  Precharged Power-Up Energy: "<< nRanksDouble * energy.pup_pre_energy_banks[i] << eUnit
-        << endl << "  Total Energy: "<< energy.total_energy_banks[i] << eUnit
+        << endl << "  Total Energy of Bank: " << energy.total_energy_banks[i] << eUnit
         << endl;
     }
     cout << endl;
+    cout << endl << "----------------------------------------"
+         << endl << "  Total Trace Energy : "<< energy.total_energy << eUnit
+         << endl << "  Total Average Power : " << power.average_power << " mW"
+         << endl << "----------------------------------------" << endl;
 
   if (includeIoAndTermination) {
     cout << endl << "RD I/O Energy: " << energy.read_io_energy << eUnit << endl;

@@ -74,17 +74,8 @@ public:
     MemArchitectureSpec memArchSpec;
     virtual ~MemSpec();
     virtual int64_t timeToCompletion(DRAMPower::MemCommand::cmds type) = 0;
-
-    virtual int64_t getRAS(); //rename
-    virtual int64_t getRP();
-    virtual int64_t getRCD();
-    virtual int64_t getRFC();
-    virtual int64_t getXP();
-    virtual int64_t getXPDLL();
-    virtual int64_t getCKESR();
     virtual int64_t getExitSREFtime();
 
-protected:
     MemSpec(nlohmann::json &memspec);
 
     bool parseBool(nlohmann::json &obj, std::string name);

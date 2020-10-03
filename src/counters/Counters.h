@@ -64,9 +64,7 @@ class Counters {
   };
 
   // Returns number of reads, writes, acts, pres and refs in the trace
-  Counters(MemSpec& memspec);
-
-  MemSpec *memSpec;
+  Counters(){}
 
   // Number of activate commands per bank
   std::vector<int64_t> numberofactsBanks;
@@ -131,6 +129,9 @@ class Counters {
   // Number of precharged auto-refresh cycles during self-refresh exit
   int64_t spup_ref_pre_cycles;
 
+  int64_t zero_guard(int64_t cycles_in, const char* warning);
+
+
   // function for clearing counters
   void clearCounters(const int64_t timestamp);
 
@@ -138,34 +139,29 @@ class Counters {
   void clear();
 
 
-  void getCommands(std::vector<MemCommand>& list,
-                             bool lastupdate,
-                             int64_t timestamp);
+  virtual void getCommands(std::vector<MemCommand>& /*list*/,
+                           bool /*lastupdate*/,
+                           int64_t /*timestamp*/);
 
 
   // Handlers for commands that are getting processed
-  void handleAct(    unsigned bank, int64_t timestamp);
-  void handleRd(     unsigned bank, int64_t timestamp);
-  void handleWr(     unsigned bank, int64_t timestamp);
-  void handleRef(    unsigned bank, int64_t timestamp);
-  void handleRefB(   unsigned bank, int64_t timestamp);
-  void handlePre(    unsigned bank, int64_t timestamp);
-  void handlePreA(   unsigned bank, int64_t timestamp);
-  void handlePdnFAct(unsigned bank, int64_t timestamp);
-  void handlePdnSAct(unsigned bank, int64_t timestamp);
-  void handlePdnFPre(unsigned bank, int64_t timestamp);
-  void handlePdnSPre(unsigned bank, int64_t timestamp);
-  void handlePupAct( int64_t timestamp);
-  void handlePupPre( int64_t timestamp);
-  void handleSREn(   unsigned bank, int64_t timestamp);
-  void handleSREx(   unsigned bank, int64_t timestamp);
-  void handleNopEnd( int64_t timestamp);
+  virtual void handleAct(    unsigned bank, int64_t timestamp);
+  virtual void handleRd(     unsigned bank, int64_t timestamp);
+  virtual void handleWr(     unsigned bank, int64_t timestamp);
+  virtual void handleRef(    unsigned /*bank*/, int64_t /*timestamp*/);
+  virtual void handleRefB(   unsigned /*bank*/, int64_t /*timestamp*/);
+  virtual void handlePre(    unsigned bank, int64_t timestamp);
+  virtual void handlePreA(   unsigned bank, int64_t timestamp);
+  virtual void handlePdnFAct(unsigned bank, int64_t timestamp);
+  virtual void handlePdnFPre(unsigned bank, int64_t timestamp);
+  virtual void handlePdnSPre(unsigned bank, int64_t timestamp);
+  virtual void handlePupAct( int64_t /*timestamp*/);
+  virtual void handlePupPre( int64_t /*timestamp*/);
+  virtual void handleSREn(   unsigned bank, int64_t timestamp);
+  virtual void handleSREx(   unsigned /*bank*/, int64_t /*timestamp*/);
+  virtual void handleNopEnd( int64_t /*timestamp*/);
 
   void printWarning(const std::string& warning, int type, int64_t timestamp, unsigned bank);
-
- private:
-
-  //MemSpec memSpec;
 
   // Possible bank states are precharged or active
   enum BankState {
@@ -227,24 +223,16 @@ class Counters {
   // Clock cycle of last precharge command when memory state changes to PRE
   int64_t last_pre_cycle;
 
-  int64_t RAS; //rename
-//  int64_t RP;
-//  int64_t RCD;
-//  int64_t RFC;
-//  int64_t XP;
-//  int64_t XPDLL;
-//  int64_t CKESR;
-//  int64_t ExitSREFtime;
 
   // To update idle period information whenever active cycles may be idle
-  void idle_act_update(int64_t                     latest_read_cycle,
-                       int64_t                     latest_write_cycle,
-                       int64_t                     latest_act_cycle,
-                       int64_t                     timestamp);
+  virtual void idle_act_update(int64_t                     /*latest_read_cycle*/,
+                               int64_t                     /*latest_write_cycle*/,
+                               int64_t                     /*latest_act_cycle*/,
+                               int64_t                     /*timestamp*/);
 
   // To update idle period information whenever precharged cycles may be idle
-  void idle_pre_update(int64_t                     timestamp,
-                       int64_t                     latest_pre_cycle);
+  virtual void idle_pre_update(int64_t                     /*timestamp*/,
+                               int64_t                     /*latest_pre_cycle*/);
 
   // Returns the number of active banks according to the bank_state vector.
   unsigned get_num_active_banks(void);

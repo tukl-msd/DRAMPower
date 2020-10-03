@@ -127,31 +127,7 @@ std::string MemSpec::parseString(json &obj, std::string name)
         throw std::invalid_argument("Query json: Parameter " + name + "' not found");
 }
 
-int64_t MemSpec::getRAS(){
-    throw std::invalid_argument("memory type does not contain timing parameter RAS");
-}
-
-int64_t MemSpec::getRP(){
-    throw std::invalid_argument("memory type does not contain timing parameter RP");
-}
-int64_t MemSpec::getRCD(){
-    throw std::invalid_argument("memory type does not contain timing parameter RCD");
-}
-int64_t MemSpec::getRFC(){
-    throw std::invalid_argument("memory type does not contain timing parameter RFC");
-}
-int64_t MemSpec::getXP(){
-    throw std::invalid_argument("memory type does not contain timing parameter XP");
-}
-
-int64_t MemSpec::getCKESR(){
-    throw std::invalid_argument("memory type does not contain timing parameter CKESR");
-}
 int64_t MemSpec::getExitSREFtime(){
-    throw std::invalid_argument("memory type does not contain timing parameter exitSREF");
-}
-
-int64_t MemSpec::getXPDLL(){
-    throw std::invalid_argument("memory type does not contain timing parameter XPDLL");
+    throw std::invalid_argument("getExitSREFtime was not declared");
 }
 

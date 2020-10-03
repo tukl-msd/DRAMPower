@@ -45,7 +45,7 @@
 #include "MemCommand.h"
 #include "jsonparser/JSONParser.h"
 #include "./dramtypes/DRAMPowerIF.h"
-//#include "Counters.h"
+
 
 
 class TraceParser {

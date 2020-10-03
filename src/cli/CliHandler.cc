@@ -185,7 +185,7 @@ void CliHandler::loadMemSpec(const std::string &memspecUri)
 
   dramPower->calcEnergy();
 
-  //dramPower->powerPrint();
+  dramPower->powerPrint();
   time_t end   = time(0);
   tm*    endtm = localtime(&end);
   cout << "* Power Computation End time: " << asctime(endtm);

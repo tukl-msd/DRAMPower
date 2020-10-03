@@ -133,15 +133,7 @@ public:
     std::vector<MemPowerSpec> memPowerSpec;
     BankWiseParams bwParams;
 
-    int64_t getRAS();
-    int64_t getRP();
-    int64_t getRCD();
-    int64_t getRFC();
-    int64_t getXP();
-    int64_t getXPDLL();
-    int64_t getCKESR();
     int64_t getExitSREFtime();
-
 
 
 };

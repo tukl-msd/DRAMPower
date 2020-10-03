@@ -8,7 +8,8 @@
 
 #include "./memspec/MemSpecDDR3.h"
 #include "MemCommand.h"
-#include "Counters.h"
+#include "./counters/Counters.h"
+#include "./counters/CountersDDR3.h"
 #include "DRAMPowerIF.h"
 
 namespace DRAMPower {
@@ -166,7 +167,7 @@ public:
 
 //TODO: ver o q precisa ser publico msm
 private:  
-    Counters counters;
+    CountersDDR3 counters;
     bool includeIoAndTermination;
     void evaluateCommands(std::vector<MemCommand>& cmd_list);
     template <typename T> T sum(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
