@@ -48,12 +48,12 @@ LIBS := src/libdrampower.a src/libdrampowerjson.a
 # Identifies the source files and derives name of object files.
 
 CLISOURCES := src/TraceParser.cc $(wildcard src/cli/*.cc)
-LIBSOURCES := src/MemCommand.cc $(wildcard src/memspec/*.cc) $(wildcard src/dramtypes/*.cc) $(wildcard src/counters/*.cc) 
+LIBSOURCES := src/common/DebugManager.cc src/MemCommand.cc $(wildcard src/memspec/*.cc) $(wildcard src/dramtypes/*.cc) $(wildcard src/counters/*.cc) 
 			
 
 JSONPARSERSOURCES := $(wildcard src/jsonparser/*.cc)
-ALLSOURCES := $(wildcard src/cli/*.cc) $(wildcard src/*.cc) $(wildcard src/jsonparser/*.cc) $(wildcard src/memspec/*.cc) $(wildcard src/dramtypes/*.cc) $(wildcard src/counters/*.cc)
-ALLHEADERS := $(wildcard src/*.h) $(wildcard src/jsonparser/*.h) $(wildcard src/memspec/*.h) $(wildcard src/dramtypes/*.h) $(wildcard src/counters/*.h)
+ALLSOURCES := src/common/DebugManager.cc $(wildcard src/cli/*.cc) $(wildcard src/*.cc) $(wildcard src/jsonparser/*.cc) $(wildcard src/memspec/*.cc) $(wildcard src/dramtypes/*.cc) $(wildcard src/counters/*.cc)
+ALLHEADERS := src/common/DebugManager.h $(wildcard src/*.h) $(wildcard src/jsonparser/*.h) $(wildcard src/memspec/*.h) $(wildcard src/dramtypes/*.h) $(wildcard src/counters/*.h)
 
 CLIOBJECTS := ${CLISOURCES:.cc=.o}
 JSONPARSEROBJECTS := ${JSONPARSERSOURCES:.cc=.o}

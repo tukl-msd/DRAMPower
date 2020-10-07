@@ -18,6 +18,7 @@ add_library(DRAMPower src/cli/drampower.cc
             src/counters/Counters.cc
             src/counters/CountersDDR3.cc
             src/TraceParser.cc
+            src/common/DebugManager.cc
 )
 
 add_executable(DRAMPowerCli

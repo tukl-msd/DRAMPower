@@ -15,6 +15,7 @@ DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3& memSpec, bool includeIoAndTermination)
 
 void DRAMPowerDDR3::calcEnergy()
 {
+  PRINTDEBUGMESSAGE("msg",2, 5, 7);
   updateCounters(true);
   energy.clearEnergy(memSpec.memArchSpec.numberOfBanks);
   power.clearIOPower();

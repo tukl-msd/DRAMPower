@@ -45,7 +45,9 @@ CliHandler::CliHandler(int _argc, char** _argv):
   argv(_argv),
   io_term_active(false),
   mem_spec_path(""),
-  cmd_trace_path("")
+  cmd_trace_path(""),
+  debug_file_active(false),
+  debug_console_active(true)
 {
 }
 
@@ -88,6 +90,14 @@ void CliHandler::parse_arguments(){
                   io_term_active,
                   "IO and Termination");
 
+//    app->add_flag(DEBUG_FILE,
+//                  debug_file_active,
+//                  "Generate debug file");
+
+//    app->add_flag(DEBUG_CONSOLE,
+//                  debug_console_active,
+//                  "Display debug messages on Console");
+
     app->add_flag_function(VERS,
                            [&](bool){
                              logo();
@@ -117,6 +127,16 @@ void CliHandler::parse_arguments(){
     throw std::runtime_error("Unknown error during arguments parsing!");
   }
 }
+
+bool CliHandler::get_writeToConsole() const{
+    return debug_console_active;
+}
+
+
+bool CliHandler::get_writeToFile() const{
+    return debug_file_active;
+}
+
 
 bool CliHandler::get_io_term_active() const{
   return io_term_active;
@@ -167,6 +187,9 @@ void CliHandler::loadMemSpec(const std::string &memspecUri)
   {
    traceparser = TraceParser();
    loadMemSpec(get_mem_spec_path());
+
+   if(get_writeToConsole() | get_writeToFile()) dramPower->setupDebugManager(true,get_writeToConsole(),get_writeToFile(),"DebugFile");
+   else dramPower->setupDebugManager();
 
     
   const clock_t begin_time = clock();

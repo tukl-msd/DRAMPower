@@ -174,21 +174,21 @@ bool Counters::isPrecharged(unsigned bank)
 void Counters::printWarningIfActive(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
   if (get_num_active_banks() != 0) {
-    printWarning(warning, type, timestamp, bank);
+    PRINTDEBUGMESSAGE(warning, timestamp, type, bank);
   }
 }
 
 void Counters::printWarningIfNotActive(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
   if (get_num_active_banks() == 0) {
-    printWarning(warning, type, timestamp, bank);
+    PRINTDEBUGMESSAGE(warning, timestamp, type, bank);
   }
 }
 
 void Counters::printWarningIfPoweredDown(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
   if (mem_state != 0) {
-    printWarning(warning, type, timestamp, bank);
+    PRINTDEBUGMESSAGE(warning, timestamp, type, bank);
   }
 }
 
@@ -236,7 +236,7 @@ void Counters::handleAct(unsigned bank, int64_t timestamp)
     bank_state[bank] = BANK_ACTIVE;
     latest_act_cycle = timestamp;
   } else {
-    printWarning("Bank is already active!", MemCommand::ACT, timestamp, bank);
+    PRINTDEBUGMESSAGE("Bank is already active!", timestamp, MemCommand::ACT, bank);
   }
 }
 

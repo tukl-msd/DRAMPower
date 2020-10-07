@@ -11,6 +11,7 @@
 #include "./counters/Counters.h"
 #include "./counters/CountersDDR3.h"
 #include "DRAMPowerIF.h"
+#include "./common/DebugManager.h"
 
 namespace DRAMPower {
 
@@ -39,6 +40,7 @@ public:
     //////
 
     MemSpecDDR3 memSpec;
+
 
     void bankPowerCalc();
 

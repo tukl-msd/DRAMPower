@@ -50,11 +50,11 @@
 namespace DRAMPower{
 
 constexpr const char* IO_TERM("--io_term,-r");
+constexpr const char* DEBUG_FILE("--debug_file,-df");
+constexpr const char* DEBUG_CONSOLE("--debug_console,-dc");
 constexpr const char* VERS("--version,-v");
 constexpr const char* MEM_SPEC("--mem_spec,-m");
 constexpr const char* CMD_TRACE("--cmd_trace,-c");
-constexpr const char* BANK_WISE("--bank_wise,-b");
-constexpr const char* PASR_MODE("--pasr,-s");
 
 class CliHandler{
 public:
@@ -62,6 +62,8 @@ public:
   ~CliHandler();
 
   bool get_io_term_active() const;
+  bool get_writeToConsole() const;
+  bool get_writeToFile() const;
   const std::string& get_mem_spec_path() const;
   const std::string& get_cmd_trace_path() const;
   void loadMemSpec(const std::string &memspecUri);
@@ -77,6 +79,9 @@ private:
   bool io_term_active;
   std::string mem_spec_path;
   std::string cmd_trace_path;
+  bool debug_file_active;
+  bool debug_console_active;
+
 
   TraceParser traceparser;
 

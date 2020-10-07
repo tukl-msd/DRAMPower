@@ -46,6 +46,7 @@
 #include <vector>
 
 #include "MemCommand.h"
+#include "./common/DebugManager.h"
 
 
 class DRAMPowerIF{
@@ -55,6 +56,11 @@ class DRAMPowerIF{
     void doCommand(DRAMPower::MemCommand::cmds type,
                  int                    bank,
                  int64_t                timestamp);
+
+    void setupDebugManager(const bool debug __attribute__((unused))=false,
+                           const bool writeToConsole __attribute__((unused))=false,
+                           const bool writeToFile __attribute__((unused))=false,
+                           const std::string &traceName __attribute__((unused))="");
 
     virtual void calcEnergy() = 0;
 
