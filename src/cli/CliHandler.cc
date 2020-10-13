@@ -47,7 +47,7 @@ CliHandler::CliHandler(int _argc, char** _argv):
   mem_spec_path(""),
   cmd_trace_path(""),
   debug_file_active(false),
-  debug_console_active(true)
+  debug_console_active(false)
 {
 }
 
@@ -90,13 +90,13 @@ void CliHandler::parse_arguments(){
                   io_term_active,
                   "IO and Termination");
 
-//    app->add_flag(DEBUG_FILE,
-//                  debug_file_active,
-//                  "Generate debug file");
+    app->add_flag(DEBUG_FILE,
+                  debug_file_active,
+                  "Generate debug file");
 
-//    app->add_flag(DEBUG_CONSOLE,
-//                  debug_console_active,
-//                  "Display debug messages on Console");
+    app->add_flag(DEBUG_CONSOLE,
+                  debug_console_active,
+                  "Display debug messages on Console");
 
     app->add_flag_function(VERS,
                            [&](bool){

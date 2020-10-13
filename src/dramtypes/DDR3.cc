@@ -15,7 +15,6 @@ DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3& memSpec, bool includeIoAndTermination)
 
 void DRAMPowerDDR3::calcEnergy()
 {
-  PRINTDEBUGMESSAGE("msg",2, 5, 7);
   updateCounters(true);
   energy.clearEnergy(memSpec.memArchSpec.numberOfBanks);
   power.clearIOPower();
@@ -96,7 +95,7 @@ void DRAMPowerDDR3::evaluateCommands(vector<MemCommand>& cmd_list)  //change: it
     } else if (type == MemCommand::END || type == MemCommand::NOP) {
       counters.handleNopEnd(timestamp);
     } else {
-      counters.printWarning("Unknown command given, exiting.", type, timestamp, bank);
+      PRINTDEBUGMESSAGE("Unknown command given, exiting.", timestamp, type, bank);
       exit(-1);
     }
   }

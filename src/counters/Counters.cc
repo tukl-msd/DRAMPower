@@ -192,12 +192,6 @@ void Counters::printWarningIfPoweredDown(const string& warning, int type, int64_
   }
 }
 
-void Counters::printWarning(const string& warning, int type, int64_t timestamp, unsigned bank)
-{
-  cerr << "WARNING: " << warning << endl;
-  cerr << "Command: " << type << ", Timestamp: " << timestamp <<
-    ", Bank: " << bank << endl;
-}
 
 
 ////////////////////HANDLERS////////////////////////
@@ -246,7 +240,7 @@ void Counters::handleRd(unsigned bank, int64_t timestamp)
   // If command is RD - update number of reads and read cycle. Check
   // for active idle cycles (if any).
   if (isPrecharged(bank)) {
-    printWarning("Bank is not active!", MemCommand::RD, timestamp, bank);
+    PRINTDEBUGMESSAGE("Bank is not active!", timestamp, MemCommand::RD, bank);
   }
   numberofreadsBanks[bank]++;
   idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
@@ -259,7 +253,7 @@ void Counters::handleWr(unsigned bank, int64_t timestamp)
   // If command is WR - update number of writes and write cycle. Check
   // for active idle cycles (if any).
   if (isPrecharged(bank)) {
-    printWarning("Bank is not active!", MemCommand::WR, timestamp, bank);
+    PRINTDEBUGMESSAGE("Bank is not active!", timestamp, MemCommand::WR, bank);
   }
   numberofwritesBanks[bank]++;
   idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
@@ -306,7 +300,7 @@ void Counters::handlePre(unsigned bank, int64_t timestamp)
     bank_state[bank] = BANK_PRECHARGED;
     latest_pre_cycle = timestamp;
   } else {
-    printWarning("Bank is already precharged!", MemCommand::PRE, timestamp, bank);
+    PRINTDEBUGMESSAGE("Bank is already precharged!", timestamp, MemCommand::PRE, bank);
   }
 }
 
@@ -346,7 +340,7 @@ void Counters::handlePreA(unsigned bank, int64_t timestamp)
       bs = BANK_PRECHARGED;
     }
   } else {
-    printWarning("All banks are already precharged!", MemCommand::PREA, timestamp, bank);
+      PRINTDEBUGMESSAGE("All banks are already precharged!", timestamp, MemCommand::PREA, bank);
   }
 }
 

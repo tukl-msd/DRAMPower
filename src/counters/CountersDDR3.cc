@@ -253,13 +253,13 @@ void CountersDDR3::handleSREx(unsigned bank, int64_t timestamp)
 
   // Negative or zero duration should never happen.
   if (sref_duration <= 0) {
-    printWarning("Invalid Self-Refresh duration!", MemCommand::SREX, timestamp, bank);
+    PRINTDEBUGMESSAGE("Invalid Self-Refresh duration", timestamp, MemCommand::SREX, bank);
     sref_duration = 0;
   }
 
   // The minimum time that the DRAM must remain in Self-Refresh is CKESR.
   if (sref_duration < memSpec.memTimingSpec.tCKESR) {
-    printWarning("Self-Refresh duration < CKESR!", MemCommand::SREX, timestamp, bank);
+    PRINTDEBUGMESSAGE("Self-Refresh duration < CKESR!", timestamp, MemCommand::SREX, bank);
   }
 
   if (sref_duration >= memSpec.memTimingSpec.tRFC) {

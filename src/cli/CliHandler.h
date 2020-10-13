@@ -50,8 +50,8 @@
 namespace DRAMPower{
 
 constexpr const char* IO_TERM("--io_term,-r");
-constexpr const char* DEBUG_FILE("--debug_file,-df");
-constexpr const char* DEBUG_CONSOLE("--debug_console,-dc");
+constexpr const char* DEBUG_FILE("--debug_file,-f");
+constexpr const char* DEBUG_CONSOLE("--debug_console,-d");
 constexpr const char* VERS("--version,-v");
 constexpr const char* MEM_SPEC("--mem_spec,-m");
 constexpr const char* CMD_TRACE("--cmd_trace,-c");

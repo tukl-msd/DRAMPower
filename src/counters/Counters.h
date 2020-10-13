@@ -162,7 +162,6 @@ class Counters {
   virtual void handleSREx(   unsigned /*bank*/, int64_t /*timestamp*/);
   virtual void handleNopEnd( int64_t /*timestamp*/);
 
-  void printWarning(const std::string& warning, int type, int64_t timestamp, unsigned bank);
 
   // Possible bank states are precharged or active
   enum BankState {
