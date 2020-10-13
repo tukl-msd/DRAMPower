@@ -118,11 +118,9 @@ public:
         int64_t bwPowerFactRho;
         // Self-Refresh power factor( true : Bankwise mode)
         int64_t bwPowerFactSigma;
-        // Bankwise or Normal mode
-        bool bwMode;
         // Wherther PASR is enabled ( true : enabled )
         bool flgPASR;
-        // PASR mode utilized
+        // PASR mode utilized (int 0-7)
         int64_t pasrMode;
         // Wheather bank is active in PASR
         bool isBankActiveInPasr(const unsigned bankIdx) const;

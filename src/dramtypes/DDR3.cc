@@ -412,14 +412,12 @@ void DRAMPowerDDR3::powerPrint()
         << endl << "  RD Cmd Energy: " << energy.read_energy_banks[i] << eUnit
         << endl << "  WR Cmd Energy: " << energy.write_energy_banks[i] << eUnit
         << endl << "  Auto-Refresh Energy: " << energy.ref_energy_banks[i] << eUnit
-        << endl << "  Bankwise-Refresh Energy: " << energy.refb_energy_banks[i] << eUnit
         << endl << "  ACT Stdby Energy: " << nRanksDouble * energy.act_stdby_energy_banks[i] << eUnit
         << endl << "  PRE Stdby Energy: " << nRanksDouble * energy.pre_stdby_energy_banks[i] << eUnit
         << endl << "  Active Idle Energy: "<< nRanksDouble * energy.idle_energy_act_banks[i] << eUnit
         << endl << "  Precharge Idle Energy: "<< nRanksDouble * energy.idle_energy_pre_banks[i] << eUnit
         << endl << "  Fast-Exit Active Power-Down Energy: "<< nRanksDouble * energy.f_act_pd_energy_banks[i] << eUnit
         << endl << "  Fast-Exit Precharged Power-Down Energy: "<< nRanksDouble * energy.f_pre_pd_energy_banks[i] << eUnit
-        << endl << "  Slow-Exit Active Power-Down Energy: "<< nRanksDouble * energy.s_act_pd_energy_banks[i] << eUnit
         << endl << "  Slow-Exit Precharged Power-Down Energy: "<< nRanksDouble * energy.s_pre_pd_energy_banks[i] << eUnit
         << endl << "  Self-Refresh Energy: "<< nRanksDouble * energy.sref_energy_banks[i] << eUnit
         << endl << "  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: "<< nRanksDouble * energy.sref_ref_act_energy_banks[i] << eUnit

@@ -96,115 +96,113 @@ MemSpecDDR3::MemSpecDDR3(json &memspec)
       memPowerSpec[0].termRdPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["termRdPower"], "termRdPower"));
       memPowerSpec[0].termWrPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["termWrPower"], "termWrPower"));
 
-//      json bankWise = memspec["bankwisespec"];
-//      if (!bankWise.empty()){
+      json bankWise = memspec["bankwisespec"];
+      if (!bankWise.empty()){
 
-//          unsigned nbrofBanks = memArchSpec.numberOfBanks; // TODO: check if it should be banks per rank
+          unsigned nbrofBanks = memArchSpec.numberOfBanks; // TODO: check if it should be banks per rank
 
-//          bwParams.bwPowerFactRho = parseUint(memspec["bankwisespec"]["factRho"],"factRho");
-//          bwParams.bwPowerFactSigma = parseUint(memspec["bankwisespec"]["factSigma"],"factSigma");
-//          bwParams.bwMode = parseBool(memspec["bankwisespec"]["opMode"],"opMode");
-//          bwParams.flgPASR = parseBool(memspec["bankwisespec"]["hasPASR"],"hasPASR");
-//          if (bwParams.flgPASR){
+          bwParams.bwPowerFactRho = parseUint(memspec["bankwisespec"]["factRho"],"factRho");
+          bwParams.bwPowerFactSigma = parseUint(memspec["bankwisespec"]["factSigma"],"factSigma");
+          bwParams.flgPASR = parseBool(memspec["bankwisespec"]["hasPASR"],"hasPASR");
+          if (bwParams.flgPASR){
 
-//              bwParams.pasrMode = parseBool(memspec["bankwisespec"]["pasrMode"],"pasrMode");
-//              ///////////////////////////////////////////////////////////
-//              // Activate banks for self refresh based on the PASR mode
-//              // ACTIVE     - X
-//              // NOT ACTIVE - 0
-//              ///////////////////////////////////////////////////////////
-//              switch(bwParams.pasrMode){
+              bwParams.pasrMode = parseUint(memspec["bankwisespec"]["pasrMode"],"pasrMode");
+              ///////////////////////////////////////////////////////////
+              // Activate banks for self refresh based on the PASR mode
+              // ACTIVE     - X
+              // NOT ACTIVE - 0
+              ///////////////////////////////////////////////////////////
+              switch(bwParams.pasrMode){
 
-//              case(BankWiseParams::pasrModes::PASR_0):{
-//                  // PASR MODE 0
-//                  // FULL ARRAY
-//                  // |X X X X |
-//                  // |X X X X |
-//                  bwParams.activeBanks.resize(nbrofBanks);
-//                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
-//                  break;
-//              }
-//              case(BankWiseParams::pasrModes::PASR_1):{
-//                  // PASR MODE 1
-//                  // (1/2) ARRAY
-//                  // |X X X X |
-//                  // |0 0 0 0 |
-//                  bwParams.activeBanks.resize(nbrofBanks - 4);
-//                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
-//                  break;
-//              }
-//              case(BankWiseParams::pasrModes::PASR_2):{
-//                  // PASR MODE 2
-//                  // (1/4) ARRAY
-//                  // |X X 0 0 |
-//                  // |0 0 0 0 |
-//                  bwParams.activeBanks.resize(nbrofBanks - 6);
-//                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
-//                  break;
-//              }
-//              case(BankWiseParams::pasrModes::PASR_3):{
-//                  // PASR MODE 3
-//                  // (1/8) ARRAY
-//                  // |X 0 0 0 |
-//                  // |0 0 0 0 |
-//                  bwParams.activeBanks.resize(nbrofBanks - 7);
-//                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
-//                  break;
-//              }
-//              case(BankWiseParams::pasrModes::PASR_4):{
-//                  // PASR MODE 4
-//                  // (3/4) ARRAY
-//                  // |0 0 X X |
-//                  // |X X X X |
-//                  bwParams.activeBanks.resize(nbrofBanks - 2);
-//                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 2);
-//                  break;
-//              }
-//              case(BankWiseParams::pasrModes::PASR_5):{
-//                  // PASR MODE 5
-//                  // (1/2) ARRAY
-//                  // |0 0 0 0 |
-//                  // |X X X X |
-//                  bwParams.activeBanks.resize(nbrofBanks - 4);
-//                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 4);
-//                  break;
-//              }
-//              case(BankWiseParams::pasrModes::PASR_6):{
-//                  // PASR MODE 6
-//                  // (1/4) ARRAY
-//                  // |0 0 0 0 |
-//                  // |0 0 X X |
-//                  bwParams.activeBanks.resize(nbrofBanks - 6);
-//                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 6);
-//                  break;
-//              }
-//              case(BankWiseParams::pasrModes::PASR_7):{
-//                  // PASR MODE 7
-//                  // (1/8) ARRAY
-//                  // |0 0 0 0 |
-//                  // |0 0 0 X |
-//                  bwParams.activeBanks.resize(nbrofBanks - 7);
-//                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 7);
-//                  break;
-//              }
-//              default:{
-//                  // PASR MODE 0
-//                  // FULL ARRAY
-//                  // |X X X X |
-//                  // |X X X X |
-//                  bwParams.activeBanks.resize(nbrofBanks);
-//                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
-//                  break;
-//              }
-//            } //end switch
-//          } // end IF flgPASR
-//      } // end if !bankwise.empty()
-//      else{
+              case(BankWiseParams::pasrModes::PASR_0):{
+                  // PASR MODE 0
+                  // FULL ARRAY
+                  // |X X X X |
+                  // |X X X X |
+                  bwParams.activeBanks.resize(nbrofBanks);
+                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
+                  break;
+              }
+              case(BankWiseParams::pasrModes::PASR_1):{
+                  // PASR MODE 1
+                  // (1/2) ARRAY
+                  // |X X X X |
+                  // |0 0 0 0 |
+                  bwParams.activeBanks.resize(nbrofBanks - 4);
+                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
+                  break;
+              }
+              case(BankWiseParams::pasrModes::PASR_2):{
+                  // PASR MODE 2
+                  // (1/4) ARRAY
+                  // |X X 0 0 |
+                  // |0 0 0 0 |
+                  bwParams.activeBanks.resize(nbrofBanks - 6);
+                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
+                  break;
+              }
+              case(BankWiseParams::pasrModes::PASR_3):{
+                  // PASR MODE 3
+                  // (1/8) ARRAY
+                  // |X 0 0 0 |
+                  // |0 0 0 0 |
+                  bwParams.activeBanks.resize(nbrofBanks - 7);
+                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
+                  break;
+              }
+              case(BankWiseParams::pasrModes::PASR_4):{
+                  // PASR MODE 4
+                  // (3/4) ARRAY
+                  // |0 0 X X |
+                  // |X X X X |
+                  bwParams.activeBanks.resize(nbrofBanks - 2);
+                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 2);
+                  break;
+              }
+              case(BankWiseParams::pasrModes::PASR_5):{
+                  // PASR MODE 5
+                  // (1/2) ARRAY
+                  // |0 0 0 0 |
+                  // |X X X X |
+                  bwParams.activeBanks.resize(nbrofBanks - 4);
+                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 4);
+                  break;
+              }
+              case(BankWiseParams::pasrModes::PASR_6):{
+                  // PASR MODE 6
+                  // (1/4) ARRAY
+                  // |0 0 0 0 |
+                  // |0 0 X X |
+                  bwParams.activeBanks.resize(nbrofBanks - 6);
+                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 6);
+                  break;
+              }
+              case(BankWiseParams::pasrModes::PASR_7):{
+                  // PASR MODE 7
+                  // (1/8) ARRAY
+                  // |0 0 0 0 |
+                  // |0 0 0 X |
+                  bwParams.activeBanks.resize(nbrofBanks - 7);
+                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 7);
+                  break;
+              }
+              default:{
+                  // PASR MODE 0
+                  // FULL ARRAY
+                  // |X X X X |
+                  // |X X X X |
+                  bwParams.activeBanks.resize(nbrofBanks);
+                  std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
+                  break;
+              }
+            } //end switch
+          } // end IF flgPASR
+      } // end if !bankwise.empty()
+      else{
          bwParams.bwPowerFactRho = 100;
          bwParams.bwPowerFactSigma = 100;
-         bwParams.bwMode = false;
          bwParams.flgPASR = false;
-     // }
+      }
 }
 
 bool MemSpecDDR3::BankWiseParams::isBankActiveInPasr(const unsigned bankIdx) const
