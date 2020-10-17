@@ -159,8 +159,14 @@ void CliHandler::loadMemSpec(const std::string &memspecUri)
     std::string memoryType = jMemSpec["memoryType"];
 
     if (memoryType == "DDR3"){
-        MemSpecDDR3 memSpecDDR3(jMemSpec);
-        dramPower = new DRAMPowerDDR3(memSpecDDR3,get_io_term_active());
+        if(get_writeToConsole() | get_writeToFile()){
+            MemSpecDDR3 memSpecDDR3(jMemSpec,true,get_writeToConsole(),get_writeToFile(),"DebugFile");
+            dramPower = new DRAMPowerDDR3(memSpecDDR3,get_io_term_active());
+        }
+        else {
+            MemSpecDDR3 memSpecDDR3(jMemSpec);
+            dramPower = new DRAMPowerDDR3(memSpecDDR3,get_io_term_active());
+        }
     }
 //    else if (memoryType == "DDR4")
 //        memSpec = new MemSpecDDR4(jMemSpec);
@@ -183,35 +189,30 @@ void CliHandler::loadMemSpec(const std::string &memspecUri)
 }
 
 
-  void CliHandler::run_simulation()
-  {
+ void CliHandler::run_simulation()
+ {
    traceparser = TraceParser();
-   loadMemSpec(get_mem_spec_path());
+   loadMemSpec(get_mem_spec_path());    
+   const clock_t begin_time = clock();
+   ifstream trace_file;
+   trace_file.open(get_cmd_trace_path(), ifstream::in);
+   time_t start   = time(0);
+   tm*    starttm = localtime(&start);
+   cout << "* Analysis start time: " << asctime(starttm);
+   cout << "* Analyzing the input trace" << endl;
+   cout << "* Bankwise mode: ";
 
-   if(get_writeToConsole() | get_writeToFile()) dramPower->setupDebugManager(true,get_writeToConsole(),get_writeToFile(),"DebugFile");
-   else dramPower->setupDebugManager();
+   // Calculates average power consumption and energy for the input memory
+   // command trace
+   cmd_list = traceparser.parseFile(trace_file);
+   dramPower->cmdList = cmd_list;
 
-    
-  const clock_t begin_time = clock();
-  ifstream trace_file;
-  trace_file.open(get_cmd_trace_path(), ifstream::in);
-  time_t start   = time(0);
-  tm*    starttm = localtime(&start);
-  cout << "* Analysis start time: " << asctime(starttm);
-  cout << "* Analyzing the input trace" << endl;
-  cout << "* Bankwise mode: ";
+   dramPower->calcEnergy();
 
-  // Calculates average power consumption and energy for the input memory
-  // command trace
-  cmd_list = traceparser.parseFile(trace_file);
-  dramPower->cmdList = cmd_list;
-
-  dramPower->calcEnergy();
-
-  dramPower->powerPrint();
-  time_t end   = time(0);
-  tm*    endtm = localtime(&end);
-  cout << "* Power Computation End time: " << asctime(endtm);
-  cout << "* Total Simulation time: "
-       << float(clock() - begin_time) / CLOCKS_PER_SEC << " seconds" << endl;
+   dramPower->powerPrint();
+   time_t end   = time(0);
+   tm*    endtm = localtime(&end);
+   cout << "* Power Computation End time: " << asctime(endtm);
+   cout << "* Total Simulation time: "
+        << float(clock() - begin_time) / CLOCKS_PER_SEC << " seconds" << endl;
 }

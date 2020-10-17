@@ -51,6 +51,18 @@ void DebugManager::printDebugMessage(std::string warning, int64_t timestamp, int
     }
 }
 
+void DebugManager::printWarning(std::string warning)
+{
+    if (DebugManager::getInstance().debug) {
+        if (writeToConsole){
+            std::cout << "WARNING: " << warning << std::endl;
+        }
+        if (writeToFile && debugFile)
+            debugFile << " \t: " << warning
+                      << "\n";
+    }
+}
+
 
 void DebugManager::openDebugFile(std::string filename)
 {

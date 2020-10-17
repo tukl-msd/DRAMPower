@@ -37,7 +37,12 @@
 
 using json = nlohmann::json;
 
-MemSpec::MemSpec(nlohmann::json &memspec){
+MemSpec::MemSpec(nlohmann::json &memspec,
+                 const bool debug,
+                 const bool writeToConsole,
+                 const bool writeToFile,
+                 const std::string &traceName){
+      setupDebugManager(debug, writeToConsole, writeToFile, traceName);
       memArchSpec.numberOfChannels = parseUint(memspec["memarchitecturespec"]["nbrOfChannels"],"nbrOfChannels");
       memArchSpec.numberOfRanks=parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
       memArchSpec.numberOfBanks=parseUint(memspec["memarchitecturespec"]["nbrOfBanks"],"nbrOfBanks");
@@ -110,7 +115,7 @@ double MemSpec::parseUdoubleWithDefault(json &obj, std::string name)
             throw std::invalid_argument("Expected type for '" + name + "': positive double");
     }
     else{
-        std::cout << "Parameter " + name + " not found: parsed with zero.\n";
+        PRINTWARNING("Parameter " + name + " not found: parsed with zero.\n");
         return 0.0;
     }
 }
@@ -129,5 +134,21 @@ std::string MemSpec::parseString(json &obj, std::string name)
 
 int64_t MemSpec::getExitSREFtime(){
     throw std::invalid_argument("getExitSREFtime was not declared");
+}
+
+void MemSpec::setupDebugManager(    const bool debug __attribute__((unused)),
+                                    const bool writeToConsole __attribute__((unused)),
+                                    const bool writeToFile __attribute__((unused)),
+                                    const std::string &traceName __attribute__((unused)))
+
+{
+#ifndef NDEBUG
+    auto &dbg = DebugManager::getInstance();
+    dbg.debug = debug;
+    dbg.writeToConsole = writeToConsole;
+    dbg.writeToFile = writeToFile;
+    if (dbg.writeToFile && (traceName!=""))
+        dbg.openDebugFile(traceName + ".txt");
+#endif
 }
 

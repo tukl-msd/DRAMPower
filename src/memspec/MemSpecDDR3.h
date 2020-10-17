@@ -41,7 +41,10 @@
 class MemSpecDDR3 final : public MemSpec
 {
 public:
-    MemSpecDDR3(json &memspec);
+    MemSpecDDR3(json &memspec, const bool debug __attribute__((unused))=false,
+                const bool writeToConsole __attribute__((unused))=false,
+                const bool writeToFile __attribute__((unused))=false,
+                const std::string &traceName __attribute__((unused))="");
     ~MemSpecDDR3() {}
     int64_t timeToCompletion(DRAMPower::MemCommand::cmds type);
 

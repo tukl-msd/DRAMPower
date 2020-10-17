@@ -39,18 +39,17 @@
 
 #ifdef NDEBUG
 #define PRINTDEBUGMESSAGE(warning, timestamp, type, bank) {}
+#define PRINTWARNING(warning) {}
 #else
 #define PRINTDEBUGMESSAGE(warning, timestamp, type, bank) DebugManager::getInstance().printDebugMessage(warning, timestamp, type, bank)
+#define PRINTWARNING(warning) DebugManager::getInstance().printWarning(warning)
 
-//#include <systemc.h>
+
 #include <string>
 #include <set>
 #include <fstream>
 #include <iostream>
 #include <ostream>
-//#include "utils.h"
-
-
 
 class DebugManager
 {
@@ -73,6 +72,7 @@ public:
     bool debug = false;
 
     void printDebugMessage(std::string warning, int64_t timestamp, int type, unsigned bank);
+    void printWarning(std::string warning);
     void openDebugFile(std::string filename);
 
 private:

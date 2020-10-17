@@ -43,6 +43,7 @@
 
 #include "./jsonparser/JSONParser.h"
 #include "./MemCommand.h"
+#include "./common/DebugManager.h"
 
 class MemSpec
 {
@@ -76,13 +77,22 @@ public:
     virtual int64_t timeToCompletion(DRAMPower::MemCommand::cmds type) = 0;
     virtual int64_t getExitSREFtime();
 
-    MemSpec(nlohmann::json &memspec);
+    MemSpec(nlohmann::json &memspec,
+            const bool debug __attribute__((unused))=false,
+            const bool writeToConsole __attribute__((unused))=false,
+            const bool writeToFile __attribute__((unused))=false,
+            const std::string &traceName __attribute__((unused))="");
 
     bool parseBool(nlohmann::json &obj, std::string name);
     unsigned parseUint(nlohmann::json &obj, std::string name);
     double parseUdouble(nlohmann::json &obj, std::string name);
     double parseUdoubleWithDefault(nlohmann::json &obj, std::string name);
     std::string parseString(nlohmann::json &obj, std::string name);
+
+    void setupDebugManager(const bool debug __attribute__((unused))=false,
+                           const bool writeToConsole __attribute__((unused))=false,
+                           const bool writeToFile __attribute__((unused))=false,
+                           const std::string &traceName __attribute__((unused))="");
 
 };
 

@@ -38,8 +38,12 @@
 
 using json = nlohmann::json;
 
-MemSpecDDR3::MemSpecDDR3(json &memspec)
-    : MemSpec(memspec)
+MemSpecDDR3::MemSpecDDR3(json &memspec,
+                         const bool debug,
+                         const bool writeToConsole,
+                         const bool writeToFile,
+                         const std::string &traceName)
+    : MemSpec(memspec,debug,writeToConsole,writeToFile,traceName)
 {
       memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
       memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in mili seconds
@@ -234,3 +238,4 @@ int64_t MemSpecDDR3::timeToCompletion(DRAMPower::MemCommand::cmds type)
 int64_t MemSpecDDR3::getExitSREFtime(){
     return memTimingSpec.tXSDLL - memTimingSpec.tRCD;
 }
+
