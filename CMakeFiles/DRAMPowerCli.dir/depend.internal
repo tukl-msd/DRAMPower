@@ -13,7 +13,7 @@ CMakeFiles/DRAMPowerCli.dir/src/cli/CliHandler.cc.o
  src/common/version.h
  src/counters/Counters.h
  src/counters/CountersDDR3.h
- src/dramtypes/DDR3.h
+ src/dramtypes/DRAMPowerDDR3.h
  src/dramtypes/DRAMPowerIF.h
  src/jsonparser/JSONExceptions.h
  src/jsonparser/JSONParser.h
@@ -31,7 +31,7 @@ CMakeFiles/DRAMPowerCli.dir/src/cli/drampower.cc.o
  src/common/version.h
  src/counters/Counters.h
  src/counters/CountersDDR3.h
- src/dramtypes/DDR3.h
+ src/dramtypes/DRAMPowerDDR3.h
  src/dramtypes/DRAMPowerIF.h
  src/jsonparser/JSONExceptions.h
  src/jsonparser/JSONParser.h

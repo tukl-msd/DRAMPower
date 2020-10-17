@@ -32,7 +32,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Authors: Karthik Chandrasekar
- *
  */
 
 #include "MemCommand.h"

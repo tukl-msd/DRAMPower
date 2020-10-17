@@ -113,18 +113,18 @@ CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerIF.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerIF.cc.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerIF.cc -o CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerIF.cc.s
 
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: CMakeFiles/DRAMPower.dir/flags.make
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/dramtypes/DDR3.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DDR3.cc
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: CMakeFiles/DRAMPower.dir/flags.make
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/dramtypes/DRAMPowerDDR3.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerDDR3.cc
 
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DDR3.cc > CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.i
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerDDR3.cc > CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.i
 
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DDR3.cc -o CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.s
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerDDR3.cc -o CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.s
 
 CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o: CMakeFiles/DRAMPower.dir/flags.make
 CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o: src/memspec/MemSpec.cc
@@ -222,7 +222,7 @@ DRAMPower_OBJECTS = \
 "CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerIF.cc.o" \
-"CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o" \
+"CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/MemCommand.cc.o" \
@@ -237,7 +237,7 @@ DRAMPower_EXTERNAL_OBJECTS =
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerIF.cc.o
-libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o
+libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/MemCommand.cc.o

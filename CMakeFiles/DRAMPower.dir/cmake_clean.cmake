@@ -6,7 +6,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/DRAMPower.dir/src/common/DebugManager.cc.o"
   "CMakeFiles/DRAMPower.dir/src/counters/Counters.cc.o"
   "CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o"
-  "CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o"
+  "CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o"
   "CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerIF.cc.o"
   "CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o"
   "CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.o"

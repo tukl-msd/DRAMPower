@@ -11,7 +11,7 @@ include_directories(src/
 add_library(DRAMPower src/cli/drampower.cc
             src/cli/CliHandler.cc
             src/dramtypes/DRAMPowerIF.cc
-            src/dramtypes/DDR3.cc
+            src/dramtypes/DRAMPowerDDR3.cc
             src/memspec/MemSpec.cc
             src/memspec/MemSpecDDR3.cc
             src/MemCommand.cc

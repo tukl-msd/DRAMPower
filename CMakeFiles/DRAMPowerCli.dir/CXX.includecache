@@ -23,8 +23,8 @@ vector
 /home/lulys96/Hiwi/DRAMPower/src/cli/memspec/MemSpecDDR3.h
 ./dramtypes/DRAMPowerIF.h
 /home/lulys96/Hiwi/DRAMPower/src/cli/dramtypes/DRAMPowerIF.h
-./dramtypes/DDR3.h
-/home/lulys96/Hiwi/DRAMPower/src/cli/dramtypes/DDR3.h
+./dramtypes/DRAMPowerDDR3.h
+/home/lulys96/Hiwi/DRAMPower/src/cli/dramtypes/DRAMPowerDDR3.h
 TraceParser.h
 /home/lulys96/Hiwi/DRAMPower/src/cli/TraceParser.h
 common/version.h
@@ -514,7 +514,7 @@ src/counters/memspec/MemSpecDDR3.h
 Counters.h
 src/counters/Counters.h
 
-src/dramtypes/DDR3.h
+src/dramtypes/DRAMPowerDDR3.h
 vector
 -
 stdint.h

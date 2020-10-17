@@ -32,6 +32,7 @@
  * Authors:
  *    Janik Schlemminger
  *    Matthias Jung
+ *    Luiza Correa
  */
 
 #ifndef DEBUGMANAGER_H

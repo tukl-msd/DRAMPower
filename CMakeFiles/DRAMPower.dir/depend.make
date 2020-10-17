@@ -24,7 +24,7 @@ CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o: src/common/libraries/json/json
 CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o: src/common/version.h
 CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o: src/counters/Counters.h
 CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o: src/counters/CountersDDR3.h
-CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o: src/dramtypes/DDR3.h
+CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o: src/dramtypes/DRAMPowerDDR3.h
 CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o: src/dramtypes/DRAMPowerIF.h
 CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o: src/jsonparser/JSONExceptions.h
 CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o: src/jsonparser/JSONParser.h
@@ -42,7 +42,7 @@ CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o: src/common/libraries/json/json.
 CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o: src/common/version.h
 CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o: src/counters/Counters.h
 CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o: src/counters/CountersDDR3.h
-CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o: src/dramtypes/DDR3.h
+CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o: src/dramtypes/DRAMPowerDDR3.h
 CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o: src/dramtypes/DRAMPowerIF.h
 CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o: src/jsonparser/JSONExceptions.h
 CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o: src/jsonparser/JSONParser.h
@@ -75,19 +75,19 @@ CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o: src/jsonparser/JSONPars
 CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o: src/memspec/MemSpec.h
 CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o: src/memspec/MemSpecDDR3.h
 
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/dramtypes/DDR3.cc
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/dramtypes/DDR3.h
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/dramtypes/DRAMPowerIF.h
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/MemCommand.h
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/Utils.h
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/common/DebugManager.h
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/common/libraries/json/json.h
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/counters/Counters.h
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/counters/CountersDDR3.h
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/jsonparser/JSONExceptions.h
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/jsonparser/JSONParser.h
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/memspec/MemSpec.h
-CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o: src/memspec/MemSpecDDR3.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/dramtypes/DRAMPowerDDR3.cc
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/dramtypes/DRAMPowerDDR3.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/dramtypes/DRAMPowerIF.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/MemCommand.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/Utils.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/common/DebugManager.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/common/libraries/json/json.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/counters/Counters.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/counters/CountersDDR3.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/jsonparser/JSONExceptions.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/jsonparser/JSONParser.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/memspec/MemSpec.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o: src/memspec/MemSpecDDR3.h
 
 CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerIF.cc.o: src/dramtypes/DRAMPowerIF.cc
 CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerIF.cc.o: src/dramtypes/DRAMPowerIF.h

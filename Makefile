@@ -348,32 +348,32 @@ src/counters/CountersDDR3.cc.s:
 	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.s
 .PHONY : src/counters/CountersDDR3.cc.s
 
-src/dramtypes/DDR3.o: src/dramtypes/DDR3.cc.o
+src/dramtypes/DRAMPowerDDR3.o: src/dramtypes/DRAMPowerDDR3.cc.o
 
-.PHONY : src/dramtypes/DDR3.o
+.PHONY : src/dramtypes/DRAMPowerDDR3.o
 
 # target to build an object file
-src/dramtypes/DDR3.cc.o:
-	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.o
-.PHONY : src/dramtypes/DDR3.cc.o
+src/dramtypes/DRAMPowerDDR3.cc.o:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o
+.PHONY : src/dramtypes/DRAMPowerDDR3.cc.o
 
-src/dramtypes/DDR3.i: src/dramtypes/DDR3.cc.i
+src/dramtypes/DRAMPowerDDR3.i: src/dramtypes/DRAMPowerDDR3.cc.i
 
-.PHONY : src/dramtypes/DDR3.i
+.PHONY : src/dramtypes/DRAMPowerDDR3.i
 
 # target to preprocess a source file
-src/dramtypes/DDR3.cc.i:
-	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.i
-.PHONY : src/dramtypes/DDR3.cc.i
+src/dramtypes/DRAMPowerDDR3.cc.i:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.i
+.PHONY : src/dramtypes/DRAMPowerDDR3.cc.i
 
-src/dramtypes/DDR3.s: src/dramtypes/DDR3.cc.s
+src/dramtypes/DRAMPowerDDR3.s: src/dramtypes/DRAMPowerDDR3.cc.s
 
-.PHONY : src/dramtypes/DDR3.s
+.PHONY : src/dramtypes/DRAMPowerDDR3.s
 
 # target to generate assembly for a file
-src/dramtypes/DDR3.cc.s:
-	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/dramtypes/DDR3.cc.s
-.PHONY : src/dramtypes/DDR3.cc.s
+src/dramtypes/DRAMPowerDDR3.cc.s:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.s
+.PHONY : src/dramtypes/DRAMPowerDDR3.cc.s
 
 src/dramtypes/DRAMPowerIF.o: src/dramtypes/DRAMPowerIF.cc.o
 
@@ -487,9 +487,9 @@ help:
 	@echo "... src/counters/CountersDDR3.o"
 	@echo "... src/counters/CountersDDR3.i"
 	@echo "... src/counters/CountersDDR3.s"
-	@echo "... src/dramtypes/DDR3.o"
-	@echo "... src/dramtypes/DDR3.i"
-	@echo "... src/dramtypes/DDR3.s"
+	@echo "... src/dramtypes/DRAMPowerDDR3.o"
+	@echo "... src/dramtypes/DRAMPowerDDR3.i"
+	@echo "... src/dramtypes/DRAMPowerDDR3.s"
 	@echo "... src/dramtypes/DRAMPowerIF.o"
 	@echo "... src/dramtypes/DRAMPowerIF.i"
 	@echo "... src/dramtypes/DRAMPowerIF.s"

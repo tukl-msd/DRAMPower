@@ -1,5 +1,5 @@
 #include "DRAMPowerIF.h"
-#include "DDR3.h"
+#include "DRAMPowerDDR3.h"
 using namespace DRAMPower;
 using namespace std;
 
