@@ -162,7 +162,7 @@ class Counters {
   virtual void handleSREx(   unsigned /*bank*/, int64_t /*timestamp*/);
   virtual void handleNopEnd( int64_t /*timestamp*/);
 
-
+  protected:
   // Possible bank states are precharged or active
   enum BankState {
     BANK_PRECHARGED = 0,
