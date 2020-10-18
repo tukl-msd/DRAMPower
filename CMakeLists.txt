@@ -12,11 +12,14 @@ add_library(DRAMPower src/cli/drampower.cc
             src/cli/CliHandler.cc
             src/dramtypes/DRAMPowerIF.cc
             src/dramtypes/DRAMPowerDDR3.cc
+            src/dramtypes/DRAMPowerDDR4.cc
             src/memspec/MemSpec.cc
             src/memspec/MemSpecDDR3.cc
+            src/memspec/MemSpecDDR4.cc
             src/MemCommand.cc
             src/counters/Counters.cc
             src/counters/CountersDDR3.cc
+            src/counters/CountersDDR4.cc
             src/TraceParser.cc
             src/common/DebugManager.cc
 )

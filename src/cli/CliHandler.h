@@ -43,6 +43,7 @@
 #include "./memspec/MemSpecDDR3.h"
 #include "./dramtypes/DRAMPowerIF.h"
 #include "./dramtypes/DRAMPowerDDR3.h"
+#include "./dramtypes/DRAMPowerDDR4.h"
 #include "TraceParser.h"
 #include "common/version.h"
 #include "common/libraries/cli11/CLI11.h"

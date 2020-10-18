@@ -51,7 +51,6 @@
 #include <string>
 
 #include "MemCommand.h"
-#include "Utils.h"
 #include "./memspec/MemSpecDDR3.h"
 #include "./common/DebugManager.h"
 

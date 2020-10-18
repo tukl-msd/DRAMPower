@@ -1,5 +1,5 @@
-#ifndef COUNTERSDDR3_H
-#define COUNTERSDDR3_H
+#ifndef COUNTERSDDR4_H
+#define COUNTERSDDR4_H
 
 #include <stdint.h>
 
@@ -9,16 +9,16 @@
 #include <string>
 
 #include "MemCommand.h"
-#include "./memspec/MemSpecDDR3.h"
+#include "./memspec/MemSpecDDR4.h"
 #include "Counters.h"
 
 namespace DRAMPower {
-class CountersDDR3 final : public Counters {
+class CountersDDR4 final : public Counters {
  public:
 
-  CountersDDR3(MemSpecDDR3& memspec);
+  CountersDDR4(MemSpecDDR4& memspec);
 
-  MemSpecDDR3 memSpec;
+  MemSpecDDR4 memSpec;
   void getCommands(std::vector<MemCommand>& list,
                              bool lastupdate,
                              int64_t timestamp);
@@ -47,4 +47,4 @@ class CountersDDR3 final : public Counters {
 };
 }
 
-#endif // COUNTERSDDR3_H
+#endif // COUNTERSDDR4_H
