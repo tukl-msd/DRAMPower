@@ -96,7 +96,6 @@ void CountersDDR4::getCommands(std::vector<MemCommand>& list, bool lastupdate, i
   }
   cout << list.size();
   for (size_t i = 0; i < list.size(); ++i) {
-//    int64_t prechargeOffset;
     MemCommand& cmd = list[i];
     MemCommand::cmds cmdType = cmd.getType();
     if (cmdType == MemCommand::ACT) {
@@ -183,11 +182,11 @@ void CountersDDR4::handleRef(unsigned bank, int64_t timestamp)
   first_act_cycle  = timestamp;
   std::fill(first_act_cycle_banks.begin(), first_act_cycle_banks.end(), timestamp);
   precycles       += zero_guard(timestamp - last_pre_cycle, "2 last_pre_cycle is in the future.");
-  last_pre_cycle   = timestamp + memSpec.memTimingSpec.tRFC - memSpec.memTimingSpec.refreshtRP;
+  last_pre_cycle   = timestamp + memSpec.memTimingSpec.tRFC - memSpec.memTimingSpec.tRP;
   latest_pre_cycle = last_pre_cycle;
-  actcycles       += memSpec.memTimingSpec.tRFC - memSpec.memTimingSpec.refreshtRP;
+  actcycles       += memSpec.memTimingSpec.tRFC - memSpec.memTimingSpec.tRP;
   for (auto &e : actcyclesBanks) {
-    e += memSpec.memTimingSpec.tRFC - memSpec.memTimingSpec.refreshtRP;
+    e += memSpec.memTimingSpec.tRFC - memSpec.memTimingSpec.tRP;
   }
   for (auto& bs : bank_state) {
     bs = BANK_PRECHARGED;

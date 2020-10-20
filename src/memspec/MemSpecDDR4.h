@@ -82,10 +82,7 @@ public:
      int64_t tPRPDEN;
      int64_t tREFPDEN;
      int64_t tRTRS;
-     // In refresh mode 2X and 4X tRFC is shortened, and so should the
-     // pre-charged time be shortened proportionally during a refresh
-     int64_t refreshtRP;
-    };
+     };
 
     // Currents and Voltages:
     struct MemPowerSpec{

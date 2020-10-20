@@ -34,6 +34,10 @@ common/version.h
 common/libraries/cli11/CLI11.h
 /home/lulys96/Hiwi/DRAMPower/src/cli/common/libraries/cli11/CLI11.h
 
+/home/lulys96/Hiwi/DRAMPower/src/cli/drampower.cc
+CliHandler.h
+/home/lulys96/Hiwi/DRAMPower/src/cli/CliHandler.h
+
 src/MemCommand.h
 stdint.h
 -

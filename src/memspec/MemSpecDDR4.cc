@@ -69,21 +69,21 @@ MemSpecDDR4::MemSpecDDR4(json &memspec,
       if (refreshMode=="1X"){
           memTimingSpec.tRFC = (parseUint(memspec["memtimingspec"]["RFC"], "RFC"));
           memTimingSpec.tREFI    = (parseUint(memspec["memtimingspec"]["REFI"], "REFI"));
-          memTimingSpec.refreshtRP = memTimingSpec.tRP;
+//          memTimingSpec.refreshtRP = memTimingSpec.tRP;
       }
       else if (refreshMode=="2X"){
           memTimingSpec.tRFC = (parseUint(memspec["memtimingspec"]["RFC2"], "RFC2"));
           memTimingSpec.tREFI    = (parseUint(memspec["memtimingspec"]["REFI"], "REFI")/2);
-          memTimingSpec.refreshtRP = static_cast<unsigned int>((memTimingSpec.tRP)*
-                               (parseUint(memspec["memtimingspec"]["RFC2"], "RFC2"))/
-                               (parseUint(memspec["memtimingspec"]["RFC"], "RFC")));
+//          memTimingSpec.refreshtRP = static_cast<unsigned int>((memTimingSpec.tRP)*
+//                               (parseUint(memspec["memtimingspec"]["RFC2"], "RFC2"))/
+//                               (parseUint(memspec["memtimingspec"]["RFC"], "RFC")));
       }
       else if (refreshMode=="4X"){
           memTimingSpec.tRFC = (parseUint(memspec["memtimingspec"]["RFC4"], "RFC4"));
           memTimingSpec.tREFI    = (parseUint(memspec["memtimingspec"]["REFI"], "REFI")/4);
-          memTimingSpec.refreshtRP = static_cast<unsigned int>((memTimingSpec.tRP)*
-                               (parseUint(memspec["memtimingspec"]["RFC4"], "RFC4"))/
-                               (parseUint(memspec["memtimingspec"]["RFC"], "RFC")));
+//          memTimingSpec.refreshtRP = static_cast<unsigned int>((memTimingSpec.tRP)*
+//                               (parseUint(memspec["memtimingspec"]["RFC4"], "RFC4"))/
+//                               (parseUint(memspec["memtimingspec"]["RFC"], "RFC")));
       }
       memTimingSpec.tRRD_S   = (parseUint(memspec["memtimingspec"]["RRD_S"], "RRD_S"));
       memTimingSpec.tRRD_L   = (parseUint(memspec["memtimingspec"]["RRD_L"], "RRD_L"));
@@ -127,8 +127,6 @@ MemSpecDDR4::MemSpecDDR4(json &memspec,
       memPowerSpec[1].iXX2P     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp2p"], "ipp2p"));
       memPowerSpec[1].iXX3P     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp3p"], "ipp3p"));
 
-
-
       //optional parameters
       memPowerSpec[0].capacitance = (parseUdoubleWithDefault(memspec["mempowerspec"]["capacitance"], "capacitance"));
       memPowerSpec[0].ioPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["ioPower"], "ioPower"));
@@ -139,7 +137,7 @@ MemSpecDDR4::MemSpecDDR4(json &memspec,
       json bankWise = memspec["bankwisespec"];
       if (!bankWise.empty()){
 
-          unsigned nbrofBanks = memArchSpec.numberOfBanks; // TODO: check if it should be banks per rank
+          unsigned nbrofBanks = memArchSpec.numberOfBanks;
 
           bwParams.bwPowerFactRho = parseUint(memspec["bankwisespec"]["factRho"],"factRho");
           bwParams.bwPowerFactSigma = parseUint(memspec["bankwisespec"]["factSigma"],"factSigma");

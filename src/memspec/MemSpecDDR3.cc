@@ -102,7 +102,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
       json bankWise = memspec["bankwisespec"];
       if (!bankWise.empty()){
 
-          unsigned nbrofBanks = memArchSpec.numberOfBanks; // TODO: check if it should be banks per rank
+          unsigned nbrofBanks = memArchSpec.numberOfBanks;
 
           bwParams.bwPowerFactRho = parseUint(memspec["bankwisespec"]["factRho"],"factRho");
           bwParams.bwPowerFactSigma = parseUint(memspec["bankwisespec"]["factSigma"],"factSigma");
