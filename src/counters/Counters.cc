@@ -47,6 +47,7 @@
 
 #include "Counters.h"
 
+
 using namespace DRAMPower;
 using namespace std;
 

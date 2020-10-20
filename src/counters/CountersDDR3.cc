@@ -50,10 +50,10 @@
 using namespace DRAMPower;
 using namespace std;
 
-bool commandSorter(const MemCommand& i, const MemCommand& j)
+bool commandSorterDDR3(const DRAMPower::MemCommand& i, const DRAMPower::MemCommand& j)
 {
   if (i.getTimeInt64() == j.getTimeInt64()) {
-    return i.getType() == MemCommand::PRE && j.getType() != MemCommand::PRE;
+    return i.getType() == DRAMPower::MemCommand::PRE && j.getType() != DRAMPower::MemCommand::PRE;
   } else {
     return i.getTimeInt64() < j.getTimeInt64();
   }
@@ -122,7 +122,7 @@ void CountersDDR3::getCommands(std::vector<MemCommand>& list, bool lastupdate, i
       }
     }
   }
-  sort(list.begin(), list.end(), commandSorter);
+  sort(list.begin(), list.end(), commandSorterDDR3);
   if (lastupdate && list.empty() == false) {
     // Add cycles at the end of the list
     int64_t t =  memSpec.timeToCompletion(list.back().getType()) + list.back().getTimeInt64() - 1;
@@ -200,7 +200,7 @@ void CountersDDR3::handlePupAct(int64_t timestamp)
 {
   // Command power-up in the active mode is always fast.
 
-  if ((mem_state == Counters::MS_PDN_F_ACT) | (mem_state == Counters::MS_PDN_S_ACT)) {
+  if ((mem_state == Counters::MS_PDN_F_ACT) /*| (mem_state == Counters::MS_PDN_S_ACT)*/) {
     f_act_pdcycles  += zero_guard(timestamp - pdn_cycle, "pdn_cycle is in the future.");
     pup_act_cycles  += memSpec.memTimingSpec.tXP;
     latest_act_cycle = timestamp;

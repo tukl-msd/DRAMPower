@@ -93,8 +93,7 @@ public:
      double vDD;
      double iDD2P0;
      double iDD2P1;
-     double iDD3P0;
-     double iDD3P1;
+     double iDD3P;
 
      double capacitance;
      double ioPower;

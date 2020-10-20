@@ -87,7 +87,9 @@ public:
     unsigned parseUint(nlohmann::json &obj, std::string name);
     double parseUdouble(nlohmann::json &obj, std::string name);
     double parseUdoubleWithDefault(nlohmann::json &obj, std::string name);
+    unsigned parseUintWithDefaut(json &obj, std::string name);
     std::string parseString(nlohmann::json &obj, std::string name);
+    std::string parseStringWithDefault(json &obj, std::string name, std::string defaultString);
 
     void setupDebugManager(const bool debug __attribute__((unused))=false,
                            const bool writeToConsole __attribute__((unused))=false,

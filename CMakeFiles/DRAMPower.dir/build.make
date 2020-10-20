@@ -126,9 +126,22 @@ CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerDDR3.cc -o CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.s
 
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.o: CMakeFiles/DRAMPower.dir/flags.make
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.o: src/dramtypes/DRAMPowerDDR4.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerDDR4.cc
+
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerDDR4.cc > CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.i
+
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerDDR4.cc -o CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.s
+
 CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o: CMakeFiles/DRAMPower.dir/flags.make
 CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o: src/memspec/MemSpec.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpec.cc
 
 CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.i: cmake_force
@@ -141,7 +154,7 @@ CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.s: cmake_force
 
 CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.o: CMakeFiles/DRAMPower.dir/flags.make
 CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.o: src/memspec/MemSpecDDR3.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR3.cc
 
 CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.i: cmake_force
@@ -152,9 +165,22 @@ CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR3.cc -o CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.s
 
+CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.o: CMakeFiles/DRAMPower.dir/flags.make
+CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.o: src/memspec/MemSpecDDR4.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR4.cc
+
+CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR4.cc > CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.i
+
+CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR4.cc -o CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.s
+
 CMakeFiles/DRAMPower.dir/src/MemCommand.cc.o: CMakeFiles/DRAMPower.dir/flags.make
 CMakeFiles/DRAMPower.dir/src/MemCommand.cc.o: src/MemCommand.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/DRAMPower.dir/src/MemCommand.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/DRAMPower.dir/src/MemCommand.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/MemCommand.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/MemCommand.cc
 
 CMakeFiles/DRAMPower.dir/src/MemCommand.cc.i: cmake_force
@@ -167,7 +193,7 @@ CMakeFiles/DRAMPower.dir/src/MemCommand.cc.s: cmake_force
 
 CMakeFiles/DRAMPower.dir/src/counters/Counters.cc.o: CMakeFiles/DRAMPower.dir/flags.make
 CMakeFiles/DRAMPower.dir/src/counters/Counters.cc.o: src/counters/Counters.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/DRAMPower.dir/src/counters/Counters.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/DRAMPower.dir/src/counters/Counters.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/counters/Counters.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/counters/Counters.cc
 
 CMakeFiles/DRAMPower.dir/src/counters/Counters.cc.i: cmake_force
@@ -180,7 +206,7 @@ CMakeFiles/DRAMPower.dir/src/counters/Counters.cc.s: cmake_force
 
 CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o: CMakeFiles/DRAMPower.dir/flags.make
 CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o: src/counters/CountersDDR3.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/counters/CountersDDR3.cc
 
 CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.i: cmake_force
@@ -191,9 +217,22 @@ CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lulys96/Hiwi/DRAMPower/src/counters/CountersDDR3.cc -o CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.s
 
+CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.o: CMakeFiles/DRAMPower.dir/flags.make
+CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.o: src/counters/CountersDDR4.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/counters/CountersDDR4.cc
+
+CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/lulys96/Hiwi/DRAMPower/src/counters/CountersDDR4.cc > CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.i
+
+CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/lulys96/Hiwi/DRAMPower/src/counters/CountersDDR4.cc -o CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.s
+
 CMakeFiles/DRAMPower.dir/src/TraceParser.cc.o: CMakeFiles/DRAMPower.dir/flags.make
 CMakeFiles/DRAMPower.dir/src/TraceParser.cc.o: src/TraceParser.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/DRAMPower.dir/src/TraceParser.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/DRAMPower.dir/src/TraceParser.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/TraceParser.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/TraceParser.cc
 
 CMakeFiles/DRAMPower.dir/src/TraceParser.cc.i: cmake_force
@@ -206,7 +245,7 @@ CMakeFiles/DRAMPower.dir/src/TraceParser.cc.s: cmake_force
 
 CMakeFiles/DRAMPower.dir/src/common/DebugManager.cc.o: CMakeFiles/DRAMPower.dir/flags.make
 CMakeFiles/DRAMPower.dir/src/common/DebugManager.cc.o: src/common/DebugManager.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/DRAMPower.dir/src/common/DebugManager.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/DRAMPower.dir/src/common/DebugManager.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/DRAMPower.dir/src/common/DebugManager.cc.o -c /home/lulys96/Hiwi/DRAMPower/src/common/DebugManager.cc
 
 CMakeFiles/DRAMPower.dir/src/common/DebugManager.cc.i: cmake_force
@@ -223,11 +262,14 @@ DRAMPower_OBJECTS = \
 "CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerIF.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o" \
+"CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.o" \
+"CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/MemCommand.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/counters/Counters.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o" \
+"CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/TraceParser.cc.o" \
 "CMakeFiles/DRAMPower.dir/src/common/DebugManager.cc.o"
 
@@ -238,16 +280,19 @@ libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerIF.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o
+libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/memspec/MemSpec.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.o
+libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/MemCommand.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/counters/Counters.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o
+libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/TraceParser.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/src/common/DebugManager.cc.o
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/build.make
 libDRAMPower.a: CMakeFiles/DRAMPower.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking CXX static library libDRAMPower.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Linking CXX static library libDRAMPower.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/DRAMPower.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/DRAMPower.dir/link.txt --verbose=$(VERBOSE)
 

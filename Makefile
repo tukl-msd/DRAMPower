@@ -348,6 +348,33 @@ src/counters/CountersDDR3.cc.s:
 	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.s
 .PHONY : src/counters/CountersDDR3.cc.s
 
+src/counters/CountersDDR4.o: src/counters/CountersDDR4.cc.o
+
+.PHONY : src/counters/CountersDDR4.o
+
+# target to build an object file
+src/counters/CountersDDR4.cc.o:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.o
+.PHONY : src/counters/CountersDDR4.cc.o
+
+src/counters/CountersDDR4.i: src/counters/CountersDDR4.cc.i
+
+.PHONY : src/counters/CountersDDR4.i
+
+# target to preprocess a source file
+src/counters/CountersDDR4.cc.i:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.i
+.PHONY : src/counters/CountersDDR4.cc.i
+
+src/counters/CountersDDR4.s: src/counters/CountersDDR4.cc.s
+
+.PHONY : src/counters/CountersDDR4.s
+
+# target to generate assembly for a file
+src/counters/CountersDDR4.cc.s:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.s
+.PHONY : src/counters/CountersDDR4.cc.s
+
 src/dramtypes/DRAMPowerDDR3.o: src/dramtypes/DRAMPowerDDR3.cc.o
 
 .PHONY : src/dramtypes/DRAMPowerDDR3.o
@@ -374,6 +401,33 @@ src/dramtypes/DRAMPowerDDR3.s: src/dramtypes/DRAMPowerDDR3.cc.s
 src/dramtypes/DRAMPowerDDR3.cc.s:
 	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.s
 .PHONY : src/dramtypes/DRAMPowerDDR3.cc.s
+
+src/dramtypes/DRAMPowerDDR4.o: src/dramtypes/DRAMPowerDDR4.cc.o
+
+.PHONY : src/dramtypes/DRAMPowerDDR4.o
+
+# target to build an object file
+src/dramtypes/DRAMPowerDDR4.cc.o:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.o
+.PHONY : src/dramtypes/DRAMPowerDDR4.cc.o
+
+src/dramtypes/DRAMPowerDDR4.i: src/dramtypes/DRAMPowerDDR4.cc.i
+
+.PHONY : src/dramtypes/DRAMPowerDDR4.i
+
+# target to preprocess a source file
+src/dramtypes/DRAMPowerDDR4.cc.i:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.i
+.PHONY : src/dramtypes/DRAMPowerDDR4.cc.i
+
+src/dramtypes/DRAMPowerDDR4.s: src/dramtypes/DRAMPowerDDR4.cc.s
+
+.PHONY : src/dramtypes/DRAMPowerDDR4.s
+
+# target to generate assembly for a file
+src/dramtypes/DRAMPowerDDR4.cc.s:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.s
+.PHONY : src/dramtypes/DRAMPowerDDR4.cc.s
 
 src/dramtypes/DRAMPowerIF.o: src/dramtypes/DRAMPowerIF.cc.o
 
@@ -456,6 +510,33 @@ src/memspec/MemSpecDDR3.cc.s:
 	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.s
 .PHONY : src/memspec/MemSpecDDR3.cc.s
 
+src/memspec/MemSpecDDR4.o: src/memspec/MemSpecDDR4.cc.o
+
+.PHONY : src/memspec/MemSpecDDR4.o
+
+# target to build an object file
+src/memspec/MemSpecDDR4.cc.o:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.o
+.PHONY : src/memspec/MemSpecDDR4.cc.o
+
+src/memspec/MemSpecDDR4.i: src/memspec/MemSpecDDR4.cc.i
+
+.PHONY : src/memspec/MemSpecDDR4.i
+
+# target to preprocess a source file
+src/memspec/MemSpecDDR4.cc.i:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.i
+.PHONY : src/memspec/MemSpecDDR4.cc.i
+
+src/memspec/MemSpecDDR4.s: src/memspec/MemSpecDDR4.cc.s
+
+.PHONY : src/memspec/MemSpecDDR4.s
+
+# target to generate assembly for a file
+src/memspec/MemSpecDDR4.cc.s:
+	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.s
+.PHONY : src/memspec/MemSpecDDR4.cc.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -487,9 +568,15 @@ help:
 	@echo "... src/counters/CountersDDR3.o"
 	@echo "... src/counters/CountersDDR3.i"
 	@echo "... src/counters/CountersDDR3.s"
+	@echo "... src/counters/CountersDDR4.o"
+	@echo "... src/counters/CountersDDR4.i"
+	@echo "... src/counters/CountersDDR4.s"
 	@echo "... src/dramtypes/DRAMPowerDDR3.o"
 	@echo "... src/dramtypes/DRAMPowerDDR3.i"
 	@echo "... src/dramtypes/DRAMPowerDDR3.s"
+	@echo "... src/dramtypes/DRAMPowerDDR4.o"
+	@echo "... src/dramtypes/DRAMPowerDDR4.i"
+	@echo "... src/dramtypes/DRAMPowerDDR4.s"
 	@echo "... src/dramtypes/DRAMPowerIF.o"
 	@echo "... src/dramtypes/DRAMPowerIF.i"
 	@echo "... src/dramtypes/DRAMPowerIF.s"
@@ -499,6 +586,9 @@ help:
 	@echo "... src/memspec/MemSpecDDR3.o"
 	@echo "... src/memspec/MemSpecDDR3.i"
 	@echo "... src/memspec/MemSpecDDR3.s"
+	@echo "... src/memspec/MemSpecDDR4.o"
+	@echo "... src/memspec/MemSpecDDR4.i"
+	@echo "... src/memspec/MemSpecDDR4.s"
 .PHONY : help
 
 

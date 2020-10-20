@@ -18,37 +18,41 @@ CMakeFiles/DRAMPower.dir/src/cli/CliHandler.cc.o
  /home/lulys96/Hiwi/DRAMPower/src/cli/CliHandler.h
  src/MemCommand.h
  src/TraceParser.h
- src/Utils.h
  src/common/DebugManager.h
  src/common/libraries/cli11/CLI11.h
  src/common/libraries/json/json.h
  src/common/version.h
  src/counters/Counters.h
  src/counters/CountersDDR3.h
+ src/counters/CountersDDR4.h
  src/dramtypes/DRAMPowerDDR3.h
+ src/dramtypes/DRAMPowerDDR4.h
  src/dramtypes/DRAMPowerIF.h
  src/jsonparser/JSONExceptions.h
  src/jsonparser/JSONParser.h
  src/memspec/MemSpec.h
  src/memspec/MemSpecDDR3.h
+ src/memspec/MemSpecDDR4.h
 CMakeFiles/DRAMPower.dir/src/cli/drampower.cc.o
  /home/lulys96/Hiwi/DRAMPower/src/cli/CliHandler.h
  /home/lulys96/Hiwi/DRAMPower/src/cli/drampower.cc
  src/MemCommand.h
  src/TraceParser.h
- src/Utils.h
  src/common/DebugManager.h
  src/common/libraries/cli11/CLI11.h
  src/common/libraries/json/json.h
  src/common/version.h
  src/counters/Counters.h
  src/counters/CountersDDR3.h
+ src/counters/CountersDDR4.h
  src/dramtypes/DRAMPowerDDR3.h
+ src/dramtypes/DRAMPowerDDR4.h
  src/dramtypes/DRAMPowerIF.h
  src/jsonparser/JSONExceptions.h
  src/jsonparser/JSONParser.h
  src/memspec/MemSpec.h
  src/memspec/MemSpecDDR3.h
+ src/memspec/MemSpecDDR4.h
 CMakeFiles/DRAMPower.dir/src/common/DebugManager.cc.o
  /home/lulys96/Hiwi/DRAMPower/src/common/DebugManager.cc
  /home/lulys96/Hiwi/DRAMPower/src/common/DebugManager.h
@@ -56,7 +60,6 @@ CMakeFiles/DRAMPower.dir/src/counters/Counters.cc.o
  /home/lulys96/Hiwi/DRAMPower/src/counters/Counters.cc
  /home/lulys96/Hiwi/DRAMPower/src/counters/Counters.h
  src/MemCommand.h
- src/Utils.h
  src/common/DebugManager.h
  src/common/libraries/json/json.h
  src/jsonparser/JSONExceptions.h
@@ -68,19 +71,29 @@ CMakeFiles/DRAMPower.dir/src/counters/CountersDDR3.cc.o
  /home/lulys96/Hiwi/DRAMPower/src/counters/CountersDDR3.cc
  /home/lulys96/Hiwi/DRAMPower/src/counters/CountersDDR3.h
  src/MemCommand.h
- src/Utils.h
  src/common/DebugManager.h
  src/common/libraries/json/json.h
  src/jsonparser/JSONExceptions.h
  src/jsonparser/JSONParser.h
  src/memspec/MemSpec.h
  src/memspec/MemSpecDDR3.h
+CMakeFiles/DRAMPower.dir/src/counters/CountersDDR4.cc.o
+ /home/lulys96/Hiwi/DRAMPower/src/counters/Counters.h
+ /home/lulys96/Hiwi/DRAMPower/src/counters/CountersDDR4.cc
+ /home/lulys96/Hiwi/DRAMPower/src/counters/CountersDDR4.h
+ src/MemCommand.h
+ src/common/DebugManager.h
+ src/common/libraries/json/json.h
+ src/jsonparser/JSONExceptions.h
+ src/jsonparser/JSONParser.h
+ src/memspec/MemSpec.h
+ src/memspec/MemSpecDDR3.h
+ src/memspec/MemSpecDDR4.h
 CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o
  /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerDDR3.cc
  /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerDDR3.h
  /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerIF.h
  src/MemCommand.h
- src/Utils.h
  src/common/DebugManager.h
  src/common/libraries/json/json.h
  src/counters/Counters.h
@@ -89,6 +102,20 @@ CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR3.cc.o
  src/jsonparser/JSONParser.h
  src/memspec/MemSpec.h
  src/memspec/MemSpecDDR3.h
+CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerDDR4.cc.o
+ /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerDDR4.cc
+ /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerDDR4.h
+ /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerIF.h
+ src/MemCommand.h
+ src/common/DebugManager.h
+ src/common/libraries/json/json.h
+ src/counters/Counters.h
+ src/counters/CountersDDR4.h
+ src/jsonparser/JSONExceptions.h
+ src/jsonparser/JSONParser.h
+ src/memspec/MemSpec.h
+ src/memspec/MemSpecDDR3.h
+ src/memspec/MemSpecDDR4.h
 CMakeFiles/DRAMPower.dir/src/dramtypes/DRAMPowerIF.cc.o
  /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerIF.cc
  /home/lulys96/Hiwi/DRAMPower/src/dramtypes/DRAMPowerIF.h
@@ -106,6 +133,15 @@ CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR3.cc.o
  /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpec.h
  /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR3.cc
  /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR3.h
+ src/MemCommand.h
+ src/common/DebugManager.h
+ src/common/libraries/json/json.h
+ src/jsonparser/JSONExceptions.h
+ src/jsonparser/JSONParser.h
+CMakeFiles/DRAMPower.dir/src/memspec/MemSpecDDR4.cc.o
+ /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpec.h
+ /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR4.cc
+ /home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR4.h
  src/MemCommand.h
  src/common/DebugManager.h
  src/common/libraries/json/json.h

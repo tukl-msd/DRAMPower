@@ -42,6 +42,7 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "MemCommand.h"
 
 template<typename T>
 T fromString(const std::string& s,
@@ -56,7 +57,6 @@ T fromString(const std::string& s,
 
   return t;
 }
-
 
 
 #endif /* UTILS_H */

@@ -25,7 +25,6 @@ class CountersDDR4 final : public Counters {
 
 
   // Handlers for commands that are getting processed
-
   void handleRef(    unsigned bank, int64_t timestamp);
   void handlePupAct( int64_t timestamp);
   void handlePupPre( int64_t timestamp);

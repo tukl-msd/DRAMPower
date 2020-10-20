@@ -68,10 +68,13 @@ public:
      int64_t tRFC;
      int64_t tRP;
      int64_t tDQSCK;
-     int64_t tCCD;
+     int64_t tCCD_S;
+     int64_t tCCD_L;
      int64_t tFAW;
-     int64_t tRRD;
-     int64_t tWTR;
+     int64_t tRRD_S;
+     int64_t tRRD_L;
+     int64_t tWTR_S;
+     int64_t tWTR_L;
      int64_t tXPDLL;
      int64_t tXSDLL;
      int64_t tAL;
@@ -79,22 +82,23 @@ public:
      int64_t tPRPDEN;
      int64_t tREFPDEN;
      int64_t tRTRS;
+     // In refresh mode 2X and 4X tRFC is shortened, and so should the
+     // pre-charged time be shortened proportionally during a refresh
+     int64_t refreshtRP;
     };
 
     // Currents and Voltages:
     struct MemPowerSpec{
-     double iDD0;
-     double iDD2N;
-     double iDD3N;
-     double iDD4R;
-     double iDD4W;
-     double iDD5;
-     double iDD6;
-     double vDD;
-     double iDD2P0;
-     double iDD2P1;
-     double iDD3P0;
-     double iDD3P1;
+     double iXX0;
+     double iXX2N;
+     double iXX3N;
+     double iXX4R;
+     double iXX4W;
+     double iXX5;
+     double iXX6;
+     double vXX;
+     double iXX2P;
+     double iXX3P;
 
      double capacitance;
      double ioPower;
@@ -121,14 +125,16 @@ public:
         int64_t bwPowerFactRho;
         // Self-Refresh power factor( true : Bankwise mode)
         int64_t bwPowerFactSigma;
-        // Wherther PASR is enabled ( true : enabled )
+        // Whether PASR is enabled ( true : enabled )
         bool flgPASR;
         // PASR mode utilized (int 0-7)
         int64_t pasrMode;
-        // Wheather bank is active in PASR
+        // Whether bank is active in PASR
         bool isBankActiveInPasr(const unsigned bankIdx) const;
 
     };
+
+    std::string refreshMode;
 
     MemTimingSpec memTimingSpec;
     std::vector<MemPowerSpec> memPowerSpec;

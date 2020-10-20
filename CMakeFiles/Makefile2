@@ -93,12 +93,12 @@ clean: CMakeFiles/DRAMPowerCli.dir/clean
 CMakeFiles/DRAMPower.dir/all:
 	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/depend
 	$(MAKE) -f CMakeFiles/DRAMPower.dir/build.make CMakeFiles/DRAMPower.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12 "Built target DRAMPower"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 "Built target DRAMPower"
 .PHONY : CMakeFiles/DRAMPower.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/DRAMPower.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/lulys96/Hiwi/DRAMPower/CMakeFiles 12
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/lulys96/Hiwi/DRAMPower/CMakeFiles 15
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/DRAMPower.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/lulys96/Hiwi/DRAMPower/CMakeFiles 0
 .PHONY : CMakeFiles/DRAMPower.dir/rule
@@ -120,12 +120,12 @@ CMakeFiles/DRAMPower.dir/clean:
 CMakeFiles/DRAMPowerCli.dir/all: CMakeFiles/DRAMPower.dir/all
 	$(MAKE) -f CMakeFiles/DRAMPowerCli.dir/build.make CMakeFiles/DRAMPowerCli.dir/depend
 	$(MAKE) -f CMakeFiles/DRAMPowerCli.dir/build.make CMakeFiles/DRAMPowerCli.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=13,14,15 "Built target DRAMPowerCli"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/lulys96/Hiwi/DRAMPower/CMakeFiles --progress-num=16,17,18 "Built target DRAMPowerCli"
 .PHONY : CMakeFiles/DRAMPowerCli.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/DRAMPowerCli.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/lulys96/Hiwi/DRAMPower/CMakeFiles 15
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/lulys96/Hiwi/DRAMPower/CMakeFiles 18
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/DRAMPowerCli.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/lulys96/Hiwi/DRAMPower/CMakeFiles 0
 .PHONY : CMakeFiles/DRAMPowerCli.dir/rule

@@ -91,6 +91,21 @@ unsigned MemSpec::parseUint(json &obj, std::string name)
         throw std::invalid_argument("Query json: Parameter " + name + "' not found");
 }
 
+unsigned MemSpec::parseUintWithDefaut(json &obj, std::string name)
+{
+    if (!obj.empty())
+    {
+        if (obj.is_number() && (obj > 0))
+            return obj;
+        else
+            throw std::invalid_argument("Expected type for '" + name + "': unsigned int");
+    }
+    else{
+        PRINTWARNING("Parameter " + name + " not found: parsed with zero.\n");
+        return 0.0;
+    }
+}
+
 double MemSpec::parseUdouble(json &obj, std::string name)
 {
     if (!obj.empty())
@@ -131,6 +146,21 @@ std::string MemSpec::parseString(json &obj, std::string name)
     else
         throw std::invalid_argument("Query json: Parameter " + name + "' not found");
 }
+
+std::string MemSpec::parseStringWithDefault(json &obj, std::string name, std::string defaultString)
+{
+    if (!obj.empty())
+    {
+        if (obj.is_string())
+            return obj;
+        else
+            throw std::invalid_argument("Expected type for '" + name + "': string");
+    }
+    else
+        PRINTWARNING("Parameter " + name + " not found: parsed with default.\n");
+        return defaultString;
+}
+
 
 int64_t MemSpec::getExitSREFtime(){
     throw std::invalid_argument("getExitSREFtime was not declared");

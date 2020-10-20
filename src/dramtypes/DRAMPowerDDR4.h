@@ -130,8 +130,6 @@ public:
 
       std::vector<double> f_pre_pd_energy_banks;
 
-      std::vector<double> s_act_pd_energy_banks;
-
       std::vector<double> s_pre_pd_energy_banks;
 
       // Energy consumed in self-refresh mode

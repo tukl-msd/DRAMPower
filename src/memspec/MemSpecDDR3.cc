@@ -90,8 +90,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
       memPowerSpec[0].vDD       = (parseUdouble(memspec["mempowerspec"]["vdd"], "vdd"));
       memPowerSpec[0].iDD2P0    = (parseUdouble(memspec["mempowerspec"]["idd2p0"], "idd2p0"));
       memPowerSpec[0].iDD2P1    = (parseUdouble(memspec["mempowerspec"]["idd2p1"], "idd2p1"));
-      memPowerSpec[0].iDD3P0    = (parseUdouble(memspec["mempowerspec"]["idd3p0"], "idd3p0"));
-      memPowerSpec[0].iDD3P1    = (parseUdouble(memspec["mempowerspec"]["idd3p1"], "idd3p1"));
+      memPowerSpec[0].iDD3P     = (parseUdouble(memspec["mempowerspec"]["idd3p"], "idd3p"));
 
       //optional parameters
       memPowerSpec[0].capacitance = (parseUdoubleWithDefault(memspec["mempowerspec"]["capacitance"], "capacitance"));

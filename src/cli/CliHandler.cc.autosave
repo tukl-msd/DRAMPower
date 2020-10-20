@@ -165,12 +165,10 @@ void CliHandler::loadMemSpec(const std::string &memspecUri)
             dramPower = new DRAMPowerDDR3(memSpecDDR3,get_io_term_active());
     }
     else if (memoryType == "DDR4"){
-            std::cout << "cp0: ate aq ok";
             MemSpecDDR4 memSpecDDR4(jMemSpec,(get_writeToConsole() | get_writeToFile()),
                                     get_writeToConsole(),get_writeToFile(),"DebugFile");
-            cout << "cp1: memoryspec parsed ok";
+            
             dramPower = new DRAMPowerDDR4(memSpecDDR4,get_io_term_active());
-            cout << "cp2: memory type created ok";
     }
         //    else if (memoryType == "LPDDR4")
 //        memSpec = new MemSpecLPDDR4(jMemSpec);
@@ -194,7 +192,6 @@ void CliHandler::loadMemSpec(const std::string &memspecUri)
  void CliHandler::run_simulation()
  {
    traceparser = TraceParser();
-   std::cout << "achar path";
    loadMemSpec(get_mem_spec_path());    
    const clock_t begin_time = clock();
    ifstream trace_file;

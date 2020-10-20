@@ -124,7 +124,6 @@ void DRAMPowerDDR3::Energy::clearEnergy(int64_t nbrofBanks){
       idle_energy_pre_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
       f_act_pd_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
       f_pre_pd_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
-      s_act_pd_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
       s_pre_pd_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
       ref_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
       sref_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
@@ -213,15 +212,14 @@ void DRAMPowerDDR3::bankPowerCalc()
                                             static_cast<double>(nbrofBanks)) + esharedActStdby / static_cast<double>(nbrofBanks);
         energy.idle_energy_act_banks[i] = static_cast<double>(c.idlecycles_act) * t.tCK * mps.iDD3N * mps.vDD/ static_cast<double>(nbrofBanks);
         energy.idle_energy_pre_banks[i] = static_cast<double>(c.idlecycles_pre) * t.tCK * mps.iDD2N * mps.vDD/ static_cast<double>(nbrofBanks);
-        energy.f_act_pd_energy_banks[i] = static_cast<double>(c.f_act_pdcycles) * t.tCK * mps.iDD3P1 * mps.vDD / static_cast<double>(nbrofBanks);
+        energy.f_act_pd_energy_banks[i] = static_cast<double>(c.f_act_pdcycles) * t.tCK * mps.iDD3P * mps.vDD / static_cast<double>(nbrofBanks);
         energy.f_pre_pd_energy_banks[i] = static_cast<double>(c.f_pre_pdcycles) * t.tCK * mps.iDD2P1 * mps.vDD / static_cast<double>(nbrofBanks);
-        energy.s_act_pd_energy_banks[i] = static_cast<double>(c.s_act_pdcycles) * t.tCK * mps.iDD3P0 * mps.vDD / static_cast<double>(nbrofBanks);
         energy.s_pre_pd_energy_banks[i] = static_cast<double>(c.s_pre_pdcycles) * t.tCK * mps.iDD2P0 * mps.vDD / static_cast<double>(nbrofBanks);
 
         energy.sref_energy_banks[i] = engy_sref_banks(c,mps, esharedPASR, i);
-        energy.sref_ref_act_energy_banks[i] = static_cast<double>(c.sref_ref_act_cycles) * t.tCK * mps.iDD3P0 * mps.vDD / static_cast<double>(nbrofBanks);
+        energy.sref_ref_act_energy_banks[i] = static_cast<double>(c.sref_ref_act_cycles) * t.tCK * mps.iDD3P * mps.vDD / static_cast<double>(nbrofBanks);
         energy.sref_ref_pre_energy_banks[i] = static_cast<double>(c.sref_ref_pre_cycles) * t.tCK * mps.iDD2P0 * mps.vDD / static_cast<double>(nbrofBanks);
-        energy.sref_ref_energy_banks[i] = energy.sref_ref_act_energy_banks[i] + energy.sref_ref_pre_energy_banks[i] ;//
+        energy.sref_ref_energy_banks[i] = energy.sref_ref_act_energy_banks[i] + energy.sref_ref_pre_energy_banks[i] ;
 
         energy.spup_energy_banks[i] = static_cast<double>(c.spup_cycles) * t.tCK * mps.iDD2N * mps.vDD / static_cast<double>(nbrofBanks);
         energy.spup_ref_act_energy_banks[i] = static_cast<double>(c.spup_ref_act_cycles) * t.tCK * mps.iDD3N * mps.vDD / static_cast<double>(nbrofBanks);//
@@ -238,7 +236,7 @@ void DRAMPowerDDR3::bankPowerCalc()
             energy.total_energy_banks[i] = energy.act_energy_banks[i] + energy.pre_energy_banks[i] + energy.read_energy_banks[i]
                                           + energy.ref_energy_banks[i] + energy.write_energy_banks[i] +
                                           + static_cast<double>(memArchSpec.numberOfRanks) * (energy.act_stdby_energy_banks[i]
-                                          + energy.pre_stdby_energy_banks[i] + energy.f_pre_pd_energy_banks[i] + energy.s_act_pd_energy_banks[i]
+                                          + energy.pre_stdby_energy_banks[i] + energy.f_pre_pd_energy_banks[i]
                                           + energy.s_pre_pd_energy_banks[i]+ energy.sref_ref_energy_banks[i] + energy.spup_ref_energy_banks[i]);
         }
 
@@ -252,10 +250,10 @@ void DRAMPowerDDR3::bankPowerCalc()
     power.window_average_power = energy.window_energy / (static_cast<double>(window_cycles) * t.tCK);
 
     window_cycles = c.actcycles + c.precycles +
-                     c.f_act_pdcycles + c.f_pre_pdcycles +
-                     c.s_act_pdcycles + c.s_pre_pdcycles + c.sref_cycles
-                     + c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
-                     c.spup_ref_act_cycles + c.spup_ref_pre_cycles;
+                    c.f_act_pdcycles + c.f_pre_pdcycles +
+                    + c.s_pre_pdcycles + c.sref_cycles
+                    + c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
+                    c.spup_ref_act_cycles + c.spup_ref_pre_cycles;
 
     total_cycles += window_cycles;
 

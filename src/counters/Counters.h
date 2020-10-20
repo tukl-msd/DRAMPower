@@ -54,6 +54,7 @@
 #include "./memspec/MemSpecDDR3.h"
 #include "./common/DebugManager.h"
 
+
 namespace DRAMPower {
 class Counters {
  public:
