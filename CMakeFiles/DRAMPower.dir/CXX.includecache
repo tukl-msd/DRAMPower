@@ -34,6 +34,26 @@ common/version.h
 common/libraries/cli11/CLI11.h
 /home/lulys96/Hiwi/DRAMPower/src/cli/common/libraries/cli11/CLI11.h
 
+/home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpec.h
+vector
+-
+algorithm
+-
+./jsonparser/JSONParser.h
+/home/lulys96/Hiwi/DRAMPower/src/memspec/jsonparser/JSONParser.h
+./MemCommand.h
+/home/lulys96/Hiwi/DRAMPower/src/memspec/MemCommand.h
+./common/DebugManager.h
+/home/lulys96/Hiwi/DRAMPower/src/memspec/common/DebugManager.h
+
+/home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR4.cc
+MemSpecDDR4.h
+/home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR4.h
+
+/home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpecDDR4.h
+MemSpec.h
+/home/lulys96/Hiwi/DRAMPower/src/memspec/MemSpec.h
+
 src/MemCommand.h
 stdint.h
 -

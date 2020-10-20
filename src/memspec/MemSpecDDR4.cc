@@ -46,7 +46,6 @@ MemSpecDDR4::MemSpecDDR4(json &memspec,
                          const std::string &traceName)
     : MemSpec(memspec,debug,writeToConsole,writeToFile,traceName)
 {
-      std::cout << "cp3: ate aq ok";
       refreshMode            = (parseStringWithDefault(memspec["RefreshMode"],"RefreshMode","1X"));
       memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
       memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in mili seconds
@@ -67,7 +66,6 @@ MemSpecDDR4::MemSpecDDR4(json &memspec,
       memTimingSpec.tCCD_L   = (parseUint(memspec["memtimingspec"]["CCD_L"], "CCD_L"));
       memTimingSpec.tRP      = (parseUint(memspec["memtimingspec"]["RP"], "RP"));
       memTimingSpec.tFAW     = (parseUint(memspec["memtimingspec"]["FAW"], "FAW"));
-      std::cout << "cp4: ate aq ok";
       if (refreshMode=="1X"){
           memTimingSpec.tRFC = (parseUint(memspec["memtimingspec"]["RFC"], "RFC"));
           memTimingSpec.tREFI    = (parseUint(memspec["memtimingspec"]["REFI"], "REFI"));
@@ -115,6 +113,8 @@ MemSpecDDR4::MemSpecDDR4(json &memspec,
       memPowerSpec[0].vXX       = (parseUdouble(memspec["mempowerspec"]["vdd"], "vdd"));
       memPowerSpec[0].iXX2P     = (parseUdouble(memspec["mempowerspec"]["idd2p"], "idd2p"));
       memPowerSpec[0].iXX3P     = (parseUdouble(memspec["mempowerspec"]["idd3p"], "idd3p"));
+
+      memPowerSpec.push_back(MemPowerSpec());
 
       memPowerSpec[1].iXX0      = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp0"], "ipp0"));
       memPowerSpec[1].iXX2N     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp2n"], "ipp2n"));
