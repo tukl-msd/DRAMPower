@@ -1,0 +1,4 @@
+/home/lulys96/Hiwi/DRAMPower/CMakeFiles/rebuild_cache.dir
+/home/lulys96/Hiwi/DRAMPower/CMakeFiles/edit_cache.dir
+/home/lulys96/Hiwi/DRAMPower/CMakeFiles/DRAMPower.dir
+/home/lulys96/Hiwi/DRAMPower/CMakeFiles/DRAMPowerCli.dir

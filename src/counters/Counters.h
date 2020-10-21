@@ -130,6 +130,8 @@ class Counters {
   // Number of precharged auto-refresh cycles during self-refresh exit
   int64_t spup_ref_pre_cycles;
 
+  static bool commandSorter(const DRAMPower::MemCommand& i, const DRAMPower::MemCommand& j);
+
   int64_t zero_guard(int64_t cycles_in, const char* warning);
 
 

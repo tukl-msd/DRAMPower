@@ -17,7 +17,6 @@ class CountersDDR3 final : public Counters {
  public:
 
   CountersDDR3(MemSpecDDR3& memspec);
-
   MemSpecDDR3 memSpec;
   void getCommands(std::vector<MemCommand>& list,
                              bool lastupdate,

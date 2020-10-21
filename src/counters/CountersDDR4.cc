@@ -50,14 +50,6 @@
 using namespace DRAMPower;
 using namespace std;
 
-bool commandSorterDDR4(const DRAMPower::MemCommand& i, const DRAMPower::MemCommand& j)
-{
-  if (i.getTimeInt64() == j.getTimeInt64()) {
-    return i.getType() == DRAMPower::MemCommand::PRE && j.getType() != DRAMPower::MemCommand::PRE;
-  } else {
-    return i.getTimeInt64() < j.getTimeInt64();
-  }
-}
 
 CountersDDR4::CountersDDR4(MemSpecDDR4& memspec) :
 memSpec(memspec)
@@ -121,7 +113,7 @@ void CountersDDR4::getCommands(std::vector<MemCommand>& list, bool lastupdate, i
       }
     }
   }
-  sort(list.begin(), list.end(), commandSorterDDR4);
+  sort(list.begin(), list.end(), commandSorter);
   if (lastupdate && list.empty() == false) {
     // Add cycles at the end of the list
     int64_t t =  memSpec.timeToCompletion(list.back().getType()) + list.back().getTimeInt64() - 1;

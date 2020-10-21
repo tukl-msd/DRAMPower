@@ -52,6 +52,15 @@ using namespace DRAMPower;
 using namespace std;
 
 
+bool Counters::commandSorter(const DRAMPower::MemCommand& i, const DRAMPower::MemCommand& j)
+{
+  if (i.getTimeInt64() == j.getTimeInt64()) {
+    return i.getType() == DRAMPower::MemCommand::PRE && j.getType() != DRAMPower::MemCommand::PRE;
+  } else {
+    return i.getTimeInt64() < j.getTimeInt64();
+  }
+}
+
 
 // function to clear counters
 void Counters::clearCounters(const int64_t timestamp)

@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/DRAMPowerCli.dir/src/cli/drampower.cc.o CMakeFiles/DRAMPowerCli.dir/src/cli/CliHandler.cc.o  -o DRAMPowerCli  libDRAMPower.a 
