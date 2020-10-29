@@ -48,6 +48,8 @@ public:
     ~MemSpecDDR3() {}
     int64_t timeToCompletion(DRAMPower::MemCommand::cmds type);
 
+    unsigned numberOfDevicesOnDIMM;
+
     // Memspec Variables:
     struct MemTimingSpec{
      double fCKMHz;

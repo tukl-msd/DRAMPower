@@ -43,22 +43,27 @@ MemSpec::MemSpec(nlohmann::json &memspec,
                  const bool writeToFile,
                  const std::string &traceName){
       setupDebugManager(debug, writeToConsole, writeToFile, traceName);
-      memArchSpec.numberOfChannels = parseUint(memspec["memarchitecturespec"]["nbrOfChannels"],"nbrOfChannels");
-      memArchSpec.numberOfRanks=parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
-      memArchSpec.numberOfBanks=parseUint(memspec["memarchitecturespec"]["nbrOfBanks"],"nbrOfBanks");
-      memArchSpec.numberOfDevicesOnDIMM = parseUint(memspec["memarchitecturespec"]["nbrOfDevicesOnDIMM"],"nbrOfDevicesOnDIMM");
-      memArchSpec.numberOfBankGroups = 1;//parseUint(memspec["memarchitecturespec"]["nbrOfBankGroups"],"nbrOfBankGroups");
-      memArchSpec.banksPerRank = memArchSpec.numberOfBanks/memArchSpec.numberOfRanks;
-      memArchSpec.groupsPerRank = memArchSpec.numberOfBankGroups / memArchSpec.numberOfRanks;
-      memArchSpec.banksPerGroup = memArchSpec.numberOfBanks / memArchSpec.numberOfBankGroups;
-      memArchSpec.numberOfRows = (parseUint(memspec["memarchitecturespec"]["nbrOfRows"],"nbrOfRows"));
-      memArchSpec.numberOfColumns = (parseUint(memspec["memarchitecturespec"]["nbrOfColumns"],"nbrOfColumns"));
-      memArchSpec.burstLength = (parseUint(memspec["memarchitecturespec"]["burstLength"],"burstLength"));
-      memArchSpec.dataRate = (parseUint(memspec["memarchitecturespec"]["dataRate"],"dataRate"));
-      memArchSpec.bitWidth = (parseUint(memspec["memarchitecturespec"]["width"],"width"));
+      numberOfBanks=parseUint(memspec["memarchitecturespec"]["nbrOfBanks"],"nbrOfBanks");
+      numberOfRows = (parseUint(memspec["memarchitecturespec"]["nbrOfRows"],"nbrOfRows"));
+      numberOfColumns = (parseUint(memspec["memarchitecturespec"]["nbrOfColumns"],"nbrOfColumns"));
+      burstLength = (parseUint(memspec["memarchitecturespec"]["burstLength"],"burstLength"));
+      dataRate = (parseUint(memspec["memarchitecturespec"]["dataRate"],"dataRate"));
+      bitWidth = (parseUint(memspec["memarchitecturespec"]["width"],"width"));
       memoryId = (parseString(memspec["memoryId"], "memoryId"));
       memoryType = (parseString(memspec["memoryType"], "memoryType"));
 }
+
+
+
+//memArchSpec.numberOfChannels = parseUint(memspec["memarchitecturespec"]["nbrOfChannels"],"nbrOfChannels");
+//memArchSpec.numberOfRanks=parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
+//memArchSpec.numberOfDevicesOnDIMM = parseUint(memspec["memarchitecturespec"]["nbrOfDevicesOnDIMM"],"nbrOfDevicesOnDIMM");
+//memArchSpec.numberOfBankGroups = parseUint(memspec["memarchitecturespec"]["nbrOfBankGroups"],"nbrOfBankGroups");
+//memArchSpec.banksPerRank = memArchSpec.numberOfBanks/memArchSpec.numberOfRanks;
+//memArchSpec.groupsPerRank = memArchSpec.numberOfBankGroups / memArchSpec.numberOfRanks;
+//memArchSpec.banksPerGroup = memArchSpec.numberOfBanks / memArchSpec.numberOfBankGroups;
+
+
 
 MemSpec::~MemSpec()
 {

@@ -33,73 +33,63 @@
  *    Lukas Steiner
  */
 
-#ifndef MEMSPECDDR4_H
-#define MEMSPECDDR4_H
+#ifndef MemSpecWideIO_H
+#define MemSpecWideIO_H
 
 #include "MemSpec.h"
 
-class MemSpecDDR4 final : public MemSpec
+class MemSpecWideIO final : public MemSpec
 {
 public:
-    MemSpecDDR4(json &memspec, const bool debug __attribute__((unused))=false,
+    MemSpecWideIO(json &memspec, const bool debug __attribute__((unused))=false,
                 const bool writeToConsole __attribute__((unused))=false,
                 const bool writeToFile __attribute__((unused))=false,
                 const std::string &traceName __attribute__((unused))="");
-    ~MemSpecDDR4() {}
+    ~MemSpecWideIO() {}
     int64_t timeToCompletion(DRAMPower::MemCommand::cmds type);
 
-    unsigned numberOfBankGroups;
-    unsigned numberOfDevicesOnDIMM;
-    unsigned banksPerGroup;
+    //ranks?
+    unsigned numberOfChannels;
 
     // Memspec Variables:
     struct MemTimingSpec{
      double fCKMHz;
      double tCK;
      int64_t tCKE;
-     int64_t tPD;
      int64_t tCKESR;
      int64_t tRAS;
      int64_t tRC;
      int64_t tRCD;
      int64_t tRL;
-     int64_t tRTP;
      int64_t tWL;
      int64_t tWR;
      int64_t tXP;
-     int64_t tXS;
+     int64_t tXSR;
      int64_t tREFI;
      int64_t tRFC;
      int64_t tRP;
      int64_t tDQSCK;
-     int64_t tCCD_S;
-     int64_t tCCD_L;
-     int64_t tFAW;
-     int64_t tRRD_S;
-     int64_t tRRD_L;
-     int64_t tWTR_S;
-     int64_t tWTR_L;
-     int64_t tXPDLL;
-     int64_t tXSDLL;
-     int64_t tAL;
-     int64_t tACTPDEN;
-     int64_t tPRPDEN;
-     int64_t tREFPDEN;
+     int64_t tAC;
+     int64_t tCCD_R;
+     int64_t tCCD_W;
+     int64_t tRRD;
+     int64_t tTAW;
+     int64_t tWTR;
      int64_t tRTRS;
      };
 
     // Currents and Voltages:
     struct MemPowerSpec{
-     double iXX0;
-     double iXX2N;
-     double iXX3N;
-     double iXX4R;
-     double iXX4W;
-     double iXX5;
-     double iXX6;
-     double vXX;
-     double iXX2P;
-     double iXX3P;
+     double iDD0X;
+     double iDD2PX;
+     double iDD2NX;
+     double iDD3PX;
+     double iDD3nX;
+     double iDD4RX;
+     double iDD4WX;
+     double iDD5X;
+     double iDD6X;
+     double vDDX;
 
      double capacitance;
      double ioPower;
@@ -109,33 +99,11 @@ public:
     };
 
     struct BankWiseParams{
-        // Set of possible PASR modes
-        enum pasrModes{
-          PASR_0,
-          PASR_1,
-          PASR_2,
-          PASR_3,
-          PASR_4,
-          PASR_5,
-          PASR_6,
-          PASR_7
-        };
-        // List of active banks under the specified PASR mode
-        std::vector<unsigned> activeBanks;
         // ACT Standby power factor
         int64_t bwPowerFactRho;
         // Self-Refresh power factor( true : Bankwise mode)
         int64_t bwPowerFactSigma;
-        // Whether PASR is enabled ( true : enabled )
-        bool flgPASR;
-        // PASR mode utilized (int 0-7)
-        int64_t pasrMode;
-        // Whether bank is active in PASR
-        bool isBankActiveInPasr(const unsigned bankIdx) const;
-
     };
-
-    std::string refreshMode;
 
     MemTimingSpec memTimingSpec;
     std::vector<MemPowerSpec> memPowerSpec;
@@ -146,4 +114,4 @@ public:
 
 };
 
-#endif // MEMSPECDDR4_H
+#endif // MemSpecWideIO_H

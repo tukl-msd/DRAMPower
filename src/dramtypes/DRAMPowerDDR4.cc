@@ -16,7 +16,7 @@ DRAMPowerDDR4::DRAMPowerDDR4(MemSpecDDR4& memSpec, bool includeIoAndTermination)
 void DRAMPowerDDR4::calcEnergy()
 {
   updateCounters(true);
-  energy.clearEnergy(memSpec.memArchSpec.numberOfBanks);
+  energy.clearEnergy(memSpec.numberOfBanks);
   power.clearIOPower();
   if (includeIoAndTermination) calcIoTermEnergy();
   bankPowerCalc();
@@ -26,7 +26,7 @@ void DRAMPowerDDR4::calcWindowEnergy(int64_t timestamp)
 {
   doCommand(MemCommand::NOP, 0, timestamp);
   updateCounters(false, timestamp);
-  energy.clearEnergy(memSpec.memArchSpec.numberOfBanks);
+  energy.clearEnergy(memSpec.numberOfBanks);
   power.clearIOPower();
   if (includeIoAndTermination) calcIoTermEnergy();
   bankPowerCalc();
@@ -163,14 +163,14 @@ void DRAMPowerDDR4::bankPowerCalc()
   const MemSpecDDR4::MemTimingSpec& t = memSpec.memTimingSpec;
   const MemSpecDDR4::MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
   const MemSpecDDR4::BankWiseParams& bwPowerParams = memSpec.bwParams;
-  const int64_t nbrofBanks               = memSpec.memArchSpec.numberOfBanks;
+  const int64_t nbrofBanks               = memSpec.numberOfBanks;
   const Counters& c = counters;
 
   int vddIdx=0;
   for (auto mps : memSpec.memPowerSpec) {
 
 
-    int64_t burstCc = memArchSpec.burstLength / memArchSpec.dataRate;
+    int64_t burstCc = memSpec.burstLength / memSpec.dataRate;
 
     // Using the number of cycles that at least one bank is active here
     // But the current iDDrho is less than iDD3N1
@@ -232,7 +232,7 @@ void DRAMPowerDDR4::bankPowerCalc()
         for (unsigned i = 0; i < nbrofBanks; i++) {
             energy.total_energy_banks[i] = energy.act_energy_banks[i] + energy.pre_energy_banks[i] + energy.read_energy_banks[i]
                                           + energy.ref_energy_banks[i] + energy.write_energy_banks[i] +
-                                          + static_cast<double>(memArchSpec.numberOfRanks) * (energy.act_stdby_energy_banks[i]
+                                          + static_cast<double>(memSpec.numberOfRanks) * (energy.act_stdby_energy_banks[i]
                                           + energy.pre_stdby_energy_banks[i] + energy.f_pre_pd_energy_banks[i]
                                           + energy.s_pre_pd_energy_banks[i]+ energy.sref_ref_energy_banks[i] + energy.spup_ref_energy_banks[i]);
         }
@@ -271,7 +271,6 @@ double DRAMPowerDDR4::engy_sref_banks(const Counters& c,MemSpecDDR4::MemPowerSpe
 {
 
     const MemSpecDDR4::BankWiseParams& bwPowerParams = memSpec.bwParams;
-    const MemSpecDDR4::MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
     const MemSpecDDR4::MemTimingSpec& t                 = memSpec.memTimingSpec;
 
     // Bankwise Self-refresh energy
@@ -285,17 +284,17 @@ double DRAMPowerDDR4::engy_sref_banks(const Counters& c,MemSpecDDR4::MemPowerSpe
     if (bwPowerParams.flgPASR){
         sref_energy_shared = (((mps.iXX5 - mps.iXX3N) * (static_cast<double>(c.sref_ref_act_cycles
                                                           + c.spup_ref_act_cycles + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles))) * mps.vXX * t.tCK)
-                                                / memArchSpec.numberOfBanks;
+                                                / memSpec.numberOfBanks;
         //if the bank is active under current PASR mode
         if (bwPowerParams.isBankActiveInPasr(bnkIdx)){
             // Distribute the sref energy to the active banks
-            iDDsigmaDynBanks = (static_cast<double>(100 - bwPowerParams.bwPowerFactSigma) / (100.0 * static_cast<double>(memArchSpec.numberOfBanks))) * mps.iXX6;
+            iDDsigmaDynBanks = (static_cast<double>(100 - bwPowerParams.bwPowerFactSigma) / (100.0 * static_cast<double>(memSpec.numberOfBanks))) * mps.iXX6;
             pasr_energy_dyn = mps.vXX * iDDsigmaDynBanks * static_cast<double>(c.sref_cycles);
             // Add the static components
-            sref_energy_banks = sref_energy_shared + pasr_energy_dyn + (esharedPASR /static_cast<double>(memArchSpec.numberOfBanks));
+            sref_energy_banks = sref_energy_shared + pasr_energy_dyn + (esharedPASR /static_cast<double>(memSpec.numberOfBanks));
 
         }else{
-            sref_energy_banks = (esharedPASR /static_cast<double>(memArchSpec.numberOfBanks));
+            sref_energy_banks = (esharedPASR /static_cast<double>(memSpec.numberOfBanks));
         }
     }
     //When PASR is not active total all the banks are in Self-Refresh. Thus total Self-Refresh energy is distributed across all banks
@@ -305,7 +304,7 @@ double DRAMPowerDDR4::engy_sref_banks(const Counters& c,MemSpecDDR4::MemPowerSpe
             sref_energy_banks = (((mps.iXX6 * static_cast<double>(c.sref_cycles)) + ((mps.iXX5 - mps.iXX3N) * static_cast<double>(c.sref_ref_act_cycles
                                                 + c.spup_ref_act_cycles + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles)))
                                                 * mps.vXX * t.tCK)
-                                                / static_cast<double>(memSpec.memArchSpec.numberOfBanks);
+                                                / static_cast<double>(memSpec.numberOfBanks);
     }
     return sref_energy_banks;
 }
@@ -319,7 +318,7 @@ void DRAMPowerDDR4::io_term_power()
   power.IO_power     = memSpec.memPowerSpec[0].ioPower;    // in W
   power.WR_ODT_power = memSpec.memPowerSpec[0].wrOdtPower; // in W
 
-  if (memSpec.memArchSpec.numberOfRanks > 1) {
+  if (memSpec.numberOfRanks > 1) {
     power.TermRD_power = memSpec.memPowerSpec[0].termRdPower; // in W
     power.TermWR_power = memSpec.memPowerSpec[0].termWrPower; // in W
   }
@@ -334,37 +333,36 @@ void DRAMPowerDDR4::io_term_power()
 void DRAMPowerDDR4::calcIoTermEnergy()
 {
         io_term_power();
-        const MemSpecDDR4::MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
         const MemSpecDDR4::MemTimingSpec& t                 = memSpec.memTimingSpec;
         const Counters& c = counters;
 
-        // memArchSpec.width represents the number of data (dq) pins.
+        // memSpec.width represents the number of data (dq) pins.
         // 1 DQS pin is associated with every data byte
-        int64_t dqPlusDqsBits = memArchSpec.bitWidth + memArchSpec.bitWidth / 8;
+        int64_t dqPlusDqsBits = memSpec.bitWidth + memSpec.bitWidth / 8;
         // 1 DQS and 1 DM pin is associated with every data byte
-        int64_t dqPlusDqsPlusMaskBits = memArchSpec.bitWidth + memArchSpec.bitWidth / 8 + memArchSpec.bitWidth / 8;
+        int64_t dqPlusDqsPlusMaskBits = memSpec.bitWidth + memSpec.bitWidth / 8 + memSpec.bitWidth / 8;
         // Size of one clock period for the data bus.
-        double ddtRPeriod = t.tCK / static_cast<double>(memArchSpec.dataRate);
+        double ddtRPeriod = t.tCK / static_cast<double>(memSpec.dataRate);
 
         // Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
-        energy.read_io_energy = static_cast<double>(sum(c.numberofreadsBanks) * memArchSpec.burstLength)
+        energy.read_io_energy = static_cast<double>(sum(c.numberofreadsBanks) * memSpec.burstLength)
                                 * ddtRPeriod * power.IO_power * static_cast<double>(dqPlusDqsBits);
 
 
         // Write ODT power is consumed by each DQ (data), DQS (data strobe) and DM
-        energy.write_term_energy = static_cast<double>(sum(c.numberofwritesBanks) * memArchSpec.burstLength)
+        energy.write_term_energy = static_cast<double>(sum(c.numberofwritesBanks) * memSpec.burstLength)
                                    * ddtRPeriod * power.WR_ODT_power * static_cast<double>(dqPlusDqsPlusMaskBits);
 
 
-        if (memArchSpec.numberOfRanks > 1) {
+        if (memSpec.numberOfRanks > 1) {
           // Termination power consumed in the idle rank during reads on the active
           // rank by each DQ (data) and DQS (data strobe) pin.
-          energy.read_oterm_energy = static_cast<double>(sum(c.numberofreadsBanks) * memArchSpec.burstLength)
+          energy.read_oterm_energy = static_cast<double>(sum(c.numberofreadsBanks) * memSpec.burstLength)
                                      * ddtRPeriod * power.TermRD_power * static_cast<double>(dqPlusDqsBits);
 
           // Termination power consumed in the idle rank during writes on the active
           // rank by each DQ (data), DQS (data strobe) and DM (data mask) pin.
-          energy.write_oterm_energy = static_cast<double>(sum(c.numberofwritesBanks) * memArchSpec.burstLength)
+          energy.write_oterm_energy = static_cast<double>(sum(c.numberofwritesBanks) * memSpec.burstLength)
                                       * ddtRPeriod * power.TermWR_power * static_cast<double>(dqPlusDqsPlusMaskBits);
         }
 
@@ -379,12 +377,11 @@ void DRAMPowerDDR4::calcIoTermEnergy()
 
 void DRAMPowerDDR4::powerPrint()
 {
-   const MemSpecDDR4::MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
    const Counters& c = counters;
 
-  const uint64_t nRanks = static_cast<uint64_t>(memArchSpec.numberOfRanks);
+  const uint64_t nRanks = static_cast<uint64_t>(memSpec.numberOfRanks);
   const char eUnit[] = " pJ";
-  const int64_t nbrofBanks = memSpec.memArchSpec.numberOfBanks;
+  const int64_t nbrofBanks = memSpec.numberOfBanks;
   double nRanksDouble = static_cast<double>(nRanks);
 
   ios_base::fmtflags flags = cout.flags();

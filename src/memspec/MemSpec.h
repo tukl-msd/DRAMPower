@@ -48,22 +48,22 @@
 class MemSpec
 {
 public:
-    struct MemArchitectureSpec {
-    unsigned numberOfChannels;
-    unsigned numberOfRanks;
-    unsigned banksPerRank;
-    unsigned groupsPerRank;
-    unsigned banksPerGroup;
     unsigned numberOfBanks;
-    unsigned numberOfBankGroups;
-    unsigned numberOfDevicesOnDIMM;
     unsigned numberOfRows;
     unsigned numberOfColumns;
     unsigned burstLength;
     unsigned dataRate;
     unsigned bitWidth;
-    };
 
+    /* MEMSPEC specific parameters
+    unsigned numberOfBankGroups;
+    unsigned numberOfDevicesOnDIMM;
+    unsigned numberOfRanks;
+    unsigned banksPerRank;
+    unsigned groupsPerRank;
+    unsigned banksPerGroup;
+    unsigned numberOfChannels;
+    */
 
     std::string memoryId;
     std::string memoryType;
@@ -72,7 +72,6 @@ public:
     int64_t prechargeOffsetRD;
     int64_t prechargeOffsetWR;
 
-    MemArchitectureSpec memArchSpec;
     virtual ~MemSpec();
     virtual int64_t timeToCompletion(DRAMPower::MemCommand::cmds type) = 0;
     virtual int64_t getExitSREFtime();

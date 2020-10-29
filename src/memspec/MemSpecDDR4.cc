@@ -46,6 +46,10 @@ MemSpecDDR4::MemSpecDDR4(json &memspec,
                          const std::string &traceName)
     : MemSpec(memspec,debug,writeToConsole,writeToFile,traceName)
 {
+      numberOfDevicesOnDIMM = parseUint(memspec["memarchitecturespec"]["nbrOfDevicesOnDIMM"],"nbrOfDevicesOnDIMM");
+      numberOfBankGroups = parseUint(memspec["memarchitecturespec"]["nbrOfBankGroups"],"nbrOfBankGroups");
+      banksPerGroup = numberOfBanks / numberOfBankGroups;
+
       refreshMode            = (parseStringWithDefault(memspec["RefreshMode"],"RefreshMode","1X"));
       memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
       memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in mili seconds
