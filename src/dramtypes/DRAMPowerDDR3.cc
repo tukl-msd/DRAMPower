@@ -16,7 +16,7 @@ DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3& memSpec, bool includeIoAndTermination)
 void DRAMPowerDDR3::calcEnergy()
 {
   updateCounters(true);
-  energy.clearEnergy(memSpec.memArchSpec.numberOfBanks);
+  energy.clearEnergy(memSpec.numberOfBanks);
   power.clearIOPower();
   if (includeIoAndTermination) calcIoTermEnergy();
   bankPowerCalc();
@@ -26,7 +26,7 @@ void DRAMPowerDDR3::calcWindowEnergy(int64_t timestamp)
 {
   doCommand(MemCommand::NOP, 0, timestamp);
   updateCounters(false, timestamp);
-  energy.clearEnergy(memSpec.memArchSpec.numberOfBanks);
+  energy.clearEnergy(memSpec.numberOfBanks);
   power.clearIOPower();
   if (includeIoAndTermination) calcIoTermEnergy();
   bankPowerCalc();
@@ -161,16 +161,15 @@ void DRAMPowerDDR3::Power::clearIOPower(){
 void DRAMPowerDDR3::bankPowerCalc()
 {
   const MemSpecDDR3::MemTimingSpec& t = memSpec.memTimingSpec;
-  const MemSpecDDR3::MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
   const MemSpecDDR3::BankWiseParams& bwPowerParams = memSpec.bwParams;
-  const int64_t nbrofBanks               = memSpec.memArchSpec.numberOfBanks;
+  const int64_t nbrofBanks               = memSpec.numberOfBanks;
   const Counters& c = counters;
 
   int vddIdx=0;
   for (auto mps : memSpec.memPowerSpec) {
 
 
-    int64_t burstCc = memArchSpec.burstLength / memArchSpec.dataRate;
+    int64_t burstCc = memSpec.burstLength / memSpec.dataRate;
 
     // Using the number of cycles that at least one bank is active here
     // But the current iDDrho is less than iDD3N1
@@ -235,9 +234,9 @@ void DRAMPowerDDR3::bankPowerCalc()
         for (unsigned i = 0; i < nbrofBanks; i++) {
             energy.total_energy_banks[i] = energy.act_energy_banks[i] + energy.pre_energy_banks[i] + energy.read_energy_banks[i]
                                           + energy.ref_energy_banks[i] + energy.write_energy_banks[i] +
-                                          + static_cast<double>(memArchSpec.numberOfRanks) * (energy.act_stdby_energy_banks[i]
-                                          + energy.pre_stdby_energy_banks[i] + energy.f_pre_pd_energy_banks[i]
-                                          + energy.s_pre_pd_energy_banks[i]+ energy.sref_ref_energy_banks[i] + energy.spup_ref_energy_banks[i]);
+                                          energy.act_stdby_energy_banks[i] + energy.pre_stdby_energy_banks[i] +
+                                          energy.f_pre_pd_energy_banks[i] + energy.s_pre_pd_energy_banks[i]+
+                                          energy.sref_ref_energy_banks[i] + energy.spup_ref_energy_banks[i];
         }
 
         //Energy total for vdd domain
@@ -274,7 +273,6 @@ double DRAMPowerDDR3::engy_sref_banks(const Counters& c,MemSpecDDR3::MemPowerSpe
 {
 
     const MemSpecDDR3::BankWiseParams& bwPowerParams = memSpec.bwParams;
-    const MemSpecDDR3::MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
     const MemSpecDDR3::MemTimingSpec& t                 = memSpec.memTimingSpec;
 
     // Bankwise Self-refresh energy
@@ -288,17 +286,17 @@ double DRAMPowerDDR3::engy_sref_banks(const Counters& c,MemSpecDDR3::MemPowerSpe
     if (bwPowerParams.flgPASR){
         sref_energy_shared = (((mps.iDD5 - mps.iDD3N) * (static_cast<double>(c.sref_ref_act_cycles
                                                           + c.spup_ref_act_cycles + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles))) * mps.vDD * t.tCK)
-                                                / memArchSpec.numberOfBanks;
+                                                / memSpec.numberOfBanks;
         //if the bank is active under current PASR mode
         if (bwPowerParams.isBankActiveInPasr(bnkIdx)){
             // Distribute the sref energy to the active banks
-            iDDsigmaDynBanks = (static_cast<double>(100 - bwPowerParams.bwPowerFactSigma) / (100.0 * static_cast<double>(memArchSpec.numberOfBanks))) * mps.iDD6;
+            iDDsigmaDynBanks = (static_cast<double>(100 - bwPowerParams.bwPowerFactSigma) / (100.0 * static_cast<double>(memSpec.numberOfBanks))) * mps.iDD6;
             pasr_energy_dyn = mps.vDD * iDDsigmaDynBanks * static_cast<double>(c.sref_cycles);
             // Add the static components
-            sref_energy_banks = sref_energy_shared + pasr_energy_dyn + (esharedPASR /static_cast<double>(memArchSpec.numberOfBanks));
+            sref_energy_banks = sref_energy_shared + pasr_energy_dyn + (esharedPASR /static_cast<double>(memSpec.numberOfBanks));
 
         }else{
-            sref_energy_banks = (esharedPASR /static_cast<double>(memArchSpec.numberOfBanks));
+            sref_energy_banks = (esharedPASR /static_cast<double>(memSpec.numberOfBanks));
         }
     }
     //When PASR is not active total all the banks are in Self-Refresh. Thus total Self-Refresh energy is distributed across all banks
@@ -308,7 +306,7 @@ double DRAMPowerDDR3::engy_sref_banks(const Counters& c,MemSpecDDR3::MemPowerSpe
             sref_energy_banks = (((mps.iDD6 * static_cast<double>(c.sref_cycles)) + ((mps.iDD5 - mps.iDD3N) * static_cast<double>(c.sref_ref_act_cycles
                                                 + c.spup_ref_act_cycles + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles)))
                                                 * mps.vDD * t.tCK)
-                                                / static_cast<double>(memSpec.memArchSpec.numberOfBanks);
+                                                / static_cast<double>(memSpec.numberOfBanks);
     }
     return sref_energy_banks;
 }
@@ -322,14 +320,11 @@ void DRAMPowerDDR3::io_term_power()
   power.IO_power     = memSpec.memPowerSpec[0].ioPower;    // in W
   power.WR_ODT_power = memSpec.memPowerSpec[0].wrOdtPower; // in W
 
-  if (memSpec.memArchSpec.numberOfRanks > 1) {
-    power.TermRD_power = memSpec.memPowerSpec[0].termRdPower; // in W
-    power.TermWR_power = memSpec.memPowerSpec[0].termWrPower; // in W
-  }
 
   if (memSpec.memPowerSpec[0].capacitance != 0.0) {
     // If capacity is given, then IO Power depends on DRAM clock frequency.
-    power.IO_power = memSpec.memPowerSpec[0].capacitance * 0.5 * pow(memSpec.memPowerSpec[0].vDD, 2.0) * memSpec.memTimingSpec.fCKMHz * 1000000;
+    power.IO_power = memSpec.memPowerSpec[0].capacitance * 0.5 * pow(memSpec.memPowerSpec[0].vDD, 2.0)
+                    * memSpec.memTimingSpec.fCKMHz * 1000000;
   }
 } // DRAMPowerDDR3::io_term_power
 
@@ -337,39 +332,25 @@ void DRAMPowerDDR3::io_term_power()
 void DRAMPowerDDR3::calcIoTermEnergy()
 {
         io_term_power();
-        const MemSpecDDR3::MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
         const MemSpecDDR3::MemTimingSpec& t                 = memSpec.memTimingSpec;
         const Counters& c = counters;
 
-        // memArchSpec.width represents the number of data (dq) pins.
+        // memSpec.width represents the number of data (dq) pins.
         // 1 DQS pin is associated with every data byte
-        int64_t dqPlusDqsBits = memArchSpec.bitWidth + memArchSpec.bitWidth / 8;
+        int64_t dqPlusDqsBits = memSpec.bitWidth + memSpec.bitWidth / 8;
         // 1 DQS and 1 DM pin is associated with every data byte
-        int64_t dqPlusDqsPlusMaskBits = memArchSpec.bitWidth + memArchSpec.bitWidth / 8 + memArchSpec.bitWidth / 8;
+        int64_t dqPlusDqsPlusMaskBits = memSpec.bitWidth + memSpec.bitWidth / 8 + memSpec.bitWidth / 8;
         // Size of one clock period for the data bus.
-        double ddtRPeriod = t.tCK / static_cast<double>(memArchSpec.dataRate);
+        double ddtRPeriod = t.tCK / static_cast<double>(memSpec.dataRate);
 
         // Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
-        energy.read_io_energy = static_cast<double>(sum(c.numberofreadsBanks) * memArchSpec.burstLength)
+        energy.read_io_energy = static_cast<double>(sum(c.numberofreadsBanks) * memSpec.burstLength)
                                 * ddtRPeriod * power.IO_power * static_cast<double>(dqPlusDqsBits);
 
 
         // Write ODT power is consumed by each DQ (data), DQS (data strobe) and DM
-        energy.write_term_energy = static_cast<double>(sum(c.numberofwritesBanks) * memArchSpec.burstLength)
+        energy.write_term_energy = static_cast<double>(sum(c.numberofwritesBanks) * memSpec.burstLength)
                                    * ddtRPeriod * power.WR_ODT_power * static_cast<double>(dqPlusDqsPlusMaskBits);
-
-
-        if (memArchSpec.numberOfRanks > 1) {
-          // Termination power consumed in the idle rank during reads on the active
-          // rank by each DQ (data) and DQS (data strobe) pin.
-          energy.read_oterm_energy = static_cast<double>(sum(c.numberofreadsBanks) * memArchSpec.burstLength)
-                                     * ddtRPeriod * power.TermRD_power * static_cast<double>(dqPlusDqsBits);
-
-          // Termination power consumed in the idle rank during writes on the active
-          // rank by each DQ (data), DQS (data strobe) and DM (data mask) pin.
-          energy.write_oterm_energy = static_cast<double>(sum(c.numberofwritesBanks) * memArchSpec.burstLength)
-                                      * ddtRPeriod * power.TermWR_power * static_cast<double>(dqPlusDqsPlusMaskBits);
-        }
 
         // Sum of all IO and termination energy
         energy.io_term_energy = energy.read_io_energy + energy.write_term_energy
@@ -382,13 +363,10 @@ void DRAMPowerDDR3::calcIoTermEnergy()
 
 void DRAMPowerDDR3::powerPrint()
 {
-   const MemSpecDDR3::MemArchitectureSpec& memArchSpec = memSpec.memArchSpec;
    const Counters& c = counters;
 
-  const uint64_t nRanks = static_cast<uint64_t>(memArchSpec.numberOfRanks);
   const char eUnit[] = " pJ";
-  const int64_t nbrofBanks = memSpec.memArchSpec.numberOfBanks;
-  double nRanksDouble = static_cast<double>(nRanks);
+  const int64_t nbrofBanks = memSpec.numberOfBanks;
 
   ios_base::fmtflags flags = cout.flags();
   streamsize precision = cout.precision();
@@ -410,21 +388,21 @@ void DRAMPowerDDR3::powerPrint()
         << endl << "  RD Cmd Energy: " << energy.read_energy_banks[i] << eUnit
         << endl << "  WR Cmd Energy: " << energy.write_energy_banks[i] << eUnit
         << endl << "  Auto-Refresh Energy: " << energy.ref_energy_banks[i] << eUnit
-        << endl << "  ACT Stdby Energy: " << nRanksDouble * energy.act_stdby_energy_banks[i] << eUnit
-        << endl << "  PRE Stdby Energy: " << nRanksDouble * energy.pre_stdby_energy_banks[i] << eUnit
-        << endl << "  Active Idle Energy: "<< nRanksDouble * energy.idle_energy_act_banks[i] << eUnit
-        << endl << "  Precharge Idle Energy: "<< nRanksDouble * energy.idle_energy_pre_banks[i] << eUnit
-        << endl << "  Fast-Exit Active Power-Down Energy: "<< nRanksDouble * energy.f_act_pd_energy_banks[i] << eUnit
-        << endl << "  Fast-Exit Precharged Power-Down Energy: "<< nRanksDouble * energy.f_pre_pd_energy_banks[i] << eUnit
-        << endl << "  Slow-Exit Precharged Power-Down Energy: "<< nRanksDouble * energy.s_pre_pd_energy_banks[i] << eUnit
-        << endl << "  Self-Refresh Energy: "<< nRanksDouble * energy.sref_energy_banks[i] << eUnit
-        << endl << "  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: "<< nRanksDouble * energy.sref_ref_act_energy_banks[i] << eUnit
-        << endl << "  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: " << nRanksDouble * energy.sref_ref_pre_energy_banks[i] << eUnit
-        << endl << "  Self-Refresh Power-Up Energy: "<< nRanksDouble * energy.spup_energy_banks[i] << eUnit
-        << endl << "  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<< nRanksDouble * energy.spup_ref_act_energy_banks[i] << eUnit
-        << endl << "  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<< nRanksDouble * energy.spup_ref_pre_energy_banks[i] << eUnit
-        << endl << "  Active Power-Up Energy: "<< nRanksDouble * energy.pup_act_energy_banks[i] << eUnit
-        << endl << "  Precharged Power-Up Energy: "<< nRanksDouble * energy.pup_pre_energy_banks[i] << eUnit
+        << endl << "  ACT Stdby Energy: " <<  energy.act_stdby_energy_banks[i] << eUnit
+        << endl << "  PRE Stdby Energy: " <<  energy.pre_stdby_energy_banks[i] << eUnit
+        << endl << "  Active Idle Energy: "<<  energy.idle_energy_act_banks[i] << eUnit
+        << endl << "  Precharge Idle Energy: "<<  energy.idle_energy_pre_banks[i] << eUnit
+        << endl << "  Fast-Exit Active Power-Down Energy: "<<  energy.f_act_pd_energy_banks[i] << eUnit
+        << endl << "  Fast-Exit Precharged Power-Down Energy: "<<  energy.f_pre_pd_energy_banks[i] << eUnit
+        << endl << "  Slow-Exit Precharged Power-Down Energy: "<<  energy.s_pre_pd_energy_banks[i] << eUnit
+        << endl << "  Self-Refresh Energy: "<<  energy.sref_energy_banks[i] << eUnit
+        << endl << "  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: "<<  energy.sref_ref_act_energy_banks[i] << eUnit
+        << endl << "  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: " <<  energy.sref_ref_pre_energy_banks[i] << eUnit
+        << endl << "  Self-Refresh Power-Up Energy: "<<  energy.spup_energy_banks[i] << eUnit
+        << endl << "  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<<  energy.spup_ref_act_energy_banks[i] << eUnit
+        << endl << "  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<<  energy.spup_ref_pre_energy_banks[i] << eUnit
+        << endl << "  Active Power-Up Energy: "<<  energy.pup_act_energy_banks[i] << eUnit
+        << endl << "  Precharged Power-Up Energy: "<<  energy.pup_pre_energy_banks[i] << eUnit
         << endl << "  Total Energy of Bank: " << energy.total_energy_banks[i] << eUnit
         << endl;
     }
@@ -438,11 +416,6 @@ void DRAMPowerDDR3::powerPrint()
     cout << endl << "RD I/O Energy: " << energy.read_io_energy << eUnit << endl;
     // No Termination for LPDDR/2/3 and DDR memories
     cout << "WR Termination Energy: " << energy.write_term_energy << eUnit << endl;
-
-    if (nRanks > 1) {
-      cout <<         "RD Termination Energy (Idle rank): " << energy.read_oterm_energy << eUnit
-           << endl << "WR Termination Energy (Idle rank): " << energy.write_oterm_energy << eUnit << endl;
-    }
   }
 
   cout.flags(flags);

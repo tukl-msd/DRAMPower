@@ -92,31 +92,33 @@ class MemCommand {
   };
 
 //  MemCommand();
-  MemCommand(
-    // Command Type
+  MemCommand(// Command Type
     MemCommand::cmds type = UNINITIALIZED,
     // Target Bank
     unsigned         bank = 0,
     // Command Issue Timestamp (in cc)
-    int64_t          timestamp = 0L);
+    int64_t          timestamp = 0L,
+    //Command Rank if ranks are supported
+    unsigned rank = 0);
+
+
+  // Set command type
+  void setType(MemCommand::cmds _type);
+  // Set target Bank
+  void setBank(unsigned _bank);
+  // Set timestamp
+  void setTime(int64_t _timestamp);
+  // Set target Rank
+  void setRank(unsigned _rank);
 
   // Get command type
   cmds getType() const;
-
-  // Set command type
-  void setType(MemCommand::cmds type);
-
-  // Set target Bank
-  void setBank(unsigned bank);
-
   // Get target Bank
   unsigned getBank() const;
-
-  // Set timestamp
-  void setTime(int64_t _timestamp);
-
   // Get timestamp
   int64_t getTimeInt64() const;
+  // Get target Rank
+  unsigned getRank() const;
 
   cmds typeWithoutAutoPrechargeFlag() const;
 
@@ -180,6 +182,7 @@ class MemCommand {
   MemCommand::cmds type;
   unsigned bank;
   int64_t timestamp;
+  unsigned rank;
 };
 }
 #endif // ifndef MEMCOMMAND_H

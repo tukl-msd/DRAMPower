@@ -120,7 +120,7 @@ public:
         std::vector<unsigned> activeBanks;
         // ACT Standby power factor
         int64_t bwPowerFactRho;
-        // Self-Refresh power factor( true : Bankwise mode)
+        // Self-Refresh power factor
         int64_t bwPowerFactSigma;
         // Wherther PASR is enabled ( true : enabled )
         bool flgPASR;

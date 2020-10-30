@@ -54,7 +54,7 @@ using namespace std;
 CountersDDR3::CountersDDR3(MemSpecDDR3& memspec) :
 memSpec(memspec)
 {
-  auto &nBanks = memSpec.memArchSpec.numberOfBanks;
+  auto &nBanks = memSpec.numberOfBanks;
   // Initializing all counters and variables
   numberofactsBanks.assign(static_cast<size_t>(nBanks), 0);
   numberofpresBanks.assign(static_cast<size_t>(nBanks), 0);
@@ -192,7 +192,7 @@ void CountersDDR3::handlePupAct(int64_t timestamp)
 {
   // Command power-up in the active mode is always fast.
 
-  if ((mem_state == Counters::MS_PDN_F_ACT) /*| (mem_state == Counters::MS_PDN_S_ACT)*/) {
+  if (mem_state == Counters::MS_PDN_F_ACT) {
     f_act_pdcycles  += zero_guard(timestamp - pdn_cycle, "pdn_cycle is in the future.");
     pup_act_cycles  += memSpec.memTimingSpec.tXP;
     latest_act_cycle = timestamp;

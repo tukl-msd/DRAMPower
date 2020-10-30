@@ -46,8 +46,8 @@ MemSpecWideIO::MemSpecWideIO(json &memspec,
                              const std::string &traceName)
     : MemSpec(memspec,debug,writeToConsole,writeToFile,traceName)
 {
-      numberOfChannels = parseUint(memspec["memarchitecturespec"]["nbrOfChannels"],"nbrOfChannels");
-      //ranks?
+      numberOfChannels       = parseUint(memspec["memarchitecturespec"]["nbrOfChannels"],"nbrOfChannels");
+      numberOfRanks          = parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
       memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
       memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in mili seconds
       memTimingSpec.tCKESR   = (parseUint(memspec["memtimingspec"]["CKESR"], "CKESR"));
@@ -71,12 +71,7 @@ MemSpecWideIO::MemSpecWideIO(json &memspec,
       memTimingSpec.tRTRS    = (parseUint(memspec["memtimingspec"]["RTRS"], "RTRS"));
 
       prechargeOffsetRD      =  burstLength;
-      prechargeOffsetWR      =  memTimingSpec.tWL - burstLength + memTimingSpec.tWR - 1;
-      //I changed to what is written in the JEDEC std.
-      //PREVIOUSLY:
-      //prechargeOffsetRD = B
-      //prechargeOffsetWR = B + WL + WR - 1;
-
+      prechargeOffsetWR      =  memTimingSpec.tWL + burstLength + memTimingSpec.tWR - 1;
 
       //Push back new subject created with default constructor.
       memPowerSpec.push_back(MemPowerSpec());

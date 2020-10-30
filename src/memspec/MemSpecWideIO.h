@@ -48,8 +48,9 @@ public:
     ~MemSpecWideIO() {}
     int64_t timeToCompletion(DRAMPower::MemCommand::cmds type);
 
-    //ranks?
+
     unsigned numberOfChannels;
+    unsigned numberOfRanks;
 
     // Memspec Variables:
     struct MemTimingSpec{
@@ -101,16 +102,13 @@ public:
     struct BankWiseParams{
         // ACT Standby power factor
         int64_t bwPowerFactRho;
-        // Self-Refresh power factor( true : Bankwise mode)
+        // Self-Refresh power factor
         int64_t bwPowerFactSigma;
     };
 
     MemTimingSpec memTimingSpec;
     std::vector<MemPowerSpec> memPowerSpec;
     BankWiseParams bwParams;
-
-    int64_t getExitSREFtime();
-
 
 };
 
