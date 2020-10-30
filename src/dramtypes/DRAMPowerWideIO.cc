@@ -1,28 +1,34 @@
 #include "DRAMPowerIF.h"
-#include "DRAMPowerDDR4.h"
+#include "DRAMPowerWideIO.h"
 using namespace DRAMPower;
 using namespace std;
 
 
-DRAMPowerDDR4::DRAMPowerDDR4(MemSpecDDR4& memSpec, bool includeIoAndTermination):
+DRAMPowerWideIO::DRAMPowerWideIO(MemSpecWideIO& memSpec, bool includeIoAndTermination):
     memSpec(memSpec),
-    counters(memSpec),
     includeIoAndTermination(includeIoAndTermination)
 {
+    for (unsigned i = 0; i < memSpec.numberOfRanks; ++i){
+        counters.push_back(CountersWideIO(memSpec));
+        energy.push_back(Energy());
+        energy[i].total_energy = 0;
+        power.push_back(Power());
+    }
     total_cycles = 0;
-    energy.total_energy = 0;
 }
 
-void DRAMPowerDDR4::calcEnergy()
+void DRAMPowerWideIO::calcEnergy()
 {
+  for (unsigned i = 0; i < memSpec.numberOfRanks; ++i){
   updateCounters(true);
-  energy.clearEnergy(memSpec.numberOfBanks);
-  power.clearIOPower();
+  energy[i].clearEnergy(memSpec.numberOfBanks);
+  power[i].clearIOPower();
   if (includeIoAndTermination) calcIoTermEnergy();
   bankPowerCalc();
+  }
 }
 
-void DRAMPowerDDR4::calcWindowEnergy(int64_t timestamp)
+void DRAMPowerWideIO::calcWindowEnergy(int64_t timestamp)
 {
   doCommand(MemCommand::NOP, 0, timestamp);
   updateCounters(false, timestamp);
@@ -34,16 +40,16 @@ void DRAMPowerDDR4::calcWindowEnergy(int64_t timestamp)
 }
 
 
-double DRAMPowerDDR4::getEnergy() {
+double DRAMPowerWideIO::getEnergy() {
    return energy.total_energy;
 }
 
-double DRAMPowerDDR4::getPower(){
+double DRAMPowerWideIO::getPower(){
     return power.average_power;
 }
 
 
-void DRAMPowerDDR4::updateCounters(bool lastUpdate, int64_t timestamp)
+void DRAMPowerWideIO::updateCounters(bool lastUpdate, int64_t timestamp, unsigned idx)
 {
 
   cout << endl << "  entered update counters success ";
@@ -55,7 +61,7 @@ void DRAMPowerDDR4::updateCounters(bool lastUpdate, int64_t timestamp)
 
 // Used to analyse a given list of commands and identify command timings
 // and memory state transitions
-void DRAMPowerDDR4::evaluateCommands(vector<MemCommand>& cmd_list)  //change: it has acces to cmdList
+void DRAMPowerWideIO::evaluateCommands(vector<MemCommand>& cmd_list)  //change: it has acces to cmdList
 {
   // for each command identify timestamp, type and bank
   for (auto cmd : cmd_list) {
@@ -82,8 +88,6 @@ void DRAMPowerDDR4::evaluateCommands(vector<MemCommand>& cmd_list)  //change: it
       counters.handlePdnFAct(bank, timestamp);
     } else if (type == MemCommand::PDN_F_PRE) {
       counters.handlePdnFPre(bank, timestamp);
-    } else if (type == MemCommand::PDN_S_PRE) {
-      counters.handlePdnSPre(bank, timestamp);
     } else if (type == MemCommand::PUP_ACT) {
       counters.handlePupAct(timestamp);
     } else if (type == MemCommand::PUP_PRE) {
@@ -102,7 +106,7 @@ void DRAMPowerDDR4::evaluateCommands(vector<MemCommand>& cmd_list)  //change: it
 } // Counters::evaluateCommands
 
 //call the clear counters
-void DRAMPowerDDR4::clearCountersWrapper()
+void DRAMPowerWideIO::clearCountersWrapper()
 {
   counters.clear();
 }
@@ -110,7 +114,7 @@ void DRAMPowerDDR4::clearCountersWrapper()
 //////////////////POWER CALCULATION////////////////////////
 
 
-void DRAMPowerDDR4::Energy::clearEnergy(int64_t nbrofBanks){
+void DRAMPowerWideIO::Energy::clearEnergy(int64_t nbrofBanks){
 
       act_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
       pre_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
@@ -149,7 +153,7 @@ void DRAMPowerDDR4::Energy::clearEnergy(int64_t nbrofBanks){
 }
 
 
-void DRAMPowerDDR4::Power::clearIOPower(){
+void DRAMPowerWideIO::Power::clearIOPower(){
     IO_power             = 0.0;
     WR_ODT_power         = 0.0;
     TermRD_power         = 0.0;
@@ -158,10 +162,10 @@ void DRAMPowerDDR4::Power::clearIOPower(){
 
 
 
-void DRAMPowerDDR4::bankPowerCalc()
+void DRAMPowerWideIO::bankPowerCalc()
 {
-  const MemSpecDDR4::MemTimingSpec& t = memSpec.memTimingSpec;
-  const MemSpecDDR4::BankWiseParams& bwPowerParams = memSpec.bwParams;
+  const MemSpecWideIO::MemTimingSpec& t = memSpec.memTimingSpec;
+  const MemSpecWideIO::BankWiseParams& bwPowerParams = memSpec.bwParams;
   const int64_t nbrofBanks               = memSpec.numberOfBanks;
   const Counters& c = counters;
 
@@ -188,7 +192,7 @@ void DRAMPowerDDR4::bankPowerCalc()
 
     //TODO: correct this, iDD5b is not burst but average current!!!
     //double iDD5Blocal = (mps.iDD5B == 0.0) ? (mps.iDD0 - ione) :(mps.iDD5B);
-    //DDR4 DOESNT HAVE PB REF
+    //WideIO DOESNT HAVE PB REF
 
     // if memory specification does not provide the REFB timing approximate it
     // to time of ACT + PRE
@@ -258,7 +262,7 @@ void DRAMPowerDDR4::bankPowerCalc()
     // Calculate the average power consumption
     power.average_power = energy.total_energy / (static_cast<double>(total_cycles) * t.tCK);
 
-} // DRAMPowerDDR4::bankPowerCalc
+} // DRAMPowerWideIO::bankPowerCalc
 
 
 
@@ -266,11 +270,11 @@ void DRAMPowerDDR4::bankPowerCalc()
 
 
 // Self-refresh active energy estimation per banks
-double DRAMPowerDDR4::engy_sref_banks(const Counters& c,MemSpecDDR4::MemPowerSpec& mps, double esharedPASR, unsigned bnkIdx)
+double DRAMPowerWideIO::engy_sref_banks(const Counters& c,MemSpecWideIO::MemPowerSpec& mps, double esharedPASR, unsigned bnkIdx)
 {
 
-    const MemSpecDDR4::BankWiseParams& bwPowerParams = memSpec.bwParams;
-    const MemSpecDDR4::MemTimingSpec& t                 = memSpec.memTimingSpec;
+    const MemSpecWideIO::BankWiseParams& bwPowerParams = memSpec.bwParams;
+    const MemSpecWideIO::MemTimingSpec& t                 = memSpec.memTimingSpec;
 
     // Bankwise Self-refresh energy
     double sref_energy_banks;
@@ -311,7 +315,7 @@ double DRAMPowerDDR4::engy_sref_banks(const Counters& c,MemSpecDDR4::MemPowerSpe
 
 // IO and Termination power calculation based on Micron Power Calculators
 // Absolute power measures are obtained from Micron Power Calculator (mentioned in mW)
-void DRAMPowerDDR4::io_term_power()
+void DRAMPowerWideIO::io_term_power()
 {
 
   power.IO_power     = memSpec.memPowerSpec[0].ioPower;    // in W
@@ -321,13 +325,13 @@ void DRAMPowerDDR4::io_term_power()
     // If capacity is given, then IO Power depends on DRAM clock frequency.
     power.IO_power = memSpec.memPowerSpec[0].capacitance * 0.5 * pow(memSpec.memPowerSpec[0].vXX, 2.0) * memSpec.memTimingSpec.fCKMHz * 1000000;
   }
-} // DRAMPowerDDR4::io_term_power
+} // DRAMPowerWideIO::io_term_power
 
 
-void DRAMPowerDDR4::calcIoTermEnergy()
+void DRAMPowerWideIO::calcIoTermEnergy()
 {
         io_term_power();
-        const MemSpecDDR4::MemTimingSpec& t                 = memSpec.memTimingSpec;
+        const MemSpecWideIO::MemTimingSpec& t                 = memSpec.memTimingSpec;
         const Counters& c = counters;
 
         // memSpec.width represents the number of data (dq) pins.
@@ -356,7 +360,7 @@ void DRAMPowerDDR4::calcIoTermEnergy()
 
 
 
-void DRAMPowerDDR4::powerPrint()
+void DRAMPowerWideIO::powerPrint()
 {
    const Counters& c = counters;
 

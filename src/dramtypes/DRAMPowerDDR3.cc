@@ -182,19 +182,7 @@ void DRAMPowerDDR3::bankPowerCalc()
     //,all the other remainig (B-1) banks will consume  a current of iDDrho (based on factor Rho)
     // So to derrive ione we add (B-1)*iDDrho to the iDD3N and distribute it to each banks.
     double ione = (mps.iDD3N + (iDDrho * (static_cast<double>(nbrofBanks - 1)))) / (static_cast<double>(nbrofBanks));
-    // If memory specification does not provide  bank wise refresh current,
-    // approximate it to single bank background current removed from
-    // single bank active current
 
-    //TODO: correct this, iDD5b is not burst but average current!!!
-    //double iDD5Blocal = (mps.iDD5B == 0.0) ? (mps.iDD0 - ione) :(mps.iDD5B);
-    //DDR3 DOESNT HAVE PB REF
-
-
-
-    // if memory specification does not provide the REFB timing approximate it
-    // to time of ACT + PRE
-    //int64_t tRefBlocal = (t.REFB == 0) ? (t.tRAS + t.tRP) : (t.REFB);
 
     //Distribution of energy componets to each banks
     for (unsigned i = 0; i < nbrofBanks; i++) {

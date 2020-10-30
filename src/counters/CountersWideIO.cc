@@ -45,13 +45,13 @@
 #include <algorithm> //max
 #include <sstream>
 
-#include "CountersDDR4.h"
+#include "CountersWideIO.h"
 
 using namespace DRAMPower;
 using namespace std;
 
 
-CountersDDR4::CountersDDR4(MemSpecDDR4& memspec) :
+CountersWideIO::CountersWideIO(MemSpecWideIO& memspec) :
 memSpec(memspec)
 {
   auto &nBanks = memSpec.numberOfBanks;
@@ -79,7 +79,7 @@ memSpec(memspec)
 }
 
 
-void CountersDDR4::getCommands(std::vector<MemCommand>& list, bool lastupdate, int64_t timestamp)
+void CountersWideIO::getCommands(std::vector<MemCommand>& list, bool lastupdate, int64_t timestamp)
 {
   int64_t prechargeOffset;
   if (!next_window_cmd_list.empty()) {
@@ -99,7 +99,7 @@ void CountersDDR4::getCommands(std::vector<MemCommand>& list, bool lastupdate, i
       else prechargeOffset=memSpec.prechargeOffsetWR;
       //Add the auto precharge to the list of cached_cmds
       int64_t preTime = max(cmd.getTimeInt64() + prechargeOffset,
-                           activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.tRAS); ///problemm!
+                           activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.tRAS);
 
       list.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), preTime));
     }
@@ -119,13 +119,13 @@ void CountersDDR4::getCommands(std::vector<MemCommand>& list, bool lastupdate, i
     int64_t t =  memSpec.timeToCompletion(list.back().getType()) + list.back().getTimeInt64() - 1;
     list.push_back(MemCommand(MemCommand::NOP, 0, t));
   }
-} // CountersDDR4::getCommands
+} // CountersWideIO::getCommands
 
 
 
 
 // To update idle period information whenever active cycles may be idle
-void CountersDDR4::idle_act_update(int64_t latest_read_cycle, int64_t latest_write_cycle,
+void CountersWideIO::idle_act_update(int64_t latest_read_cycle, int64_t latest_write_cycle,
                                       int64_t latest_act_cycle, int64_t timestamp)
 {
   if (latest_read_cycle >= 0) {
@@ -142,10 +142,10 @@ void CountersDDR4::idle_act_update(int64_t latest_read_cycle, int64_t latest_wri
 
   idlecycles_act += max(zero, timestamp - max(max(end_read_op, end_write_op),
                                               end_act_op));
-} // CountersDDR4::idle_act_update
+} // CountersWideIO::idle_act_update
 
 // To update idle period information whenever precharged cycles may be idle
-void CountersDDR4::idle_pre_update(int64_t timestamp, int64_t latest_pre_cycle)
+void CountersWideIO::idle_pre_update(int64_t timestamp, int64_t latest_pre_cycle)
 {
   if (latest_pre_cycle > 0) {
     idlecycles_pre += max(zero, timestamp - latest_pre_cycle -
@@ -160,7 +160,7 @@ void CountersDDR4::idle_pre_update(int64_t timestamp, int64_t latest_pre_cycle)
 ////////////////////HANDLERS////////////////////////
 
 
-void CountersDDR4::handleRef(unsigned bank, int64_t timestamp)
+void CountersWideIO::handleRef(unsigned bank, int64_t timestamp)
 {
   printWarningIfPoweredDown("Command issued while in power-down mode.", MemCommand::REF, timestamp, bank);
   // If command is REF - update number of refreshes, set bank state of
@@ -187,7 +187,7 @@ void CountersDDR4::handleRef(unsigned bank, int64_t timestamp)
 
 
 
-void CountersDDR4::handlePupAct(int64_t timestamp)
+void CountersWideIO::handlePupAct(int64_t timestamp)
 {
   // Command power-up in the active mode is always fast.
 
@@ -205,7 +205,7 @@ void CountersDDR4::handlePupAct(int64_t timestamp)
   std::fill(first_act_cycle_banks.begin(), first_act_cycle_banks.end(), timestamp);
 }
 
-void CountersDDR4::handlePupPre(int64_t timestamp)
+void CountersWideIO::handlePupPre(int64_t timestamp)
 {
   // If command is power-up in the precharged mode - check the power-down
   // exit-mode employed (fast or slow), update the number of power-down
@@ -227,7 +227,7 @@ void CountersDDR4::handlePupPre(int64_t timestamp)
 }
 
 
-void CountersDDR4::handleSREx(unsigned bank, int64_t timestamp)
+void CountersWideIO::handleSREx(unsigned bank, int64_t timestamp)
 {
   // If command is self-refresh exit - update the number of self-refresh
   // clock cycles, number of active and precharged auto-refresh clock
@@ -416,7 +416,7 @@ void CountersDDR4::handleSREx(unsigned bank, int64_t timestamp)
 }
 
 
-void CountersDDR4::handleNopEnd(int64_t timestamp)
+void CountersWideIO::handleNopEnd(int64_t timestamp)
 {
   // May be optionally used at the end of memory trace for better accuracy
   // Update all counters based on completion of operations.

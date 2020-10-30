@@ -40,30 +40,30 @@
  *
  */
 
-#ifndef DDR4_H
-#define DDR4_H
+#ifndef WideIO_H
+#define WideIO_H
 
 #include <vector>
 #include <stdint.h>
 #include <cmath>  // For pow
 
 
-#include "./memspec/MemSpecDDR4.h"
+#include "./memspec/MemSpecWideIO.h"
 #include "MemCommand.h"
 #include "./counters/Counters.h"
-#include "./counters/CountersDDR4.h"
+#include "./counters/CountersWideIO.h"
 #include "DRAMPowerIF.h"
 #include "./common/DebugManager.h"
 
 namespace DRAMPower {
 
 
-class DRAMPowerDDR4 final : public DRAMPowerIF
+class DRAMPowerWideIO final : public DRAMPowerIF
 {
 public:
-    DRAMPowerDDR4(MemSpecDDR4 &memSpec,  bool includeIoAndTermination);
+    DRAMPowerWideIO(MemSpecWideIO &memSpec,  bool includeIoAndTermination);
 
-    ~DRAMPowerDDR4(){}
+    ~DRAMPowerWideIO(){}
 
     //////Interface methods
     void calcEnergy();
@@ -78,7 +78,7 @@ public:
 
     void powerPrint();
 
-    void updateCounters(bool lastUpdate, int64_t timestamp = 0);
+    void updateCounters(bool lastUpdate, int64_t timestamp = 0, unsigned idx);
     //////
 
     struct Energy {
@@ -130,8 +130,6 @@ public:
 
       std::vector<double> f_pre_pd_energy_banks;
 
-      std::vector<double> s_pre_pd_energy_banks;
-
       // Energy consumed in self-refresh mode
       std::vector<double> sref_energy_banks;
 
@@ -160,8 +158,6 @@ public:
       // Energy consumed by IO and Termination
       double read_io_energy;     // Read IO Energy
       double write_term_energy;  // Write Termination Energy
-      double read_oterm_energy;  // Read Termination Energy from idle rank
-      double write_oterm_energy; // Write Termination Energy from idle rank
       // Total IO and Termination Energy
       double io_term_energy;
 
@@ -185,14 +181,14 @@ public:
       void clearIOPower();
     };
 
-    Energy energy;
-    Power  power;
+    std::vector<Energy> energy;
+    std::vector<Power>  power;
 
 private:
-    MemSpecDDR4 memSpec;
+    MemSpecWideIO memSpec;
     void bankPowerCalc();
     //  // Used to calculate self-refresh active energy
-    double engy_sref_banks(const Counters &c, MemSpecDDR4::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
+    double engy_sref_banks(const Counters &c, MemSpecWideIO::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
 
       int64_t total_cycles;
 
@@ -203,11 +199,11 @@ private:
       // To calculate IO and Termination Energy
       void calcIoTermEnergy();
 
-    CountersDDR4 counters;
+    std::vector<CountersWideIO> counters;
     bool includeIoAndTermination;
     void evaluateCommands(std::vector<MemCommand>& cmd_list);
     template <typename T> T sum(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
 
 };
 }
-#endif // DDR4_H
+#endif // WideIO_H

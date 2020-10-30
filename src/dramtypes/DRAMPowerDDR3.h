@@ -160,8 +160,6 @@ public:
       // Energy consumed by IO and Termination
       double read_io_energy;     // Read IO Energy
       double write_term_energy;  // Write Termination Energy
-      double read_oterm_energy;  // Read Termination Energy from idle rank
-      double write_oterm_energy; // Write Termination Energy from idle rank
       // Total IO and Termination Energy
       double io_term_energy;
 
@@ -172,8 +170,6 @@ public:
       // Power measures corresponding to IO and Termination
       double IO_power;     // Read IO Power
       double WR_ODT_power; // Write ODT Power
-      double TermRD_power; // Read Termination in idle rank (in dual-rank systems)
-      double TermWR_power; // Write Termination in idle rank (in dual-rank systems)
 
       // Average Power
       double average_power;

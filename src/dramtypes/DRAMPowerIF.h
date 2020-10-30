@@ -56,7 +56,8 @@ class DRAMPowerIF{
 
     void doCommand(DRAMPower::MemCommand::cmds type,
                  int                    bank,
-                 int64_t                timestamp);
+                 int64_t                timestamp,
+                 int                    rank = 0);
 
     void setupDebugManager(const bool debug __attribute__((unused))=false,
                            const bool writeToConsole __attribute__((unused))=false,

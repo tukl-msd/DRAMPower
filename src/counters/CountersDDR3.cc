@@ -100,7 +100,7 @@ void CountersDDR3::getCommands(std::vector<MemCommand>& list, bool lastupdate, i
       else prechargeOffset=memSpec.prechargeOffsetWR;
       //Add the auto precharge to the list of cached_cmds
       int64_t preTime = max(cmd.getTimeInt64() + prechargeOffset,
-                           activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.tRAS); ///problemm!
+                           activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.tRAS);
 
       list.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), preTime));
     }

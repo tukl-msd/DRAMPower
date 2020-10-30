@@ -1,8 +1,8 @@
 #include "DRAMPowerIF.h"
 
-void DRAMPowerIF::doCommand(DRAMPower::MemCommand::cmds type, int bank, int64_t timestamp)
+void DRAMPowerIF::doCommand(DRAMPower::MemCommand::cmds type, int bank, int64_t timestamp, int rank)
 {
-  DRAMPower::MemCommand cmd(type, static_cast<unsigned>(bank), timestamp);
+  DRAMPower::MemCommand cmd(type, static_cast<unsigned>(bank), timestamp, static_cast<unsigned>(rank));
   cmdList.push_back(cmd);
 }
 
