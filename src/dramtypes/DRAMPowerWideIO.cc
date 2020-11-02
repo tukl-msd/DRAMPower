@@ -12,12 +12,12 @@ DRAMPowerWideIO::DRAMPowerWideIO(MemSpecWideIO& memSpec, bool includeIoAndTermin
         counters.push_back(CountersWideIO(memSpec));
         energy.push_back(Energy());
         energy[i].total_energy = 0;
+        energy[i].rank_total_cycles = 0;
         power.push_back(Power());
         cmdListPerRank.push_back(std::vector<DRAMPower::MemCommand>());
     }
-    total_cycles = 0;
     allranks_energy = 0;
-    allranks_avg_power = 0;
+
 }
 
 void DRAMPowerWideIO::calcEnergy()
@@ -56,7 +56,7 @@ double DRAMPowerWideIO::getEnergy() {
 }
 
 double DRAMPowerWideIO::getPower(){
-    return allranks_avg_power;
+    return 0.0;
 }
 
 
@@ -272,23 +272,25 @@ void DRAMPowerWideIO::bankPowerCalc(unsigned idx)
     // Calculate total energy for all banks.
     energy[idx].window_energy = sum(energy[idx].window_energy_per_vdd) + energy[idx].io_term_energy;
 
-    power[idx].window_average_power = energy[idx].window_energy / (static_cast<double>(window_cycles) * t.tCK);
+    power[idx].window_average_power = energy[idx].window_energy
+                                      / (static_cast<double>(energy[idx].rank_window_cycles) * t.tCK);
 
-    window_cycles = c.actcycles + c.precycles +
+    energy[idx].rank_window_cycles = c.actcycles + c.precycles +
                     c.f_act_pdcycles + c.f_pre_pdcycles +
                     + c.s_pre_pdcycles + c.sref_cycles
                     + c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
                     c.spup_ref_act_cycles + c.spup_ref_pre_cycles;
 
-    total_cycles += window_cycles;
+    energy[idx].rank_total_cycles += energy[idx].rank_window_cycles;
 
     energy[idx].total_energy += energy[idx].window_energy;
     allranks_energy += energy[idx].window_energy;
 
     // Calculate the average power consumption
-    power[idx].average_power = energy[idx].total_energy / (static_cast<double>(total_cycles) * t.tCK);
+    power[idx].average_power = energy[idx].total_energy
+                               / (static_cast<double>(energy[idx].rank_total_cycles) * t.tCK);
 
-    allranks_avg_power = allranks_energy / (static_cast<double>(total_cycles) * t.tCK);
+    //allranks_avg_power = allranks_energy / (static_cast<double>(total_cycles) * t.tCK);
 
 } // DRAMPowerWideIO::bankPowerCalc
 
@@ -390,19 +392,18 @@ void DRAMPowerWideIO::powerPrint()
        cout << endl
             << endl << "  Rank " << i << " Energy : "<< e.total_energy << eUnit
             << endl << "  Rank " << i << " Average Power : " << pow.average_power << " mW"
-            << endl << "----------------------------------------" << endl;
+            << endl << endl;
    }
   if (includeIoAndTermination) {
-    cout << endl << "RD I/O Energy: " << energy[0].read_io_energy << eUnit << endl;
+    cout << "  RD I/O Energy: " << energy[0].read_io_energy << eUnit << endl;
     // No Termination for LPDDR/2/3 and DDR memories
-    cout << "WR Termination Energy: " << energy[0].write_term_energy << eUnit << endl;
+    cout << "  WR Termination Energy: " << energy[0].write_term_energy << eUnit << endl;
 
   }
 
-  cout << endl;
   cout << endl << "----------------------------------------"
        << endl << "  Total Trace Energy : "<< allranks_energy << eUnit
-       << endl << "  Total Average Power : " << allranks_avg_power << " mW"
+      // << endl << "  Total Average Power : " << allranks_avg_power << " mW"
        << endl << "----------------------------------------" << endl;
 
 

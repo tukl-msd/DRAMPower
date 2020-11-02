@@ -82,6 +82,12 @@ public:
     //////
 
     struct Energy {
+
+      // Cycles per rank
+      int64_t rank_total_cycles;
+
+      int64_t rank_window_cycles;
+
       // Total energy of all activates
       std::vector<double> act_energy_banks;
 
@@ -192,13 +198,7 @@ private:
 
     void bankPowerCalc(unsigned idx);
 
-      int64_t total_cycles;
-
-      int64_t window_cycles;
-
       double allranks_energy;
-
-      double allranks_avg_power;
 
       void io_term_power();
 
