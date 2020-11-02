@@ -62,6 +62,11 @@ DRAMPower::MemCommand TraceParser::parseLine(std::string line)
       bank >> item_val;
       memcmd.setBank(static_cast<unsigned>(item_val));
     }
+      else if (itemnum == 3) {
+         stringstream rank(item);
+         rank >> item_val;
+         memcmd.setRank(static_cast<unsigned>(item_val));
+       }
     itemnum++;
   }
   return memcmd;
