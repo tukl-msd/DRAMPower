@@ -80,9 +80,9 @@ public:
      };
 
     // Currents and Voltages:
-    struct MemPowerSpec{
-     double iDD0X;
+    struct MemPowerSpec{  
      double iDD2PX;
+     double iDD0X;
      double iDD2NX;
      double iDD3PX;
      double iDD3NX;
