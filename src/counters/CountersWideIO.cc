@@ -160,6 +160,7 @@ void CountersWideIO::idle_pre_update(int64_t timestamp, int64_t latest_pre_cycle
 ////////////////////HANDLERS////////////////////////
 
 
+
 void CountersWideIO::handleRef(unsigned bank, int64_t timestamp)
 {
   printWarningIfPoweredDown("Command issued while in power-down mode.", MemCommand::REF, timestamp, bank);

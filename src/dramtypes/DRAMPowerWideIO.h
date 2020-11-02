@@ -78,7 +78,7 @@ public:
 
     void powerPrint();
 
-    void updateCounters(bool lastUpdate, int64_t timestamp = 0, unsigned idx);
+    void updateCounters(bool lastUpdate, unsigned idx, int64_t timestamp = 0);
     //////
 
     struct Energy {
@@ -168,8 +168,6 @@ public:
       // Power measures corresponding to IO and Termination
       double IO_power;     // Read IO Power
       double WR_ODT_power; // Write ODT Power
-      double TermRD_power; // Read Termination in idle rank (in dual-rank systems)
-      double TermWR_power; // Write Termination in idle rank (in dual-rank systems)
 
       // Average Power
       double average_power;
@@ -184,24 +182,32 @@ public:
     std::vector<Energy> energy;
     std::vector<Power>  power;
 
+
+    std::vector<std::vector<DRAMPower::MemCommand>> cmdListPerRank; //TODO: private?
+
 private:
     MemSpecWideIO memSpec;
-    void bankPowerCalc();
-    //  // Used to calculate self-refresh active energy
-    double engy_sref_banks(const Counters &c, MemSpecWideIO::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
+
+    void splitCmdList();
+
+    void bankPowerCalc(unsigned idx);
 
       int64_t total_cycles;
 
       int64_t window_cycles;
 
+      double allranks_energy;
+
+      double allranks_avg_power;
+
       void io_term_power();
 
       // To calculate IO and Termination Energy
-      void calcIoTermEnergy();
+      void calcIoTermEnergy(unsigned idx);
 
     std::vector<CountersWideIO> counters;
     bool includeIoAndTermination;
-    void evaluateCommands(std::vector<MemCommand>& cmd_list);
+    void evaluateCommands(std::vector<MemCommand>& cmd_list, unsigned idx);
     template <typename T> T sum(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
 
 };

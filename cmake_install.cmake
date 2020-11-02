@@ -1,4 +1,4 @@
-# Install script for directory: /home/lulys96/Hiwi/DRAMPower
+# Install script for directory: /home/luiza/Hiwi/DRAMPower
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/lulys96/Hiwi/DRAMPower/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/luiza/Hiwi/DRAMPower/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

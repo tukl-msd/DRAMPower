@@ -44,6 +44,7 @@
 #include "./dramtypes/DRAMPowerIF.h"
 #include "./dramtypes/DRAMPowerDDR3.h"
 #include "./dramtypes/DRAMPowerDDR4.h"
+#include "./dramtypes/DRAMPowerWideIO.h"
 #include "TraceParser.h"
 #include "common/version.h"
 #include "common/libraries/cli11/CLI11.h"

@@ -129,7 +129,7 @@ double MemSpec::parseUdoubleWithDefault(json &obj, std::string name)
 {
     if (!obj.empty())
     {
-        if (obj.is_number() && (obj > 0))
+        if (obj.is_number() && (obj >= 0))
             return obj;
         else
             throw std::invalid_argument("Expected type for '" + name + "': positive double");

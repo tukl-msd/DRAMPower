@@ -77,7 +77,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
       memTimingSpec.tRTRS    = (parseUint(memspec["memtimingspec"]["RTRS"], "RTRS"));
 
       prechargeOffsetRD      =  memTimingSpec.tAL + std::max(memTimingSpec.tRTP, int64_t(4));
-      prechargeOffsetWR      =  ((memArchSpec.burstLength)/(memArchSpec.dataRate)) + memTimingSpec.tWL + memTimingSpec.tWR;
+      prechargeOffsetWR      =  ((burstLength)/(dataRate)) + memTimingSpec.tWL + memTimingSpec.tWR;
 
       //Push back new subject created with default constructor.
       memPowerSpec.push_back(MemPowerSpec());
@@ -104,7 +104,6 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
       json bankWise = memspec["bankwisespec"];
       if (!bankWise.empty()){
 
-          unsigned nbrofBanks = memArchSpec.numberOfBanks;
 
           bwParams.bwPowerFactRho = parseUint(memspec["bankwisespec"]["factRho"],"factRho");
           bwParams.bwPowerFactSigma = parseUint(memspec["bankwisespec"]["factSigma"],"factSigma");
@@ -124,7 +123,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
                   // FULL ARRAY
                   // |X X X X |
                   // |X X X X |
-                  bwParams.activeBanks.resize(nbrofBanks);
+                  bwParams.activeBanks.resize(numberOfBanks);
                   std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
                   break;
               }
@@ -133,7 +132,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
                   // (1/2) ARRAY
                   // |X X X X |
                   // |0 0 0 0 |
-                  bwParams.activeBanks.resize(nbrofBanks - 4);
+                  bwParams.activeBanks.resize(numberOfBanks - 4);
                   std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
                   break;
               }
@@ -142,7 +141,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
                   // (1/4) ARRAY
                   // |X X 0 0 |
                   // |0 0 0 0 |
-                  bwParams.activeBanks.resize(nbrofBanks - 6);
+                  bwParams.activeBanks.resize(numberOfBanks - 6);
                   std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
                   break;
               }
@@ -151,7 +150,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
                   // (1/8) ARRAY
                   // |X 0 0 0 |
                   // |0 0 0 0 |
-                  bwParams.activeBanks.resize(nbrofBanks - 7);
+                  bwParams.activeBanks.resize(numberOfBanks - 7);
                   std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
                   break;
               }
@@ -160,7 +159,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
                   // (3/4) ARRAY
                   // |0 0 X X |
                   // |X X X X |
-                  bwParams.activeBanks.resize(nbrofBanks - 2);
+                  bwParams.activeBanks.resize(numberOfBanks - 2);
                   std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 2);
                   break;
               }
@@ -169,7 +168,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
                   // (1/2) ARRAY
                   // |0 0 0 0 |
                   // |X X X X |
-                  bwParams.activeBanks.resize(nbrofBanks - 4);
+                  bwParams.activeBanks.resize(numberOfBanks - 4);
                   std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 4);
                   break;
               }
@@ -178,7 +177,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
                   // (1/4) ARRAY
                   // |0 0 0 0 |
                   // |0 0 X X |
-                  bwParams.activeBanks.resize(nbrofBanks - 6);
+                  bwParams.activeBanks.resize(numberOfBanks - 6);
                   std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 6);
                   break;
               }
@@ -187,7 +186,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
                   // (1/8) ARRAY
                   // |0 0 0 0 |
                   // |0 0 0 X |
-                  bwParams.activeBanks.resize(nbrofBanks - 7);
+                  bwParams.activeBanks.resize(numberOfBanks - 7);
                   std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 7);
                   break;
               }
@@ -196,7 +195,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
                   // FULL ARRAY
                   // |X X X X |
                   // |X X X X |
-                  bwParams.activeBanks.resize(nbrofBanks);
+                  bwParams.activeBanks.resize(numberOfBanks);
                   std::iota(bwParams.activeBanks.begin(), bwParams.activeBanks.end(), 0);
                   break;
               }
@@ -222,11 +221,10 @@ int64_t MemSpecDDR3::timeToCompletion(DRAMPower::MemCommand::cmds type)
 
   if (type == DRAMPower::MemCommand::RD) {
     offset = memTimingSpec.tRL +
-                              memTimingSpec.tDQSCK + 1 + (memArchSpec.burstLength /
-                                                         memArchSpec.dataRate);
+                              memTimingSpec.tDQSCK + 1 + (burstLength / dataRate);
   } else if (type == DRAMPower::MemCommand::WR) {
     offset = memTimingSpec.tWL +
-                              (memArchSpec.burstLength / memArchSpec.dataRate) +
+                              (burstLength / dataRate) +
                               memTimingSpec.tWR;
   } else if (type == DRAMPower::MemCommand::ACT) {
     offset = memTimingSpec.tRCD;

@@ -172,8 +172,12 @@ void CliHandler::loadMemSpec(const std::string &memspecUri)
     }
         //    else if (memoryType == "LPDDR4")
 //        memSpec = new MemSpecLPDDR4(jMemSpec);
-//    else if (memoryType == "WIDEIO_SDR")
-//        memSpec = new MemSpecWideIO(jMemSpec);
+    else if (memoryType == "WIDEIO_SDR"){
+        MemSpecWideIO memSpecWideIO(jMemSpec,(get_writeToConsole() | get_writeToFile()),
+                                get_writeToConsole(),get_writeToFile(),"DebugFile");
+
+        dramPower = new DRAMPowerWideIO(memSpecWideIO,get_io_term_active());
+    }
 //    else if (memoryType == "WIDEIO2")
 //        memSpec = new MemSpecWideIO2(jMemSpec);
 //    else if (memoryType == "HBM2")

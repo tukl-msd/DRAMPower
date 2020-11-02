@@ -85,7 +85,7 @@ public:
      double iDD2PX;
      double iDD2NX;
      double iDD3PX;
-     double iDD3nX;
+     double iDD3NX;
      double iDD4RX;
      double iDD4WX;
      double iDD5X;

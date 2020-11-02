@@ -79,7 +79,7 @@ MemSpecWideIO::MemSpecWideIO(json &memspec,
       memPowerSpec[0].iDD2PX  = (parseUdouble(memspec["mempowerspec"]["idd2p1"], "idd2p1"));
       memPowerSpec[0].iDD2NX  = (parseUdouble(memspec["mempowerspec"]["idd2n1"], "idd2n1"));
       memPowerSpec[0].iDD3PX  = (parseUdouble(memspec["mempowerspec"]["idd3p1"], "idd3p1"));
-      memPowerSpec[0].iDD3nX  = (parseUdouble(memspec["mempowerspec"]["idd3n1"], "idd3n1"));
+      memPowerSpec[0].iDD3NX  = (parseUdouble(memspec["mempowerspec"]["idd3n1"], "idd3n1"));
       memPowerSpec[0].iDD4RX  = (parseUdouble(memspec["mempowerspec"]["idd4r1"], "idd4r1"));
       memPowerSpec[0].iDD4WX  = (parseUdouble(memspec["mempowerspec"]["idd4w1"], "idd4w1"));
       memPowerSpec[0].iDD5X   = (parseUdouble(memspec["mempowerspec"]["idd51"], "idd51"));
@@ -91,7 +91,7 @@ MemSpecWideIO::MemSpecWideIO(json &memspec,
       memPowerSpec[1].iDD2PX  = (parseUdoubleWithDefault(memspec["mempowerspec"]["idd2p2"], "idd2p2"));
       memPowerSpec[1].iDD2NX  = (parseUdoubleWithDefault(memspec["mempowerspec"]["idd2n2"], "idd2n2"));
       memPowerSpec[1].iDD3PX  = (parseUdoubleWithDefault(memspec["mempowerspec"]["idd3p2"], "idd3p2"));
-      memPowerSpec[1].iDD3nX  = (parseUdoubleWithDefault(memspec["mempowerspec"]["idd3n2"], "idd3n2"));
+      memPowerSpec[1].iDD3NX  = (parseUdoubleWithDefault(memspec["mempowerspec"]["idd3n2"], "idd3n2"));
       memPowerSpec[1].iDD4RX  = (parseUdoubleWithDefault(memspec["mempowerspec"]["idd4r2"], "idd4r2"));
       memPowerSpec[1].iDD4WX  = (parseUdoubleWithDefault(memspec["mempowerspec"]["idd4w2"], "idd4w2"));
       memPowerSpec[1].iDD5X   = (parseUdoubleWithDefault(memspec["mempowerspec"]["idd52"], "idd52"));

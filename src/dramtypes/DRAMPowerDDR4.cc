@@ -46,16 +46,14 @@ double DRAMPowerDDR4::getPower(){
 void DRAMPowerDDR4::updateCounters(bool lastUpdate, int64_t timestamp)
 {
 
-  cout << endl << "  entered update counters success ";
   counters.getCommands(cmdList, lastUpdate, timestamp);
-  cout << endl << "  getCommands succsss ";
   evaluateCommands(cmdList); //command list already modified
   cmdList.clear();
 }
 
 // Used to analyse a given list of commands and identify command timings
 // and memory state transitions
-void DRAMPowerDDR4::evaluateCommands(vector<MemCommand>& cmd_list)  //change: it has acces to cmdList
+void DRAMPowerDDR4::evaluateCommands(vector<MemCommand>& cmd_list)  //TODO:change it has acces to cmdList
 {
   // for each command identify timestamp, type and bank
   for (auto cmd : cmd_list) {
@@ -65,39 +63,41 @@ void DRAMPowerDDR4::evaluateCommands(vector<MemCommand>& cmd_list)  //change: it
     unsigned bank = cmd.getBank();
     // Command Issue timestamp in clock cycles (cc)
     int64_t timestamp = cmd.getTimeInt64();
-
-    if (type == MemCommand::ACT) {
-      counters.handleAct(bank, timestamp);
-    } else if (type == MemCommand::RD) {
-      counters.handleRd(bank, timestamp);
-    } else if (type == MemCommand::WR) {
-      counters.handleWr(bank, timestamp);
-    } else if (type == MemCommand::REF) {
-      counters.handleRef(bank, timestamp);
-    } else if (type == MemCommand::PRE) {
-      counters.handlePre(bank, timestamp);
-    } else if (type == MemCommand::PREA) {
-      counters.handlePreA(bank, timestamp);
-    } else if (type == MemCommand::PDN_F_ACT) {
-      counters.handlePdnFAct(bank, timestamp);
-    } else if (type == MemCommand::PDN_F_PRE) {
-      counters.handlePdnFPre(bank, timestamp);
-    } else if (type == MemCommand::PDN_S_PRE) {
-      counters.handlePdnSPre(bank, timestamp);
-    } else if (type == MemCommand::PUP_ACT) {
-      counters.handlePupAct(timestamp);
-    } else if (type == MemCommand::PUP_PRE) {
-      counters.handlePupPre(timestamp);
-    } else if (type == MemCommand::SREN) {
-      counters.handleSREn(bank, timestamp);
-    } else if (type == MemCommand::SREX) {
-      counters.handleSREx(bank, timestamp);
-    } else if (type == MemCommand::END || type == MemCommand::NOP) {
-      counters.handleNopEnd(timestamp);
-    } else {
-      PRINTDEBUGMESSAGE("Unknown command given, exiting.", timestamp, type, bank);
-      exit(-1);
+    if (bank < memSpec.numberOfBanks){
+        if (type == MemCommand::ACT) {
+            counters.handleAct(bank, timestamp);
+        } else if (type == MemCommand::RD) {
+            counters.handleRd(bank, timestamp);
+        } else if (type == MemCommand::WR) {
+            counters.handleWr(bank, timestamp);
+        } else if (type == MemCommand::REF) {
+            counters.handleRef(bank, timestamp);
+        } else if (type == MemCommand::PRE) {
+            counters.handlePre(bank, timestamp);
+        } else if (type == MemCommand::PREA) {
+            counters.handlePreA(bank, timestamp);
+        } else if (type == MemCommand::PDN_F_ACT) {
+            counters.handlePdnFAct(bank, timestamp);
+        } else if (type == MemCommand::PDN_F_PRE) {
+            counters.handlePdnFPre(bank, timestamp);
+        } else if (type == MemCommand::PDN_S_PRE) {
+            counters.handlePdnSPre(bank, timestamp);
+        } else if (type == MemCommand::PUP_ACT) {
+            counters.handlePupAct(timestamp);
+        } else if (type == MemCommand::PUP_PRE) {
+            counters.handlePupPre(timestamp);
+        } else if (type == MemCommand::SREN) {
+            counters.handleSREn(bank, timestamp);
+        } else if (type == MemCommand::SREX) {
+            counters.handleSREx(bank, timestamp);
+        } else if (type == MemCommand::END || type == MemCommand::NOP) {
+            counters.handleNopEnd(timestamp);
+        } else {
+            PRINTDEBUGMESSAGE("Unknown command given, exiting.", timestamp, type, bank);
+            exit(-1);
+        }
     }
+    else PRINTDEBUGMESSAGE("Command given to non-existent bank", timestamp, type, bank);
   }
 } // Counters::evaluateCommands
 
@@ -143,8 +143,7 @@ void DRAMPowerDDR4::Energy::clearEnergy(int64_t nbrofBanks){
 
       read_io_energy      = 0.0;
       write_term_energy   = 0.0;
-      read_oterm_energy   = 0.0;
-      write_oterm_energy  = 0.0;
+
       io_term_energy      = 0.0;
 }
 
@@ -152,8 +151,6 @@ void DRAMPowerDDR4::Energy::clearEnergy(int64_t nbrofBanks){
 void DRAMPowerDDR4::Power::clearIOPower(){
     IO_power             = 0.0;
     WR_ODT_power         = 0.0;
-    TermRD_power         = 0.0;
-    TermWR_power         = 0.0;
 }
 
 
@@ -338,8 +335,7 @@ void DRAMPowerDDR4::calcIoTermEnergy()
                                    * ddtRPeriod * power.WR_ODT_power * static_cast<double>(dqPlusDqsPlusMaskBits);
 
         // Sum of all IO and termination energy
-        energy.io_term_energy = energy.read_io_energy + energy.write_term_energy
-                                + energy.read_oterm_energy + energy.write_oterm_energy;
+        energy.io_term_energy = energy.read_io_energy + energy.write_term_energy;
 
 }
 
