@@ -1,6 +1,6 @@
 #include "DRAMPowerIF.h"
 
-void DRAMPowerIF::doCommand(DRAMPower::MemCommand::cmds type, int bank, int64_t timestamp, int rank)
+void DRAMPowerIF::doCommand( int64_t timestamp, DRAMPower::MemCommand::cmds type, int rank,  int bank)
 {
     DRAMPower::MemCommand cmd(type, static_cast<unsigned>(bank), timestamp, static_cast<unsigned>(rank));
     cmdList.push_back(cmd);

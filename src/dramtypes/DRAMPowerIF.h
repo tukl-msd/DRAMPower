@@ -54,10 +54,10 @@ class DRAMPowerIF{
 public:
     virtual ~DRAMPowerIF(){}
 
-    void doCommand(DRAMPower::MemCommand::cmds type,
-                   int                    bank,
-                   int64_t                timestamp,
-                   int                    rank = 0);
+    void doCommand(int64_t                timestamp,
+                   DRAMPower::MemCommand::cmds type,
+                   int                    rank,
+                   int                    bank);
 
     void setupDebugManager(const bool debug __attribute__((unused))=false,
                            const bool writeToConsole __attribute__((unused))=false,

@@ -131,18 +131,7 @@ void DRAMPowerWideIO::splitCmdList()
     for (size_t i = 0; i < cmdList.size(); ++i) {
         MemCommand& cmd = cmdList[i];
         unsigned rank = cmd.getRank();
-        if (rank == 0) {
-            cmdListPerRank[0].push_back(cmd);
-        } else if (rank == 1 && memSpec.numberOfRanks>=2) {
-            cmdListPerRank[1].push_back(cmd);
-        }else if (rank == 2 && memSpec.numberOfRanks>=3) {
-            cmdListPerRank[2].push_back(cmd);
-        }else if (rank == 3 && memSpec.numberOfRanks==4) {
-            cmdListPerRank[3].push_back(cmd);
-        }
-        else {
-            throw std::invalid_argument("Command issued to invalid Rank. WideIO has maximum of 4 Ranks. RankIDs={0,1,2,3}");
-        }
+        cmdListPerRank[rank].push_back(cmd);
     }
 }
 

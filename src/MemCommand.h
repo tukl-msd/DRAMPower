@@ -92,14 +92,15 @@ public:
     };
 
     //  MemCommand();
-    MemCommand(// Command Type
-               MemCommand::cmds type = UNINITIALIZED,
+    MemCommand(// Command Issue Timestamp (in cc)
+                  int64_t           timestamp = 0L,
+               // Command Type
+                   MemCommand::cmds type = UNINITIALIZED,
+               //Command Rank
+                  unsigned          rank = 0,
                // Target Bank
-               unsigned         bank = 0,
-               // Command Issue Timestamp (in cc)
-               int64_t          timestamp = 0L,
-               //Command Rank if ranks are supported
-               unsigned rank = 0);
+                  unsigned          bank = 0);
+
 
 
     // Set command type
@@ -179,10 +180,10 @@ public:
     }
 
 private:
-    MemCommand::cmds type;
-    unsigned bank;
     int64_t timestamp;
+    MemCommand::cmds type;
     unsigned rank;
+    unsigned bank;
 };
 }
 #endif // ifndef MEMCOMMAND_H

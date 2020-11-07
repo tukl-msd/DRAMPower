@@ -43,12 +43,12 @@ using namespace DRAMPower;
 using namespace std;
 
 
-MemCommand::MemCommand(MemCommand::cmds type,
-                       unsigned bank, int64_t timestamp, unsigned rank) :
-    type(type),
-    bank(bank),
+MemCommand::MemCommand( int64_t timestamp, MemCommand::cmds type,
+                       unsigned rank, unsigned bank) :
     timestamp(timestamp),
-    rank(rank)
+    type(type),
+    rank(bank),
+    bank(rank)
 {
 }
 
