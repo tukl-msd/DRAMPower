@@ -41,16 +41,17 @@ MemSpec::MemSpec(nlohmann::json &memspec,
                  const bool debug,
                  const bool writeToConsole,
                  const bool writeToFile,
-                 const std::string &traceName){
-      setupDebugManager(debug, writeToConsole, writeToFile, traceName);
-      numberOfBanks=parseUint(memspec["memarchitecturespec"]["nbrOfBanks"],"nbrOfBanks");
-      numberOfRows = (parseUint(memspec["memarchitecturespec"]["nbrOfRows"],"nbrOfRows"));
-      numberOfColumns = (parseUint(memspec["memarchitecturespec"]["nbrOfColumns"],"nbrOfColumns"));
-      burstLength = (parseUint(memspec["memarchitecturespec"]["burstLength"],"burstLength"));
-      dataRate = (parseUint(memspec["memarchitecturespec"]["dataRate"],"dataRate"));
-      bitWidth = (parseUint(memspec["memarchitecturespec"]["width"],"width"));
-      memoryId = (parseString(memspec["memoryId"], "memoryId"));
-      memoryType = (parseString(memspec["memoryType"], "memoryType"));
+                 const std::string &traceName)
+{
+    setupDebugManager(debug, writeToConsole, writeToFile, traceName);
+    numberOfBanks=parseUint(memspec["memarchitecturespec"]["nbrOfBanks"],"nbrOfBanks");
+    numberOfRows = (parseUint(memspec["memarchitecturespec"]["nbrOfRows"],"nbrOfRows"));
+    numberOfColumns = (parseUint(memspec["memarchitecturespec"]["nbrOfColumns"],"nbrOfColumns"));
+    burstLength = (parseUint(memspec["memarchitecturespec"]["burstLength"],"burstLength"));
+    dataRate = (parseUint(memspec["memarchitecturespec"]["dataRate"],"dataRate"));
+    bitWidth = (parseUint(memspec["memarchitecturespec"]["width"],"width"));
+    memoryId = (parseString(memspec["memoryId"], "memoryId"));
+    memoryType = (parseString(memspec["memoryType"], "memoryType"));
 }
 
 
@@ -71,8 +72,7 @@ MemSpec::~MemSpec()
 
 bool MemSpec::parseBool(json &obj, std::string name)
 {
-    if (!obj.empty())
-    {
+    if (!obj.empty()) {
         if (obj.is_boolean())
             return obj;
         else
@@ -84,8 +84,7 @@ bool MemSpec::parseBool(json &obj, std::string name)
 
 unsigned MemSpec::parseUint(json &obj, std::string name)
 {
-    if (!obj.empty())
-    {
+    if (!obj.empty()) {
         if (obj.is_number_unsigned())
             return obj;
         else
@@ -98,14 +97,13 @@ unsigned MemSpec::parseUint(json &obj, std::string name)
 
 unsigned MemSpec::parseUintWithDefaut(json &obj, std::string name)
 {
-    if (!obj.empty())
-    {
+    if (!obj.empty()) {
         if (obj.is_number() && (obj > 0))
             return obj;
         else
             throw std::invalid_argument("Expected type for '" + name + "': unsigned int");
     }
-    else{
+    else {
         PRINTWARNING("Parameter " + name + " not found: parsed with zero.\n");
         return 0.0;
     }
@@ -113,8 +111,7 @@ unsigned MemSpec::parseUintWithDefaut(json &obj, std::string name)
 
 double MemSpec::parseUdouble(json &obj, std::string name)
 {
-    if (!obj.empty())
-    {
+    if (!obj.empty()) {
         if (obj.is_number() && (obj > 0))
             return obj;
         else
@@ -127,22 +124,20 @@ double MemSpec::parseUdouble(json &obj, std::string name)
 
 double MemSpec::parseUdoubleWithDefault(json &obj, std::string name)
 {
-    if (!obj.empty())
-    {
+    if (!obj.empty()) {
         if (obj.is_number() && (obj >= 0))
             return obj;
         else
             throw std::invalid_argument("Expected type for '" + name + "': positive double");
     }
-    else{
+    else {
         PRINTWARNING("Parameter " + name + " not found: parsed with zero.\n");
         return 0.0;
     }
 }
 std::string MemSpec::parseString(json &obj, std::string name)
 {
-    if (!obj.empty())
-    {
+    if (!obj.empty()) {
         if (obj.is_string())
             return obj;
         else
@@ -154,8 +149,7 @@ std::string MemSpec::parseString(json &obj, std::string name)
 
 std::string MemSpec::parseStringWithDefault(json &obj, std::string name, std::string defaultString)
 {
-    if (!obj.empty())
-    {
+    if (!obj.empty()) {
         if (obj.is_string())
             return obj;
         else
@@ -163,11 +157,12 @@ std::string MemSpec::parseStringWithDefault(json &obj, std::string name, std::st
     }
     else
         PRINTWARNING("Parameter " + name + " not found: parsed with default.\n");
-        return defaultString;
+    return defaultString;
 }
 
 
-int64_t MemSpec::getExitSREFtime(){
+int64_t MemSpec::getExitSREFtime()
+{
     throw std::invalid_argument("getExitSREFtime was not declared");
 }
 

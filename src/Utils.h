@@ -48,14 +48,14 @@ template<typename T>
 T fromString(const std::string& s,
              std::ios_base& (*f)(std::ios_base &) = std::dec)
 {
-  std::istringstream is(s);
-  T t;
+    std::istringstream is(s);
+    T t;
 
-  if (!(is >> f >> t)) {
-    throw std::runtime_error("Cannot convert string");
-  }
+    if (!(is >> f >> t)) {
+        throw std::runtime_error("Cannot convert string");
+    }
 
-  return t;
+    return t;
 }
 
 

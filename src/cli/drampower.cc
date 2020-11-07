@@ -42,18 +42,18 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-  
-  try {
 
-    CliHandler cli(argc, argv);
-    cli.logo();
-    cli.parse_arguments();
-    cli.run_simulation();
+    try {
+
+        CliHandler cli(argc, argv);
+        cli.logo();
+        cli.parse_arguments();
+        cli.run_simulation();
 
 
-    return EXIT_SUCCESS;
-  } catch(const std::exception& e) {
-    std::cerr << e.what() << std::endl;
-    return EXIT_FAILURE;
-  }
+        return EXIT_SUCCESS;
+    } catch(const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 } // main

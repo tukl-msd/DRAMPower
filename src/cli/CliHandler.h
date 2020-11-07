@@ -61,36 +61,36 @@ constexpr const char* CMD_TRACE("--cmd_trace,-c");
 
 class CliHandler{
 public:
-  CliHandler(int _argc, char** _argv);
-  ~CliHandler();
+    CliHandler(int _argc, char** _argv);
+    ~CliHandler();
 
-  bool get_io_term_active() const;
-  bool get_writeToConsole() const;
-  bool get_writeToFile() const;
-  const std::string& get_mem_spec_path() const;
-  const std::string& get_cmd_trace_path() const;
-  void loadMemSpec(const std::string &memspecUri);
-  void logo();
-  void parse_arguments();
-  void run_simulation();
+    bool get_io_term_active() const;
+    bool get_writeToConsole() const;
+    bool get_writeToFile() const;
+    const std::string& get_mem_spec_path() const;
+    const std::string& get_cmd_trace_path() const;
+    void loadMemSpec(const std::string &memspecUri);
+    void logo();
+    void parse_arguments();
+    void run_simulation();
 
 private:
-  CliHandler(){};
-  CLI::App* app;
-  int argc;
-  char** argv;
-  bool io_term_active;
-  std::string mem_spec_path;
-  std::string cmd_trace_path;
-  bool debug_file_active;
-  bool debug_console_active;
+    CliHandler(){};
+    CLI::App* app;
+    int argc;
+    char** argv;
+    bool io_term_active;
+    std::string mem_spec_path;
+    std::string cmd_trace_path;
+    bool debug_file_active;
+    bool debug_console_active;
 
 
-  TraceParser traceparser;
+    TraceParser traceparser;
 
-  DRAMPowerIF *dramPower;
+    DRAMPowerIF *dramPower;
 
-  std::vector<DRAMPower::MemCommand> cmd_list;
+    std::vector<DRAMPower::MemCommand> cmd_list;
 };
 
 }

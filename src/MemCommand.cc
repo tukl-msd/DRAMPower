@@ -45,59 +45,59 @@ using namespace std;
 
 MemCommand::MemCommand(MemCommand::cmds type,
                        unsigned bank, int64_t timestamp, unsigned rank) :
-  type(type),
-  bank(bank),
-  timestamp(timestamp),
-  rank(rank)
+    type(type),
+    bank(bank),
+    timestamp(timestamp),
+    rank(rank)
 {
 }
 
 void MemCommand::setType(MemCommand::cmds _type)
 {
-  type = _type;
+    type = _type;
 }
 
 MemCommand::cmds MemCommand::getType() const
 {
-  return type;
+    return type;
 }
 
 void MemCommand::setBank(unsigned _bank)
 {
-  bank = _bank;
+    bank = _bank;
 }
 
 unsigned MemCommand::getBank() const
 {
-  return bank;
+    return bank;
 }
 
 void MemCommand::setTime(int64_t _timestamp)
 {
-  timestamp = _timestamp;
+    timestamp = _timestamp;
 }
 
 int64_t MemCommand::getTimeInt64() const
 {
-  return timestamp;
+    return timestamp;
 }
 
 void MemCommand::setRank(unsigned _rank)
 {
-  rank = _rank;
+    rank = _rank;
 }
 
 unsigned MemCommand::getRank() const
 {
-  return rank;
+    return rank;
 }
 
 MemCommand::cmds MemCommand::typeWithoutAutoPrechargeFlag() const
 {
-  if (type == MemCommand::RDA) {
-    return MemCommand::RD;
-  } else if (type == MemCommand::WRA) {
-    return MemCommand::WR;
-  }
-  return type;
+    if (type == MemCommand::RDA) {
+        return MemCommand::RD;
+    } else if (type == MemCommand::WRA) {
+        return MemCommand::WR;
+    }
+    return type;
 }

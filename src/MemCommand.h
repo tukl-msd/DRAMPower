@@ -45,8 +45,8 @@
 
 namespace DRAMPower {
 class MemCommand {
- public:
-  /*
+public:
+    /*
    * 1. ACT - Activate
    * 2. RD - Read
    * 3. WR - Write
@@ -68,121 +68,121 @@ class MemCommand {
    * 19. NOP - To indicate end of trace
    */
 
-  enum cmds {
-    ACT       = 0,
-    RD        = 1,
-    WR        = 2,
-    PRE       = 3,
-    REF       = 4,
-    REFB      = 5,
-    END       = 6,
-    RDA       = 7,
-    WRA       = 8,
-    PREA      = 9,
-    PDN_F_PRE = 10,
-    PDN_S_PRE = 11,
-    PDN_F_ACT = 12,
-    PDN_S_ACT = 13,
-    PUP_PRE   = 14,
-    PUP_ACT   = 15,
-    SREN      = 16,
-    SREX      = 17,
-    NOP       = 18,
-    UNINITIALIZED = 19
-  };
+    enum cmds {
+        ACT       = 0,
+        RD        = 1,
+        WR        = 2,
+        PRE       = 3,
+        REF       = 4,
+        REFB      = 5,
+        END       = 6,
+        RDA       = 7,
+        WRA       = 8,
+        PREA      = 9,
+        PDN_F_PRE = 10,
+        PDN_S_PRE = 11,
+        PDN_F_ACT = 12,
+        PDN_S_ACT = 13,
+        PUP_PRE   = 14,
+        PUP_ACT   = 15,
+        SREN      = 16,
+        SREX      = 17,
+        NOP       = 18,
+        UNINITIALIZED = 19
+    };
 
-//  MemCommand();
-  MemCommand(// Command Type
-    MemCommand::cmds type = UNINITIALIZED,
-    // Target Bank
-    unsigned         bank = 0,
-    // Command Issue Timestamp (in cc)
-    int64_t          timestamp = 0L,
-    //Command Rank if ranks are supported
-    unsigned rank = 0);
+    //  MemCommand();
+    MemCommand(// Command Type
+               MemCommand::cmds type = UNINITIALIZED,
+               // Target Bank
+               unsigned         bank = 0,
+               // Command Issue Timestamp (in cc)
+               int64_t          timestamp = 0L,
+               //Command Rank if ranks are supported
+               unsigned rank = 0);
 
 
-  // Set command type
-  void setType(MemCommand::cmds _type);
-  // Set target Bank
-  void setBank(unsigned _bank);
-  // Set timestamp
-  void setTime(int64_t _timestamp);
-  // Set target Rank
-  void setRank(unsigned _rank);
+    // Set command type
+    void setType(MemCommand::cmds _type);
+    // Set target Bank
+    void setBank(unsigned _bank);
+    // Set timestamp
+    void setTime(int64_t _timestamp);
+    // Set target Rank
+    void setRank(unsigned _rank);
 
-  // Get command type
-  cmds getType() const;
-  // Get target Bank
-  unsigned getBank() const;
-  // Get timestamp
-  int64_t getTimeInt64() const;
-  // Get target Rank
-  unsigned getRank() const;
+    // Get command type
+    cmds getType() const;
+    // Get target Bank
+    unsigned getBank() const;
+    // Get timestamp
+    int64_t getTimeInt64() const;
+    // Get target Rank
+    unsigned getRank() const;
 
-  cmds typeWithoutAutoPrechargeFlag() const;
+    cmds typeWithoutAutoPrechargeFlag() const;
 
-  // To check for equivalence
+    // To check for equivalence
 
-  bool operator==(const MemCommand& other) const
-  {
-    if ((getType() == other.getType()) &&
-        (getBank() == other.getBank())
-        ) {
-      return true;
-    } else {
-      return false;
+    bool operator==(const MemCommand& other) const
+    {
+        if ((getType() == other.getType()) &&
+                (getBank() == other.getBank())
+                ) {
+            return true;
+        } else {
+            return false;
+        }
     }
-  }
 
-  static const unsigned int nCommands = 20;
+    static const unsigned int nCommands = 20;
 
-  static std::string* getCommandTypeStrings()
-  {
-    static std::string type_map[nCommands] = { "ACT",
-                                               "RD",
-                                               "WR",
-                                               "PRE",
-                                               "REF",
-                                               "REFB",
-                                               "END",
-                                               "RDA",
-                                               "WRA",
-                                               "PREA",
-                                               "PDN_F_PRE",
-                                               "PDN_S_PRE",
-                                               "PDN_F_ACT",
-                                               "PDN_S_ACT",
-                                               "PUP_PRE",
-                                               "PUP_ACT",
-                                               "SREN",
-                                               "SREX",
-                                               "NOP",
-                                               "UNINITIALIZED" };
+    static std::string* getCommandTypeStrings()
+    {
+        static std::string type_map[nCommands] = { "ACT",
+                                                   "RD",
+                                                   "WR",
+                                                   "PRE",
+                                                   "REF",
+                                                   "REFB",
+                                                   "END",
+                                                   "RDA",
+                                                   "WRA",
+                                                   "PREA",
+                                                   "PDN_F_PRE",
+                                                   "PDN_S_PRE",
+                                                   "PDN_F_ACT",
+                                                   "PDN_S_ACT",
+                                                   "PUP_PRE",
+                                                   "PUP_ACT",
+                                                   "SREN",
+                                                   "SREX",
+                                                   "NOP",
+                                                   "UNINITIALIZED" };
 
-    return type_map;
-  }
-
-  // To identify command type from name
-  static cmds getTypeFromName(const std::string& name)
-  {
-    std::string* typeStrings = getCommandTypeStrings();
-
-    for (size_t typeId = 0; typeId < nCommands; typeId++) {
-      if (typeStrings[typeId] == name) {
-        cmds commandType = static_cast<cmds>(typeId);
-        return commandType;
-      }
+        return type_map;
     }
-    assert(false); // Unknown name.
-    return NOP;  // For clang compilation
-  }
 
- private:
-  MemCommand::cmds type;
-  unsigned bank;
-  int64_t timestamp;
-  unsigned rank;
+    // To identify command type from name
+    static cmds getTypeFromName(const std::string& name)
+    {
+        std::string* typeStrings = getCommandTypeStrings();
+
+        for (size_t typeId = 0; typeId < nCommands; typeId++) {
+            if (typeStrings[typeId] == name) {
+                cmds commandType = static_cast<cmds>(typeId);
+                return commandType;
+            }
+        }
+        assert(false); // Unknown name.
+        return NOP;  // For clang compilation
+    }
+
+private:
+    MemCommand::cmds type;
+    unsigned bank;
+    int64_t timestamp;
+    unsigned rank;
 };
 }
 #endif // ifndef MEMCOMMAND_H

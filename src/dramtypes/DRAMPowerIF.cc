@@ -2,8 +2,8 @@
 
 void DRAMPowerIF::doCommand(DRAMPower::MemCommand::cmds type, int bank, int64_t timestamp, int rank)
 {
-  DRAMPower::MemCommand cmd(type, static_cast<unsigned>(bank), timestamp, static_cast<unsigned>(rank));
-  cmdList.push_back(cmd);
+    DRAMPower::MemCommand cmd(type, static_cast<unsigned>(bank), timestamp, static_cast<unsigned>(rank));
+    cmdList.push_back(cmd);
 }
 
 void DRAMPowerIF::setupDebugManager(const bool debug __attribute__((unused)),
