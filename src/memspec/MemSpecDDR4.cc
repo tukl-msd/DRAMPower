@@ -138,6 +138,8 @@ MemSpecDDR4::MemSpecDDR4(json &memspec,
     memPowerSpec[0].termRdPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["termRdPower"], "termRdPower"));
     memPowerSpec[0].termWrPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["termWrPower"], "termWrPower"));
 
+    memPowerSpec.resize(2);
+
     json bankWise = memspec["bankwisespec"];
     if (!bankWise.empty()) {
 

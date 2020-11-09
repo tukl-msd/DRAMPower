@@ -78,14 +78,9 @@ public:
 
     void powerPrint();
 
-    void updateCounters(bool lastUpdate, unsigned idx, int64_t timestamp = 0);
+    void updateCounters(bool lastUpdate, unsigned rank, int64_t timestamp = 0);
 
     struct Energy {
-
-        // Cycles per rank
-        int64_t rank_total_cycles;
-
-        int64_t rank_window_cycles;
 
         // Total energy of all activates
         std::vector<double> act_energy_banks;
@@ -117,18 +112,11 @@ public:
         // Total energy of idle cycles in the precharge mode
         std::vector<double> idle_energy_pre_banks;
 
-        // Total trace/pattern energy
-        double total_energy;
+        // Window energy banks
+        std::vector<double> window_energy_banks;
+
+        // Total energy banks
         std::vector<double> total_energy_banks;
-
-        //Window energy per voltage domain
-        std::vector<double> window_energy_per_vdd;
-
-        // Window energy
-        double window_energy;
-
-        // Average Power
-        double average_power;
 
         // Energy consumed in active/precharged fast/slow-exit modes
         std::vector<double> f_act_pd_energy_banks;
@@ -165,28 +153,9 @@ public:
         double write_term_energy;  // Write Termination Energy
         // Total IO and Termination Energy
         double io_term_energy;
-
-        void clearEnergy(int64_t nbrofBanks);
     };
 
-    struct Power {
-        // Power measures corresponding to IO and Termination
-        double IO_power;     // Read IO Power
-        double WR_ODT_power; // Write ODT Power
-
-        // Average Power
-        double average_power;
-
-        // Window Average Power
-        double window_average_power;
-
-        //Clear IO and Termination Power
-        void clearIOPower();
-    };
-
-    std::vector<Energy> energy;
-    std::vector<Power>  power;
-
+    std::vector<std::vector<Energy>> energy;
 
 private:
     MemSpecWideIO memSpec;
@@ -195,20 +164,40 @@ private:
 
     std::vector<CountersWideIO> counters;
 
-    double allranks_energy;
+    // Cycles
+    std::vector<int64_t> total_cycles;
+    std::vector<int64_t> window_cycles;
+
+    //Rank Energy
+    std::vector<double>  rank_total_energy;
+    std::vector<double>  rank_window_energy;
+
+    //Rank Power
+    std::vector<double>  rank_total_average_power;
+    std::vector<double>  rank_window_average_power;
+
+    //Total Energy
+    double window_trace_energy;
+    double total_trace_energy;
 
     bool includeIoAndTermination;
 
-    void evaluateCommands(std::vector<MemCommand>& cmd_list, unsigned idx);
+    void evaluateCommands(std::vector<MemCommand>& cmd_list, unsigned rank);
 
     void splitCmdList();
 
-    void bankPowerCalc(unsigned idx);
+    void bankEnergyCalc(unsigned rank, unsigned vdd);
+
+    void updateCycles(unsigned rank);
+
+    void rankPowerCalc(unsigned rank);
+
+    void traceEnergyCalc();
 
     // To calculate IO and Termination Energy
     void io_term_power();
 
-    void calcIoTermEnergy(unsigned idx);
+    void calcIoTermEnergy(unsigned rank);
 
     template <typename T> T sum(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
 
