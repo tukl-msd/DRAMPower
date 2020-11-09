@@ -24,7 +24,7 @@ void DRAMPowerDDR4::calcEnergy()
 
 void DRAMPowerDDR4::calcWindowEnergy(int64_t timestamp)
 {
-    doCommand(MemCommand::NOP, 0, timestamp);
+    doCommand(timestamp, MemCommand::NOP, 0, 0);
     updateCounters(false, timestamp);
     energy.clearEnergy(memSpec.numberOfBanks);
     power.clearIOPower();

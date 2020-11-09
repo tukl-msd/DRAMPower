@@ -9,18 +9,26 @@ DRAMPowerWideIO::DRAMPowerWideIO(MemSpecWideIO& memSpec, bool includeIoAndTermin
     includeIoAndTermination(includeIoAndTermination)
 {
     cmdListPerRank.resize(memSpec.numberOfRanks);
+
+    total_cycles.resize(memSpec.numberOfRanks);
+    window_cycles.resize(memSpec.numberOfRanks);
+
+    rank_total_energy.resize(memSpec.numberOfRanks);
+    rank_window_energy.resize(memSpec.numberOfRanks);
+
+    rank_total_average_power.resize(memSpec.numberOfRanks);
+    rank_window_average_power.resize(memSpec.numberOfRanks);
+
     energy.resize(memSpec.numberOfRanks);
     for (unsigned rank = 0; rank < memSpec.numberOfRanks; ++rank) {
-        energy[rank].resize(memSpec.memPowerSpec.size());
+        counters.push_back(CountersWideIO(memSpec));
         for (unsigned vdd = 0; vdd < memSpec.memPowerSpec.size(); vdd++) {
-            counters.push_back(CountersWideIO(memSpec));
             energy[rank].push_back(Energy());
-            energy[rank][vdd].total_energy_banks.assign(static_cast<size_t>(memSpec.numberOfBanks), 0.0);
+            energy[rank][vdd].clearEnergy(memSpec.numberOfBanks);
         }
         total_cycles[rank]             = 0.0;
         rank_total_energy[rank]        = 0.0;
         rank_total_average_power[rank] = 0.0;
-
     }
     total_trace_energy = 0.0;
 }
@@ -30,15 +38,15 @@ void DRAMPowerWideIO::calcEnergy()
     splitCmdList();
     for (unsigned rank = 0; rank < energy.size(); ++rank) {
         updateCounters(true,rank);
+        updateCycles(rank);
         for (unsigned vdd = 0; vdd < energy[rank].size(); vdd++) {
-            energy[rank][vdd].clearEnergy(memSpec.numberOfBanks);
             if (includeIoAndTermination) calcIoTermEnergy(rank);
+            cout << energy[rank].size() << endl << memSpec.memPowerSpec.size();
             bankEnergyCalc(rank,vdd);
         }
-        updateCycles(rank);
         rankPowerCalc(rank);
     }
-    void traceEnergyCalc();
+    traceEnergyCalc();
 }
 
 void DRAMPowerWideIO::calcWindowEnergy(int64_t timestamp)
@@ -57,9 +65,79 @@ void DRAMPowerWideIO::calcWindowEnergy(int64_t timestamp)
         counters[rank].clearCounters(timestamp);
         rankPowerCalc(rank);
     }
-    void traceEnergyCalc();
+    traceEnergyCalc();
 }
 
+
+void DRAMPowerWideIO::Energy::clearEnergy(int64_t nbrofBanks) {
+
+        // Total energy of all activates
+        act_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Total energy of all precharges
+        pre_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Total energy of all reads
+        read_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Total energy of all writes
+        write_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Total energy of all refreshes
+        ref_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Bankwise refresh energy
+        refb_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Total background energy of all active standby cycles
+        act_stdby_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Total background energy of all precharge standby cycles
+        pre_stdby_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Total energy of idle cycles in the active mode
+        idle_energy_act_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Total energy of idle cycles in the precharge mode
+        idle_energy_pre_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Window energy banks
+        window_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Total energy banks
+        total_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
+
+        // Energy consumed in active/precharged fast/slow-exit modes
+        f_act_pd_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        f_pre_pd_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Energy consumed in self-refresh mode
+        sref_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Energy consumed in auto-refresh during self-refresh mode
+        sref_ref_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        sref_ref_act_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        sref_ref_pre_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Energy consumed in powering-up from self-refresh mode
+        spup_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Energy consumed in auto-refresh during self-refresh power-up
+        spup_ref_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        spup_ref_act_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        spup_ref_pre_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        // Energy consumed in powering-up from active/precharged power-down modes
+        pup_act_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+        pup_pre_energy_banks.resize(static_cast<size_t>(nbrofBanks));
+
+}
 
 double DRAMPowerWideIO::getEnergy()
 {
@@ -279,7 +357,6 @@ void DRAMPowerWideIO::updateCycles(unsigned rank)
                           c.s_pre_pdcycles + c.sref_cycles +
                           c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
                           c.spup_ref_act_cycles + c.spup_ref_pre_cycles;
-
     total_cycles[rank]  += window_cycles[rank];
 }
 
@@ -300,10 +377,14 @@ void DRAMPowerWideIO::rankPowerCalc(unsigned rank)
 void DRAMPowerWideIO::traceEnergyCalc()
 {
     window_trace_energy = 0.0;
-    for (unsigned rank = 0; rank < energy.size(); ++rank) {
-        window_trace_energy += rank_window_energy[rank];
-    }
-    total_trace_energy += window_trace_energy;
+
+    window_trace_energy += sum(rank_window_energy);
+
+    total_trace_energy = sum(rank_total_energy);
+
+
+    window_trace_average_power = sum(rank_window_average_power) / rank_window_average_power.size();
+    total_trace_average_power = sum(rank_total_average_power) / rank_total_average_power.size();
 }
 
 
@@ -348,72 +429,63 @@ void DRAMPowerWideIO::calcIoTermEnergy(unsigned rank)
 
 void DRAMPowerWideIO::powerPrint()
 {
-//    const char eUnit[] = " pJ";
-//    const int64_t nbrofBanks = memSpec.numberOfBanks;
-//    ios_base::fmtflags flags = cout.flags();
-//    streamsize precision = cout.precision();
-//    cout.precision(0);
-//    for (unsigned rank = 0; rank < energy.size(); ++rank) {
-//        for (unsigned vdd = 0; vdd < energy[rank].size(); vdd++) {
-//            const Counters& c = counters[i];
-//            const Energy& e = energy[i];
-//            cout << endl << "* Rank " << i << " Details *" << endl << endl;
-//            cout << endl << "* Bankwise Details:";
-//            for (unsigned i = 0; i < nbrofBanks; i++) {
-//                cout << endl << "## @ Bank " << i << fixed
-//                     << endl << "  #ACT commands: " << c.numberofactsBanks[i]
-//                        << endl << "  #RD + #RDA commands: " << c.numberofreadsBanks[i]
-//                           << endl << "  #WR + #WRA commands: " << c.numberofwritesBanks[i]
-//                              << endl << "  #PRE (+ PREA) commands: " << c.numberofpresBanks[i];
-//            }
-//            cout << endl;
+    const char eUnit[] = " pJ";
+    const int64_t nbrofBanks = memSpec.numberOfBanks;
+    ios_base::fmtflags flags = cout.flags();
+    streamsize precision = cout.precision();
+    cout.precision(0);
+    for (unsigned rank = 0; rank < energy.size(); ++rank) {
+        const Counters& c = counters[rank];
+        cout << endl << "* Commands to rank " << rank << ":" << endl;
+        for (unsigned i = 0; i < nbrofBanks; i++) {
+            cout << endl << "## @ Bank " << i << fixed
+                 << endl << "  #ACT commands: " << c.numberofactsBanks[i]
+                    << endl << "  #RD + #RDA commands: " << c.numberofreadsBanks[i]
+                       << endl << "  #WR + #WRA commands: " << c.numberofwritesBanks[i]
+                          << endl << "  #PRE (+ PREA) commands: " << c.numberofpresBanks[i];
+        }
+        cout << endl;
+        for (unsigned vdd = 0; vdd < energy[rank].size(); vdd++) {
+            const Energy& e = energy[rank][vdd];
+            cout << endl << "* Rank " << rank << " Details for vdd" << vdd << ":" << endl;
+            for (unsigned i = 0; i < nbrofBanks; i++) {
+                cout << endl << " ## @Rank " << rank << " @Vdd" << vdd << " @ Bank " << i << fixed
+                     << endl << "  ACT Cmd Energy: " << e.act_energy_banks[i] << eUnit
+                     << endl << "  PRE Cmd Energy: " << e.pre_energy_banks[i] << eUnit
+                     << endl << "  RD Cmd Energy: " << e.read_energy_banks[i] << eUnit
+                     << endl << "  WR Cmd Energy: " << e.write_energy_banks[i] << eUnit
+                     << endl << "  Auto-Refresh Energy: " << e.ref_energy_banks[i] << eUnit
+                     << endl << "  ACT Stdby Energy: " <<  e.act_stdby_energy_banks[i] << eUnit
+                     << endl << "  PRE Stdby Energy: " << e.pre_stdby_energy_banks[i] << eUnit
+                     << endl << "  Active Idle Energy: "<<  e.idle_energy_act_banks[i] << eUnit
+                     << endl << "  Precharge Idle Energy: "<<  e.idle_energy_pre_banks[i] << eUnit
+                     << endl << "  Fast-Exit Active Power-Down Energy: "<<  e.f_act_pd_energy_banks[i] << eUnit
+                     << endl << "  Fast-Exit Precharged Power-Down Energy: "<<  e.f_pre_pd_energy_banks[i] << eUnit
+                     << endl << "  Self-Refresh Energy: "<<  e.sref_energy_banks[i] << eUnit
+                     << endl << "  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: "<<  e.sref_ref_act_energy_banks[i] << eUnit
+                     << endl << "  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: " <<  e.sref_ref_pre_energy_banks[i] << eUnit
+                     << endl << "  Self-Refresh Power-Up Energy: "<< e.spup_energy_banks[i] << eUnit
+                     << endl << "  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<<  e.spup_ref_act_energy_banks[i] << eUnit
+                     << endl << "  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<<  e.spup_ref_pre_energy_banks[i] << eUnit
+                     << endl << "  Active Power-Up Energy: "<<  e.pup_act_energy_banks[i] << eUnit
+                     << endl << "  Precharged Power-Up Energy: "<< e.pup_pre_energy_banks[i] << eUnit
+                     << endl << "  Total Energy of Bank: " << e.total_energy_banks[i] << eUnit
+                     << endl;
+            }
+        }
+        cout << endl
+             << endl << "  Rank " << rank << " Energy : "<< rank_total_energy[rank] << eUnit
+             << endl << "  Rank " << rank << " Average Power : " << rank_total_average_power[rank] << " mW" << endl;
+    }
 
-//            for (unsigned i = 0; i < nbrofBanks; i++) {
-//                cout << endl << "## @ Bank " << i << fixed
-//                     << endl << "  ACT Cmd Energy: " << e.act_energy_banks[i] << eUnit
-//                     << endl << "  PRE Cmd Energy: " << e.pre_energy_banks[i] << eUnit
-//                     << endl << "  RD Cmd Energy: " << e.read_energy_banks[i] << eUnit
-//                     << endl << "  WR Cmd Energy: " << e.write_energy_banks[i] << eUnit
-//                     << endl << "  Auto-Refresh Energy: " << e.ref_energy_banks[i] << eUnit
-//                     << endl << "  ACT Stdby Energy: " <<  e.act_stdby_energy_banks[i] << eUnit
-//                     << endl << "  PRE Stdby Energy: " << e.pre_stdby_energy_banks[i] << eUnit
-//                     << endl << "  Active Idle Energy: "<<  e.idle_energy_act_banks[i] << eUnit
-//                     << endl << "  Precharge Idle Energy: "<<  e.idle_energy_pre_banks[i] << eUnit
-//                     << endl << "  Fast-Exit Active Power-Down Energy: "<<  e.f_act_pd_energy_banks[i] << eUnit
-//                     << endl << "  Fast-Exit Precharged Power-Down Energy: "<<  e.f_pre_pd_energy_banks[i] << eUnit
-//                     << endl << "  Self-Refresh Energy: "<<  e.sref_energy_banks[i] << eUnit
-//                     << endl << "  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: "<<  e.sref_ref_act_energy_banks[i] << eUnit
-//                     << endl << "  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: " <<  e.sref_ref_pre_energy_banks[i] << eUnit
-//                     << endl << "  Self-Refresh Power-Up Energy: "<< e.spup_energy_banks[i] << eUnit
-//                     << endl << "  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<<  e.spup_ref_act_energy_banks[i] << eUnit
-//                     << endl << "  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<<  e.spup_ref_pre_energy_banks[i] << eUnit
-//                     << endl << "  Active Power-Up Energy: "<<  e.pup_act_energy_banks[i] << eUnit
-//                     << endl << "  Precharged Power-Up Energy: "<< e.pup_pre_energy_banks[i] << eUnit
-//                     << endl << "  Total Energy of Bank: " << e.total_energy_banks[i] << eUnit
-//                     << endl;
-//            }
-//            cout << endl;
-//            cout << endl
-//                 << endl << "  Rank " << i << " Energy : "<< e.total_energy << eUnit
-//                 << endl << "  Rank " << i << " Average Power : " << pow.average_power << " mW"
-//                 << endl << endl;
-//        }
-//    }
-//    if (includeIoAndTermination) {
-//        cout << "  RD I/O Energy: " << energy[0].read_io_energy << eUnit << endl;
-//        // No Termination for LPDDR/2/3 and DDR memories
-//        cout << "  WR Termination Energy: " << energy[0].write_term_energy << eUnit << endl;
-
-//    }
-
-//    cout << endl << "----------------------------------------"
-//         << endl << "  Total Trace Energy : "<< allranks_energy << eUnit
-//            // << endl << "  Total Average Power : " << allranks_avg_power << " mW"
-//         << endl << "----------------------------------------" << endl;
+    cout << endl << "----------------------------------------"
+         << endl << "  Total Trace Energy : "  << total_trace_energy << eUnit
+         << endl << "  Total Average Power : " << total_trace_average_power << " mW"
+         << endl << "----------------------------------------" << endl;
 
 
-//    cout.flags(flags);
-//    cout.precision(precision);
+    cout.flags(flags);
+    cout.precision(precision);
 }
 
 

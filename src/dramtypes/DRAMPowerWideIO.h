@@ -153,6 +153,8 @@ public:
         double write_term_energy;  // Write Termination Energy
         // Total IO and Termination Energy
         double io_term_energy;
+
+        void clearEnergy(int64_t nbrofBanks);
     };
 
     std::vector<std::vector<Energy>> energy;
@@ -179,6 +181,9 @@ private:
     //Total Energy
     double window_trace_energy;
     double total_trace_energy;
+
+    double window_trace_average_power;
+    double total_trace_average_power;
 
     bool includeIoAndTermination;
 

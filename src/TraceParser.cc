@@ -43,7 +43,7 @@ using namespace std;
 
 DRAMPower::MemCommand TraceParser::parseLine(std::string line)
 {
-    MemCommand memcmd(MemCommand::UNINITIALIZED, 0, 0);
+    MemCommand memcmd(0, MemCommand::UNINITIALIZED, 0, 0);
     istringstream linestream(line);
     string item;
     int64_t item_val;

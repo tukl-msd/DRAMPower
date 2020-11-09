@@ -100,8 +100,7 @@ void CountersDDR4::getCommands(std::vector<MemCommand>& list, bool lastupdate, i
             //Add the auto precharge to the list of cached_cmds
             int64_t preTime = max(cmd.getTimeInt64() + prechargeOffset,
                                   activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.tRAS);
-
-            list.push_back(MemCommand(MemCommand::PRE, cmd.getBank(), preTime));
+            list.push_back(MemCommand(preTime, MemCommand::PRE, 0,  cmd.getBank()));
         }
 
         if ((!lastupdate)  && (timestamp > 0)) {
@@ -117,7 +116,7 @@ void CountersDDR4::getCommands(std::vector<MemCommand>& list, bool lastupdate, i
     if (lastupdate && list.empty() == false) {
         // Add cycles at the end of the list
         int64_t t =  memSpec.timeToCompletion(list.back().getType()) + list.back().getTimeInt64() - 1;
-        list.push_back(MemCommand(MemCommand::NOP, 0, t));
+        list.push_back(MemCommand(t, MemCommand::NOP, 0, 0));
     }
 } // CountersDDR4::getCommands
 
