@@ -226,7 +226,8 @@ void Counters::handleAct(unsigned bank, int64_t timestamp)
     // state. Update the number of precharged/idle-precharged cycles.
     // If the bank is already active ignore the command and generate a
     // warning.
-    if (isPrecharged(bank)) {
+
+    if (bank_state[bank] == BANK_PRECHARGED) {
         numberofactsBanks[bank]++;
 
         if (nActiveBanks() == 0) {

@@ -47,8 +47,8 @@ MemCommand::MemCommand( int64_t timestamp, MemCommand::cmds type,
                        unsigned rank, unsigned bank) :
     timestamp(timestamp),
     type(type),
-    rank(bank),
-    bank(rank)
+    rank(rank),
+    bank(bank)
 {
 }
 

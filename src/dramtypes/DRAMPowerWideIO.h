@@ -187,7 +187,7 @@ private:
 
     bool includeIoAndTermination;
 
-    void evaluateCommands(std::vector<MemCommand>& cmd_list, unsigned rank);
+    void evaluateCommands(unsigned rank);
 
     void splitCmdList();
 

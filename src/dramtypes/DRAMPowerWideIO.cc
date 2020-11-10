@@ -9,7 +9,6 @@ DRAMPowerWideIO::DRAMPowerWideIO(MemSpecWideIO& memSpec, bool includeIoAndTermin
     includeIoAndTermination(includeIoAndTermination)
 {
     cmdListPerRank.resize(memSpec.numberOfRanks);
-
     total_cycles.resize(memSpec.numberOfRanks);
     window_cycles.resize(memSpec.numberOfRanks);
 
@@ -37,14 +36,15 @@ void DRAMPowerWideIO::calcEnergy()
 {
     splitCmdList();
     for (unsigned rank = 0; rank < energy.size(); ++rank) {
-        updateCounters(true,rank);
-        updateCycles(rank);
-        for (unsigned vdd = 0; vdd < energy[rank].size(); vdd++) {
-            if (includeIoAndTermination) calcIoTermEnergy(rank);
-            cout << energy[rank].size() << endl << memSpec.memPowerSpec.size();
-            bankEnergyCalc(rank,vdd);
+        if (cmdListPerRank[rank].size() != 0) {
+            updateCounters(true,rank);
+            updateCycles(rank);
+            for (unsigned vdd = 0; vdd < energy[rank].size(); vdd++) {
+                if (includeIoAndTermination) calcIoTermEnergy(rank);
+                bankEnergyCalc(rank,vdd);
+            }
+            rankPowerCalc(rank);
         }
-        rankPowerCalc(rank);
     }
     traceEnergyCalc();
 }
@@ -153,16 +153,16 @@ double DRAMPowerWideIO::getPower()
 void DRAMPowerWideIO::updateCounters(bool lastUpdate, unsigned rank, int64_t timestamp)
 {
     counters[rank].getCommands(cmdListPerRank[rank], lastUpdate, timestamp);
-    evaluateCommands(cmdListPerRank[rank],rank); //command list already modified
+    evaluateCommands(rank); //command list already modified
     cmdListPerRank[rank].clear();
 }
 
 // Used to analyse a given list of commands and identify command timings
 // and memory state transitions
-void DRAMPowerWideIO::evaluateCommands(vector<MemCommand>& cmd_list, unsigned rank)
+void DRAMPowerWideIO::evaluateCommands(unsigned rank)
 {
     // for each command identify timestamp, type and bank
-    for (auto cmd : cmd_list) {
+    for (auto cmd : cmdListPerRank[rank]) {
         // For command type
         int type = cmd.getType();
         // For command bank
@@ -368,10 +368,12 @@ void DRAMPowerWideIO::rankPowerCalc(unsigned rank)
     for (unsigned vdd = 0; vdd < energy[rank].size(); ++vdd) {
         rank_window_energy[rank] += sum(energy[rank][vdd].window_energy_banks);
     }
-    rank_window_average_power[rank] = rank_window_energy[rank] / window_cycles[rank];
+    rank_window_average_power[rank] = rank_window_energy[rank] / (window_cycles[rank]
+                                                        * memSpec.memTimingSpec.tCK);
 
     rank_total_energy[rank] += rank_window_energy[rank];
-    rank_total_average_power[rank] = rank_total_energy[rank] / total_cycles[rank];
+    rank_total_average_power[rank] = rank_total_energy[rank] / (total_cycles[rank]
+                                                     * memSpec.memTimingSpec.tCK);
 }
 
 void DRAMPowerWideIO::traceEnergyCalc()
@@ -384,6 +386,7 @@ void DRAMPowerWideIO::traceEnergyCalc()
 
 
     window_trace_average_power = sum(rank_window_average_power) / rank_window_average_power.size();
+
     total_trace_average_power = sum(rank_total_average_power) / rank_total_average_power.size();
 }
 
@@ -433,17 +436,17 @@ void DRAMPowerWideIO::powerPrint()
     const int64_t nbrofBanks = memSpec.numberOfBanks;
     ios_base::fmtflags flags = cout.flags();
     streamsize precision = cout.precision();
-    cout.precision(0);
+    cout.precision(2);
     for (unsigned rank = 0; rank < energy.size(); ++rank) {
         const Counters& c = counters[rank];
         cout << endl << "* Commands to rank " << rank << ":" << endl;
-        for (unsigned i = 0; i < nbrofBanks; i++) {
-            cout << endl << "## @ Bank " << i << fixed
-                 << endl << "  #ACT commands: " << c.numberofactsBanks[i]
-                    << endl << "  #RD + #RDA commands: " << c.numberofreadsBanks[i]
-                       << endl << "  #WR + #WRA commands: " << c.numberofwritesBanks[i]
-                          << endl << "  #PRE (+ PREA) commands: " << c.numberofpresBanks[i];
-        }
+
+        cout << endl << "  #ACT commands: " << sum(counters[rank].numberofactsBanks)
+             << endl << "  #RD + #RDA commands: " << sum(counters[rank].numberofreadsBanks)
+             << endl << "  #WR + #WRA commands: " << sum(c.numberofwritesBanks)
+             << endl << "  #PRE (+ PREA) commands: " << sum(c.numberofpresBanks)
+             << endl << "  #REF commands: " << c.numberofrefs;
+
         cout << endl;
         for (unsigned vdd = 0; vdd < energy[rank].size(); vdd++) {
             const Energy& e = energy[rank][vdd];
@@ -475,7 +478,8 @@ void DRAMPowerWideIO::powerPrint()
         }
         cout << endl
              << endl << "  Rank " << rank << " Energy : "<< rank_total_energy[rank] << eUnit
-             << endl << "  Rank " << rank << " Average Power : " << rank_total_average_power[rank] << " mW" << endl;
+             << endl << "  Rank " << rank << " Average Power : " << rank_total_average_power[rank] << " mW" << endl
+             << endl << "  Cycles: " << total_cycles[rank];
     }
 
     cout << endl << "----------------------------------------"

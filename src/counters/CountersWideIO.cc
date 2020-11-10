@@ -79,8 +79,10 @@ CountersWideIO::CountersWideIO(MemSpecWideIO& memspec) :
 }
 
 
-void CountersWideIO::getCommands(std::vector<MemCommand>& list, bool lastupdate, int64_t timestamp)
+void CountersWideIO::getCommands(std::vector<DRAMPower::MemCommand>& list,
+                                 bool lastupdate, int64_t timestamp)
 {
+    unsigned rank=list[0].getRank();
     int64_t prechargeOffset;
     if (!next_window_cmd_list.empty()) {
         list.insert(list.begin(), next_window_cmd_list.begin(), next_window_cmd_list.end());
@@ -101,7 +103,7 @@ void CountersWideIO::getCommands(std::vector<MemCommand>& list, bool lastupdate,
             int64_t preTime = max(cmd.getTimeInt64() + prechargeOffset,
                                   activation_cycle[cmd.getBank()] + memSpec.memTimingSpec.tRAS);
 
-             list.push_back(MemCommand(preTime, MemCommand::PRE, 0,  cmd.getBank()));
+            list.push_back(MemCommand(preTime, MemCommand::PRE, rank, cmd.getBank()));
         }
 
         if ((!lastupdate)  && (timestamp > 0)) {
@@ -113,11 +115,13 @@ void CountersWideIO::getCommands(std::vector<MemCommand>& list, bool lastupdate,
             }
         }
     }
+
     sort(list.begin(), list.end(), commandSorter);
+
     if (lastupdate && list.empty() == false) {
         // Add cycles at the end of the list
         int64_t t =  memSpec.timeToCompletion(list.back().getType()) + list.back().getTimeInt64() - 1;
-        list.push_back(MemCommand(t, MemCommand::NOP, 0, 0));
+        list.push_back(MemCommand(t, MemCommand::NOP, rank, 0));
     }
 } // CountersWideIO::getCommands
 

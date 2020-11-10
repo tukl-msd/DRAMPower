@@ -19,9 +19,8 @@ class CountersWideIO final : public Counters {
   CountersWideIO(MemSpecWideIO& memspec);
 
   MemSpecWideIO memSpec;
-  void getCommands(std::vector<MemCommand>& list,
-                             bool lastupdate,
-                             int64_t timestamp);
+  void getCommands(std::vector<MemCommand> &list,
+                   bool lastupdate, int64_t timestamp);
 
 
   // Handlers for commands that are getting processed
