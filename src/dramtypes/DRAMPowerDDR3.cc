@@ -17,7 +17,6 @@ void DRAMPowerDDR3::calcEnergy()
 {
     updateCounters(true);
     energy.clearEnergy(memSpec.numberOfBanks);
-    power.clearIOPower();
     if (includeIoAndTermination) calcIoTermEnergy();
     bankPowerCalc();
 }
@@ -27,7 +26,6 @@ void DRAMPowerDDR3::calcWindowEnergy(int64_t timestamp)
     doCommand(timestamp, MemCommand::NOP, 0, 0);
     updateCounters(false, timestamp);
     energy.clearEnergy(memSpec.numberOfBanks);
-    power.clearIOPower();
     if (includeIoAndTermination) calcIoTermEnergy();
     bankPowerCalc();
     counters.clearCounters(timestamp);
@@ -41,7 +39,7 @@ double DRAMPowerDDR3::getEnergy()
 
 double DRAMPowerDDR3::getPower()
 {
-    return power.average_power;
+    return energy.average_power;
 }
 
 
@@ -145,13 +143,6 @@ void DRAMPowerDDR3::Energy::clearEnergy(int64_t nbrofBanks)
     read_io_energy      = 0.0;
     write_term_energy   = 0.0;
     io_term_energy      = 0.0;
-}
-
-
-void DRAMPowerDDR3::Power::clearIOPower()
-{
-    IO_power             = 0.0;
-    WR_ODT_power         = 0.0;
 }
 
 
@@ -267,7 +258,7 @@ void DRAMPowerDDR3::bankPowerCalc()
     // Calculate total energy for all banks.
     energy.window_energy = sum(energy.total_energy_banks) + energy.io_term_energy;
 
-    power.window_average_power = energy.window_energy / (static_cast<double>(window_cycles) * t.tCK);
+    energy.window_average_power = energy.window_energy / (static_cast<double>(window_cycles) * t.tCK);
 
     window_cycles = c.actcycles + c.precycles +
             c.f_act_pdcycles + c.f_pre_pdcycles +
@@ -280,7 +271,7 @@ void DRAMPowerDDR3::bankPowerCalc()
     energy.total_energy += energy.window_energy;
 
     // Calculate the average power consumption
-    power.average_power = energy.total_energy / (static_cast<double>(total_cycles) * t.tCK);
+    energy.average_power = energy.total_energy / (static_cast<double>(total_cycles) * t.tCK);
 
 } // DRAMPowerDDR3::bankPowerCalc
 
@@ -329,28 +320,24 @@ double DRAMPowerDDR3::engy_sref_banks(const Counters& c, const MemSpecDDR3::MemP
 }
 
 
-// IO and Termination power calculation based on Micron Power Calculators
-// Absolute power measures are obtained from Micron Power Calculator (mentioned in mW)
-void DRAMPowerDDR3::io_term_power()
-{
-
-    power.IO_power     = memSpec.memPowerSpec.ioPower;    // in W
-    power.WR_ODT_power = memSpec.memPowerSpec.wrOdtPower; // in W
-
-
-    if (memSpec.memPowerSpec.capacitance != 0.0) {
-        // If capacity is given, then IO Power depends on DRAM clock frequency.
-        power.IO_power = memSpec.memPowerSpec.capacitance * 0.5 * pow(memSpec.memPowerSpec.vDD, 2.0)
-                * memSpec.memTimingSpec.fCKMHz * 1000000;
-    }
-} // DRAMPowerDDR3::io_term_power
 
 
 void DRAMPowerDDR3::calcIoTermEnergy()
 {
-    io_term_power();
+
     const MemSpecDDR3::MemTimingSpec& t                 = memSpec.memTimingSpec;
     const Counters& c = counters;
+
+
+    IO_power     = memSpec.memPowerSpec.ioPower;    // in W
+    WR_ODT_power = memSpec.memPowerSpec.wrOdtPower; // in W
+
+
+    if (memSpec.memPowerSpec.capacitance != 0.0) {
+        // If capacity is given, then IO Power depends on DRAM clock frequency.
+        IO_power = memSpec.memPowerSpec.capacitance * 0.5 * pow(memSpec.memPowerSpec.vDD, 2.0)
+                * memSpec.memTimingSpec.fCKMHz * 1000000;
+    }
 
     // memSpec.width represents the number of data (dq) pins.
     // 1 DQS pin is associated with every data byte
@@ -362,12 +349,12 @@ void DRAMPowerDDR3::calcIoTermEnergy()
 
     // Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
     energy.read_io_energy = static_cast<double>(sum(c.numberofreadsBanks) * memSpec.burstLength)
-            * ddtRPeriod * power.IO_power * static_cast<double>(dqPlusDqsBits);
+            * ddtRPeriod * IO_power * static_cast<double>(dqPlusDqsBits);
 
 
     // Write ODT power is consumed by each DQ (data), DQS (data strobe) and DM
     energy.write_term_energy = static_cast<double>(sum(c.numberofwritesBanks) * memSpec.burstLength)
-            * ddtRPeriod * power.WR_ODT_power * static_cast<double>(dqPlusDqsPlusMaskBits);
+            * ddtRPeriod * WR_ODT_power * static_cast<double>(dqPlusDqsPlusMaskBits);
 
     // Sum of all IO and termination energy
     energy.io_term_energy = energy.read_io_energy + energy.write_term_energy;
@@ -425,7 +412,7 @@ void DRAMPowerDDR3::powerPrint()
     cout << endl;
     cout << endl << "----------------------------------------"
          << endl << "  Total Trace Energy : "<< energy.total_energy << eUnit
-         << endl << "  Total Average Power : " << power.average_power << " mW"
+         << endl << "  Total Average Power : " << energy.average_power << " mW"
          << endl << "----------------------------------------" << endl;
 
     if (includeIoAndTermination) {

@@ -119,9 +119,6 @@ public:
         // Window energy
         double window_energy;
 
-        // Average Power
-        double average_power;
-
         // Energy consumed in active/precharged fast/slow-exit modes
         std::vector<double> f_act_pd_energy_banks;
 
@@ -154,6 +151,12 @@ public:
 
         std::vector<double> pup_pre_energy_banks;
 
+        // Average Power
+        double average_power;
+
+        // Window Average Power
+        double window_average_power;
+
         // Energy consumed by IO and Termination
         double read_io_energy;     // Read IO Energy
         double write_term_energy;  // Write Termination Energy
@@ -163,23 +166,12 @@ public:
         void clearEnergy(int64_t nbrofBanks);
     };
 
-    struct Power {
-        // Power measures corresponding to IO and Termination
-        double IO_power;     // Read IO Power
-        double WR_ODT_power; // Write ODT Power
+    // Power measures corresponding to IO and Termination
+    double IO_power;     // Read IO Power
+    double WR_ODT_power; // Write ODT Power
 
-        // Average Power
-        double average_power;
-
-        // Window Average Power
-        double window_average_power;
-
-        //Clear IO and Termination Power
-        void clearIOPower();
-    };
 
     Energy energy;
-    Power  power;
 
 private:
     MemSpecDDR3 memSpec;
@@ -190,8 +182,6 @@ private:
     int64_t total_cycles;
 
     int64_t window_cycles;
-
-    void io_term_power();
 
     // To calculate IO and Termination Energy
     void calcIoTermEnergy();

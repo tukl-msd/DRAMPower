@@ -17,7 +17,6 @@ void DRAMPowerDDR4::calcEnergy()
 {
     updateCounters(true);
     energy.clearEnergy(memSpec.numberOfBanks);
-    power.clearIOPower();
     if (includeIoAndTermination) calcIoTermEnergy();
     bankPowerCalc();
 }
@@ -27,7 +26,6 @@ void DRAMPowerDDR4::calcWindowEnergy(int64_t timestamp)
     doCommand(timestamp, MemCommand::NOP, 0, 0);
     updateCounters(false, timestamp);
     energy.clearEnergy(memSpec.numberOfBanks);
-    power.clearIOPower();
     if (includeIoAndTermination) calcIoTermEnergy();
     bankPowerCalc();
     counters.clearCounters(timestamp);
@@ -147,15 +145,6 @@ void DRAMPowerDDR4::Energy::clearEnergy(int64_t nbrofBanks) {
 
     io_term_energy      = 0.0;
 }
-
-
-void DRAMPowerDDR4::Power::clearIOPower()
-{
-    IO_power             = 0.0;
-    WR_ODT_power         = 0.0;
-}
-
-
 
 void DRAMPowerDDR4::bankPowerCalc()
 {
