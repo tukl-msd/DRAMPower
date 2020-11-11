@@ -132,7 +132,7 @@ public:
     };
 
     MemTimingSpec memTimingSpec;
-    std::vector<MemPowerSpec> memPowerSpec;
+    MemPowerSpec memPowerSpec;
     BankWiseParams bwParams;
 
     int64_t getExitSREFtime();

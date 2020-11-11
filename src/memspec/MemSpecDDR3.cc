@@ -79,27 +79,25 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
     prechargeOffsetRD      =  memTimingSpec.tAL + std::max(memTimingSpec.tRTP, int64_t(4));
     prechargeOffsetWR      =  ((burstLength)/(dataRate)) + memTimingSpec.tWL + memTimingSpec.tWR;
 
-    //Push back new subject created with default constructor.
-    memPowerSpec.push_back(MemPowerSpec());
 
-    memPowerSpec[0].iDD0      = (parseUdouble(memspec["mempowerspec"]["idd0"], "idd0"));
-    memPowerSpec[0].iDD2N     = (parseUdouble(memspec["mempowerspec"]["idd2n"], "idd2n"));
-    memPowerSpec[0].iDD3N     = (parseUdouble(memspec["mempowerspec"]["idd3n"], "idd3n"));
-    memPowerSpec[0].iDD4R     = (parseUdouble(memspec["mempowerspec"]["idd4r"], "idd4r"));
-    memPowerSpec[0].iDD4W     = (parseUdouble(memspec["mempowerspec"]["idd4w"], "idd4w"));
-    memPowerSpec[0].iDD5      = (parseUdouble(memspec["mempowerspec"]["idd5"], "idd5"));
-    memPowerSpec[0].iDD6      = (parseUdouble(memspec["mempowerspec"]["idd6"], "idd6"));
-    memPowerSpec[0].vDD       = (parseUdouble(memspec["mempowerspec"]["vdd"], "vdd"));
-    memPowerSpec[0].iDD2P0    = (parseUdouble(memspec["mempowerspec"]["idd2p0"], "idd2p0"));
-    memPowerSpec[0].iDD2P1    = (parseUdouble(memspec["mempowerspec"]["idd2p1"], "idd2p1"));
-    memPowerSpec[0].iDD3P     = (parseUdouble(memspec["mempowerspec"]["idd3p"], "idd3p"));
+    memPowerSpec.iDD0      = (parseUdouble(memspec["mempowerspec"]["idd0"], "idd0"));
+    memPowerSpec.iDD2N     = (parseUdouble(memspec["mempowerspec"]["idd2n"], "idd2n"));
+    memPowerSpec.iDD3N     = (parseUdouble(memspec["mempowerspec"]["idd3n"], "idd3n"));
+    memPowerSpec.iDD4R     = (parseUdouble(memspec["mempowerspec"]["idd4r"], "idd4r"));
+    memPowerSpec.iDD4W     = (parseUdouble(memspec["mempowerspec"]["idd4w"], "idd4w"));
+    memPowerSpec.iDD5      = (parseUdouble(memspec["mempowerspec"]["idd5"], "idd5"));
+    memPowerSpec.iDD6      = (parseUdouble(memspec["mempowerspec"]["idd6"], "idd6"));
+    memPowerSpec.vDD       = (parseUdouble(memspec["mempowerspec"]["vdd"], "vdd"));
+    memPowerSpec.iDD2P0    = (parseUdouble(memspec["mempowerspec"]["idd2p0"], "idd2p0"));
+    memPowerSpec.iDD2P1    = (parseUdouble(memspec["mempowerspec"]["idd2p1"], "idd2p1"));
+    memPowerSpec.iDD3P     = (parseUdouble(memspec["mempowerspec"]["idd3p"], "idd3p"));
 
     //optional parameters
-    memPowerSpec[0].capacitance = (parseUdoubleWithDefault(memspec["mempowerspec"]["capacitance"], "capacitance"));
-    memPowerSpec[0].ioPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["ioPower"], "ioPower"));
-    memPowerSpec[0].wrOdtPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["wrOdtPower"], "wrOdtPower"));
-    memPowerSpec[0].termRdPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["termRdPower"], "termRdPower"));
-    memPowerSpec[0].termWrPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["termWrPower"], "termWrPower"));
+    memPowerSpec.capacitance = (parseUdoubleWithDefault(memspec["mempowerspec"]["capacitance"], "capacitance"));
+    memPowerSpec.ioPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["ioPower"], "ioPower"));
+    memPowerSpec.wrOdtPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["wrOdtPower"], "wrOdtPower"));
+    memPowerSpec.termRdPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["termRdPower"], "termRdPower"));
+    memPowerSpec.termWrPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["termWrPower"], "termWrPower"));
 
     json bankWise = memspec["bankwisespec"];
     if (!bankWise.empty()) {

@@ -116,9 +116,6 @@ public:
         double total_energy;
         std::vector<double> total_energy_banks;
 
-        //Window energy per voltage domain
-        std::vector<double> window_energy_per_vdd;
-
         // Window energy
         double window_energy;
 
@@ -188,7 +185,7 @@ private:
     MemSpecDDR3 memSpec;
     void bankPowerCalc();
     //  // Used to calculate self-refresh active energy
-    double engy_sref_banks(const Counters &c, MemSpecDDR3::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
+    double engy_sref_banks(const Counters &c, const MemSpecDDR3::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
 
     int64_t total_cycles;
 
