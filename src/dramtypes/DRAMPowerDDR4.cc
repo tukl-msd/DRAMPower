@@ -13,7 +13,6 @@ DRAMPowerDDR4::DRAMPowerDDR4(MemSpecDDR4& memSpec, bool includeIoAndTermination)
         energy.push_back(Energy());
         energy[vdd].clearEnergy(memSpec.numberOfBanks);
     }
-
     total_cycles = 0;
     total_energy = 0;
 }
@@ -166,46 +165,89 @@ void DRAMPowerDDR4::bankEnergyCalc(unsigned vdd)
 
     // Using the number of cycles that at least one bank is active here
     // But the current iDDrho is less than iDD3N1
-    double iDDrho = (static_cast<double>(bwPowerParams.bwPowerFactRho) / 100.0) * (mps.iXX3N - mps.iXX2N) + mps.iXX2N;
+    double iDDrho = (static_cast<double>(bwPowerParams.bwPowerFactRho) / 100.0)
+                                         * (mps.iXX3N - mps.iXX2N) + mps.iXX2N;
+
     double esharedActStdby = static_cast<double>(c.actcycles) * t.tCK * iDDrho * mps.vXX;
     // Fixed componenent for PASR
-    double iDDsigma = (static_cast<double>(bwPowerParams.bwPowerFactSigma) / 100.0) * mps.iXX6;
+
+    double iDDsigma = (static_cast<double>(bwPowerParams.bwPowerFactSigma) / 100.0)
+                                                                        * mps.iXX6;
+
     double esharedPASR = static_cast<double>(c.sref_cycles) * t.tCK * iDDsigma * mps.iXX6;
     // ione is Active background current for a single bank. When a single bank is Active
     //,all the other remainig (B-1) banks will consume  a current of iDDrho (based on factor Rho)
     // So to derrive ione we add (B-1)*iDDrho to the iDD3N and distribute it to each banks.
-    double ione = (mps.iXX3N + (iDDrho * (static_cast<double>(nbrofBanks - 1)))) / (static_cast<double>(nbrofBanks));
+    double ione = (mps.iXX3N + (iDDrho * (static_cast<double>(nbrofBanks - 1))))
+                                            / (static_cast<double>(nbrofBanks));
 
 
     //Distribution of energy componets to each banks
     for (unsigned i = 0; i < nbrofBanks; i++) {
-        energy[vdd].act_energy_banks[i] = static_cast<double>(c.numberofactsBanks[i] * t.tRAS) * t.tCK  * (mps.iXX0 - ione) * mps.vXX;
-        energy[vdd].pre_energy_banks[i] = static_cast<double>(c.numberofpresBanks[i] * t.tRP) * t.tCK  * (mps.iXX0 - ione) * mps.vXX;
-        energy[vdd].read_energy_banks[i] = static_cast<double>(c.numberofreadsBanks[i] * burstCc) * t.tCK  * (mps.iXX4R - mps.iXX3N) * mps.vXX;
-        energy[vdd].write_energy_banks[i] = static_cast<double>(c.numberofwritesBanks[i] * burstCc) * t.tCK * (mps.iXX4W - mps.iXX3N) * mps.vXX;
+        energy[vdd].act_energy_banks[i]          = static_cast<double>(c.numberofactsBanks[i] * t.tRAS) * t.tCK
+                                                                                * (mps.iXX0 - ione) * mps.vXX;
+        energy[vdd].pre_energy_banks[i]          = static_cast<double>(c.numberofpresBanks[i] * t.tRP) * t.tCK
+                                                                                * (mps.iXX0 - ione) * mps.vXX;
 
-        energy[vdd].ref_energy_banks[i] = static_cast<double>(c.numberofrefs * t.tRFC) * t.tCK * (mps.iXX5 - mps.iXX3N) * mps.vXX /
-                static_cast<double>(nbrofBanks);
-        energy[vdd].pre_stdby_energy_banks[i] = static_cast<double>(c.precycles) * t.tCK * mps.iXX2N * mps.vXX/ static_cast<double>(nbrofBanks);
-        energy[vdd].act_stdby_energy_banks[i] = (static_cast<double>(c.actcyclesBanks[i]) * t.tCK * (mps.iXX3N - iDDrho) * mps.vXX/
-                                                 static_cast<double>(nbrofBanks)) + esharedActStdby / static_cast<double>(nbrofBanks);
-        energy[vdd].idle_energy_act_banks[i] = static_cast<double>(c.idlecycles_act) * t.tCK * mps.iXX3N * mps.vXX/ static_cast<double>(nbrofBanks);
-        energy[vdd].idle_energy_pre_banks[i] = static_cast<double>(c.idlecycles_pre) * t.tCK * mps.iXX2N * mps.vXX/ static_cast<double>(nbrofBanks);
-        energy[vdd].f_act_pd_energy_banks[i] = static_cast<double>(c.f_act_pdcycles) * t.tCK * mps.iXX3P * mps.vXX / static_cast<double>(nbrofBanks);
-        energy[vdd].f_pre_pd_energy_banks[i] = static_cast<double>(c.f_pre_pdcycles) * t.tCK * mps.iXX2P * mps.vXX / static_cast<double>(nbrofBanks);
-        energy[vdd].s_pre_pd_energy_banks[i] = static_cast<double>(c.s_pre_pdcycles) * t.tCK * mps.iXX2P * mps.vXX / static_cast<double>(nbrofBanks);
+        energy[vdd].read_energy_banks[i]         = static_cast<double>(c.numberofreadsBanks[i] * burstCc) * t.tCK
+                                                                             * (mps.iXX4R - mps.iXX3N) * mps.vXX;
 
-        energy[vdd].sref_energy_banks[i] = engy_sref_banks(c,mps, esharedPASR, i);
-        energy[vdd].sref_ref_act_energy_banks[i] = static_cast<double>(c.sref_ref_act_cycles) * t.tCK * mps.iXX3P * mps.vXX / static_cast<double>(nbrofBanks);
-        energy[vdd].sref_ref_pre_energy_banks[i] = static_cast<double>(c.sref_ref_pre_cycles) * t.tCK * mps.iXX2P * mps.vXX / static_cast<double>(nbrofBanks);
-        energy[vdd].sref_ref_energy_banks[i] = energy[vdd].sref_ref_act_energy_banks[i] + energy[vdd].sref_ref_pre_energy_banks[i] ;//
+        energy[vdd].write_energy_banks[i]        = static_cast<double>(c.numberofwritesBanks[i] * burstCc) * t.tCK
+                                                                              * (mps.iXX4W - mps.iXX3N) * mps.vXX;
 
-        energy[vdd].spup_energy_banks[i] = static_cast<double>(c.spup_cycles) * t.tCK * mps.iXX2N * mps.vXX / static_cast<double>(nbrofBanks);
-        energy[vdd].spup_ref_act_energy_banks[i] = static_cast<double>(c.spup_ref_act_cycles) * t.tCK * mps.iXX3N * mps.vXX / static_cast<double>(nbrofBanks);//
-        energy[vdd].spup_ref_pre_energy_banks[i] = static_cast<double>(c.spup_ref_pre_cycles) * t.tCK * mps.iXX2N * mps.vXX / static_cast<double>(nbrofBanks);
-        energy[vdd].spup_ref_energy_banks[i] = energy[vdd].spup_ref_act_energy_banks[i] + energy[vdd].spup_ref_pre_energy_banks[i];
-        energy[vdd].pup_act_energy_banks[i] = static_cast<double>(c.pup_act_cycles) * t.tCK * mps.iXX3N * mps.vXX / static_cast<double>(nbrofBanks);
-        energy[vdd].pup_pre_energy_banks[i] = static_cast<double>(c.pup_pre_cycles) * t.tCK * mps.iXX2N * mps.vXX / static_cast<double>(nbrofBanks);
+        energy[vdd].ref_energy_banks[i]          = static_cast<double>(c.numberofrefs * t.tRFC) * t.tCK * (mps.iXX5 - mps.iXX3N)
+                                                                                    * mps.vXX / static_cast<double>(nbrofBanks);
+
+        energy[vdd].pre_stdby_energy_banks[i]    = static_cast<double>(c.precycles) * t.tCK * mps.iXX2N * mps.vXX
+                                                                                / static_cast<double>(nbrofBanks);
+
+        energy[vdd].act_stdby_energy_banks[i]    = (static_cast<double>(c.actcyclesBanks[i]) * t.tCK * (mps.iXX3N - iDDrho)
+                                                             * mps.vXX/ static_cast<double>(nbrofBanks)) + esharedActStdby
+                                                                                        / static_cast<double>(nbrofBanks);
+
+        energy[vdd].idle_energy_act_banks[i]     = static_cast<double>(c.idlecycles_act) * t.tCK * mps.iXX3N * mps.vXX
+                                                                                    / static_cast<double>(nbrofBanks);
+
+        energy[vdd].idle_energy_pre_banks[i]     = static_cast<double>(c.idlecycles_pre) * t.tCK * mps.iXX2N * mps.vXX
+                                                                                    / static_cast<double>(nbrofBanks);
+
+        energy[vdd].f_act_pd_energy_banks[i]     = static_cast<double>(c.f_act_pdcycles) * t.tCK * mps.iXX3P * mps.vXX
+                                                                                    / static_cast<double>(nbrofBanks);
+
+        energy[vdd].f_pre_pd_energy_banks[i]     = static_cast<double>(c.f_pre_pdcycles) * t.tCK * mps.iXX2P * mps.vXX
+                                                                                    / static_cast<double>(nbrofBanks);
+
+        energy[vdd].s_pre_pd_energy_banks[i]     = static_cast<double>(c.s_pre_pdcycles) * t.tCK * mps.iXX2P * mps.vXX
+                                                                                    / static_cast<double>(nbrofBanks);
+
+        energy[vdd].sref_energy_banks[i]         = engy_sref_banks(c,mps, esharedPASR, i);
+
+        energy[vdd].sref_ref_act_energy_banks[i] = static_cast<double>(c.sref_ref_act_cycles) * t.tCK * mps.iXX3P
+                                                                     * mps.vXX / static_cast<double>(nbrofBanks);
+
+        energy[vdd].sref_ref_pre_energy_banks[i] = static_cast<double>(c.sref_ref_pre_cycles) * t.tCK * mps.iXX2P
+                                                                     * mps.vXX / static_cast<double>(nbrofBanks);
+
+        energy[vdd].sref_ref_energy_banks[i]     = energy[vdd].sref_ref_act_energy_banks[i]
+                                                 + energy[vdd].sref_ref_pre_energy_banks[i] ;
+
+        energy[vdd].spup_energy_banks[i]         = static_cast<double>(c.spup_cycles) * t.tCK * mps.iXX2N * mps.vXX
+                                                                                  / static_cast<double>(nbrofBanks);
+
+        energy[vdd].spup_ref_act_energy_banks[i] = static_cast<double>(c.spup_ref_act_cycles) * t.tCK * mps.iXX3N * mps.vXX
+                                                                                         / static_cast<double>(nbrofBanks);
+
+        energy[vdd].spup_ref_pre_energy_banks[i] = static_cast<double>(c.spup_ref_pre_cycles) * t.tCK * mps.iXX2N * mps.vXX
+                                                                                         / static_cast<double>(nbrofBanks);
+
+        energy[vdd].spup_ref_energy_banks[i]     = energy[vdd].spup_ref_act_energy_banks[i]
+                                                 + energy[vdd].spup_ref_pre_energy_banks[i];
+
+        energy[vdd].pup_act_energy_banks[i]      = static_cast<double>(c.pup_act_cycles) * t.tCK * mps.iXX3N * mps.vXX
+                                                                                    / static_cast<double>(nbrofBanks);
+
+        energy[vdd].pup_pre_energy_banks[i]      = static_cast<double>(c.pup_pre_cycles) * t.tCK * mps.iXX2N * mps.vXX
+                                                                                    / static_cast<double>(nbrofBanks);
     }
 
 
@@ -213,16 +255,16 @@ void DRAMPowerDDR4::bankEnergyCalc(unsigned vdd)
     // Calculate total energy per bank.
     for (unsigned i = 0; i < nbrofBanks; i++) {
         energy[vdd].window_energy_banks[i] = energy[vdd].act_energy_banks[i]
-                + energy[vdd].pre_energy_banks[i]
-                + energy[vdd].read_energy_banks[i]
-                + energy[vdd].ref_energy_banks[i]
-                + energy[vdd].write_energy_banks[i]
-                + energy[vdd].act_stdby_energy_banks[i]
-                + energy[vdd].pre_stdby_energy_banks[i]
-                + energy[vdd].f_pre_pd_energy_banks[i]
-                + energy[vdd].s_pre_pd_energy_banks[i]
-                + energy[vdd].sref_ref_energy_banks[i]
-                + energy[vdd].spup_ref_energy_banks[i];
+                                           + energy[vdd].pre_energy_banks[i]
+                                           + energy[vdd].read_energy_banks[i]
+                                           + energy[vdd].ref_energy_banks[i]
+                                           + energy[vdd].write_energy_banks[i]
+                                           + energy[vdd].act_stdby_energy_banks[i]
+                                           + energy[vdd].pre_stdby_energy_banks[i]
+                                           + energy[vdd].f_pre_pd_energy_banks[i]
+                                           + energy[vdd].s_pre_pd_energy_banks[i]
+                                           + energy[vdd].sref_ref_energy_banks[i]
+                                           + energy[vdd].spup_ref_energy_banks[i];
 
         energy[vdd].total_energy_banks[i]  += energy[vdd].window_energy_banks[i];
     }
@@ -232,10 +274,10 @@ void DRAMPowerDDR4::updateCycles()
 {
     const Counters& c = counters;
     window_cycles = c.actcycles + c.precycles +
-            c.f_act_pdcycles + c.f_pre_pdcycles +
-            c.s_pre_pdcycles + c.sref_cycles +
-            c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
-            c.spup_ref_act_cycles + c.spup_ref_pre_cycles;
+                    c.f_act_pdcycles + c.f_pre_pdcycles +
+                    c.s_pre_pdcycles + c.sref_cycles +
+                    c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
+                    c.spup_ref_act_cycles + c.spup_ref_pre_cycles;
     total_cycles  += window_cycles;
 }
 
@@ -272,15 +314,18 @@ double DRAMPowerDDR4::engy_sref_banks(const Counters& c,const MemSpecDDR4::MemPo
     //Is PASR Active
     if (bwPowerParams.flgPASR) {
         sref_energy_shared = (((mps.iXX5 - mps.iXX3N) * (static_cast<double>(c.sref_ref_act_cycles
-                                                                             + c.spup_ref_act_cycles + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles))) * mps.vXX * t.tCK)
-                / memSpec.numberOfBanks;
+                             + c.spup_ref_act_cycles + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles)))
+                             * mps.vXX * t.tCK) / memSpec.numberOfBanks;
         //if the bank is active under current PASR mode
         if (bwPowerParams.isBankActiveInPasr(bnkIdx)) {
             // Distribute the sref energy to the active banks
-            iDDsigmaDynBanks = (static_cast<double>(100 - bwPowerParams.bwPowerFactSigma) / (100.0 * static_cast<double>(memSpec.numberOfBanks))) * mps.iXX6;
+            iDDsigmaDynBanks = (static_cast<double>(100 - bwPowerParams.bwPowerFactSigma) /
+                          (100.0 * static_cast<double>(memSpec.numberOfBanks))) * mps.iXX6;
+
             pasr_energy_dyn = mps.vXX * iDDsigmaDynBanks * static_cast<double>(c.sref_cycles);
             // Add the static components
-            sref_energy_banks = sref_energy_shared + pasr_energy_dyn + (esharedPASR /static_cast<double>(memSpec.numberOfBanks));
+            sref_energy_banks = sref_energy_shared + pasr_energy_dyn + (esharedPASR /
+                                          static_cast<double>(memSpec.numberOfBanks));
 
         }else {
             sref_energy_banks = (esharedPASR /static_cast<double>(memSpec.numberOfBanks));
@@ -290,10 +335,10 @@ double DRAMPowerDDR4::engy_sref_banks(const Counters& c,const MemSpecDDR4::MemPo
     else {
 
 
-        sref_energy_banks = (((mps.iXX6 * static_cast<double>(c.sref_cycles)) + ((mps.iXX5 - mps.iXX3N) * static_cast<double>(c.sref_ref_act_cycles
-                                                                                                                              + c.spup_ref_act_cycles + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles)))
-                             * mps.vXX * t.tCK)
-                / static_cast<double>(memSpec.numberOfBanks);
+        sref_energy_banks = (((mps.iXX6 * static_cast<double>(c.sref_cycles)) +
+                            ((mps.iXX5 - mps.iXX3N) * static_cast<double>(c.sref_ref_act_cycles
+                            + c.spup_ref_act_cycles + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles)))
+                            * mps.vXX * t.tCK) / static_cast<double>(memSpec.numberOfBanks);
     }
     return sref_energy_banks;
 }
@@ -310,7 +355,8 @@ void DRAMPowerDDR4::calcIoTermEnergy()
 
     if (memSpec.memPowerSpec[0].capacitance != 0.0) {
         // If capacity is given, then IO Power depends on DRAM clock frequency.
-        IO_power = memSpec.memPowerSpec[0].capacitance * 0.5 * pow(memSpec.memPowerSpec[0].vXX, 2.0) * memSpec.memTimingSpec.fCKMHz * 1000000;
+        IO_power = memSpec.memPowerSpec[0].capacitance * 0.5 * pow(memSpec.memPowerSpec[0].vXX, 2.0)
+                                                           * memSpec.memTimingSpec.fCKMHz * 1000000;
     }
 
     // memSpec.width represents the number of data (dq) pins.
@@ -332,7 +378,6 @@ void DRAMPowerDDR4::calcIoTermEnergy()
 
     // Sum of all IO and termination energy
     energy[0].io_term_energy = energy[0].read_io_energy + energy[0].write_term_energy;
-
 }
 
 

@@ -93,13 +93,13 @@ public:
 
     //  MemCommand();
     MemCommand(// Command Issue Timestamp (in cc)
-                  int64_t           timestamp = 0L,
+               int64_t           timestamp = 0L,
                // Command Type
-                   MemCommand::cmds type = UNINITIALIZED,
+               MemCommand::cmds type = UNINITIALIZED,
                //Command Rank
-                  unsigned          rank = 0,
+               unsigned          rank = 0,
                // Target Bank
-                  unsigned          bank = 0);
+               unsigned          bank = 0);
 
 
 

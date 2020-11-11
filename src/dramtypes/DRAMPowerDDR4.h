@@ -157,21 +157,21 @@ public:
         void clearEnergy(int64_t nbrofBanks);
     };
 
-        // Power measures corresponding to IO and Termination
-        double IO_power;     // Read IO Power
-        double WR_ODT_power; // Write ODT Power
+    // Power measures corresponding to IO and Termination
+    double IO_power;     // Read IO Power
+    double WR_ODT_power; // Write ODT Power
 
-        // Total trace/pattern energy
-        double total_energy;
+    // Total trace/pattern energy
+    double total_energy;
 
-        // Window energy
-        double window_energy;
+    // Window energy
+    double window_energy;
 
-        // Average Power
-        double average_power;
+    // Average Power
+    double average_power;
 
-        // Window Average Power
-        double window_average_power;
+    // Window Average Power
+    double window_average_power;
 
 
     std::vector<Energy> energy;

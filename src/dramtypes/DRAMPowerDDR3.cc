@@ -173,16 +173,16 @@ void DRAMPowerDDR3::bankPowerCalc()
     //Distribution of energy componets to each banks
     for (unsigned i = 0; i < nbrofBanks; i++) {
         energy.act_energy_banks[i]         = static_cast<double>(c.numberofactsBanks[i] * t.tRAS) * t.tCK
-                                                                            * (mps.iDD0 - ione) * mps.vDD;
+                                                                           * (mps.iDD0 - ione) * mps.vDD;
 
         energy.pre_energy_banks[i]          = static_cast<double>(c.numberofpresBanks[i] * t.tRP) * t.tCK
-                                                                            * (mps.iDD0 - ione) * mps.vDD;
+                                                                           * (mps.iDD0 - ione) * mps.vDD;
 
         energy.read_energy_banks[i]         = static_cast<double>(c.numberofreadsBanks[i] * burstCc)* t.tCK
                                                                        * (mps.iDD4R - mps.iDD3N) * mps.vDD;
 
         energy.write_energy_banks[i]        = static_cast<double>(c.numberofwritesBanks[i] * burstCc) * t.tCK
-                                                                          * (mps.iDD4W - mps.iDD3N) * mps.vDD;
+                                                                         * (mps.iDD4W - mps.iDD3N) * mps.vDD;
 
         energy.ref_energy_banks[i]          = static_cast<double>(c.numberofrefs * t.tRFC) * t.tCK * (mps.iDD5
                                                      - mps.iDD3N) * mps.vDD / static_cast<double>(nbrofBanks);
@@ -209,13 +209,13 @@ void DRAMPowerDDR3::bankPowerCalc()
         energy.s_pre_pd_energy_banks[i]     = static_cast<double>(c.s_pre_pdcycles) * t.tCK * mps.iDD2P0 * mps.vDD
                                                                                 / static_cast<double>(nbrofBanks);
 
-        energy.sref_energy_banks[i]         = engy_sref_banks(c,mps, esharedPASR, i);
+        energy.sref_energy_banks[i]         = engy_sref_banks(c, mps, esharedPASR, i);
 
         energy.sref_ref_act_energy_banks[i] = static_cast<double>(c.sref_ref_act_cycles) * t.tCK * mps.iDD3P * mps.vDD
                                                                                     / static_cast<double>(nbrofBanks);
 
         energy.sref_ref_pre_energy_banks[i] = static_cast<double>(c.sref_ref_pre_cycles) * t.tCK * mps.iDD2P0 * mps.vDD
-                                                                                    / static_cast<double>(nbrofBanks);
+                                                                                     / static_cast<double>(nbrofBanks);
 
         energy.sref_ref_energy_banks[i]     = energy.sref_ref_act_energy_banks[i]
                                             + energy.sref_ref_pre_energy_banks[i];
@@ -243,16 +243,16 @@ void DRAMPowerDDR3::bankPowerCalc()
     // Calculate total energy per bank.
     for (unsigned i = 0; i < nbrofBanks; i++) {
         energy.total_energy_banks[i] = energy.act_energy_banks[i]
-                                     + energy.pre_energy_banks[i]
-                                     + energy.read_energy_banks[i]
-                                     + energy.ref_energy_banks[i]
-                                     + energy.write_energy_banks[i]
-                                     + energy.act_stdby_energy_banks[i]
-                                     + energy.pre_stdby_energy_banks[i]
-                                     + energy.f_pre_pd_energy_banks[i]
-                                     + energy.s_pre_pd_energy_banks[i]
-                                     + energy.sref_ref_energy_banks[i]
-                                     + energy.spup_ref_energy_banks[i];
+                + energy.pre_energy_banks[i]
+                + energy.read_energy_banks[i]
+                + energy.ref_energy_banks[i]
+                + energy.write_energy_banks[i]
+                + energy.act_stdby_energy_banks[i]
+                + energy.pre_stdby_energy_banks[i]
+                + energy.f_pre_pd_energy_banks[i]
+                + energy.s_pre_pd_energy_banks[i]
+                + energy.sref_ref_energy_banks[i]
+                + energy.spup_ref_energy_banks[i];
     }
 
     // Calculate total energy for all banks.
@@ -293,15 +293,18 @@ double DRAMPowerDDR3::engy_sref_banks(const Counters& c, const MemSpecDDR3::MemP
     //Is PASR Active
     if (bwPowerParams.flgPASR) {
         sref_energy_shared = (((mps.iDD5 - mps.iDD3N) * (static_cast<double>(c.sref_ref_act_cycles
-                                                                             + c.spup_ref_act_cycles + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles))) * mps.vDD * t.tCK)
-                / memSpec.numberOfBanks;
+                             + c.spup_ref_act_cycles + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles)))
+                                                           * mps.vDD * t.tCK) / memSpec.numberOfBanks;
         //if the bank is active under current PASR mode
         if (bwPowerParams.isBankActiveInPasr(bnkIdx)) {
             // Distribute the sref energy to the active banks
-            iDDsigmaDynBanks = (static_cast<double>(100 - bwPowerParams.bwPowerFactSigma) / (100.0 * static_cast<double>(memSpec.numberOfBanks))) * mps.iDD6;
+            iDDsigmaDynBanks = (static_cast<double>(100 - bwPowerParams.bwPowerFactSigma) /
+                          (100.0 * static_cast<double>(memSpec.numberOfBanks))) * mps.iDD6;
+
             pasr_energy_dyn = mps.vDD * iDDsigmaDynBanks * static_cast<double>(c.sref_cycles);
             // Add the static components
-            sref_energy_banks = sref_energy_shared + pasr_energy_dyn + (esharedPASR /static_cast<double>(memSpec.numberOfBanks));
+            sref_energy_banks = sref_energy_shared + pasr_energy_dyn + (esharedPASR
+                                      / static_cast<double>(memSpec.numberOfBanks));
 
         }else {
             sref_energy_banks = (esharedPASR /static_cast<double>(memSpec.numberOfBanks));
@@ -309,12 +312,10 @@ double DRAMPowerDDR3::engy_sref_banks(const Counters& c, const MemSpecDDR3::MemP
     }
     //When PASR is not active total all the banks are in Self-Refresh. Thus total Self-Refresh energy is distributed across all banks
     else {
-
-
-        sref_energy_banks = (((mps.iDD6 * static_cast<double>(c.sref_cycles)) + ((mps.iDD5 - mps.iDD3N) * static_cast<double>(c.sref_ref_act_cycles
-                                                                                                                              + c.spup_ref_act_cycles + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles)))
-                             * mps.vDD * t.tCK)
-                / static_cast<double>(memSpec.numberOfBanks);
+        sref_energy_banks = (((mps.iDD6 * static_cast<double>(c.sref_cycles)) + ((mps.iDD5 - mps.iDD3N)
+                             * static_cast<double>(c.sref_ref_act_cycles + c.spup_ref_act_cycles
+                             + c.sref_ref_pre_cycles + c.spup_ref_pre_cycles))) * mps.vDD * t.tCK)
+                             / static_cast<double>(memSpec.numberOfBanks);
     }
     return sref_energy_banks;
 }
@@ -327,7 +328,6 @@ void DRAMPowerDDR3::calcIoTermEnergy()
 
     const MemSpecDDR3::MemTimingSpec& t                 = memSpec.memTimingSpec;
     const Counters& c = counters;
-
 
     IO_power     = memSpec.memPowerSpec.ioPower;    // in W
     WR_ODT_power = memSpec.memPowerSpec.wrOdtPower; // in W
