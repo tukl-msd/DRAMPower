@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2012-2014, TU Delft
- * Copyright (c) 2012-2014, TU Eindhoven
- * Copyright (c) 2012-2014, TU Kaiserslautern
+ * Copyright (c) 2012-2020, TU Delft
+ * Copyright (c) 2012-2020, TU Eindhoven
+ * Copyright (c) 2012-2020, TU Kaiserslautern
+ * Copyright (c) 2012-2020, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +32,14 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Karthik Chandrasekar
- *          Matthias Jung
- *          Omar Naji
- *          Subash Kannoth
+ * Authors: Karthik Chandrasekar,
+ *          Matthias Jung,
+ *          Omar Naji,
+ *          Sven Goossens,
  *          Éder F. Zulian
+ *          Subash Kannoth
  *          Felipe S. Prado
- *
+ *          Luiza Correa
  */
 
 #ifndef COMMAND_TIMINGS_H

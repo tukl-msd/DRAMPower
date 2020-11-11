@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015, University of Kaiserslautern
+ * Copyright (c) 2012-2020, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,6 +81,18 @@ bool MemSpec::parseBool(json &obj, std::string name)
     }
     else
         throw std::invalid_argument("Query json: Parameter " + name + "' not found");
+}
+
+bool MemSpec::parseBoolWithDefault(json &obj, std::string name)
+{
+    if (!obj.empty()) {
+        if (obj.is_boolean())
+            return obj;
+        else
+            throw std::invalid_argument("Expected type for '" + name + "': bool");
+    }
+    else
+        return false;
 }
 
 unsigned MemSpec::parseUint(json &obj, std::string name)

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019, University of Kaiserslautern
+ * Copyright (c) 2012-2020, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -146,8 +147,12 @@ MemSpecWideIO::MemSpecWideIO(json &memspec,
 
     json bankWise = memspec["bankwisespec"];
     if (!bankWise.empty()){
-        bwParams.bwPowerFactRho = parseUint(memspec["bankwisespec"]["factRho"],"factRho");
-        bwParams.bwPowerFactSigma = parseUint(memspec["bankwisespec"]["factSigma"],"factSigma");
+        json rho = memspec["bankwisespec"]["factRho"];
+        json sigma = memspec["bankwisespec"]["factSigma"];
+        if (!rho.empty()) bwParams.bwPowerFactRho = parseUint(memspec["bankwisespec"]["factRho"],"factRho");
+        else bwParams.bwPowerFactRho = 100;
+        if (!sigma.empty()) bwParams.bwPowerFactSigma = parseUint(memspec["bankwisespec"]["factSigma"],"factSigma");
+        else bwParams.bwPowerFactSigma = 100;
     } // end if !bankwise.empty()
     else{
         bwParams.bwPowerFactRho = 100;

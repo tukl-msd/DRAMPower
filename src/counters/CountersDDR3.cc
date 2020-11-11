@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2012-2014, TU Delft
- * Copyright (c) 2012-2014, TU Eindhoven
- * Copyright (c) 2012-2014, TU Kaiserslautern
+ * Copyright (c) 2012-2020, TU Delft
+ * Copyright (c) 2012-2020, TU Eindhoven
+ * Copyright (c) 2012-2020, TU Kaiserslautern
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

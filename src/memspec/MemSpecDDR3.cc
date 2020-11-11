@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019, University of Kaiserslautern
+ * Copyright (c) 2012-2020, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,10 +103,14 @@ MemSpecDDR3::MemSpecDDR3(json &memspec,
     json bankWise = memspec["bankwisespec"];
     if (!bankWise.empty()) {
 
+        json rho = memspec["bankwisespec"]["factRho"];
+        json sigma = memspec["bankwisespec"]["factSigma"];
+        if (!rho.empty()) bwParams.bwPowerFactRho = parseUint(memspec["bankwisespec"]["factRho"],"factRho");
+        else bwParams.bwPowerFactRho = 100;
+        if (!sigma.empty()) bwParams.bwPowerFactSigma = parseUint(memspec["bankwisespec"]["factSigma"],"factSigma");
+        else bwParams.bwPowerFactSigma = 100;
 
-        bwParams.bwPowerFactRho = parseUint(memspec["bankwisespec"]["factRho"],"factRho");
-        bwParams.bwPowerFactSigma = parseUint(memspec["bankwisespec"]["factSigma"],"factSigma");
-        bwParams.flgPASR = parseBool(memspec["bankwisespec"]["hasPASR"],"hasPASR");
+        bwParams.flgPASR = parseBoolWithDefault(memspec["bankwisespec"]["hasPASR"],"hasPASR");
         if (bwParams.flgPASR) {
 
             bwParams.pasrMode = parseUint(memspec["bankwisespec"]["pasrMode"],"pasrMode");

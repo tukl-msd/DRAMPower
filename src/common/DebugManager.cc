@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015, University of Kaiserslautern
+ * Copyright (c) 2012-2020, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +33,7 @@
  * Authors:
  *    Janik Schlemminger
  *    Matthias Jung
+ *    Luiza Correa
  */
 
 #include "DebugManager.h"

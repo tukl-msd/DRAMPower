@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2012-2014, TU Delft
- * Copyright (c) 2012-2014, TU Eindhoven
- * Copyright (c) 2012-2014, TU Kaiserslautern
- * Copyright (c) 2012-2019, Fraunhofer IESE
+ * Copyright (c) 2012-2020, TU Delft
+ * Copyright (c) 2012-2020, TU Eindhoven
+ * Copyright (c) 2012-2020, TU Kaiserslautern
+ * Copyright (c) 2012-2020, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +38,9 @@
 #ifndef DP_VERSION_H
 #define DP_VERSION_H
 
-#define DRAM_POWER_VERSION_MAJOR 4
+#define DRAM_POWER_VERSION_MAJOR 5
 #define DRAM_POWER_VERSION_MINOR 0
 #define DRAM_POWER_VERSION_PATCH 0
-#define DRAM_POWER_VERSION_STRING "4.0.0"
+#define DRAM_POWER_VERSION_STRING "5.0.0"
 
 #endif

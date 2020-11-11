@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2015, University of Kaiserslautern
+ * Copyright (c) 2015-2020, University of Kaiserslautern
+ * Copyright (c) 2012-2020, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +34,7 @@
  *    Janik Schlemminger
  *    Matthias Jung
  *    Lukas Steiner
+ *    Luiza Correa
  */
 
 #ifndef MEMSPEC_H
@@ -83,6 +85,7 @@ public:
             const std::string &traceName __attribute__((unused))="");
 
     bool parseBool(nlohmann::json &obj, std::string name);
+    bool parseBoolWithDefault(nlohmann::json &obj, std::string name);
     unsigned parseUint(nlohmann::json &obj, std::string name);
     double parseUdouble(nlohmann::json &obj, std::string name);
     double parseUdoubleWithDefault(nlohmann::json &obj, std::string name);
