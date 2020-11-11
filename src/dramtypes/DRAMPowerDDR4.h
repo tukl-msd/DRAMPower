@@ -112,18 +112,9 @@ public:
         // Total energy of idle cycles in the precharge mode
         std::vector<double> idle_energy_pre_banks;
 
-        // Total trace/pattern energy
-        double total_energy;
+        std::vector<double> window_energy_banks;
+
         std::vector<double> total_energy_banks;
-
-        //Window energy per voltage domain
-        std::vector<double> window_energy_per_vdd;
-
-        // Window energy
-        double window_energy;
-
-        // Average Power
-        double average_power;
 
         // Energy consumed in active/precharged fast/slow-exit modes
         std::vector<double> f_act_pd_energy_banks;
@@ -166,10 +157,15 @@ public:
         void clearEnergy(int64_t nbrofBanks);
     };
 
-    struct Power {
         // Power measures corresponding to IO and Termination
         double IO_power;     // Read IO Power
         double WR_ODT_power; // Write ODT Power
+
+        // Total trace/pattern energy
+        double total_energy;
+
+        // Window energy
+        double window_energy;
 
         // Average Power
         double average_power;
@@ -177,27 +173,25 @@ public:
         // Window Average Power
         double window_average_power;
 
-        //Clear IO and Termination Power
-        void clearIOPower();
-    };
 
-    Energy energy;
-    Power  power;
+    std::vector<Energy> energy;
 
 private:
     MemSpecDDR4 memSpec;
-    void bankPowerCalc();
+    void bankEnergyCalc(unsigned vdd);
     //  // Used to calculate self-refresh active energy
-    double engy_sref_banks(const Counters &c, MemSpecDDR4::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
+    double engy_sref_banks(const Counters &c,const MemSpecDDR4::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
 
     int64_t total_cycles;
 
     int64_t window_cycles;
 
-    void io_term_power();
-
     // To calculate IO and Termination Energy
     void calcIoTermEnergy();
+
+    void updateCycles();
+
+    void traceEnergyCalc();
 
     CountersDDR4 counters;
     bool includeIoAndTermination;
