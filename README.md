@@ -12,7 +12,9 @@ The master branch of the repository should be regarded as the bleeding-edge vers
 
 Clone the repository, or download the zip file of the release you would like to use. The source code is available in src folder. [drampower.cc](src/cli/drampower.cc) file gives the user interface, where the user can specify the memory to be employed and the commandtrace to be analyzed. To build, use:
 ```bash
-cmake .
+mkdir build
+cd build
+cmake ../
 make -j4
 ```
 This command will download a set of trace files from https://github.com/Sv3n/DRAMPowerTraces which can be used as test input for the tool.

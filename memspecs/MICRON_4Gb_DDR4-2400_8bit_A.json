@@ -14,7 +14,7 @@
         },
         "memoryId": "MICRON_4Gb_DDR4-2400_8bit_A",
         "memoryType": "DDR4",
-	"RefreshMode": "1X",
+	    "RefreshMode": "1X",
         "mempowerspec": {
             "idd0": 60.75,
             "ipp0": 4.05,
