@@ -16,4 +16,5 @@ cscope.*
 commands.trace
 coverage_report
 .DS_Store
-build/*
+build*
+CMakeLists.txt.user

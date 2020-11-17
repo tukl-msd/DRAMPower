@@ -41,30 +41,30 @@
  *
  */
 
-#ifndef WideIO_H
-#define WideIO_H
+#ifndef DDR4_H
+#define DDR4_H
 
 #include <vector>
 #include <stdint.h>
 #include <cmath>  // For pow
 
 
-#include "./memspec/MemSpecWideIO.h"
-#include "MemCommand.h"
-#include "./counters/Counters.h"
-#include "./counters/CountersWideIO.h"
+#include "../memspec/MemSpecDDR4.h"
+#include "../MemCommand.h"
+#include "../counters/Counters.h"
+#include "../counters/CountersDDR4.h"
 #include "DRAMPowerIF.h"
-#include "./common/DebugManager.h"
+#include "../DebugManager.h"
 
 namespace DRAMPower {
 
 
-class DRAMPowerWideIO final : public DRAMPowerIF
+class DRAMPowerDDR4 final : public DRAMPowerIF
 {
 public:
-    DRAMPowerWideIO(MemSpecWideIO &memSpec,  bool includeIoAndTermination);
+    DRAMPowerDDR4(MemSpecDDR4 &memSpec,  bool includeIoAndTermination);
 
-    ~DRAMPowerWideIO(){}
+    ~DRAMPowerDDR4(){}
 
     //////Interface methods
     void calcEnergy();
@@ -79,10 +79,10 @@ public:
 
     void powerPrint();
 
-    void updateCounters(bool lastUpdate, unsigned rank, int64_t timestamp = 0);
+    void updateCounters(bool lastUpdate, int64_t timestamp = 0);
+    //////
 
     struct Energy {
-
         // Total energy of all activates
         std::vector<double> act_energy_banks;
 
@@ -113,16 +113,16 @@ public:
         // Total energy of idle cycles in the precharge mode
         std::vector<double> idle_energy_pre_banks;
 
-        // Window energy banks
         std::vector<double> window_energy_banks;
 
-        // Total energy banks
         std::vector<double> total_energy_banks;
 
         // Energy consumed in active/precharged fast/slow-exit modes
         std::vector<double> f_act_pd_energy_banks;
 
         std::vector<double> f_pre_pd_energy_banks;
+
+        std::vector<double> s_pre_pd_energy_banks;
 
         // Energy consumed in self-refresh mode
         std::vector<double> sref_energy_banks;
@@ -158,55 +158,47 @@ public:
         void clearEnergy(int64_t nbrofBanks);
     };
 
-    std::vector<std::vector<Energy>> energy;
+    // Power measures corresponding to IO and Termination
+    double IO_power;     // Read IO Power
+    double WR_ODT_power; // Write ODT Power
+
+    // Total trace/pattern energy
+    double total_energy;
+
+    // Window energy
+    double window_energy;
+
+    // Average Power
+    double average_power;
+
+    // Window Average Power
+    double window_average_power;
+
+
+    std::vector<Energy> energy;
 
 private:
-    MemSpecWideIO memSpec;
+    MemSpecDDR4 memSpec;
+    void bankEnergyCalc(unsigned vdd);
+    //  // Used to calculate self-refresh active energy
+    double engy_sref_banks(const Counters &c,const MemSpecDDR4::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
 
-    std::vector<std::vector<DRAMPower::MemCommand>> cmdListPerRank;
+    int64_t total_cycles;
 
-    std::vector<CountersWideIO> counters;
+    int64_t window_cycles;
 
-    // Cycles
-    std::vector<int64_t> total_cycles;
-    std::vector<int64_t> window_cycles;
+    // To calculate IO and Termination Energy
+    void calcIoTermEnergy();
 
-    //Rank Energy
-    std::vector<double>  rank_total_energy;
-    std::vector<double>  rank_window_energy;
-
-    //Rank Power
-    std::vector<double>  rank_total_average_power;
-    std::vector<double>  rank_window_average_power;
-
-    //Total Energy
-    double window_trace_energy;
-    double total_trace_energy;
-
-    double window_trace_average_power;
-    double total_trace_average_power;
-
-    bool includeIoAndTermination;
-
-    void evaluateCommands(unsigned rank);
-
-    void splitCmdList();
-
-    void bankEnergyCalc(unsigned rank, unsigned vdd);
-
-    void updateCycles(unsigned rank);
-
-    void rankPowerCalc(unsigned rank);
+    void updateCycles();
 
     void traceEnergyCalc();
 
-    // To calculate IO and Termination Energy
-    void io_term_power();
-
-    void calcIoTermEnergy(unsigned rank);
-
+    CountersDDR4 counters;
+    bool includeIoAndTermination;
+    void evaluateCommands();
     template <typename T> T sum(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
 
 };
 }
-#endif // WideIO_H
+#endif // DDR4_H

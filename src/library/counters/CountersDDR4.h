@@ -32,39 +32,61 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Omar Naji
+ * Authors: Karthik Chandrasekar,
+ *          Matthias Jung,
+ *          Omar Naji,
+ *          Sven Goossens,
+ *          Éder F. Zulian
+ *          Subash Kannoth
+ *          Felipe S. Prado
  *          Luiza Correa
- *
  */
+#ifndef COUNTERSDDR4_H
+#define COUNTERSDDR4_H
 
-#ifndef TRACE_PARSER_H
-#define TRACE_PARSER_H
+#include <stdint.h>
 
 #include <vector>
+#include <iostream>
+#include <deque>
 #include <string>
-#include <fstream>
 
-#include "MemCommand.h"
-#include "jsonparser/JSONParser.h"
-#include "./dramtypes/DRAMPowerIF.h"
+#include "../MemCommand.h"
+#include "../memspec/MemSpecDDR4.h"
+#include "Counters.h"
+
+namespace DRAMPower {
+class CountersDDR4 final : public Counters {
+ public:
+
+  CountersDDR4(MemSpecDDR4& memspec);
+
+  MemSpecDDR4 memSpec;
+  void getCommands(std::vector<MemCommand>& list,
+                             bool lastupdate,
+                             int64_t timestamp);
 
 
+  // Handlers for commands that are getting processed
+  void handleRef(    unsigned bank, int64_t timestamp);
+  void handlePupAct( int64_t timestamp);
+  void handlePupPre( int64_t timestamp);
+  void handleSREx(   unsigned bank, int64_t timestamp);
+  void handleNopEnd( int64_t timestamp);
 
-class TraceParser {
-public:
-    TraceParser(){}
 
-    // list of parsed commands
-    std::vector<DRAMPower::MemCommand> cmd_list;
+  // To update idle period information whenever active cycles may be idle
+  void idle_act_update(int64_t                     latest_read_cycle,
+                       int64_t                     latest_write_cycle,
+                       int64_t                     latest_act_cycle,
+                       int64_t                     timestamp);
 
-    // function for parsing one line of the trace
-    DRAMPower::MemCommand parseLine(std::string line);
-    // function for parsing the whole file.
+  // To update idle period information whenever precharged cycles may be idle
+  void idle_pre_update(int64_t                     timestamp,
+                       int64_t                     latest_pre_cycle);
 
-    // use this function for small traces ( no out-of-memory issue )
-    std::vector<DRAMPower::MemCommand> parseFile(std::ifstream&      trace);
 
-    json parseJSON(const std::string &path) const;
 };
+}
 
-#endif // ifndef TRACE_PARSER_H
+#endif // COUNTERSDDR4_H

@@ -43,9 +43,11 @@
 #include <vector>
 #include <algorithm>  // for max
 
-#include "./jsonparser/JSONParser.h"
-#include "./MemCommand.h"
-#include "./common/DebugManager.h"
+#include "../json.h"
+#include "../MemCommand.h"
+#include "../DebugManager.h"
+
+using json = nlohmann::json;
 
 class MemSpec
 {

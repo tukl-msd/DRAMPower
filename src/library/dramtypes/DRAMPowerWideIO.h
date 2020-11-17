@@ -41,30 +41,30 @@
  *
  */
 
-#ifndef DDR3_H
-#define DDR3_H
+#ifndef WideIO_H
+#define WideIO_H
 
 #include <vector>
 #include <stdint.h>
 #include <cmath>  // For pow
 
 
-#include "./memspec/MemSpecDDR3.h"
-#include "MemCommand.h"
-#include "./counters/Counters.h"
-#include "./counters/CountersDDR3.h"
+#include "../memspec/MemSpecWideIO.h"
+#include "../MemCommand.h"
+#include "../counters/Counters.h"
+#include "../counters/CountersWideIO.h"
 #include "DRAMPowerIF.h"
-#include "./common/DebugManager.h"
+#include "../DebugManager.h"
 
 namespace DRAMPower {
 
 
-class DRAMPowerDDR3 final : public DRAMPowerIF
+class DRAMPowerWideIO final : public DRAMPowerIF
 {
 public:
-    DRAMPowerDDR3(MemSpecDDR3 &memSpec,  bool includeIoAndTermination);
+    DRAMPowerWideIO(MemSpecWideIO &memSpec,  bool includeIoAndTermination);
 
-    ~DRAMPowerDDR3(){}
+    ~DRAMPowerWideIO(){}
 
     //////Interface methods
     void calcEnergy();
@@ -79,10 +79,10 @@ public:
 
     void powerPrint();
 
-    void updateCounters(bool lastUpdate, int64_t timestamp = 0);
-    //////
+    void updateCounters(bool lastUpdate, unsigned rank, int64_t timestamp = 0);
 
     struct Energy {
+
         // Total energy of all activates
         std::vector<double> act_energy_banks;
 
@@ -113,19 +113,16 @@ public:
         // Total energy of idle cycles in the precharge mode
         std::vector<double> idle_energy_pre_banks;
 
-        // Total trace/pattern energy
-        double total_energy;
-        std::vector<double> total_energy_banks;
+        // Window energy banks
+        std::vector<double> window_energy_banks;
 
-        // Window energy
-        double window_energy;
+        // Total energy banks
+        std::vector<double> total_energy_banks;
 
         // Energy consumed in active/precharged fast/slow-exit modes
         std::vector<double> f_act_pd_energy_banks;
 
         std::vector<double> f_pre_pd_energy_banks;
-
-        std::vector<double> s_pre_pd_energy_banks;
 
         // Energy consumed in self-refresh mode
         std::vector<double> sref_energy_banks;
@@ -152,12 +149,6 @@ public:
 
         std::vector<double> pup_pre_energy_banks;
 
-        // Average Power
-        double average_power;
-
-        // Window Average Power
-        double window_average_power;
-
         // Energy consumed by IO and Termination
         double read_io_energy;     // Read IO Energy
         double write_term_energy;  // Write Termination Energy
@@ -167,31 +158,55 @@ public:
         void clearEnergy(int64_t nbrofBanks);
     };
 
-    // Power measures corresponding to IO and Termination
-    double IO_power;     // Read IO Power
-    double WR_ODT_power; // Write ODT Power
-
-
-    Energy energy;
+    std::vector<std::vector<Energy>> energy;
 
 private:
-    MemSpecDDR3 memSpec;
-    void bankPowerCalc();
-    //  // Used to calculate self-refresh active energy
-    double engy_sref_banks(const Counters &c, const MemSpecDDR3::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
+    MemSpecWideIO memSpec;
 
-    int64_t total_cycles;
+    std::vector<std::vector<DRAMPower::MemCommand>> cmdListPerRank;
 
-    int64_t window_cycles;
+    std::vector<CountersWideIO> counters;
+
+    // Cycles
+    std::vector<int64_t> total_cycles;
+    std::vector<int64_t> window_cycles;
+
+    //Rank Energy
+    std::vector<double>  rank_total_energy;
+    std::vector<double>  rank_window_energy;
+
+    //Rank Power
+    std::vector<double>  rank_total_average_power;
+    std::vector<double>  rank_window_average_power;
+
+    //Total Energy
+    double window_trace_energy;
+    double total_trace_energy;
+
+    double window_trace_average_power;
+    double total_trace_average_power;
+
+    bool includeIoAndTermination;
+
+    void evaluateCommands(unsigned rank);
+
+    void splitCmdList();
+
+    void bankEnergyCalc(unsigned rank, unsigned vdd);
+
+    void updateCycles(unsigned rank);
+
+    void rankPowerCalc(unsigned rank);
+
+    void traceEnergyCalc();
 
     // To calculate IO and Termination Energy
-    void calcIoTermEnergy();
+    void io_term_power();
 
-    CountersDDR3 counters;
-    bool includeIoAndTermination;
-    void evaluateCommands();
+    void calcIoTermEnergy(unsigned rank);
+
     template <typename T> T sum(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
 
 };
 }
-#endif // DDR3_H
+#endif // WideIO_H

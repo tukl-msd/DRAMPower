@@ -52,9 +52,9 @@
 #include <deque>
 #include <string>
 
-#include "MemCommand.h"
-#include "./memspec/MemSpecDDR3.h"
-#include "./common/DebugManager.h"
+#include "../MemCommand.h"
+#include "../memspec/MemSpecDDR3.h"
+#include "../DebugManager.h"
 
 
 namespace DRAMPower {

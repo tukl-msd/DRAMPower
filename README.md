@@ -34,8 +34,8 @@ The tool was verified on Ubuntu >= 14.04. For building a gcc or clang is require
 If the command-level interface is being used, a command trace can be logged in a file.
 An example is given in ```traces/commands.trace```
 
-The format it uses is: ```<timestamp>,<command>,<rank>, <bank>```.
-For example, "500,ACT,0,2", where ACT is the command, 0 is the rank and 2 is the bank. Timestamp is in clock cycles (cc), the list of supported commands is
+The format it uses is: ```<timestamp>, <command>, <rank>, <bank>```.
+For example, "500, ACT, 0, 2", where ACT is the command, 0 is the rank and 2 is the bank. Timestamp is in clock cycles (cc), the list of supported commands is
 mentioned in [MemCommand.h](src/MemCommand.h) and the bank is the target bank number. For non-bank-specific commands, bank can be set to 0. For non-rank specific rank can be set to 0. The timing correctness of the trace is not verified by the tool and is assumed to be accurate. However, warning messages are provided when enabled, to identify if the memory or bank state is inconsistent in the trace. A sample command traces are provided in the traces/ folder.
 
 ### Transaction Traces
@@ -47,9 +47,9 @@ This feature is obsolete and not supported any more. One can check out [commit](
 
 To list out the CLI options supported by DRAMPower, type
 ```bash
-./DRAMPowerCli -h
+./DRAMPower -h
 DRAMPower
-Usage: ./DRAMPowerCli [OPTIONS]
+Usage: ./DRAMPower [OPTIONS]
 
 Options:
   -h,--help                   Print this help message and exit
@@ -186,271 +186,11 @@ To include these JSONs in your simulations, simply use them as the target memory
 
 ## 8. Example Usage
 
-An example of using this tool is provided below. Clone the repository and make.
+An example of using this tool is provided below. Clone the repository and build.
 
-Once the build is successful, run with the command trace for combined bank simulation:
+Once the build is successful, run with the simulation from the build folder:
 ```
-./DRAMPowerCli -m memspecs/MICRON_1Gb_DDR3-1066_8bit_G.json -c traces/commands.trace -r
-```
-The output should be something like this:
-
-```
-■ ■ ■  DRAMPower, Copyright (c) 2020
-■ ■ ■  TU Eindhoven, TU Delft, TU Kaiserslautern
-■ ■ ■  Fraunhofer IESE
-
-* Analysis start time: Wed Nov 11 11:01:23 2020
-* Analyzing the input trace
-* Bankwise mode: 3040
-* Bankwise Details:
-## @ Bank 0
-  #ACT commands: 268
-  #RD + #RDA commands: 268
-  #WR + #WRA commands: 0
-  #PRE (+ PREA) commands: 268
-## @ Bank 1
-  #ACT commands: 205
-  #RD + #RDA commands: 205
-  #WR + #WRA commands: 0
-  #PRE (+ PREA) commands: 205
-## @ Bank 2
-  #ACT commands: 170
-  #RD + #RDA commands: 170
-  #WR + #WRA commands: 0
-  #PRE (+ PREA) commands: 170
-## @ Bank 3
-  #ACT commands: 181
-  #RD + #RDA commands: 181
-  #WR + #WRA commands: 0
-  #PRE (+ PREA) commands: 181
-## @ Bank 4
-  #ACT commands: 208
-  #RD + #RDA commands: 205
-  #WR + #WRA commands: 3
-  #PRE (+ PREA) commands: 208
-## @ Bank 5
-  #ACT commands: 215
-  #RD + #RDA commands: 215
-  #WR + #WRA commands: 0
-  #PRE (+ PREA) commands: 215
-## @ Bank 6
-  #ACT commands: 106
-  #RD + #RDA commands: 106
-  #WR + #WRA commands: 0
-  #PRE (+ PREA) commands: 106
-## @ Bank 7
-  #ACT commands: 149
-  #RD + #RDA commands: 149
-  #WR + #WRA commands: 0
-  #PRE (+ PREA) commands: 149
-
-## @ Bank 0
-  ACT Cmd Energy: 301689 pJ
-  PRE Cmd Energy: 105591 pJ
-  RD Cmd Energy: 196098 pJ
-  WR Cmd Energy: 0 pJ
-  Auto-Refresh Energy: 89662 pJ
-  ACT Stdby Energy: 435633 pJ
-  PRE Stdby Energy: 1040680 pJ
-  Active Idle Energy: 176299 pJ
-  Precharge Idle Energy: 929967 pJ
-  Fast-Exit Active Power-Down Energy: 0 pJ
-  Fast-Exit Precharged Power-Down Energy: 0 pJ
-  Slow-Exit Precharged Power-Down Energy: 0 pJ
-  Self-Refresh Energy: 0 pJ
-  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Self-Refresh Power-Up Energy: 0 pJ
-  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Active Power-Up Energy: 0 pJ
-  Precharged Power-Up Energy: 0 pJ
-  Total Energy of Bank: 2169352 pJ
-
-## @ Bank 1
-  ACT Cmd Energy: 230769 pJ
-  PRE Cmd Energy: 80769 pJ
-  RD Cmd Energy: 150000 pJ
-  WR Cmd Energy: 0 pJ
-  Auto-Refresh Energy: 89662 pJ
-  ACT Stdby Energy: 435633 pJ
-  PRE Stdby Energy: 1040680 pJ
-  Active Idle Energy: 176299 pJ
-  Precharge Idle Energy: 929967 pJ
-  Fast-Exit Active Power-Down Energy: 0 pJ
-  Fast-Exit Precharged Power-Down Energy: 0 pJ
-  Slow-Exit Precharged Power-Down Energy: 0 pJ
-  Self-Refresh Energy: 0 pJ
-  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Self-Refresh Power-Up Energy: 0 pJ
-  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Active Power-Up Energy: 0 pJ
-  Precharged Power-Up Energy: 0 pJ
-  Total Energy of Bank: 2027513 pJ
-
-## @ Bank 2
-  ACT Cmd Energy: 191370 pJ
-  PRE Cmd Energy: 66979 pJ
-  RD Cmd Energy: 124390 pJ
-  WR Cmd Energy: 0 pJ
-  Auto-Refresh Energy: 89662 pJ
-  ACT Stdby Energy: 435633 pJ
-  PRE Stdby Energy: 1040680 pJ
-  Active Idle Energy: 176299 pJ
-  Precharge Idle Energy: 929967 pJ
-  Fast-Exit Active Power-Down Energy: 0 pJ
-  Fast-Exit Precharged Power-Down Energy: 0 pJ
-  Slow-Exit Precharged Power-Down Energy: 0 pJ
-  Self-Refresh Energy: 0 pJ
-  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Self-Refresh Power-Up Energy: 0 pJ
-  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Active Power-Up Energy: 0 pJ
-  Precharged Power-Up Energy: 0 pJ
-  Total Energy of Bank: 1948714 pJ
-
-## @ Bank 3
-  ACT Cmd Energy: 203752 pJ
-  PRE Cmd Energy: 71313 pJ
-  RD Cmd Energy: 132439 pJ
-  WR Cmd Energy: 0 pJ
-  Auto-Refresh Energy: 89662 pJ
-  ACT Stdby Energy: 435633 pJ
-  PRE Stdby Energy: 1040680 pJ
-  Active Idle Energy: 176299 pJ
-  Precharge Idle Energy: 929967 pJ
-  Fast-Exit Active Power-Down Energy: 0 pJ
-  Fast-Exit Precharged Power-Down Energy: 0 pJ
-  Slow-Exit Precharged Power-Down Energy: 0 pJ
-  Self-Refresh Energy: 0 pJ
-  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Self-Refresh Power-Up Energy: 0 pJ
-  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Active Power-Up Energy: 0 pJ
-  Precharged Power-Up Energy: 0 pJ
-  Total Energy of Bank: 1973480 pJ
-
-## @ Bank 4
-  ACT Cmd Energy: 234146 pJ
-  PRE Cmd Energy: 81951 pJ
-  RD Cmd Energy: 150000 pJ
-  WR Cmd Energy: 2364 pJ
-  Auto-Refresh Energy: 89662 pJ
-  ACT Stdby Energy: 435633 pJ
-  PRE Stdby Energy: 1040680 pJ
-  Active Idle Energy: 176299 pJ
-  Precharge Idle Energy: 929967 pJ
-  Fast-Exit Active Power-Down Energy: 0 pJ
-  Fast-Exit Precharged Power-Down Energy: 0 pJ
-  Slow-Exit Precharged Power-Down Energy: 0 pJ
-  Self-Refresh Energy: 0 pJ
-  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Self-Refresh Power-Up Energy: 0 pJ
-  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Active Power-Up Energy: 0 pJ
-  Precharged Power-Up Energy: 0 pJ
-  Total Energy of Bank: 2034437 pJ
-
-## @ Bank 5
-  ACT Cmd Energy: 242026 pJ
-  PRE Cmd Energy: 84709 pJ
-  RD Cmd Energy: 157317 pJ
-  WR Cmd Energy: 0 pJ
-  Auto-Refresh Energy: 89662 pJ
-  ACT Stdby Energy: 435633 pJ
-  PRE Stdby Energy: 1040680 pJ
-  Active Idle Energy: 176299 pJ
-  Precharge Idle Energy: 929967 pJ
-  Fast-Exit Active Power-Down Energy: 0 pJ
-  Fast-Exit Precharged Power-Down Energy: 0 pJ
-  Slow-Exit Precharged Power-Down Energy: 0 pJ
-  Self-Refresh Energy: 0 pJ
-  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Self-Refresh Power-Up Energy: 0 pJ
-  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Active Power-Up Energy: 0 pJ
-  Precharged Power-Up Energy: 0 pJ
-  Total Energy of Bank: 2050028 pJ
-
-## @ Bank 6
-  ACT Cmd Energy: 119325 pJ
-  PRE Cmd Energy: 41764 pJ
-  RD Cmd Energy: 77561 pJ
-  WR Cmd Energy: 0 pJ
-  Auto-Refresh Energy: 89662 pJ
-  ACT Stdby Energy: 435633 pJ
-  PRE Stdby Energy: 1040680 pJ
-  Active Idle Energy: 176299 pJ
-  Precharge Idle Energy: 929967 pJ
-  Fast-Exit Active Power-Down Energy: 0 pJ
-  Fast-Exit Precharged Power-Down Energy: 0 pJ
-  Slow-Exit Precharged Power-Down Energy: 0 pJ
-  Self-Refresh Energy: 0 pJ
-  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Self-Refresh Power-Up Energy: 0 pJ
-  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Active Power-Up Energy: 0 pJ
-  Precharged Power-Up Energy: 0 pJ
-  Total Energy of Bank: 1804624 pJ
-
-## @ Bank 7
-  ACT Cmd Energy: 167730 pJ
-  PRE Cmd Energy: 58705 pJ
-  RD Cmd Energy: 109024 pJ
-  WR Cmd Energy: 0 pJ
-  Auto-Refresh Energy: 89662 pJ
-  ACT Stdby Energy: 435633 pJ
-  PRE Stdby Energy: 1040680 pJ
-  Active Idle Energy: 176299 pJ
-  Precharge Idle Energy: 929967 pJ
-  Fast-Exit Active Power-Down Energy: 0 pJ
-  Fast-Exit Precharged Power-Down Energy: 0 pJ
-  Slow-Exit Precharged Power-Down Energy: 0 pJ
-  Self-Refresh Energy: 0 pJ
-  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0 pJ
-  Self-Refresh Power-Up Energy: 0 pJ
-  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0 pJ
-  Active Power-Up Energy: 0 pJ
-  Precharged Power-Up Energy: 0 pJ
-  Total Energy of Bank: 1901435 pJ
-
-
-----------------------------------------
-  Total Trace Energy : 15909583 pJ
-  Total Average Power : 73 mW
-----------------------------------------
-
-RD I/O Energy: 0 pJ
-WR Termination Energy: 0 pJ
-* Power Computation End time: Wed Nov 11 11:01:23 2020
-* Total Simulation time: 0.039071 seconds
-
-----------------------------------------
-  Total Trace Energy : 15909583 pJ
-  Total Average Power : 73 mW
-  Cycles: 115482
-----------------------------------------
-
-RD I/O Energy: 0 pJ
-WR Termination Energy: 0 pJ
-* Power Computation End time: Wed Nov 11 11:01:23 2020
-* Total Simulation time: 0.039071 seconds
-
-
+./DRAMPower -m ../memspecs/MICRON_1Gb_DDR3-1066_8bit_G.json -c ../traces/commands.trace
 ```
 
 As can be noticed, the tool performs DRAM command scheduling and reports the number

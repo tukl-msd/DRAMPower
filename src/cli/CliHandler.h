@@ -39,15 +39,15 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "./memspec/MemSpec.h"
-#include "./memspec/MemSpecDDR3.h"
-#include "./dramtypes/DRAMPowerIF.h"
-#include "./dramtypes/DRAMPowerDDR3.h"
-#include "./dramtypes/DRAMPowerDDR4.h"
-#include "./dramtypes/DRAMPowerWideIO.h"
+#include "./library/memspec/MemSpec.h"
+#include "./library/memspec/MemSpecDDR3.h"
+#include "./library/dramtypes/DRAMPowerIF.h"
+#include "./library/dramtypes/DRAMPowerDDR3.h"
+#include "./library/dramtypes/DRAMPowerDDR4.h"
+#include "./library/dramtypes/DRAMPowerWideIO.h"
 #include "TraceParser.h"
 #include "common/version.h"
-#include "common/libraries/cli11/CLI11.h"
+#include "common/cli11/CLI11.h"
 
 
 namespace DRAMPower{

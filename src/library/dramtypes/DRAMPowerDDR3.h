@@ -41,30 +41,30 @@
  *
  */
 
-#ifndef DDR4_H
-#define DDR4_H
+#ifndef DDR3_H
+#define DDR3_H
 
 #include <vector>
 #include <stdint.h>
 #include <cmath>  // For pow
 
 
-#include "./memspec/MemSpecDDR4.h"
-#include "MemCommand.h"
-#include "./counters/Counters.h"
-#include "./counters/CountersDDR4.h"
+#include "../memspec/MemSpecDDR3.h"
+#include "../MemCommand.h"
+#include "../counters/Counters.h"
+#include "../counters/CountersDDR3.h"
 #include "DRAMPowerIF.h"
-#include "./common/DebugManager.h"
+#include "../DebugManager.h"
 
 namespace DRAMPower {
 
 
-class DRAMPowerDDR4 final : public DRAMPowerIF
+class DRAMPowerDDR3 final : public DRAMPowerIF
 {
 public:
-    DRAMPowerDDR4(MemSpecDDR4 &memSpec,  bool includeIoAndTermination);
+    DRAMPowerDDR3(MemSpecDDR3 &memSpec,  bool includeIoAndTermination);
 
-    ~DRAMPowerDDR4(){}
+    ~DRAMPowerDDR3(){}
 
     //////Interface methods
     void calcEnergy();
@@ -113,9 +113,12 @@ public:
         // Total energy of idle cycles in the precharge mode
         std::vector<double> idle_energy_pre_banks;
 
-        std::vector<double> window_energy_banks;
-
+        // Total trace/pattern energy
+        double total_energy;
         std::vector<double> total_energy_banks;
+
+        // Window energy
+        double window_energy;
 
         // Energy consumed in active/precharged fast/slow-exit modes
         std::vector<double> f_act_pd_energy_banks;
@@ -149,6 +152,12 @@ public:
 
         std::vector<double> pup_pre_energy_banks;
 
+        // Average Power
+        double average_power;
+
+        // Window Average Power
+        double window_average_power;
+
         // Energy consumed by IO and Termination
         double read_io_energy;     // Read IO Energy
         double write_term_energy;  // Write Termination Energy
@@ -162,26 +171,14 @@ public:
     double IO_power;     // Read IO Power
     double WR_ODT_power; // Write ODT Power
 
-    // Total trace/pattern energy
-    double total_energy;
 
-    // Window energy
-    double window_energy;
-
-    // Average Power
-    double average_power;
-
-    // Window Average Power
-    double window_average_power;
-
-
-    std::vector<Energy> energy;
+    Energy energy;
 
 private:
-    MemSpecDDR4 memSpec;
-    void bankEnergyCalc(unsigned vdd);
+    MemSpecDDR3 memSpec;
+    void bankPowerCalc();
     //  // Used to calculate self-refresh active energy
-    double engy_sref_banks(const Counters &c,const MemSpecDDR4::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
+    double engy_sref_banks(const Counters &c, const MemSpecDDR3::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
 
     int64_t total_cycles;
 
@@ -190,15 +187,11 @@ private:
     // To calculate IO and Termination Energy
     void calcIoTermEnergy();
 
-    void updateCycles();
-
-    void traceEnergyCalc();
-
-    CountersDDR4 counters;
+    CountersDDR3 counters;
     bool includeIoAndTermination;
     void evaluateCommands();
     template <typename T> T sum(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
 
 };
 }
-#endif // DDR4_H
+#endif // DDR3_H

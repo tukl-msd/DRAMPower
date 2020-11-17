@@ -32,53 +32,61 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Matthias Jung
- *          Omar Naji
- *          Subash Kannoth
+ * Authors: Karthik Chandrasekar,
+ *          Matthias Jung,
+ *          Omar Naji,
+ *          Sven Goossens,
  *          Éder F. Zulian
+ *          Subash Kannoth
  *          Felipe S. Prado
  *          Luiza Correa
- *
  */
-
-#ifndef DRAM_POWER_IF_H
-#define DRAM_POWER_IF_H
+#ifndef COUNTERSDDR3_H
+#define COUNTERSDDR3_H
 
 #include <stdint.h>
+
 #include <vector>
+#include <iostream>
+#include <deque>
+#include <string>
 
-#include "MemCommand.h"
-#include "./common/DebugManager.h"
+#include "../MemCommand.h"
+#include "../memspec/MemSpecDDR3.h"
+#include "Counters.h"
+
+namespace DRAMPower {
+class CountersDDR3 final : public Counters {
+ public:
+
+  CountersDDR3(MemSpecDDR3& memspec);
+  MemSpecDDR3 memSpec;
+  void getCommands(std::vector<MemCommand>& list,
+                             bool lastupdate,
+                             int64_t timestamp);
 
 
-class DRAMPowerIF{
-public:
-    virtual ~DRAMPowerIF(){}
+  // Handlers for commands that are getting processed
 
-    void doCommand(int64_t                timestamp,
-                   DRAMPower::MemCommand::cmds type,
-                   int                    rank,
-                   int                    bank);
+  void handleRef(    unsigned bank, int64_t timestamp);
+  void handlePupAct( int64_t timestamp);
+  void handlePupPre( int64_t timestamp);
+  void handleSREx(   unsigned bank, int64_t timestamp);
+  void handleNopEnd( int64_t timestamp);
 
-    void setupDebugManager(const bool debug __attribute__((unused))=false,
-                           const bool writeToConsole __attribute__((unused))=false,
-                           const bool writeToFile __attribute__((unused))=false,
-                           const std::string &traceName __attribute__((unused))="");
 
-    virtual void calcEnergy() = 0;
+  // To update idle period information whenever active cycles may be idle
+  void idle_act_update(int64_t                     latest_read_cycle,
+                       int64_t                     latest_write_cycle,
+                       int64_t                     latest_act_cycle,
+                       int64_t                     timestamp);
 
-    virtual void calcWindowEnergy(int64_t timestamp) = 0;
+  // To update idle period information whenever precharged cycles may be idle
+  void idle_pre_update(int64_t                     timestamp,
+                       int64_t                     latest_pre_cycle);
 
-    virtual double getEnergy() = 0;
 
-    virtual  double getPower() = 0;
-
-    virtual void powerPrint() = 0;
-
-    virtual void clearCountersWrapper() = 0;
-
-    // list of all commands
-    std::vector<DRAMPower::MemCommand> cmdList;
 };
+}
 
-#endif // ifndef LIB_DRAM_POWER_H
+#endif // COUNTERSDDR3_H
