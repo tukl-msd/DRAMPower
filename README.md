@@ -81,12 +81,12 @@ It is possible to include bankwise parameters: ρ - ACT Standby bankwise power o
 For DDR3 and DDR4 it is also possible to enable partial array self refresh and define the PASR mode. Example:
 
 ```
-	"bankwisespec": {
-		"factRho":100,
-		"factSigma":100,
-		"hasPASR": true,
-		"pasrMode": 1
-	}
+"bankwisespec": {
+	"factRho":100,
+	"factSigma":100,
+	"hasPASR": true,
+	"pasrMode": 1
+}
 ```
 
 For DDR4 it is possible to specify the refresh mode as "1X", "2X" or "4X". If not specified the refresh mode will be by default defined as "1X". Example:
@@ -157,10 +157,10 @@ Full example of a DDR3 memory specification file:
         },
 	
        	"bankwisespec": {
-		        "factRho":100,
-		        "factSigma":100,
-		        "hasPASR": true,
-		        "pasrMode": 1
+		    "factRho":100,
+	        "factSigma":100,
+            "hasPASR": true,
+	        "pasrMode": 1
 	      }
     }
 }

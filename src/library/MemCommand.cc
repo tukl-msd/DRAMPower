@@ -44,7 +44,33 @@ using namespace DRAMPower;
 using namespace std;
 
 
-MemCommand::MemCommand( int64_t timestamp, MemCommand::cmds type,
+std::string* MemCommand::getCommandTypeStrings()
+{
+    static std::string type_map[nCommands] = { "ACT",
+                                               "RD",
+                                               "WR",
+                                               "PRE",
+                                               "REF",
+                                               "REFB",
+                                               "END",
+                                               "RDA",
+                                               "WRA",
+                                               "PREA",
+                                               "PDN_F_PRE",
+                                               "PDN_S_PRE",
+                                               "PDN_F_ACT",
+                                               "PDN_S_ACT",
+                                               "PUP_PRE",
+                                               "PUP_ACT",
+                                               "SREN",
+                                               "SREX",
+                                               "NOP",
+                                               "UNINITIALIZED" };
+
+    return type_map;
+}
+
+MemCommand::MemCommand(int64_t timestamp, MemCommand::cmds type,
                         unsigned rank, unsigned bank) :
     timestamp(timestamp),
     type(type),
@@ -52,6 +78,7 @@ MemCommand::MemCommand( int64_t timestamp, MemCommand::cmds type,
     bank(bank)
 {
 }
+
 
 void MemCommand::setType(MemCommand::cmds _type)
 {
@@ -101,4 +128,32 @@ MemCommand::cmds MemCommand::typeWithoutAutoPrechargeFlag() const
         return MemCommand::WR;
     }
     return type;
+}
+
+// To identify command type from name
+MemCommand::cmds MemCommand::getTypeFromName(const std::string& name)
+{
+    std::string* typeStrings = getCommandTypeStrings();
+
+    for (size_t typeId = 0; typeId < nCommands; typeId++) {
+        if (typeStrings[typeId] == name) {
+            cmds commandType = static_cast<cmds>(typeId);
+            return commandType;
+        }
+    }
+    assert(false); // Unknown name.
+    return NOP;  // For clang compilation
+}
+
+// To check for equivalence
+
+bool MemCommand::operator==(const MemCommand& other) const
+{
+    if ((getType() == other.getType()) &&
+            (getBank() == other.getBank())
+            ) {
+        return true;
+    } else {
+        return false;
+    }
 }

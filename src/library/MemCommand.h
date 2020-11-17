@@ -92,6 +92,8 @@ public:
         UNINITIALIZED = 19
     };
 
+    static std::string* getCommandTypeStrings();
+
     //  MemCommand();
     MemCommand(// Command Issue Timestamp (in cc)
                int64_t           timestamp = 0L,
@@ -124,61 +126,11 @@ public:
 
     cmds typeWithoutAutoPrechargeFlag() const;
 
-    // To check for equivalence
-
-    bool operator==(const MemCommand& other) const
-    {
-        if ((getType() == other.getType()) &&
-                (getBank() == other.getBank())
-                ) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+    bool operator==(const MemCommand& other) const;
 
     static const unsigned int nCommands = 20;
 
-    static std::string* getCommandTypeStrings()
-    {
-        static std::string type_map[nCommands] = { "ACT",
-                                                   "RD",
-                                                   "WR",
-                                                   "PRE",
-                                                   "REF",
-                                                   "REFB",
-                                                   "END",
-                                                   "RDA",
-                                                   "WRA",
-                                                   "PREA",
-                                                   "PDN_F_PRE",
-                                                   "PDN_S_PRE",
-                                                   "PDN_F_ACT",
-                                                   "PDN_S_ACT",
-                                                   "PUP_PRE",
-                                                   "PUP_ACT",
-                                                   "SREN",
-                                                   "SREX",
-                                                   "NOP",
-                                                   "UNINITIALIZED" };
-
-        return type_map;
-    }
-
-    // To identify command type from name
-    static cmds getTypeFromName(const std::string& name)
-    {
-        std::string* typeStrings = getCommandTypeStrings();
-
-        for (size_t typeId = 0; typeId < nCommands; typeId++) {
-            if (typeStrings[typeId] == name) {
-                cmds commandType = static_cast<cmds>(typeId);
-                return commandType;
-            }
-        }
-        assert(false); // Unknown name.
-        return NOP;  // For clang compilation
-    }
+    static cmds getTypeFromName(const std::string& name);
 
 private:
     int64_t timestamp;
