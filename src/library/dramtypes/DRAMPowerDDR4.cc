@@ -112,41 +112,72 @@ void DRAMPowerDDR4::evaluateCommands()
         // Command Issue timestamp in clock cycles (cc)
         int64_t timestamp = cmd.getTimeInt64();
         if (bank < memSpec.numberOfBanks) {
-            if (type == MemCommand::ACT) {
+            switch(type) {
+            case MemCommand::ACT : {
                 counters.handleAct(bank, timestamp);
-            } else if (type == MemCommand::RD) {
+                break;
+            }
+            case MemCommand::RD : {
                 counters.handleRd(bank, timestamp);
-            } else if (type == MemCommand::WR) {
+                break;
+            }
+            case MemCommand::WR : {
                 counters.handleWr(bank, timestamp);
-            } else if (type == MemCommand::REF) {
+                break;
+            }
+            case MemCommand::REF : {
                 counters.handleRef(bank, timestamp);
-            } else if (type == MemCommand::PRE) {
+                break;
+            }
+            case MemCommand::PRE : {
                 counters.handlePre(bank, timestamp);
-            } else if (type == MemCommand::PREA) {
+                break;
+            }
+            case MemCommand::PREA : {
                 counters.handlePreA(bank, timestamp);
-            } else if (type == MemCommand::PDN_F_ACT) {
+                break;
+            }
+            case MemCommand::PDN_F_ACT : {
                 counters.handlePdnFAct(bank, timestamp);
-            } else if (type == MemCommand::PDN_F_PRE) {
+                break;
+            }
+            case MemCommand::PDN_F_PRE : {
                 counters.handlePdnFPre(bank, timestamp);
-            } else if (type == MemCommand::PDN_S_PRE) {
+                break;
+            }
+            case MemCommand::PDN_S_PRE : {
                 counters.handlePdnSPre(bank, timestamp);
-            } else if (type == MemCommand::PUP_ACT) {
+                break;
+            }
+            case MemCommand::PUP_ACT : {
                 counters.handlePupAct(timestamp);
-            } else if (type == MemCommand::PUP_PRE) {
+                break;
+            }
+            case MemCommand::PUP_PRE : {
                 counters.handlePupPre(timestamp);
-            } else if (type == MemCommand::SREN) {
+                break;
+            }
+            case MemCommand::SREN : {
                 counters.handleSREn(bank, timestamp);
-            } else if (type == MemCommand::SREX) {
+                break;
+            }
+            case MemCommand::SREX : {
                 counters.handleSREx(bank, timestamp);
-            } else if (type == MemCommand::END || type == MemCommand::NOP) {
+                break;
+            }
+            case MemCommand::NOP :
+            case MemCommand::END : {
                 counters.handleNopEnd(timestamp);
-            } else {
+                break;
+            }
+            default: {
                 PRINTDEBUGMESSAGE("Unknown command given, exiting.", timestamp, type, bank);
                 exit(-1);
             }
-        }
+            }//end switch
+        } //end if bank<nbrOfBanks
         else PRINTDEBUGMESSAGE("Command given to non-existent bank", timestamp, type, bank);
-    }
+    } // end for
 } // Counters::evaluateCommands
 
 //call the clear counters

@@ -195,40 +195,70 @@ void DRAMPowerWideIO::evaluateCommands(unsigned rank)
         // Command Issue timestamp in clock cycles (cc)
         int64_t timestamp = cmd.getTimeInt64();
 
+
         if (bank < memSpec.numberOfBanks) {
-            if (type == MemCommand::ACT) {
+            switch(type) {
+            case MemCommand::ACT : {
                 counters[rank].handleAct(bank, timestamp);
-            } else if (type == MemCommand::RD) {
+                break;
+            }
+            case MemCommand::RD : {
                 counters[rank].handleRd(bank, timestamp);
-            } else if (type == MemCommand::WR) {
+                break;
+            }
+            case MemCommand::WR : {
                 counters[rank].handleWr(bank, timestamp);
-            } else if (type == MemCommand::REF) {
+                break;
+            }
+            case MemCommand::REF : {
                 counters[rank].handleRef(bank, timestamp);
-            } else if (type == MemCommand::PRE) {
+                break;
+            }
+            case MemCommand::PRE : {
                 counters[rank].handlePre(bank, timestamp);
-            } else if (type == MemCommand::PREA) {
+                break;
+            }
+            case MemCommand::PREA : {
                 counters[rank].handlePreA(bank, timestamp);
-            } else if (type == MemCommand::PDN_F_ACT) {
+                break;
+            }
+            case MemCommand::PDN_F_ACT : {
                 counters[rank].handlePdnFAct(bank, timestamp);
-            } else if (type == MemCommand::PDN_F_PRE) {
+                break;
+            }
+            case MemCommand::PDN_F_PRE : {
                 counters[rank].handlePdnFPre(bank, timestamp);
-            } else if (type == MemCommand::PUP_ACT) {
+                break;
+            }
+            case MemCommand::PUP_ACT : {
                 counters[rank].handlePupAct(timestamp);
-            } else if (type == MemCommand::PUP_PRE) {
+                break;
+            }
+            case MemCommand::PUP_PRE : {
                 counters[rank].handlePupPre(timestamp);
-            } else if (type == MemCommand::SREN) {
+                break;
+            }
+            case MemCommand::SREN : {
                 counters[rank].handleSREn(bank, timestamp);
-            } else if (type == MemCommand::SREX) {
+                break;
+            }
+            case MemCommand::SREX : {
                 counters[rank].handleSREx(bank, timestamp);
-            } else if (type == MemCommand::END || type == MemCommand::NOP) {
+                break;
+            }
+            case MemCommand::NOP :
+            case MemCommand::END : {
                 counters[rank].handleNopEnd(timestamp);
-            } else {
+                break;
+            }
+            default: {
                 PRINTDEBUGMESSAGE("Unknown command given, exiting.", timestamp, type, bank);
                 exit(-1);
             }
-        }
+            }//end switch
+        } //end if bank<nbrOfBanks
         else PRINTDEBUGMESSAGE("Command given to non-existent bank", timestamp, type, bank);
-    }
+    } //end for
 } // Counters::evaluateCommands
 
 //call the clear counters
