@@ -47,7 +47,7 @@ MemSpecDDR4::MemSpecDDR4(json &memspec)
     numberOfBankGroups = parseUint(memspec["memarchitecturespec"]["nbrOfBankGroups"],"nbrOfBankGroups");
     banksPerGroup = numberOfBanks / numberOfBankGroups;
     numberOfRanks          = parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
-    refreshMode            = (parseStringWithDefault(memspec["RefreshMode"],"RefreshMode","1X"));
+    refreshMode            = parseUintWithDefaut(memspec["RefreshMode"],"RefreshMode",1);
     memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
     memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in mili seconds
     memTimingSpec.tCKESR   = (parseUint(memspec["memtimingspec"]["CKESR"], "CKESR"));
@@ -67,19 +67,19 @@ MemSpecDDR4::MemSpecDDR4(json &memspec)
     memTimingSpec.tCCD_L   = (parseUint(memspec["memtimingspec"]["CCD_L"], "CCD_L"));
     memTimingSpec.tRP      = (parseUint(memspec["memtimingspec"]["RP"], "RP"));
     memTimingSpec.tFAW     = (parseUint(memspec["memtimingspec"]["FAW"], "FAW"));
-    if (refreshMode=="1X") {
+    if (refreshMode==1) {
         memTimingSpec.tRFC = (parseUint(memspec["memtimingspec"]["RFC"], "RFC"));
         memTimingSpec.tREFI    = (parseUint(memspec["memtimingspec"]["REFI"], "REFI"));
         //          memTimingSpec.refreshtRP = memTimingSpec.tRP;
     }
-    else if (refreshMode=="2X") {
+    else if (refreshMode==2) {
         memTimingSpec.tRFC = (parseUint(memspec["memtimingspec"]["RFC2"], "RFC2"));
         memTimingSpec.tREFI    = (parseUint(memspec["memtimingspec"]["REFI"], "REFI")/2);
         //          memTimingSpec.refreshtRP = static_cast<unsigned int>((memTimingSpec.tRP)*
         //                               (parseUint(memspec["memtimingspec"]["RFC2"], "RFC2"))/
         //                               (parseUint(memspec["memtimingspec"]["RFC"], "RFC")));
     }
-    else if (refreshMode=="4X") {
+    else if (refreshMode==4) {
         memTimingSpec.tRFC = (parseUint(memspec["memtimingspec"]["RFC4"], "RFC4"));
         memTimingSpec.tREFI    = (parseUint(memspec["memtimingspec"]["REFI"], "REFI")/4);
         //          memTimingSpec.refreshtRP = static_cast<unsigned int>((memTimingSpec.tRP)*

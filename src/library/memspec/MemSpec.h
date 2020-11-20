@@ -87,7 +87,7 @@ public:
     unsigned parseUint(nlohmann::json &obj, std::string name);
     double parseUdouble(nlohmann::json &obj, std::string name);
     double parseUdoubleWithDefault(nlohmann::json &obj, std::string name);
-    unsigned parseUintWithDefaut(json &obj, std::string name);
+    unsigned parseUintWithDefaut(json &obj, std::string name, int64_t default_value=0);
     std::string parseString(nlohmann::json &obj, std::string name);
     std::string parseStringWithDefault(json &obj, std::string name, std::string defaultString);
 

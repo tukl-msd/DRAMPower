@@ -137,7 +137,7 @@ public:
 
     };
 
-    std::string refreshMode;
+    int64_t refreshMode;
 
     MemTimingSpec memTimingSpec;
     std::vector<MemPowerSpec> memPowerSpec;

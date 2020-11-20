@@ -168,23 +168,29 @@ void CliHandler::loadMemSpec(const std::string &memspecUri)
     if (memoryType == "DDR3") {
         MemSpecDDR3 memSpecDDR3(jMemSpec);
         dramPower = new DRAMPowerDDR3(memSpecDDR3,get_io_term_active(),
-                                      (get_writeToConsole() | get_writeToFile()),
-                                      get_writeToConsole(),get_writeToFile(),"DebugFile");
+                                     (get_writeToConsole() | get_writeToFile()),
+                                     get_writeToConsole(),
+                                     get_writeToFile(),
+                                     "DebugFile");
     }
     else if (memoryType == "DDR4") {
         MemSpecDDR4 memSpecDDR4(jMemSpec);
 
         dramPower = new DRAMPowerDDR4(memSpecDDR4,get_io_term_active(),
-                                      (get_writeToConsole() | get_writeToFile()),
-                                      get_writeToConsole(),get_writeToFile(),"DebugFile");
+                                     (get_writeToConsole() | get_writeToFile()),
+                                     get_writeToConsole(),
+                                     get_writeToFile(),
+                                     "DebugFile");
     }
     else if (memoryType == "WIDEIO_SDR") {
 
         MemSpecWideIO memSpecWideIO(jMemSpec);
 
         dramPower = new DRAMPowerWideIO(memSpecWideIO, get_io_term_active(),
-                                        (get_writeToConsole() | get_writeToFile()),
-                                        get_writeToConsole(),get_writeToFile(),"DebugFile");
+                                       (get_writeToConsole() | get_writeToFile()),
+                                       get_writeToConsole(),
+                                       get_writeToFile(),
+                                       "DebugFile");
     }
     //    FUTURE WORK:
     //

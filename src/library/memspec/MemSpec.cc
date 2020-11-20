@@ -51,17 +51,6 @@ MemSpec::MemSpec(nlohmann::json &memspec)
 }
 
 
-
-//memArchSpec.numberOfChannels = parseUint(memspec["memarchitecturespec"]["nbrOfChannels"],"nbrOfChannels");
-//memArchSpec.numberOfRanks=parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
-//memArchSpec.numberOfDevicesOnDIMM = parseUint(memspec["memarchitecturespec"]["nbrOfDevicesOnDIMM"],"nbrOfDevicesOnDIMM");
-//memArchSpec.numberOfBankGroups = parseUint(memspec["memarchitecturespec"]["nbrOfBankGroups"],"nbrOfBankGroups");
-//memArchSpec.banksPerRank = memArchSpec.numberOfBanks/memArchSpec.numberOfRanks;
-//memArchSpec.groupsPerRank = memArchSpec.numberOfBankGroups / memArchSpec.numberOfRanks;
-//memArchSpec.banksPerGroup = memArchSpec.numberOfBanks / memArchSpec.numberOfBankGroups;
-
-
-
 MemSpec::~MemSpec()
 {
 }
@@ -103,7 +92,7 @@ unsigned MemSpec::parseUint(json &obj, std::string name)
         throw std::invalid_argument("Query json: Parameter " + name + "' not found");
 }
 
-unsigned MemSpec::parseUintWithDefaut(json &obj, std::string name)
+unsigned MemSpec::parseUintWithDefaut(json &obj, std::string name, int64_t default_value)
 {
     if (!obj.empty()) {
         if (obj.is_number() && (obj > 0))
@@ -113,7 +102,7 @@ unsigned MemSpec::parseUintWithDefaut(json &obj, std::string name)
     }
     else {
         PRINTWARNING("Parameter " + name + " not found: parsed with zero.\n");
-        return 0.0;
+        return default_value;
     }
 }
 
