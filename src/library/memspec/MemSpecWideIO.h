@@ -48,8 +48,9 @@ public:
                 const bool writeToFile __attribute__((unused))=false,
                 const std::string &traceName __attribute__((unused))="");
     ~MemSpecWideIO() {}
-    int64_t timeToCompletion(DRAMPower::MemCommand::cmds type);
+    int64_t timeToCompletion(DRAMPower::MemCommand::cmds type) override;
 
+    int64_t getExitSREFtime() override;
 
     unsigned numberOfChannels;
     unsigned numberOfRanks;
@@ -111,7 +112,6 @@ public:
     MemTimingSpec memTimingSpec;
     std::vector<MemPowerSpec> memPowerSpec;
     BankWiseParams bwParams;
-
 };
 
 #endif // MemSpecWideIO_H

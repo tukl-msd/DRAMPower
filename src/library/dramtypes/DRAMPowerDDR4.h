@@ -67,20 +67,27 @@ public:
     ~DRAMPowerDDR4(){}
 
     //////Interface methods
-    void calcEnergy();
 
-    void calcWindowEnergy(int64_t timestamp);
+    void doCommand( int64_t timestamp,
+                    DRAMPower::MemCommand::cmds type,
+                    int rank,
+                    int bank) override;
 
-    double getEnergy();
+    void calcEnergy() override;
 
-    double getPower();
+    void calcWindowEnergy(int64_t timestamp) override;
 
-    void clearCountersWrapper();
+    double getEnergy() override;
 
-    void powerPrint();
+    double getPower() override;
+
+    void clearCountersWrapper() override;
+
+    void powerPrint() override;
+    //////
 
     void updateCounters(bool lastUpdate, int64_t timestamp = 0);
-    //////
+
 
     struct Energy {
         // Total energy of all activates

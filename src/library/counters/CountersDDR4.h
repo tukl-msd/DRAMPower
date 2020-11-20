@@ -63,27 +63,27 @@ class CountersDDR4 final : public Counters {
 
   MemSpecDDR4 memSpec;
   void getCommands(std::vector<MemCommand>& list,
-                             bool lastupdate,
-                             int64_t timestamp);
+                                 bool lastupdate,
+                     int64_t timestamp) override;
 
 
   // Handlers for commands that are getting processed
-  void handleRef(    unsigned bank, int64_t timestamp);
-  void handlePupAct( int64_t timestamp);
-  void handlePupPre( int64_t timestamp);
-  void handleSREx(   unsigned bank, int64_t timestamp);
-  void handleNopEnd( int64_t timestamp);
+  void handleRef(    unsigned bank, int64_t timestamp) override;
+  void handlePupAct( int64_t timestamp) override;
+  void handlePupPre( int64_t timestamp) override;
+  void handleSREx(   unsigned bank, int64_t timestamp) override;
+  void handleNopEnd( int64_t timestamp) override;
 
 
   // To update idle period information whenever active cycles may be idle
   void idle_act_update(int64_t                     latest_read_cycle,
                        int64_t                     latest_write_cycle,
                        int64_t                     latest_act_cycle,
-                       int64_t                     timestamp);
+                       int64_t                     timestamp) override;
 
   // To update idle period information whenever precharged cycles may be idle
   void idle_pre_update(int64_t                     timestamp,
-                       int64_t                     latest_pre_cycle);
+                       int64_t                     latest_pre_cycle) override;
 
 
 };

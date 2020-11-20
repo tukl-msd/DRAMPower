@@ -56,6 +56,12 @@ DRAMPowerDDR4::DRAMPowerDDR4(MemSpecDDR4& memSpec, bool includeIoAndTermination)
     total_energy = 0;
 }
 
+void DRAMPowerDDR4::doCommand( int64_t timestamp, DRAMPower::MemCommand::cmds type, int rank,  int bank)
+{
+    DRAMPower::MemCommand cmd(timestamp,type, static_cast<unsigned>(rank), static_cast<unsigned>(bank));
+    cmdList.push_back(cmd);
+}
+
 void DRAMPowerDDR4::calcEnergy()
 {
     updateCounters(true);

@@ -178,4 +178,8 @@ int64_t MemSpecWideIO::timeToCompletion(DRAMPower::MemCommand::cmds type)
     return offset;
 } // MemSpecWideIO::timeToCompletion
 
+int64_t MemSpecWideIO::getExitSREFtime()
+{
+    return memTimingSpec.tXP;
+}
 

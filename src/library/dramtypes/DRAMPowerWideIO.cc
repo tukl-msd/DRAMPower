@@ -70,6 +70,12 @@ DRAMPowerWideIO::DRAMPowerWideIO(MemSpecWideIO& memSpec, bool includeIoAndTermin
     total_trace_energy = 0.0;
 }
 
+void DRAMPowerWideIO::doCommand( int64_t timestamp, DRAMPower::MemCommand::cmds type, int rank,  int bank)
+{
+    DRAMPower::MemCommand cmd(timestamp,type, static_cast<unsigned>(rank), static_cast<unsigned>(bank));
+    cmdList.push_back(cmd);
+}
+
 void DRAMPowerWideIO::calcEnergy()
 {
     splitCmdList();

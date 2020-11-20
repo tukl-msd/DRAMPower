@@ -48,7 +48,9 @@ public:
                 const bool writeToFile __attribute__((unused))=false,
                 const std::string &traceName __attribute__((unused))="");
     ~MemSpecDDR3() {}
-    int64_t timeToCompletion(DRAMPower::MemCommand::cmds type);
+    int64_t timeToCompletion(DRAMPower::MemCommand::cmds type)  override;
+
+    int64_t getExitSREFtime() override;
 
     unsigned numberOfDevicesOnDIMM;
 
@@ -136,10 +138,6 @@ public:
     MemTimingSpec memTimingSpec;
     MemPowerSpec memPowerSpec;
     BankWiseParams bwParams;
-
-    int64_t getExitSREFtime();
-
-
 };
 
 #endif // MEMSPECDDR3_H

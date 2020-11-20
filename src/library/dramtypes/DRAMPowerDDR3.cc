@@ -52,6 +52,12 @@ DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3& memSpec, bool includeIoAndTermination)
     energy.total_energy = 0;
 }
 
+void DRAMPowerDDR3::doCommand( int64_t timestamp, DRAMPower::MemCommand::cmds type, int rank,  int bank)
+{
+    DRAMPower::MemCommand cmd(timestamp,type, static_cast<unsigned>(rank), static_cast<unsigned>(bank));
+    cmdList.push_back(cmd);
+}
+
 void DRAMPowerDDR3::calcEnergy()
 {
     updateCounters(true);

@@ -38,11 +38,6 @@
  */
 #include "DRAMPowerIF.h"
 
-void DRAMPowerIF::doCommand( int64_t timestamp, DRAMPower::MemCommand::cmds type, int rank,  int bank)
-{
-    DRAMPower::MemCommand cmd(timestamp,type, static_cast<unsigned>(rank), static_cast<unsigned>(bank));
-    cmdList.push_back(cmd);
-}
 
 void DRAMPowerIF::setupDebugManager(const bool debug __attribute__((unused)),
                                     const bool writeToConsole __attribute__((unused)),
