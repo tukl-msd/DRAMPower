@@ -179,17 +179,6 @@ public:
     double IO_power;     // Read IO Power
     double WR_ODT_power; // Write ODT Power
 
-    // Total trace/pattern energy
-    double total_energy;
-
-    // Window energy
-    double window_energy;
-
-    // Average Power
-    double average_power;
-
-    // Window Average Power
-    double window_average_power;
 
     std::vector<std::vector<Energy>> energy;
 
@@ -198,9 +187,9 @@ private:
 
     std::vector<std::vector<DRAMPower::MemCommand>> cmdListPerRank;
 
-    void bankEnergyCalc(DRAMPowerDDR4::Energy& e, Counters& c, MemSpecDDR4::MemPowerSpec& mps);
+    void bankEnergyCalc(DRAMPowerDDR4::Energy& e, CountersDDR4 &c, MemSpecDDR4::MemPowerSpec& mps);
     //  // Used to calculate self-refresh active energy
-    double engy_sref_banks(const Counters &c,const MemSpecDDR4::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
+    double engy_sref_banks(const CountersDDR4 &c,const MemSpecDDR4::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
 
     // Cycles
     std::vector<int64_t> total_cycles;
@@ -232,6 +221,7 @@ private:
     void traceEnergyCalc();
 
     std::vector<CountersDDR4> counters;
+
     bool includeIoAndTermination;
 
     void splitCmdList();

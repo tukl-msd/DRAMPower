@@ -50,6 +50,7 @@ public:
     int64_t getExitSREFtime() override;
 
     unsigned numberOfDevicesOnDIMM;
+    unsigned numberOfRanks;
 
     // Memspec Variables:
     struct MemTimingSpec{

@@ -43,7 +43,7 @@ MemSpecDDR3::MemSpecDDR3(json &memspec)
     : MemSpec(memspec)
 {
     numberOfDevicesOnDIMM = parseUint(memspec["memarchitecturespec"]["nbrOfDevicesOnDIMM"],"nbrOfDevicesOnDIMM");
-
+    numberOfRanks          = parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
     memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
     memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in mili seconds
     memTimingSpec.tCKESR   = (parseUint(memspec["memtimingspec"]["CKESR"], "CKESR"));

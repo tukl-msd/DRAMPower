@@ -97,7 +97,7 @@ public:
 
     //////
 
-    void updateCounters(bool lastUpdate, int64_t timestamp = 0);
+    void updateCounters(bool lastUpdate, unsigned rank,  int64_t timestamp = 0);
 
 
     struct Energy {
@@ -132,11 +132,10 @@ public:
         std::vector<double> idle_energy_pre_banks;
 
         // Total trace/pattern energy
-        double total_energy;
+
         std::vector<double> total_energy_banks;
 
-        // Window energy
-        double window_energy;
+        std::vector<double> window_energy_banks;
 
         // Energy consumed in active/precharged fast/slow-exit modes
         std::vector<double> f_act_pd_energy_banks;
@@ -189,25 +188,52 @@ public:
     double IO_power;     // Read IO Power
     double WR_ODT_power; // Write ODT Power
 
-
-    Energy energy;
+    std::vector<Energy> energy;
 
 private:
     MemSpecDDR3 memSpec;
-    void bankPowerCalc();
+
+    std::vector<std::vector<DRAMPower::MemCommand>> cmdListPerRank;
+
+    void bankEnergyCalc(Energy& e, CountersDDR3& c);
     //  // Used to calculate self-refresh active energy
-    double engy_sref_banks(const Counters &c, const MemSpecDDR3::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
+    double engy_sref_banks(const CountersDDR3 &c, const MemSpecDDR3::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
 
-    int64_t total_cycles;
+    // Cycles
+    std::vector<int64_t> total_cycles;
+    std::vector<int64_t> window_cycles;
 
-    int64_t window_cycles;
+    //Rank Energy
+    std::vector<double>  rank_total_energy;
+    std::vector<double>  rank_window_energy;
+
+    //Rank Power
+    std::vector<double>  rank_total_average_power;
+    std::vector<double>  rank_window_average_power;
+
+    //Total Energy
+    double window_trace_energy;
+    double total_trace_energy;
+
+    double window_trace_average_power;
+    double total_trace_average_power;
+
 
     // To calculate IO and Termination Energy
-    void calcIoTermEnergy();
+    void calcIoTermEnergy(unsigned rank);
 
-    CountersDDR3 counters;
+    void updateCycles(unsigned rank);
+
+    void rankPowerCalc(unsigned rank);
+
+    void traceEnergyCalc();
+
+    std::vector<CountersDDR3> counters;
     bool includeIoAndTermination;
-    void evaluateCommands();
+    void evaluateCommands(unsigned rank);
+
+    void splitCmdList();
+
     template <typename T> T sum(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
 
 };

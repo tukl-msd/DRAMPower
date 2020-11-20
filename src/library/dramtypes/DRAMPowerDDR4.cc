@@ -120,12 +120,12 @@ void DRAMPowerDDR4::calcWindowEnergy(int64_t timestamp)
 
 
 double DRAMPowerDDR4::getEnergy() {
-    return total_energy;
+    return total_trace_energy;
 }
 
 double DRAMPowerDDR4::getPower()
 {
-    return average_power;
+    return total_trace_average_power;
 }
 
 void DRAMPowerDDR4::updateCounters(bool lastUpdate, unsigned rank, int64_t timestamp)
@@ -273,7 +273,7 @@ void DRAMPowerDDR4::splitCmdList()
 }
 
 
-void DRAMPowerDDR4::bankEnergyCalc(DRAMPowerDDR4::Energy& e, Counters& c, MemSpecDDR4::MemPowerSpec& mps)
+void DRAMPowerDDR4::bankEnergyCalc(DRAMPowerDDR4::Energy& e, CountersDDR4& c, MemSpecDDR4::MemPowerSpec& mps)
 {
     const MemSpecDDR4::MemTimingSpec& t = memSpec.memTimingSpec;
     const MemSpecDDR4::BankWiseParams& bwPowerParams = memSpec.bwParams;
@@ -389,7 +389,7 @@ void DRAMPowerDDR4::bankEnergyCalc(DRAMPowerDDR4::Energy& e, Counters& c, MemSpe
 
 void DRAMPowerDDR4::updateCycles(unsigned rank)
 {
-    const Counters& c = counters[rank];
+    const CountersDDR4& c = counters[rank];
     window_cycles[rank] = c.actcycles + c.precycles +
                           c.f_act_pdcycles + c.f_pre_pdcycles +
                           c.s_pre_pdcycles + c.sref_cycles +
@@ -428,7 +428,7 @@ void DRAMPowerDDR4::traceEnergyCalc()
 
 
 // Self-refresh active energy estimation per banks
-double DRAMPowerDDR4::engy_sref_banks(const Counters& c,const MemSpecDDR4::MemPowerSpec& mps, double esharedPASR, unsigned bnkIdx)
+double DRAMPowerDDR4::engy_sref_banks(const CountersDDR4 &c, const MemSpecDDR4::MemPowerSpec& mps, double esharedPASR, unsigned bnkIdx)
 {
 
     const MemSpecDDR4::BankWiseParams& bwPowerParams = memSpec.bwParams;
@@ -478,7 +478,7 @@ double DRAMPowerDDR4::engy_sref_banks(const Counters& c,const MemSpecDDR4::MemPo
 void DRAMPowerDDR4::calcIoTermEnergy(unsigned rank)
 {
     const MemSpecDDR4::MemTimingSpec& t = memSpec.memTimingSpec;
-    const Counters& c = counters[rank];
+    const CountersDDR4& c = counters[rank];
 
     IO_power     = memSpec.memPowerSpec[0].ioPower;    // in W
     WR_ODT_power = memSpec.memPowerSpec[0].wrOdtPower; // in W
@@ -519,7 +519,7 @@ void DRAMPowerDDR4::powerPrint()
     streamsize precision = cout.precision();
     cout.precision(2);
     for (unsigned rank = 0; rank < energy.size(); ++rank) {
-        const Counters& c = counters[rank];
+        const CountersDDR4& c = counters[rank];
         cout << endl << "* Commands to rank " << rank << ":" << endl;
 
         cout << endl << "  #ACT commands: " << sum(counters[rank].numberofactsBanks)

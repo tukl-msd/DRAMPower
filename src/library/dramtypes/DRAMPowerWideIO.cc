@@ -295,7 +295,7 @@ void DRAMPowerWideIO::splitCmdList()
 //////////////////POWER CALCULATION////////////////////////
 
 
-void DRAMPowerWideIO::bankEnergyCalc(DRAMPowerWideIO::Energy& e, Counters& c, MemSpecWideIO::MemPowerSpec& mps)
+void DRAMPowerWideIO::  bankEnergyCalc(DRAMPowerWideIO::Energy& e, CountersWideIO &c, MemSpecWideIO::MemPowerSpec& mps)
 {
     const MemSpecWideIO::MemTimingSpec& t = memSpec.memTimingSpec;
     const MemSpecWideIO::BankWiseParams& bwPowerParams = memSpec.bwParams;
@@ -418,7 +418,7 @@ void DRAMPowerWideIO::bankEnergyCalc(DRAMPowerWideIO::Energy& e, Counters& c, Me
 
 void DRAMPowerWideIO::updateCycles(unsigned rank)
 {
-    const Counters& c = counters[rank];
+    const CountersWideIO& c = counters[rank];
     window_cycles[rank] = c.actcycles + c.precycles +
                           c.f_act_pdcycles + c.f_pre_pdcycles +
                           c.s_pre_pdcycles + c.sref_cycles +
@@ -460,7 +460,7 @@ void DRAMPowerWideIO::traceEnergyCalc()
 void DRAMPowerWideIO::calcIoTermEnergy(unsigned rank)
 {
     const MemSpecWideIO::MemTimingSpec& t = memSpec.memTimingSpec;
-    const Counters& c = counters[rank];
+    const CountersWideIO& c = counters[rank];
 
     double IO_power     = memSpec.memPowerSpec[0].ioPower;    // in W
     double WR_ODT_power = memSpec.memPowerSpec[0].wrOdtPower; // in W
@@ -501,7 +501,7 @@ void DRAMPowerWideIO::powerPrint()
     streamsize precision = cout.precision();
     cout.precision(2);
     for (unsigned rank = 0; rank < energy.size(); ++rank) {
-        const Counters& c = counters[rank];
+        const CountersWideIO& c = counters[rank];
         cout << endl << "* Commands to rank " << rank << ":" << endl;
 
         cout << endl << "  #ACT commands: " << sum(counters[rank].numberofactsBanks)
