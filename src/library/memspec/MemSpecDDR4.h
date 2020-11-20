@@ -52,6 +52,7 @@ public:
     unsigned numberOfBankGroups;
     unsigned numberOfDevicesOnDIMM;
     unsigned banksPerGroup;
+    unsigned numberOfRanks;
 
     // Memspec Variables:
     struct MemTimingSpec{

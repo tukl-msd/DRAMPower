@@ -96,7 +96,7 @@ public:
     void powerPrint() override;
     //////
 
-    void updateCounters(bool lastUpdate, int64_t timestamp = 0);
+    void updateCounters(bool lastUpdate, unsigned rank, int64_t timestamp=0);
 
 
     struct Energy {
@@ -191,29 +191,53 @@ public:
     // Window Average Power
     double window_average_power;
 
-
-    std::vector<Energy> energy;
+    std::vector<std::vector<Energy>> energy;
 
 private:
     MemSpecDDR4 memSpec;
-    void bankEnergyCalc(unsigned vdd);
+
+    std::vector<std::vector<DRAMPower::MemCommand>> cmdListPerRank;
+
+    void bankEnergyCalc(DRAMPowerDDR4::Energy& e, Counters& c, MemSpecDDR4::MemPowerSpec& mps);
     //  // Used to calculate self-refresh active energy
     double engy_sref_banks(const Counters &c,const MemSpecDDR4::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
 
-    int64_t total_cycles;
+    // Cycles
+    std::vector<int64_t> total_cycles;
+    std::vector<int64_t> window_cycles;
 
-    int64_t window_cycles;
+    //Rank Energy
+    std::vector<double>  rank_total_energy;
+    std::vector<double>  rank_window_energy;
+
+    //Rank Power
+    std::vector<double>  rank_total_average_power;
+    std::vector<double>  rank_window_average_power;
+
+    //Total Energy
+    double window_trace_energy;
+    double total_trace_energy;
+
+    double window_trace_average_power;
+    double total_trace_average_power;
+
 
     // To calculate IO and Termination Energy
-    void calcIoTermEnergy();
+    void calcIoTermEnergy(unsigned rank);
 
-    void updateCycles();
+    void updateCycles(unsigned rank);
+
+    void rankPowerCalc(unsigned rank);
 
     void traceEnergyCalc();
 
-    CountersDDR4 counters;
+    std::vector<CountersDDR4> counters;
     bool includeIoAndTermination;
-    void evaluateCommands();
+
+    void splitCmdList();
+
+    void evaluateCommands(unsigned rank);
+
     template <typename T> T sum(const std::vector<T> vec) const { return std::accumulate(vec.begin(), vec.end(), static_cast<T>(0)); }
 
 };

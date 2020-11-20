@@ -195,6 +195,7 @@ void DRAMPowerWideIO::updateCounters(bool lastUpdate, unsigned rank, int64_t tim
 
 // Used to analyse a given list of commands and identify command timings
 // and memory state transitions
+
 void DRAMPowerWideIO::evaluateCommands(unsigned rank)
 {
     // for each command identify timestamp, type and bank
@@ -271,6 +272,7 @@ void DRAMPowerWideIO::evaluateCommands(unsigned rank)
         else PRINTDEBUGMESSAGE("Command given to non-existent bank", timestamp, type, bank);
     } //end for
 } // Counters::evaluateCommands
+
 
 //call the clear counters
 void DRAMPowerWideIO::clearCountersWrapper()
@@ -457,7 +459,7 @@ void DRAMPowerWideIO::traceEnergyCalc()
 
 void DRAMPowerWideIO::calcIoTermEnergy(unsigned rank)
 {
-    const MemSpecWideIO::MemTimingSpec& t                 = memSpec.memTimingSpec;
+    const MemSpecWideIO::MemTimingSpec& t = memSpec.memTimingSpec;
     const Counters& c = counters[rank];
 
     double IO_power     = memSpec.memPowerSpec[0].ioPower;    // in W

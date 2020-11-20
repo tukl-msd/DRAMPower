@@ -49,16 +49,31 @@ DRAMPowerDDR4::DRAMPowerDDR4(MemSpecDDR4& memSpec, bool includeIoAndTermination,
                              const bool writeToFile,
                              const std::string &traceName):
     memSpec(memSpec),
-    counters(memSpec),
     includeIoAndTermination(includeIoAndTermination)
 {
     setupDebugManager(debug, writeToConsole, writeToFile, traceName);
-    for (unsigned vdd = 0; vdd < memSpec.memPowerSpec.size(); vdd++) {
-        energy.push_back(Energy());
-        energy[vdd].clearEnergy(memSpec.numberOfBanks);
+    cmdListPerRank.resize(memSpec.numberOfRanks);
+    total_cycles.resize(memSpec.numberOfRanks);
+    window_cycles.resize(memSpec.numberOfRanks);
+
+    rank_total_energy.resize(memSpec.numberOfRanks);
+    rank_window_energy.resize(memSpec.numberOfRanks);
+
+    rank_total_average_power.resize(memSpec.numberOfRanks);
+    rank_window_average_power.resize(memSpec.numberOfRanks);
+
+    energy.resize(memSpec.numberOfRanks);
+    for (unsigned rank = 0; rank < memSpec.numberOfRanks; ++rank) {
+        counters.push_back(CountersDDR4(memSpec));
+        for (unsigned vdd = 0; vdd < memSpec.memPowerSpec.size(); vdd++) {
+            energy[rank].push_back(Energy());
+            energy[rank][vdd].clearEnergy(memSpec.numberOfBanks);
+        }
+        total_cycles[rank]             = 0.0;
+        rank_total_energy[rank]        = 0.0;
+        rank_total_average_power[rank] = 0.0;
     }
-    total_cycles = 0;
-    total_energy = 0;
+    total_trace_energy = 0.0;
 }
 
 void DRAMPowerDDR4::doCommand( int64_t timestamp, DRAMPower::MemCommand::cmds type, int rank,  int bank)
@@ -69,25 +84,37 @@ void DRAMPowerDDR4::doCommand( int64_t timestamp, DRAMPower::MemCommand::cmds ty
 
 void DRAMPowerDDR4::calcEnergy()
 {
-    updateCounters(true);
-    updateCycles();
-    for (unsigned vdd = 0; vdd < energy.size(); vdd++) {
-        if (includeIoAndTermination) calcIoTermEnergy();
-        bankEnergyCalc(vdd);
+    splitCmdList();
+    for (unsigned rank = 0; rank < energy.size(); ++rank) {
+        if (cmdListPerRank[rank].size() != 0) {
+            updateCounters(true,rank);
+            updateCycles(rank);
+            for (unsigned vdd = 0; vdd < energy[rank].size(); vdd++) {
+                if (includeIoAndTermination) calcIoTermEnergy(rank);
+                bankEnergyCalc(energy[rank][vdd],counters[rank],memSpec.memPowerSpec[vdd]);
+            }
+            rankPowerCalc(rank);
+        }
     }
     traceEnergyCalc();
 }
 
 void DRAMPowerDDR4::calcWindowEnergy(int64_t timestamp)
 {
-    doCommand(timestamp, MemCommand::NOP, 0, 0);
-    updateCounters(false, timestamp);
-    for (unsigned vdd = 0; vdd < energy.size(); vdd++) {
-        if (includeIoAndTermination) calcIoTermEnergy();
-        bankEnergyCalc(vdd);
+    for (unsigned rank = 0; rank < memSpec.numberOfRanks; ++rank) {
+        doCommand(timestamp, MemCommand::NOP, rank, 0);
     }
-    updateCycles();
-    counters.clearCounters(timestamp);
+    splitCmdList();
+    for (unsigned rank = 0; rank < energy.size(); ++rank) {
+        updateCounters(false, rank, timestamp);
+        for (unsigned vdd = 0; vdd < energy[rank].size(); vdd++) {
+            if (includeIoAndTermination) calcIoTermEnergy(rank);
+            bankEnergyCalc(energy[rank][vdd],counters[rank],memSpec.memPowerSpec[vdd]);
+        }
+        updateCycles(rank);
+        counters[rank].clearCounters(timestamp);
+        rankPowerCalc(rank);
+    }
     traceEnergyCalc();
 }
 
@@ -101,84 +128,85 @@ double DRAMPowerDDR4::getPower()
     return average_power;
 }
 
-
-void DRAMPowerDDR4::updateCounters(bool lastUpdate, int64_t timestamp)
+void DRAMPowerDDR4::updateCounters(bool lastUpdate, unsigned rank, int64_t timestamp)
 {
-
-    counters.getCommands(cmdList, lastUpdate, timestamp);
-    evaluateCommands(); //command list already modified
-    cmdList.clear();
+    counters[rank].getCommands(cmdListPerRank[rank], lastUpdate, timestamp);
+    evaluateCommands(rank); //command list already modified
+    cmdListPerRank[rank].clear();
 }
+
 
 // Used to analyse a given list of commands and identify command timings
 // and memory state transitions
-void DRAMPowerDDR4::evaluateCommands()
+void DRAMPowerDDR4::evaluateCommands(unsigned rank)
 {
     // for each command identify timestamp, type and bank
-    for (auto cmd : cmdList) {
+    for (auto cmd : cmdListPerRank[rank]) {
         // For command type
         int type = cmd.getType();
         // For command bank
         unsigned bank = cmd.getBank();
         // Command Issue timestamp in clock cycles (cc)
         int64_t timestamp = cmd.getTimeInt64();
+
+
         if (bank < memSpec.numberOfBanks) {
             switch(type) {
             case MemCommand::ACT : {
-                counters.handleAct(bank, timestamp);
+                counters[rank].handleAct(bank, timestamp);
                 break;
             }
             case MemCommand::RD : {
-                counters.handleRd(bank, timestamp);
+                counters[rank].handleRd(bank, timestamp);
                 break;
             }
             case MemCommand::WR : {
-                counters.handleWr(bank, timestamp);
+                counters[rank].handleWr(bank, timestamp);
                 break;
             }
             case MemCommand::REF : {
-                counters.handleRef(bank, timestamp);
+                counters[rank].handleRef(bank, timestamp);
                 break;
             }
             case MemCommand::PRE : {
-                counters.handlePre(bank, timestamp);
+                counters[rank].handlePre(bank, timestamp);
                 break;
             }
             case MemCommand::PREA : {
-                counters.handlePreA(bank, timestamp);
+                counters[rank].handlePreA(bank, timestamp);
                 break;
             }
             case MemCommand::PDN_F_ACT : {
-                counters.handlePdnFAct(bank, timestamp);
+                counters[rank].handlePdnFAct(bank, timestamp);
                 break;
             }
             case MemCommand::PDN_F_PRE : {
-                counters.handlePdnFPre(bank, timestamp);
+                counters[rank].handlePdnFPre(bank, timestamp);
                 break;
             }
             case MemCommand::PDN_S_PRE : {
-                counters.handlePdnSPre(bank, timestamp);
+                counters[rank].handlePdnSPre(bank, timestamp);
                 break;
             }
             case MemCommand::PUP_ACT : {
-                counters.handlePupAct(timestamp);
+                counters[rank].handlePupAct(timestamp);
                 break;
             }
             case MemCommand::PUP_PRE : {
-                counters.handlePupPre(timestamp);
+                counters[rank].handlePupPre(timestamp);
                 break;
             }
             case MemCommand::SREN : {
-                counters.handleSREn(bank, timestamp);
+                counters[rank].handleSREn(bank, timestamp);
                 break;
             }
             case MemCommand::SREX : {
-                counters.handleSREx(bank, timestamp);
+                counters[rank].handleSREx(bank, timestamp);
                 break;
             }
             case MemCommand::NOP :
             case MemCommand::END : {
-                counters.handleNopEnd(timestamp);
+                counters[rank].handleNopEnd(timestamp);
                 break;
             }
             default: {
@@ -188,7 +216,7 @@ void DRAMPowerDDR4::evaluateCommands()
             }//end switch
         } //end if bank<nbrOfBanks
         else PRINTDEBUGMESSAGE("Command given to non-existent bank", timestamp, type, bank);
-    } // end for
+    } //end for
 } // Counters::evaluateCommands
 
 //call the clear counters
@@ -234,13 +262,22 @@ void DRAMPowerDDR4::Energy::clearEnergy(int64_t nbrofBanks) {
     io_term_energy      = 0.0;
 }
 
-void DRAMPowerDDR4::bankEnergyCalc(unsigned vdd)
+//Split command list in sublists for each rank
+void DRAMPowerDDR4::splitCmdList()
+{
+    for (size_t i = 0; i < cmdList.size(); ++i) {
+        MemCommand& cmd = cmdList[i];
+        unsigned rank = cmd.getRank();
+        if (rank < memSpec.numberOfRanks) cmdListPerRank[rank].push_back(cmd);
+    }
+}
+
+
+void DRAMPowerDDR4::bankEnergyCalc(DRAMPowerDDR4::Energy& e, Counters& c, MemSpecDDR4::MemPowerSpec& mps)
 {
     const MemSpecDDR4::MemTimingSpec& t = memSpec.memTimingSpec;
     const MemSpecDDR4::BankWiseParams& bwPowerParams = memSpec.bwParams;
     const int64_t nbrofBanks               = memSpec.numberOfBanks;
-    const Counters& c = counters;
-    const MemSpecDDR4::MemPowerSpec& mps = memSpec.memPowerSpec[vdd];
 
     int64_t burstCc = memSpec.burstLength / memSpec.dataRate;
 
@@ -265,116 +302,128 @@ void DRAMPowerDDR4::bankEnergyCalc(unsigned vdd)
 
     //Distribution of energy componets to each banks
     for (unsigned i = 0; i < nbrofBanks; i++) {
-        energy[vdd].act_energy_banks[i]          = static_cast<double>(c.numberofactsBanks[i] * t.tRAS) * t.tCK
+        e.act_energy_banks[i]          = static_cast<double>(c.numberofactsBanks[i] * t.tRAS) * t.tCK
                                                                                 * (mps.iXX0 - ione) * mps.vXX;
-        energy[vdd].pre_energy_banks[i]          = static_cast<double>(c.numberofpresBanks[i] * t.tRP) * t.tCK
+        e.pre_energy_banks[i]          = static_cast<double>(c.numberofpresBanks[i] * t.tRP) * t.tCK
                                                                                 * (mps.iXX0 - ione) * mps.vXX;
 
-        energy[vdd].read_energy_banks[i]         = static_cast<double>(c.numberofreadsBanks[i] * burstCc) * t.tCK
+        e.read_energy_banks[i]         = static_cast<double>(c.numberofreadsBanks[i] * burstCc) * t.tCK
                                                                              * (mps.iXX4R - mps.iXX3N) * mps.vXX;
 
-        energy[vdd].write_energy_banks[i]        = static_cast<double>(c.numberofwritesBanks[i] * burstCc) * t.tCK
+        e.write_energy_banks[i]        = static_cast<double>(c.numberofwritesBanks[i] * burstCc) * t.tCK
                                                                               * (mps.iXX4W - mps.iXX3N) * mps.vXX;
 
-        energy[vdd].ref_energy_banks[i]          = static_cast<double>(c.numberofrefs * t.tRFC) * t.tCK * (mps.iXX5 - mps.iXX3N)
+        e.ref_energy_banks[i]          = static_cast<double>(c.numberofrefs * t.tRFC) * t.tCK * (mps.iXX5 - mps.iXX3N)
                                                                                     * mps.vXX / static_cast<double>(nbrofBanks);
 
-        energy[vdd].pre_stdby_energy_banks[i]    = static_cast<double>(c.precycles) * t.tCK * mps.iXX2N * mps.vXX
+        e.pre_stdby_energy_banks[i]    = static_cast<double>(c.precycles) * t.tCK * mps.iXX2N * mps.vXX
                                                                                 / static_cast<double>(nbrofBanks);
 
-        energy[vdd].act_stdby_energy_banks[i]    = (static_cast<double>(c.actcyclesBanks[i]) * t.tCK * (mps.iXX3N - iDDrho)
+        e.act_stdby_energy_banks[i]    = (static_cast<double>(c.actcyclesBanks[i]) * t.tCK * (mps.iXX3N - iDDrho)
                                                              * mps.vXX/ static_cast<double>(nbrofBanks)) + esharedActStdby
                                                                                         / static_cast<double>(nbrofBanks);
 
-        energy[vdd].idle_energy_act_banks[i]     = static_cast<double>(c.idlecycles_act) * t.tCK * mps.iXX3N * mps.vXX
+        e.idle_energy_act_banks[i]     = static_cast<double>(c.idlecycles_act) * t.tCK * mps.iXX3N * mps.vXX
                                                                                     / static_cast<double>(nbrofBanks);
 
-        energy[vdd].idle_energy_pre_banks[i]     = static_cast<double>(c.idlecycles_pre) * t.tCK * mps.iXX2N * mps.vXX
+        e.idle_energy_pre_banks[i]     = static_cast<double>(c.idlecycles_pre) * t.tCK * mps.iXX2N * mps.vXX
                                                                                     / static_cast<double>(nbrofBanks);
 
-        energy[vdd].f_act_pd_energy_banks[i]     = static_cast<double>(c.f_act_pdcycles) * t.tCK * mps.iXX3P * mps.vXX
+        e.f_act_pd_energy_banks[i]     = static_cast<double>(c.f_act_pdcycles) * t.tCK * mps.iXX3P * mps.vXX
                                                                                     / static_cast<double>(nbrofBanks);
 
-        energy[vdd].f_pre_pd_energy_banks[i]     = static_cast<double>(c.f_pre_pdcycles) * t.tCK * mps.iXX2P * mps.vXX
+        e.f_pre_pd_energy_banks[i]     = static_cast<double>(c.f_pre_pdcycles) * t.tCK * mps.iXX2P * mps.vXX
                                                                                     / static_cast<double>(nbrofBanks);
 
-        energy[vdd].s_pre_pd_energy_banks[i]     = static_cast<double>(c.s_pre_pdcycles) * t.tCK * mps.iXX2P * mps.vXX
+        e.s_pre_pd_energy_banks[i]     = static_cast<double>(c.s_pre_pdcycles) * t.tCK * mps.iXX2P * mps.vXX
                                                                                     / static_cast<double>(nbrofBanks);
 
-        energy[vdd].sref_energy_banks[i]         = engy_sref_banks(c,mps, esharedPASR, i);
+        e.sref_energy_banks[i]         = engy_sref_banks(c,mps, esharedPASR, i);
 
-        energy[vdd].sref_ref_act_energy_banks[i] = static_cast<double>(c.sref_ref_act_cycles) * t.tCK * mps.iXX3P
+        e.sref_ref_act_energy_banks[i] = static_cast<double>(c.sref_ref_act_cycles) * t.tCK * mps.iXX3P
                                                                      * mps.vXX / static_cast<double>(nbrofBanks);
 
-        energy[vdd].sref_ref_pre_energy_banks[i] = static_cast<double>(c.sref_ref_pre_cycles) * t.tCK * mps.iXX2P
+        e.sref_ref_pre_energy_banks[i] = static_cast<double>(c.sref_ref_pre_cycles) * t.tCK * mps.iXX2P
                                                                      * mps.vXX / static_cast<double>(nbrofBanks);
 
-        energy[vdd].sref_ref_energy_banks[i]     = energy[vdd].sref_ref_act_energy_banks[i]
-                                                 + energy[vdd].sref_ref_pre_energy_banks[i] ;
+        e.sref_ref_energy_banks[i]     = e.sref_ref_act_energy_banks[i]
+                                                 + e.sref_ref_pre_energy_banks[i] ;
 
-        energy[vdd].spup_energy_banks[i]         = static_cast<double>(c.spup_cycles) * t.tCK * mps.iXX2N * mps.vXX
+        e.spup_energy_banks[i]         = static_cast<double>(c.spup_cycles) * t.tCK * mps.iXX2N * mps.vXX
                                                                                   / static_cast<double>(nbrofBanks);
 
-        energy[vdd].spup_ref_act_energy_banks[i] = static_cast<double>(c.spup_ref_act_cycles) * t.tCK * mps.iXX3N * mps.vXX
+        e.spup_ref_act_energy_banks[i] = static_cast<double>(c.spup_ref_act_cycles) * t.tCK * mps.iXX3N * mps.vXX
                                                                                          / static_cast<double>(nbrofBanks);
 
-        energy[vdd].spup_ref_pre_energy_banks[i] = static_cast<double>(c.spup_ref_pre_cycles) * t.tCK * mps.iXX2N * mps.vXX
+        e.spup_ref_pre_energy_banks[i] = static_cast<double>(c.spup_ref_pre_cycles) * t.tCK * mps.iXX2N * mps.vXX
                                                                                          / static_cast<double>(nbrofBanks);
 
-        energy[vdd].spup_ref_energy_banks[i]     = energy[vdd].spup_ref_act_energy_banks[i]
-                                                 + energy[vdd].spup_ref_pre_energy_banks[i];
+        e.spup_ref_energy_banks[i]     = e.spup_ref_act_energy_banks[i]
+                                                 + e.spup_ref_pre_energy_banks[i];
 
-        energy[vdd].pup_act_energy_banks[i]      = static_cast<double>(c.pup_act_cycles) * t.tCK * mps.iXX3N * mps.vXX
+        e.pup_act_energy_banks[i]      = static_cast<double>(c.pup_act_cycles) * t.tCK * mps.iXX3N * mps.vXX
                                                                                     / static_cast<double>(nbrofBanks);
 
-        energy[vdd].pup_pre_energy_banks[i]      = static_cast<double>(c.pup_pre_cycles) * t.tCK * mps.iXX2N * mps.vXX
+        e.pup_pre_energy_banks[i]      = static_cast<double>(c.pup_pre_cycles) * t.tCK * mps.iXX2N * mps.vXX
                                                                                     / static_cast<double>(nbrofBanks);
     }
-
-
 
     // Calculate total energy per bank.
     for (unsigned i = 0; i < nbrofBanks; i++) {
-        energy[vdd].window_energy_banks[i] = energy[vdd].act_energy_banks[i]
-                                           + energy[vdd].pre_energy_banks[i]
-                                           + energy[vdd].read_energy_banks[i]
-                                           + energy[vdd].ref_energy_banks[i]
-                                           + energy[vdd].write_energy_banks[i]
-                                           + energy[vdd].act_stdby_energy_banks[i]
-                                           + energy[vdd].pre_stdby_energy_banks[i]
-                                           + energy[vdd].f_pre_pd_energy_banks[i]
-                                           + energy[vdd].s_pre_pd_energy_banks[i]
-                                           + energy[vdd].sref_ref_energy_banks[i]
-                                           + energy[vdd].spup_ref_energy_banks[i];
+        e.window_energy_banks[i] = e.act_energy_banks[i]
+                                           + e.pre_energy_banks[i]
+                                           + e.read_energy_banks[i]
+                                           + e.ref_energy_banks[i]
+                                           + e.write_energy_banks[i]
+                                           + e.act_stdby_energy_banks[i]
+                                           + e.pre_stdby_energy_banks[i]
+                                           + e.f_pre_pd_energy_banks[i]
+                                           + e.s_pre_pd_energy_banks[i]
+                                           + e.sref_ref_energy_banks[i]
+                                           + e.spup_ref_energy_banks[i];
 
-        energy[vdd].total_energy_banks[i]  += energy[vdd].window_energy_banks[i];
+        e.total_energy_banks[i]  += e.window_energy_banks[i];
     }
 } // DRAMPowerDDR4::bankPowerCalc
 
-void DRAMPowerDDR4::updateCycles()
+
+void DRAMPowerDDR4::updateCycles(unsigned rank)
 {
-    const Counters& c = counters;
-    window_cycles = c.actcycles + c.precycles +
-                    c.f_act_pdcycles + c.f_pre_pdcycles +
-                    c.s_pre_pdcycles + c.sref_cycles +
-                    c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
-                    c.spup_ref_act_cycles + c.spup_ref_pre_cycles;
-    total_cycles  += window_cycles;
+    const Counters& c = counters[rank];
+    window_cycles[rank] = c.actcycles + c.precycles +
+                          c.f_act_pdcycles + c.f_pre_pdcycles +
+                          c.s_pre_pdcycles + c.sref_cycles +
+                          c.sref_ref_act_cycles + c.sref_ref_pre_cycles +
+                          c.spup_ref_act_cycles + c.spup_ref_pre_cycles;
+    total_cycles[rank]  += window_cycles[rank];
 }
 
 
+void DRAMPowerDDR4::rankPowerCalc(unsigned rank)
+{
+    rank_window_energy[rank] = energy[rank][0].io_term_energy;
+    for (unsigned vdd = 0; vdd < energy[rank].size(); ++vdd) {
+        rank_window_energy[rank] += sum(energy[rank][vdd].window_energy_banks);
+    }
+    rank_window_average_power[rank] = rank_window_energy[rank] / (window_cycles[rank]
+                                                                  * memSpec.memTimingSpec.tCK);
+
+    rank_total_energy[rank] += rank_window_energy[rank];
+    rank_total_average_power[rank] = rank_total_energy[rank] / (total_cycles[rank]
+                                                                * memSpec.memTimingSpec.tCK);
+}
+
 void DRAMPowerDDR4::traceEnergyCalc()
 {
-    window_energy = energy[0].io_term_energy;;
-    for (unsigned vdd = 0; vdd < energy.size(); ++vdd) {
-        window_energy += sum(energy[vdd].window_energy_banks);
-    }
+    window_trace_energy = 0.0;
 
-    total_energy += window_energy;
+    window_trace_energy += sum(rank_window_energy);
 
-    window_average_power = window_energy /(window_cycles * memSpec.memTimingSpec.tCK);
+    total_trace_energy = sum(rank_total_energy);
 
-    average_power = total_energy / (total_cycles * memSpec.memTimingSpec.tCK);
+    window_trace_average_power = sum(rank_window_average_power) / rank_window_average_power.size();
+
+    total_trace_average_power = sum(rank_total_average_power) / rank_total_average_power.size();
 }
 
 
@@ -426,10 +475,10 @@ double DRAMPowerDDR4::engy_sref_banks(const Counters& c,const MemSpecDDR4::MemPo
 
 
 
-void DRAMPowerDDR4::calcIoTermEnergy()
+void DRAMPowerDDR4::calcIoTermEnergy(unsigned rank)
 {
     const MemSpecDDR4::MemTimingSpec& t = memSpec.memTimingSpec;
-    const Counters& c = counters;
+    const Counters& c = counters[rank];
 
     IO_power     = memSpec.memPowerSpec[0].ioPower;    // in W
     WR_ODT_power = memSpec.memPowerSpec[0].wrOdtPower; // in W
@@ -449,82 +498,83 @@ void DRAMPowerDDR4::calcIoTermEnergy()
     double ddtRPeriod = t.tCK / static_cast<double>(memSpec.dataRate);
 
     // Read IO power is consumed by each DQ (data) and DQS (data strobe) pin
-    energy[0].read_io_energy = static_cast<double>(sum(c.numberofreadsBanks) * memSpec.burstLength)
+    energy[rank][0].read_io_energy = static_cast<double>(sum(c.numberofreadsBanks) * memSpec.burstLength)
             * ddtRPeriod * IO_power * static_cast<double>(dqPlusDqsBits);
 
 
     // Write ODT power is consumed by each DQ (data), DQS (data strobe) and DM
-    energy[0].write_term_energy = static_cast<double>(sum(c.numberofwritesBanks) * memSpec.burstLength)
+    energy[rank][0].write_term_energy = static_cast<double>(sum(c.numberofwritesBanks) * memSpec.burstLength)
             * ddtRPeriod * WR_ODT_power * static_cast<double>(dqPlusDqsPlusMaskBits);
 
     // Sum of all IO and termination energy
-    energy[0].io_term_energy = energy[0].read_io_energy + energy[0].write_term_energy;
+    energy[rank][0].io_term_energy = energy[rank][0].read_io_energy + energy[rank][0].write_term_energy;
 }
 
 
 void DRAMPowerDDR4::powerPrint()
 {
-    const Counters& c = counters;
-
     const char eUnit[] = " pJ";
     const int64_t nbrofBanks = memSpec.numberOfBanks;
-
     ios_base::fmtflags flags = cout.flags();
     streamsize precision = cout.precision();
     cout.precision(2);
-    cout << endl << "* Bankwise Details:";
-    for (unsigned i = 0; i < nbrofBanks; i++) {
-        cout << endl << "## @ Bank " << i << fixed
-             << endl << "  #ACT commands: " << c.numberofactsBanks[i]
-                << endl << "  #RD + #RDA commands: " << c.numberofreadsBanks[i]
-                   << endl << "  #WR + #WRA commands: " << c.numberofwritesBanks[i]
-                      << endl << "  #PRE (+ PREA) commands: " << c.numberofpresBanks[i];
-    }
-    cout << endl;
+    for (unsigned rank = 0; rank < energy.size(); ++rank) {
+        const Counters& c = counters[rank];
+        cout << endl << "* Commands to rank " << rank << ":" << endl;
 
-    for (unsigned vdd = 0; vdd < energy.size(); vdd++) {
-        const Energy& e = energy[vdd];
-        cout << endl << "* Details for vdd" << vdd << ":" << endl;
+        cout << endl << "  #ACT commands: " << sum(counters[rank].numberofactsBanks)
+             << endl << "  #RD + #RDA commands: " << sum(counters[rank].numberofreadsBanks)
+             << endl << "  #WR + #WRA commands: " << sum(c.numberofwritesBanks)
+             << endl << "  #PRE (+ PREA) commands: " << sum(c.numberofpresBanks)
+             << endl << "  #REF commands: " << c.numberofrefs;
 
-        for (unsigned i = 0; i < nbrofBanks; i++) {
-            cout << endl << "## @ Bank " << i << fixed
-                 << endl << "  ACT Cmd Energy: " << e.act_energy_banks[i] << eUnit
-                 << endl << "  PRE Cmd Energy: " << e.pre_energy_banks[i] << eUnit
-                 << endl << "  RD Cmd Energy: " << e.read_energy_banks[i] << eUnit
-                 << endl << "  WR Cmd Energy: " << e.write_energy_banks[i] << eUnit
-                 << endl << "  Auto-Refresh Energy: " << e.ref_energy_banks[i] << eUnit
-                 << endl << "  ACT Stdby Energy: " <<  e.act_stdby_energy_banks[i] << eUnit
-                 << endl << "  PRE Stdby Energy: " << e.pre_stdby_energy_banks[i] << eUnit
-                 << endl << "  Active Idle Energy: "<<  e.idle_energy_act_banks[i] << eUnit
-                 << endl << "  Precharge Idle Energy: "<<  e.idle_energy_pre_banks[i] << eUnit
-                 << endl << "  Fast-Exit Active Power-Down Energy: "<<  e.f_act_pd_energy_banks[i] << eUnit
-                 << endl << "  Fast-Exit Precharged Power-Down Energy: "<<  e.f_pre_pd_energy_banks[i] << eUnit
-                 << endl << "  Slow-Exit Precharged Power-Down Energy: "<<  e.s_pre_pd_energy_banks[i] << eUnit
-                 << endl << "  Self-Refresh Energy: "<<  e.sref_energy_banks[i] << eUnit
-                 << endl << "  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: "<<  e.sref_ref_act_energy_banks[i] << eUnit
-                 << endl << "  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: " <<  e.sref_ref_pre_energy_banks[i] << eUnit
-                 << endl << "  Self-Refresh Power-Up Energy: "<< e.spup_energy_banks[i] << eUnit
-                 << endl << "  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<<  e.spup_ref_act_energy_banks[i] << eUnit
-                 << endl << "  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<<  e.spup_ref_pre_energy_banks[i] << eUnit
-                 << endl << "  Active Power-Up Energy: "<<  e.pup_act_energy_banks[i] << eUnit
-                 << endl << "  Precharged Power-Up Energy: "<< e.pup_pre_energy_banks[i] << eUnit
-                 << endl << "  Total Energy of Bank: " << e.total_energy_banks[i] << eUnit
-                 << endl;
+        cout << endl;
+        for (unsigned vdd = 0; vdd < energy[rank].size(); vdd++) {
+            const Energy& e = energy[rank][vdd];
+            cout << endl << "* Rank " << rank << " Details for vdd" << vdd << ":" << endl;
+            for (unsigned i = 0; i < nbrofBanks; i++) {
+                cout << endl << " ## @Rank " << rank << " @Vdd" << vdd << " @ Bank " << i << fixed
+                     << endl << "  ACT Cmd Energy: " << e.act_energy_banks[i] << eUnit
+                     << endl << "  PRE Cmd Energy: " << e.pre_energy_banks[i] << eUnit
+                     << endl << "  RD Cmd Energy: " << e.read_energy_banks[i] << eUnit
+                     << endl << "  WR Cmd Energy: " << e.write_energy_banks[i] << eUnit
+                     << endl << "  Auto-Refresh Energy: " << e.ref_energy_banks[i] << eUnit
+                     << endl << "  ACT Stdby Energy: " <<  e.act_stdby_energy_banks[i] << eUnit
+                     << endl << "  PRE Stdby Energy: " << e.pre_stdby_energy_banks[i] << eUnit
+                     << endl << "  Active Idle Energy: "<<  e.idle_energy_act_banks[i] << eUnit
+                     << endl << "  Precharge Idle Energy: "<<  e.idle_energy_pre_banks[i] << eUnit
+                     << endl << "  Fast-Exit Active Power-Down Energy: "<<  e.f_act_pd_energy_banks[i] << eUnit
+                     << endl << "  Fast-Exit Precharged Power-Down Energy: "<<  e.f_pre_pd_energy_banks[i] << eUnit
+                     << endl << "  Self-Refresh Energy: "<<  e.sref_energy_banks[i] << eUnit
+                     << endl << "  Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: "<<  e.sref_ref_act_energy_banks[i] << eUnit
+                     << endl << "  Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: " <<  e.sref_ref_pre_energy_banks[i] << eUnit
+                     << endl << "  Self-Refresh Power-Up Energy: "<< e.spup_energy_banks[i] << eUnit
+                     << endl << "  Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<<  e.spup_ref_act_energy_banks[i] << eUnit
+                     << endl << "  Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: "<<  e.spup_ref_pre_energy_banks[i] << eUnit
+                     << endl << "  Active Power-Up Energy: "<<  e.pup_act_energy_banks[i] << eUnit
+                     << endl << "  Precharged Power-Up Energy: "<< e.pup_pre_energy_banks[i] << eUnit
+                     << endl << "  Total Energy of Bank: " << e.total_energy_banks[i] << eUnit
+                     << endl;
+            }
         }
+
+        if (includeIoAndTermination) {
+            cout << endl << "RD I/O Energy: " << energy[rank][0].read_io_energy << eUnit << endl;
+            // No Termination for LPDDR/2/3 and DDR memories
+            cout << "WR Termination Energy: " << energy[rank][0].write_term_energy << eUnit << endl;
+
+        }
+
+        cout << endl
+             << endl << "  Rank " << rank << " Energy : "<< rank_total_energy[rank] << eUnit
+             << endl << "  Rank " << rank << " Average Power : " << rank_total_average_power[rank] << " mW" << endl
+             << endl << "  Cycles: " << total_cycles[rank];
     }
-    cout << endl;
+
     cout << endl << "----------------------------------------"
-         << endl << "  Total Trace Energy : "<< total_energy << eUnit
-         << endl << "  Total Average Power : " << average_power << " mW"
-         << endl << "  Cycles: " << total_cycles
+         << endl << "  Total Trace Energy : "  << total_trace_energy << eUnit
+         << endl << "  Total Average Power : " << total_trace_average_power << " mW"
          << endl << "----------------------------------------" << endl;
-
-    if (includeIoAndTermination) {
-        cout << endl << "RD I/O Energy: " << energy[0].read_io_energy << eUnit << endl;
-        // No Termination for LPDDR/2/3 and DDR memories
-        cout << "WR Termination Energy: " << energy[0].write_term_energy << eUnit << endl;
-
-    }
 
     cout.flags(flags);
     cout.precision(precision);
