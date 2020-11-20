@@ -43,11 +43,16 @@ using namespace DRAMPower;
 using namespace std;
 
 
-DRAMPowerDDR4::DRAMPowerDDR4(MemSpecDDR4& memSpec, bool includeIoAndTermination):
+DRAMPowerDDR4::DRAMPowerDDR4(MemSpecDDR4& memSpec, bool includeIoAndTermination,
+                             const bool debug,
+                             const bool writeToConsole,
+                             const bool writeToFile,
+                             const std::string &traceName):
     memSpec(memSpec),
     counters(memSpec),
     includeIoAndTermination(includeIoAndTermination)
 {
+    setupDebugManager(debug, writeToConsole, writeToFile, traceName);
     for (unsigned vdd = 0; vdd < memSpec.memPowerSpec.size(); vdd++) {
         energy.push_back(Energy());
         energy[vdd].clearEnergy(memSpec.numberOfBanks);
@@ -525,5 +530,19 @@ void DRAMPowerDDR4::powerPrint()
     cout.precision(precision);
 }
 
+void DRAMPowerDDR4::setupDebugManager(const bool debug __attribute__((unused)),
+                                    const bool writeToConsole __attribute__((unused)),
+                                    const bool writeToFile __attribute__((unused)),
+                                    const std::string &traceName __attribute__((unused)))
 
+{
+#ifndef NDEBUG
+    auto &dbg = DebugManager::getInstance();
+    dbg.debug = debug;
+    dbg.writeToConsole = writeToConsole;
+    dbg.writeToFile = writeToFile;
+    if (dbg.writeToFile && (traceName!=""))
+        dbg.openDebugFile(traceName + ".txt");
+#endif
+}
 

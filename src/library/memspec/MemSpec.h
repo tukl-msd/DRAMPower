@@ -80,11 +80,7 @@ public:
     virtual int64_t timeToCompletion(DRAMPower::MemCommand::cmds type) = 0;
     virtual int64_t getExitSREFtime();
 
-    MemSpec(nlohmann::json &memspec,
-            const bool debug __attribute__((unused))=false,
-            const bool writeToConsole __attribute__((unused))=false,
-            const bool writeToFile __attribute__((unused))=false,
-            const std::string &traceName __attribute__((unused))="");
+    MemSpec(nlohmann::json &memspec);
 
     bool parseBool(nlohmann::json &obj, std::string name);
     bool parseBoolWithDefault(nlohmann::json &obj, std::string name);
@@ -94,11 +90,6 @@ public:
     unsigned parseUintWithDefaut(json &obj, std::string name);
     std::string parseString(nlohmann::json &obj, std::string name);
     std::string parseStringWithDefault(json &obj, std::string name, std::string defaultString);
-
-    void setupDebugManager(const bool debug __attribute__((unused))=false,
-                           const bool writeToConsole __attribute__((unused))=false,
-                           const bool writeToFile __attribute__((unused))=false,
-                           const std::string &traceName __attribute__((unused))="");
 
 };
 

@@ -43,11 +43,16 @@ using namespace DRAMPower;
 using namespace std;
 
 
-DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3& memSpec, bool includeIoAndTermination):
+DRAMPowerDDR3::DRAMPowerDDR3(MemSpecDDR3& memSpec, bool includeIoAndTermination,
+                             const bool debug,
+                             const bool writeToConsole,
+                             const bool writeToFile,
+                             const std::string &traceName):
     memSpec(memSpec),
     counters(memSpec),
     includeIoAndTermination(includeIoAndTermination)
 {
+    setupDebugManager(debug, writeToConsole, writeToFile, traceName);
     total_cycles = 0;
     energy.total_energy = 0;
 }
@@ -502,5 +507,19 @@ void DRAMPowerDDR3::powerPrint()
     cout.precision(precision);
 }
 
+void DRAMPowerDDR3::setupDebugManager(const bool debug __attribute__((unused)),
+                                    const bool writeToConsole __attribute__((unused)),
+                                    const bool writeToFile __attribute__((unused)),
+                                    const std::string &traceName __attribute__((unused)))
 
+{
+#ifndef NDEBUG
+    auto &dbg = DebugManager::getInstance();
+    dbg.debug = debug;
+    dbg.writeToConsole = writeToConsole;
+    dbg.writeToFile = writeToFile;
+    if (dbg.writeToFile && (traceName!=""))
+        dbg.openDebugFile(traceName + ".txt");
+#endif
+}
 

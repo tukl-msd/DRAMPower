@@ -60,10 +60,10 @@ public:
                            int                    rank,
                            int                    bank)=0;
 
-    void setupDebugManager(const bool debug __attribute__((unused))=false,
-                           const bool writeToConsole __attribute__((unused))=false,
-                           const bool writeToFile __attribute__((unused))=false,
-                           const std::string &traceName __attribute__((unused))="");
+    virtual void setupDebugManager(const bool debug __attribute__((unused))=false,
+                                   const bool writeToConsole __attribute__((unused))=false,
+                                   const bool writeToFile __attribute__((unused))=false,
+                                   const std::string &traceName __attribute__((unused))="")=0;
 
     virtual void calcEnergy() = 0;
 

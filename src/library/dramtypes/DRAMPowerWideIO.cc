@@ -42,10 +42,15 @@ using namespace DRAMPower;
 using namespace std;
 
 
-DRAMPowerWideIO::DRAMPowerWideIO(MemSpecWideIO& memSpec, bool includeIoAndTermination):
+DRAMPowerWideIO::DRAMPowerWideIO(MemSpecWideIO& memSpec, bool includeIoAndTermination,
+                                 const bool debug,
+                                 const bool writeToConsole,
+                                 const bool writeToFile,
+                                 const std::string &traceName):
     memSpec(memSpec),
     includeIoAndTermination(includeIoAndTermination)
 {
+    setupDebugManager(debug, writeToConsole, writeToFile, traceName);
     cmdListPerRank.resize(memSpec.numberOfRanks);
     total_cycles.resize(memSpec.numberOfRanks);
     window_cycles.resize(memSpec.numberOfRanks);
@@ -549,5 +554,20 @@ void DRAMPowerWideIO::powerPrint()
     cout.precision(precision);
 }
 
+void DRAMPowerWideIO::setupDebugManager(const bool debug __attribute__((unused)),
+                                    const bool writeToConsole __attribute__((unused)),
+                                    const bool writeToFile __attribute__((unused)),
+                                    const std::string &traceName __attribute__((unused)))
+
+{
+#ifndef NDEBUG
+    auto &dbg = DebugManager::getInstance();
+    dbg.debug = debug;
+    dbg.writeToConsole = writeToConsole;
+    dbg.writeToFile = writeToFile;
+    if (dbg.writeToFile && (traceName!=""))
+        dbg.openDebugFile(traceName + ".txt");
+#endif
+}
 
 

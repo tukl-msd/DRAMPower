@@ -40,12 +40,8 @@
 using json = nlohmann::json;
 
 
-MemSpecWideIO::MemSpecWideIO(json &memspec,
-                             const bool debug,
-                             const bool writeToConsole,
-                             const bool writeToFile,
-                             const std::string &traceName)
-    : MemSpec(memspec,debug,writeToConsole,writeToFile,traceName)
+MemSpecWideIO::MemSpecWideIO(json &memspec)
+    : MemSpec(memspec)
 {
     numberOfChannels       = parseUint(memspec["memarchitecturespec"]["nbrOfChannels"],"nbrOfChannels");
     numberOfRanks          = parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");

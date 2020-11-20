@@ -11,7 +11,6 @@ include_directories(counters/
                     memspec/)
 
 add_library(DRAMPowerLibrary
-            dramtypes/DRAMPowerIF.cc
             dramtypes/DRAMPowerDDR3.cc
             dramtypes/DRAMPowerDDR4.cc
             dramtypes/DRAMPowerWideIO.cc

@@ -62,7 +62,12 @@ namespace DRAMPower {
 class DRAMPowerWideIO final : public DRAMPowerIF
 {
 public:
-    DRAMPowerWideIO(MemSpecWideIO &memSpec,  bool includeIoAndTermination);
+    DRAMPowerWideIO(MemSpecWideIO &memSpec,
+                    const bool includeIoAndTermination __attribute__((unused))=false,
+                    const bool debug __attribute__((unused))=false,
+                    const bool writeToConsole __attribute__((unused))=false,
+                    const bool writeToFile __attribute__((unused))=false,
+                    const std::string &traceName __attribute__((unused))="");
 
     ~DRAMPowerWideIO(){}
 
@@ -72,6 +77,11 @@ public:
                     DRAMPower::MemCommand::cmds type,
                     int rank,
                     int bank) override;
+
+    void setupDebugManager(const bool debug __attribute__((unused))=false,
+                           const bool writeToConsole __attribute__((unused))=false,
+                           const bool writeToFile __attribute__((unused))=false,
+                           const std::string &traceName __attribute__((unused))="") override;
 
     void calcEnergy() override;
 

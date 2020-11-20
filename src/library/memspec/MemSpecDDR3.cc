@@ -39,12 +39,8 @@
 
 using json = nlohmann::json;
 
-MemSpecDDR3::MemSpecDDR3(json &memspec,
-                         const bool debug,
-                         const bool writeToConsole,
-                         const bool writeToFile,
-                         const std::string &traceName)
-    : MemSpec(memspec,debug,writeToConsole,writeToFile,traceName)
+MemSpecDDR3::MemSpecDDR3(json &memspec)
+    : MemSpec(memspec)
 {
     numberOfDevicesOnDIMM = parseUint(memspec["memarchitecturespec"]["nbrOfDevicesOnDIMM"],"nbrOfDevicesOnDIMM");
 

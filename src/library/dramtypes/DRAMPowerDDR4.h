@@ -62,7 +62,12 @@ namespace DRAMPower {
 class DRAMPowerDDR4 final : public DRAMPowerIF
 {
 public:
-    DRAMPowerDDR4(MemSpecDDR4 &memSpec,  bool includeIoAndTermination);
+    DRAMPowerDDR4(MemSpecDDR4 &memSpec,
+                  const bool includeIoAndTermination __attribute__((unused))=false,
+                  const bool debug __attribute__((unused))=false,
+                  const bool writeToConsole __attribute__((unused))=false,
+                  const bool writeToFile __attribute__((unused))=false,
+                  const std::string &traceName __attribute__((unused))="");
 
     ~DRAMPowerDDR4(){}
 
@@ -72,6 +77,11 @@ public:
                     DRAMPower::MemCommand::cmds type,
                     int rank,
                     int bank) override;
+
+    void setupDebugManager(const bool debug __attribute__((unused))=false,
+                           const bool writeToConsole __attribute__((unused))=false,
+                           const bool writeToFile __attribute__((unused))=false,
+                           const std::string &traceName __attribute__((unused))="") override;
 
     void calcEnergy() override;
 

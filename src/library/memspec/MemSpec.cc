@@ -38,13 +38,8 @@
 
 using json = nlohmann::json;
 
-MemSpec::MemSpec(nlohmann::json &memspec,
-                 const bool debug,
-                 const bool writeToConsole,
-                 const bool writeToFile,
-                 const std::string &traceName)
+MemSpec::MemSpec(nlohmann::json &memspec)
 {
-    setupDebugManager(debug, writeToConsole, writeToFile, traceName);
     numberOfBanks=parseUint(memspec["memarchitecturespec"]["nbrOfBanks"],"nbrOfBanks");
     numberOfRows = (parseUint(memspec["memarchitecturespec"]["nbrOfRows"],"nbrOfRows"));
     numberOfColumns = (parseUint(memspec["memarchitecturespec"]["nbrOfColumns"],"nbrOfColumns"));
@@ -179,19 +174,5 @@ int64_t MemSpec::getExitSREFtime()
     throw std::invalid_argument("getExitSREFtime was not declared");
 }
 
-void MemSpec::setupDebugManager(    const bool debug __attribute__((unused)),
-                                    const bool writeToConsole __attribute__((unused)),
-                                    const bool writeToFile __attribute__((unused)),
-                                    const std::string &traceName __attribute__((unused)))
 
-{
-#ifndef NDEBUG
-    auto &dbg = DebugManager::getInstance();
-    dbg.debug = debug;
-    dbg.writeToConsole = writeToConsole;
-    dbg.writeToFile = writeToFile;
-    if (dbg.writeToFile && (traceName!=""))
-        dbg.openDebugFile(traceName + ".txt");
-#endif
-}
 
