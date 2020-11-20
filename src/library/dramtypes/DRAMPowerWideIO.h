@@ -208,7 +208,7 @@ private:
 
     void splitCmdList();
 
-    void bankEnergyCalc(unsigned rank, unsigned vdd);
+    void bankEnergyCalc(DRAMPowerWideIO::Energy& e, Counters& c, MemSpecWideIO::MemPowerSpec& mps);
 
     void updateCycles(unsigned rank);
 
