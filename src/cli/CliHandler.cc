@@ -75,9 +75,9 @@ void CliHandler::logo()
          << "Fraunhofer IESE"
          << std::endl
          << std::endl;
-#undef GREENTXT
-#undef DGREENTXT
-#undef LGREENTXT
+#undef BLUETXT
+#undef DBLUETXT
+#undef LBLUETXT
 #undef BLACKTXT
 #undef BOLDTXT
 }
@@ -160,7 +160,7 @@ const std::string& CliHandler::get_cmd_trace_path() const
 
 void CliHandler::loadMemSpec(const std::string &memspecUri)
 {
-    json doc = traceparser.parseJSON(memspecUri);
+    json doc = jsonparser.parseJsonObjFromFile(memspecUri);
     json jMemSpec = doc["memspec"];
 
     std::string memoryType = jMemSpec["memoryType"];
@@ -213,11 +213,9 @@ void CliHandler::loadMemSpec(const std::string &memspecUri)
 
 void CliHandler::run_simulation()
 {
-    traceparser = TraceParser();
+    traceparser = new TraceParser(get_cmd_trace_path());
     loadMemSpec(get_mem_spec_path());
     const clock_t begin_time = clock();
-    ifstream trace_file;
-    trace_file.open(get_cmd_trace_path(), ifstream::in);
     time_t start   = time(0);
     tm*    starttm = localtime(&start);
     cout << "* Analysis start time: " << asctime(starttm);
@@ -226,9 +224,7 @@ void CliHandler::run_simulation()
 
     // Calculates average power consumption and energy for the input memory
     // command trace
-    cmd_list = traceparser.parseFile(trace_file);
-
-    dramPower->cmdList = cmd_list;
+    dramPower->cmdList = traceparser->cmd_list;
 
     dramPower->calcEnergy();
 

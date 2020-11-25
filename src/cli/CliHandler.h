@@ -45,6 +45,7 @@
 #include "./library/dramtypes/DRAMPowerDDR3.h"
 #include "./library/dramtypes/DRAMPowerDDR4.h"
 #include "./library/dramtypes/DRAMPowerWideIO.h"
+#include "common/jsonparser/JSONParser.h"
 #include "TraceParser.h"
 #include "common/version.h"
 #include "common/cli11/CLI11.h"
@@ -85,12 +86,11 @@ private:
     bool debug_file_active;
     bool debug_console_active;
 
+    TraceParser *traceparser;
 
-    TraceParser traceparser;
+    JSONParser jsonparser;
 
     DRAMPowerIF *dramPower;
-
-    std::vector<DRAMPower::MemCommand> cmd_list;
 };
 
 }

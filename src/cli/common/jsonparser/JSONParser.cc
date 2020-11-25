@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2012-2014, TU Delft
  * Copyright (c) 2012-2014, TU Eindhoven
- * Copyright (c) 2012-2014, TU Kaiserslautern
- * Copyright (c) 2012-2019, Fraunhofer IESE
+ * Copyright (c) 2012-2020, TU Kaiserslautern
+ * Copyright (c) 2012-2020, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@
  *
  */
 #include "JSONParser.h"
+
+using json = nlohmann::json;
 /**
  * Parses the given JSON string
  */
@@ -138,3 +140,20 @@ std::string JSONParser::readJsonFromFile(const std::string& _file_path){
   }
   return retString;
 }
+
+json JSONParser::parseJsonObjFromFile(const std::string &path) const
+{
+    json j;
+    try {
+        // parsing input with a syntax error
+        j = json::parse(std::ifstream(path));
+    }
+    catch (json::parse_error& e) {
+        // output exception information
+        std::cout << "Error while trying to parse file: " << path << '\n'
+                  << "message: " << e.what() << std::endl;
+    }
+    return j;
+}
+
+

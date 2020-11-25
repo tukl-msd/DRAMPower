@@ -118,6 +118,7 @@ public:
   void parse(const std::string& _json_str);
   void validateElements(const std::vector<std::string>& _elements);
   static std::string readJsonFromFile(const std::string& _file_path);
+  json parseJsonObjFromFile(const std::string &path) const;
   const std::string toString();
   JSONParser(){};
   virtual ~JSONParser(){};

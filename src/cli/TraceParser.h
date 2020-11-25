@@ -45,14 +45,14 @@
 #include <fstream>
 
 #include "./library/MemCommand.h"
-#include "common/jsonparser/JSONParser.h"
+#include <sstream>
 #include "./library/dramtypes/DRAMPowerIF.h"
 
 
 
 class TraceParser {
 public:
-    TraceParser(){}
+    TraceParser(std::string const &trace_path);
 
     // list of parsed commands
     std::vector<DRAMPower::MemCommand> cmd_list;
@@ -64,7 +64,7 @@ public:
     // use this function for small traces ( no out-of-memory issue )
     std::vector<DRAMPower::MemCommand> parseFile(std::ifstream&      trace);
 
-    json parseJSON(const std::string &path) const;
+    //json parseJSON(const std::string &path) const;
 };
 
 #endif // ifndef TRACE_PARSER_H

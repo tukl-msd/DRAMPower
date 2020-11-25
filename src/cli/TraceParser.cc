@@ -42,6 +42,28 @@ using namespace DRAMPower;
 using namespace std;
 
 
+TraceParser::TraceParser(const string &trace_path)
+{
+      ifstream trace_file;
+      trace_file.open(trace_path, ifstream::in);
+      cmd_list = parseFile(trace_file);
+}
+
+std::vector<MemCommand> TraceParser::parseFile(std::ifstream& trace)
+{
+    ifstream pwr_trace;
+
+    std::string line;
+    while (getline(trace, line)) {
+        MemCommand cmdline = parseLine(line);
+        cmd_list.push_back(cmdline);
+    }
+
+    trace.close();
+    return cmd_list;
+} // TraceParser::parseFile
+
+
 DRAMPower::MemCommand TraceParser::parseLine(std::string line)
 {
     MemCommand memcmd(0, MemCommand::UNINITIALIZED, 0, 0);
@@ -73,34 +95,5 @@ DRAMPower::MemCommand TraceParser::parseLine(std::string line)
     return memcmd;
 } // TraceParser::parseLine
 
-std::vector<MemCommand> TraceParser::parseFile(std::ifstream& trace)
-{
-    ifstream pwr_trace;
-
-    std::string line;
-    while (getline(trace, line)) {
-        MemCommand cmdline = parseLine(line);
-        cmd_list.push_back(cmdline);
-    }
-
-    trace.close();
-    return cmd_list;
-} // TraceParser::parseFile
 
 
-
-json TraceParser::parseJSON(const std::string &path) const
-{
-    json j;
-
-    try {
-        // parsing input with a syntax error
-        j = json::parse(std::ifstream(path));
-    }
-    catch (json::parse_error& e) {
-        // output exception information
-        std::cout << "Error while trying to parse file: " << path << '\n'
-                  << "message: " << e.what() << std::endl;
-    }
-    return j;
-}
