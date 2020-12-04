@@ -43,7 +43,7 @@
 #include <sstream>
 #include <fstream>
 #include <string>
-#include "../../../library/json.h"
+#include "../../../third_party/json/single_include/nlohmann/json.hpp"
 #include "JSONExceptions.h"
 
 using json = nlohmann::json;

@@ -43,7 +43,7 @@
 #include <vector>
 #include <algorithm>  // for max
 
-#include "../json.h"
+#include "../../third_party/json/single_include/nlohmann/json.hpp"
 #include "../MemCommand.h"
 #include "../DebugManager.h"
 
