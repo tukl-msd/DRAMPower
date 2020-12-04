@@ -48,7 +48,7 @@
 #include "../DebugManager.h"
 
 using json = nlohmann::json;
-
+namespace DRAMPower {
 class MemSpec
 {
 public:
@@ -92,6 +92,6 @@ public:
     std::string parseStringWithDefault(json &obj, std::string name, std::string defaultString);
 
 };
-
+}
 #endif // MEMSPEC_H
 

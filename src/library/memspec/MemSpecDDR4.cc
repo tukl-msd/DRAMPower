@@ -36,7 +36,7 @@
  */
 
 #include "MemSpecDDR4.h"
-
+using namespace DRAMPower;
 using json = nlohmann::json;
 
 

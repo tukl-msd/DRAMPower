@@ -49,22 +49,22 @@
 #include "./library/dramtypes/DRAMPowerIF.h"
 
 
-
+namespace DRAMPower{
 class TraceParser {
 public:
     TraceParser(std::string const &trace_path);
 
     // list of parsed commands
-    std::vector<DRAMPower::MemCommand> cmd_list;
+    std::vector<MemCommand> cmd_list;
 
     // function for parsing one line of the trace
-    DRAMPower::MemCommand parseLine(std::string line);
+    MemCommand parseLine(std::string line);
     // function for parsing the whole file.
 
     // use this function for small traces ( no out-of-memory issue )
-    std::vector<DRAMPower::MemCommand> parseFile(std::ifstream&      trace);
+    std::vector<MemCommand> parseFile(std::ifstream&      trace);
 
     //json parseJSON(const std::string &path) const;
 };
-
+}
 #endif // ifndef TRACE_PARSER_H

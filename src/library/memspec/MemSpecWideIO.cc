@@ -36,7 +36,7 @@
  */
 
 #include "MemSpecWideIO.h"
-
+using namespace DRAMPower;
 using json = nlohmann::json;
 
 

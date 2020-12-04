@@ -37,7 +37,7 @@
  */
 #include "CliHandler.h"
 
-using namespace DRAMPower;
+
 using namespace std;
 
 int main(int argc, char* argv[])
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
 
     try {
 
-        CliHandler cli(argc, argv);
+        DRAMPower::CliHandler cli(argc, argv);
         cli.logo();
         cli.parse_arguments();
         cli.run_simulation();

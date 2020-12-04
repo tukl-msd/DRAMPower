@@ -57,8 +57,6 @@
 #include "../DebugManager.h"
 
 namespace DRAMPower {
-
-
 class DRAMPowerWideIO final : public DRAMPowerIF
 {
 public:

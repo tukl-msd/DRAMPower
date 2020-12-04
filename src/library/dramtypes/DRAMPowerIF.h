@@ -50,7 +50,7 @@
 #include "../MemCommand.h"
 #include "../DebugManager.h"
 
-
+namespace DRAMPower{
 class DRAMPowerIF{
 public:
     virtual ~DRAMPowerIF(){}
@@ -80,5 +80,5 @@ public:
     // list of all commands
     std::vector<DRAMPower::MemCommand> cmdList;
 };
-
+}
 #endif // ifndef LIB_DRAM_POWER_H

@@ -39,7 +39,7 @@
 #define MemSpecWideIO_H
 
 #include "MemSpec.h"
-
+namespace DRAMPower {
 class MemSpecWideIO final : public MemSpec
 {
 public:
@@ -110,5 +110,5 @@ public:
     std::vector<MemPowerSpec> memPowerSpec;
     BankWiseParams bwParams;
 };
-
+}
 #endif // MemSpecWideIO_H

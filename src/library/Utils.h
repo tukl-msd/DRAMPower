@@ -44,7 +44,7 @@
 #include <stdexcept>
 
 #include "MemCommand.h"
-
+namespace DRAMPower{
 template<typename T>
 T fromString(const std::string& s,
              std::ios_base& (*f)(std::ios_base &) = std::dec)
@@ -58,6 +58,6 @@ T fromString(const std::string& s,
 
     return t;
 }
-
+}
 
 #endif /* UTILS_H */

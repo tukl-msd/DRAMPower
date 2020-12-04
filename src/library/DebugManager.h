@@ -52,6 +52,7 @@
 #include <iostream>
 #include <ostream>
 
+namespace DRAMPower{
 class DebugManager
 {
 public:
@@ -79,6 +80,7 @@ public:
 private:
     std::ofstream debugFile;
 };
+}
 #endif
 
 #endif // DEBUGMANAGER_H

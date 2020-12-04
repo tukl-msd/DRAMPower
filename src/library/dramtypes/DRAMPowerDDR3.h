@@ -57,8 +57,6 @@
 #include "../DebugManager.h"
 
 namespace DRAMPower {
-
-
 class DRAMPowerDDR3 final : public DRAMPowerIF
 {
 public:

@@ -43,7 +43,6 @@
 using namespace DRAMPower;
 using namespace std;
 
-
 std::string* MemCommand::getCommandTypeStrings()
 {
     static std::string type_map[nCommands] = { "ACT",

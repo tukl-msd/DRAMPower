@@ -39,7 +39,7 @@
 #include "DebugManager.h"
 
 #ifndef NDEBUG
-
+using namespace DRAMPower;
 void DebugManager::printDebugMessage(std::string warning, int64_t timestamp, int type, unsigned bank)
 {
     if (DebugManager::getInstance().debug) {

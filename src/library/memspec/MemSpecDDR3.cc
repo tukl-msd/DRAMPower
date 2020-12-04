@@ -36,7 +36,7 @@
  */
 
 #include "MemSpecDDR3.h"
-
+using namespace DRAMPower;
 using json = nlohmann::json;
 
 MemSpecDDR3::MemSpecDDR3(json &memspec)

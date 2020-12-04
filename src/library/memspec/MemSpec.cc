@@ -35,7 +35,7 @@
  */
 
 #include "MemSpec.h"
-
+using namespace DRAMPower;
 using json = nlohmann::json;
 
 MemSpec::MemSpec(nlohmann::json &memspec)

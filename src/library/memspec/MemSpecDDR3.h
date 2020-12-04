@@ -39,7 +39,7 @@
 #define MEMSPECDDR3_H
 
 #include "MemSpec.h"
-
+namespace DRAMPower {
 class MemSpecDDR3 final : public MemSpec
 {
 public:
@@ -137,5 +137,5 @@ public:
     MemPowerSpec memPowerSpec;
     BankWiseParams bwParams;
 };
-
+}
 #endif // MEMSPECDDR3_H
