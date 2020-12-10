@@ -39,7 +39,7 @@
 using namespace DRAMPower;
 using json = nlohmann::json;
 
-MemSpecDDR3::MemSpecDDR3(json &memspec)
+MemSpecDDR3::MemSpecDDR3(nlohmann::json &memspec)
     : MemSpec(memspec)
 {
     numberOfDevicesOnDIMM = parseUint(memspec["memarchitecturespec"]["nbrOfDevicesOnDIMM"],"nbrOfDevicesOnDIMM");
@@ -96,11 +96,11 @@ MemSpecDDR3::MemSpecDDR3(json &memspec)
     memPowerSpec.termRdPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["termRdPower"], "termRdPower"));
     memPowerSpec.termWrPower = (parseUdoubleWithDefault(memspec["mempowerspec"]["termWrPower"], "termWrPower"));
 
-    json bankWise = memspec["bankwisespec"];
+    nlohmann::json bankWise = memspec["bankwisespec"];
     if (!bankWise.empty()) {
 
-        json rho = memspec["bankwisespec"]["factRho"];
-        json sigma = memspec["bankwisespec"]["factSigma"];
+        nlohmann::json rho = memspec["bankwisespec"]["factRho"];
+        nlohmann::json sigma = memspec["bankwisespec"]["factSigma"];
         if (!rho.empty()) bwParams.bwPowerFactRho = parseUint(memspec["bankwisespec"]["factRho"],"factRho");
         else bwParams.bwPowerFactRho = 100;
         if (!sigma.empty()) bwParams.bwPowerFactSigma = parseUint(memspec["bankwisespec"]["factSigma"],"factSigma");

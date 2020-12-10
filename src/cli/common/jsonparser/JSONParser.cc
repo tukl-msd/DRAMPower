@@ -38,6 +38,7 @@
 #include "JSONParser.h"
 
 using json = nlohmann::json;
+
 /**
  * Parses the given JSON string
  */

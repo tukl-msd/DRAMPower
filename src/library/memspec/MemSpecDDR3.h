@@ -40,10 +40,11 @@
 
 #include "MemSpec.h"
 namespace DRAMPower {
+class json;
 class MemSpecDDR3 final : public MemSpec
 {
 public:
-    MemSpecDDR3(json &memspec);
+    MemSpecDDR3(nlohmann::json &memspec);
     ~MemSpecDDR3() {}
     int64_t timeToCompletion(DRAMPower::MemCommand::cmds type)  override;
 

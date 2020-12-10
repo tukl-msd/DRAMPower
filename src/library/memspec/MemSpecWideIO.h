@@ -43,7 +43,7 @@ namespace DRAMPower {
 class MemSpecWideIO final : public MemSpec
 {
 public:
-    MemSpecWideIO(json &memspec);
+    MemSpecWideIO(nlohmann::json &memspec);
     ~MemSpecWideIO() {}
     int64_t timeToCompletion(DRAMPower::MemCommand::cmds type) override;
 

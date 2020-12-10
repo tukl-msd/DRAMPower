@@ -40,7 +40,7 @@ using namespace DRAMPower;
 using json = nlohmann::json;
 
 
-MemSpecWideIO::MemSpecWideIO(json &memspec)
+MemSpecWideIO::MemSpecWideIO(nlohmann::json &memspec)
     : MemSpec(memspec)
 {
     numberOfChannels       = parseUint(memspec["memarchitecturespec"]["nbrOfChannels"],"nbrOfChannels");

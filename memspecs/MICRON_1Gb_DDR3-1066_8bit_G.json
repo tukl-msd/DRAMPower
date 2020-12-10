@@ -60,8 +60,8 @@
 	"bankwisespec": {
 		"factRho":100,
 		"factSigma":100,
-		"hasPASR": true,
-		"pasrMode": 1
+		"hasPASR": false,
+		"pasrMode": 0 
 	}
   }
 }

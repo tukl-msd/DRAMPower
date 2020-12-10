@@ -64,6 +64,12 @@
             "REFPDEN": 2,
             "RTRS": 1,
             "clkMhz": 1200
-        }
+        },
+	"bankwisespec": {
+		"factRho":100,
+		"factSigma":100,
+		"hasPASR": false,
+		"pasrMode": 0
+	}
     }
 }

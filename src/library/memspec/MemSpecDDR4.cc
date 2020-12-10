@@ -40,7 +40,7 @@ using namespace DRAMPower;
 using json = nlohmann::json;
 
 
-MemSpecDDR4::MemSpecDDR4(json &memspec)
+MemSpecDDR4::MemSpecDDR4(nlohmann::json &memspec)
     : MemSpec(memspec)
 {
     numberOfDevicesOnDIMM = parseUint(memspec["memarchitecturespec"]["nbrOfDevicesOnDIMM"],"nbrOfDevicesOnDIMM");

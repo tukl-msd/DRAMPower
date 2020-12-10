@@ -367,7 +367,9 @@ void DRAMPowerDDR3::bankEnergyCalc(Energy& e, CountersDDR3& c)
                 + e.write_energy_banks[i]
                 + e.act_stdby_energy_banks[i]
                 + e.pre_stdby_energy_banks[i]
+                + e.sref_energy_banks[i]
                 + e.f_pre_pd_energy_banks[i]
+                + e.f_act_pd_energy_banks[i]
                 + e.s_pre_pd_energy_banks[i]
                 + e.sref_ref_energy_banks[i]
                 + e.spup_ref_energy_banks[i];

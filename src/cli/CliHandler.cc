@@ -160,8 +160,8 @@ const std::string& CliHandler::get_cmd_trace_path() const
 
 void CliHandler::loadMemSpec(const std::string &memspecUri)
 {
-    json doc = jsonparser.parseJsonObjFromFile(memspecUri);
-    json jMemSpec = doc["memspec"];
+    nlohmann::json doc = jsonparser.parseJsonObjFromFile(memspecUri);
+    nlohmann::json jMemSpec = doc["memspec"];
 
     std::string memoryType = jMemSpec["memoryType"];
 

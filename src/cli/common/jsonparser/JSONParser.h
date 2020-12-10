@@ -47,7 +47,6 @@
 #include "JSONExceptions.h"
 
 using json = nlohmann::json;
-
 class JSONParser{
 public:
   /**
@@ -120,8 +119,8 @@ public:
   static std::string readJsonFromFile(const std::string& _file_path);
   json parseJsonObjFromFile(const std::string &path) const;
   const std::string toString();
-  JSONParser(){};
-  virtual ~JSONParser(){};
+  JSONParser(){}
+  virtual ~JSONParser(){}
 private:
 
   const json& pickElement(json& _json_obj, std::vector<std::string>& _path) const;

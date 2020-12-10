@@ -377,8 +377,10 @@ void DRAMPowerDDR4::bankEnergyCalc(DRAMPowerDDR4::Energy& e, CountersDDR4& c, Me
                                            + e.write_energy_banks[i]
                                            + e.act_stdby_energy_banks[i]
                                            + e.pre_stdby_energy_banks[i]
+                                           + e.sref_energy_banks[i]
                                            + e.f_pre_pd_energy_banks[i]
                                            + e.s_pre_pd_energy_banks[i]
+                                           + e.f_act_pd_energy_banks[i]
                                            + e.sref_ref_energy_banks[i]
                                            + e.spup_ref_energy_banks[i];
 

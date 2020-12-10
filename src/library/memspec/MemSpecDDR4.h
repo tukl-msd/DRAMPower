@@ -43,7 +43,7 @@ namespace DRAMPower {
 class MemSpecDDR4 final : public MemSpec
 {
 public:
-    MemSpecDDR4(json &memspec);
+    MemSpecDDR4(nlohmann::json &memspec);
     ~MemSpecDDR4() {}
     int64_t timeToCompletion(DRAMPower::MemCommand::cmds type) override;
 
