@@ -181,3 +181,4 @@ int64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::MemCommand::cmds type)
 } // MemSpecLPDDR4::timeToCompletion
 
 
+

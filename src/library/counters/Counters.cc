@@ -72,6 +72,7 @@ void Counters::clearCounters(const int64_t timestamp)
     std::fill(actcyclesBanks.begin(), actcyclesBanks.end(), 0);
 
     numberofrefs        = 0;
+    numberofpreA        = 0;
     f_act_pdns          = 0;
     s_act_pdns          = 0;
     f_pre_pdns          = 0;

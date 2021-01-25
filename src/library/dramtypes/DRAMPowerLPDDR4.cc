@@ -232,6 +232,7 @@ void DRAMPowerLPDDR4::Energy::clearEnergy(int64_t nbrofBanks) {
 
     act_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
     pre_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
+    prea_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
     read_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
     write_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
     act_stdby_energy_banks.assign(static_cast<size_t>(nbrofBanks), 0.0);
@@ -306,7 +307,7 @@ void DRAMPowerLPDDR4::bankEnergyCalc(DRAMPowerLPDDR4::Energy& e, CountersLPDDR4&
         e.pre_energy_banks[i]          = static_cast<double>(c.numberofpresBanks[i] * t.tRPpb) * t.tCK
                                                                                 * (mps.iDD0X - ione) * mps.vDDX;
 
-        e.prea_energy_banks[i]          = static_cast<double>(c.numberofpreA * t.tRPab) * t.tCK * (mps.iDD0X - ione)
+        e.prea_energy_banks[i]         = static_cast<double>(c.numberofpreA * t.tRPab) * t.tCK * (mps.iDD0X - ione)
                                                                                 * mps.vDDX / static_cast<double>(nbrofBanks);
 
         e.read_energy_banks[i]         = static_cast<double>(c.numberofreadsBanks[i] * burstCc) * t.tCK

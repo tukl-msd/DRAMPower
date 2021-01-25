@@ -216,8 +216,8 @@ void CountersDDR4::handlePupPre(int64_t timestamp)
         latest_pre_cycle = timestamp;
     } else if (mem_state == Counters::MS_PDN_S_PRE) { //Only memories with DLL can have slow exit
         s_pre_pdcycles += zero_guard(timestamp - pdn_cycle, "pdn_cycle is in the future.");
-        pup_pre_cycles  += memSpec.getExitSREFtime();
-        latest_pre_cycle = timestamp + zero_guard(memSpec.getExitSREFtime() - memSpec.memTimingSpec.tRP, "tXPDLL - tRCD - tRP");
+        pup_pre_cycles  += memSpec.memTimingSpec.tXP;
+        latest_pre_cycle = timestamp + zero_guard(memSpec.memTimingSpec.tXP - memSpec.memTimingSpec.tRP, "tXP - tRP");
     } else {
         cerr << "Incorrect use of Precharged Power-Up!" << endl;
     }

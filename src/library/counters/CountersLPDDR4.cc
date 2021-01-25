@@ -363,8 +363,8 @@ void CountersLPDDR4::handleSREx(unsigned bank, int64_t timestamp)
         }
 
         // IDD2N current is consumed when exiting the self-refresh state.
-        spup_cycles     += memSpec.getExitSREFtime();
-        latest_pre_cycle = timestamp + zero_guard(memSpec.getExitSREFtime() - memSpec.memTimingSpec.tRPab, "exitSREFtime - tRP < 0");
+        spup_cycles     += memSpec.memTimingSpec.tXSR;
+        latest_pre_cycle = timestamp + zero_guard(memSpec.memTimingSpec.tXSR - memSpec.memTimingSpec.tRPab, "exitSREFtime - tRP < 0");
 
 
     } else {
@@ -422,8 +422,8 @@ void CountersLPDDR4::handleSREx(unsigned bank, int64_t timestamp)
 
             last_pre_cycle       = timestamp + spup_pre;
 
-            spup_cycles     += memSpec.getExitSREFtime() - spup_pre;
-            latest_pre_cycle = timestamp + zero_guard(memSpec.getExitSREFtime() - spup_pre - memSpec.memTimingSpec.tRPab,
+            spup_cycles     += memSpec.memTimingSpec.tXSR - spup_pre;
+            latest_pre_cycle = timestamp + zero_guard(memSpec.memTimingSpec.tXSR - spup_pre - memSpec.memTimingSpec.tRPab,
                                                       "exitSREFtime - spup_pre - tRP < 0");
         } else {
             /*
@@ -467,8 +467,8 @@ void CountersLPDDR4::handleSREx(unsigned bank, int64_t timestamp)
 
             last_pre_cycle       = timestamp + spup_act + memSpec.memTimingSpec.tRPab;
 
-            spup_cycles     += memSpec.getExitSREFtime() - spup_act - memSpec.memTimingSpec.tRPab;
-            latest_pre_cycle = timestamp + zero_guard(memSpec.getExitSREFtime() - spup_act - (2 * memSpec.memTimingSpec.tRPab),
+            spup_cycles     += memSpec.memTimingSpec.tXSR - spup_act - memSpec.memTimingSpec.tRPab;
+            latest_pre_cycle = timestamp + zero_guard(memSpec.memTimingSpec.tXSR - spup_act - (2 * memSpec.memTimingSpec.tRPab),
                                                       "memSpec.exitSREFtime - spup_act - (2 * tRP) < 0");
         }
     }
