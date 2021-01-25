@@ -41,33 +41,33 @@
  *
  */
 
-#ifndef DDR4_H
-#define DDR4_H
+#ifndef LPDDR4_H
+#define LPDDR4_H
 
 #include <vector>
 #include <stdint.h>
 #include <cmath>  // For pow
 
 
-#include "../memspec/MemSpecDDR4.h"
+#include "../memspec/MemSpecLPDDR4.h"
 #include "../MemCommand.h"
 #include "../counters/Counters.h"
-#include "../counters/CountersDDR4.h"
+#include "../counters/CountersLPDDR4.h"
 #include "DRAMPowerIF.h"
 #include "../DebugManager.h"
 
 namespace DRAMPower {
-class DRAMPowerDDR4 final : public DRAMPowerIF
+class DRAMPowerLPDDR4 final : public DRAMPowerIF
 {
 public:
-    DRAMPowerDDR4(MemSpecDDR4 &memSpec,
+    DRAMPowerLPDDR4(MemSpecLPDDR4 &memSpec,
                   const bool includeIoAndTermination __attribute__((unused))=false,
                   const bool debug __attribute__((unused))=false,
                   const bool writeToConsole __attribute__((unused))=false,
                   const bool writeToFile __attribute__((unused))=false,
                   const std::string &traceName __attribute__((unused))="");
 
-    ~DRAMPowerDDR4(){}
+    ~DRAMPowerLPDDR4(){}
 
     //////Interface methods
 
@@ -101,8 +101,11 @@ public:
         // Total energy of all activates
         std::vector<double> act_energy_banks;
 
-        // Total energy of all precharges
+        // Total energy of all PRE
         std::vector<double> pre_energy_banks;
+
+        // Total energy of all PREA
+        std::vector<double> prea_energy_banks;
 
         // Total energy of all reads
         std::vector<double> read_energy_banks;
@@ -181,13 +184,13 @@ public:
     std::vector<std::vector<Energy>> energy;
 
 private:
-    MemSpecDDR4 memSpec;
+    MemSpecLPDDR4 memSpec;
 
     std::vector<std::vector<DRAMPower::MemCommand>> cmdListPerRank;
 
-    void bankEnergyCalc(DRAMPowerDDR4::Energy& e, CountersDDR4 &c, MemSpecDDR4::MemPowerSpec& mps);
+    void bankEnergyCalc(DRAMPowerLPDDR4::Energy& e, CountersLPDDR4 &c, MemSpecLPDDR4::MemPowerSpec& mps);
     //  // Used to calculate self-refresh active energy
-    double engy_sref_banks(const CountersDDR4 &c,const MemSpecDDR4::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
+    double engy_sref_banks(const CountersLPDDR4 &c,const MemSpecLPDDR4::MemPowerSpec &mps, double esharedPASR, unsigned bnkIdx);
 
     // Cycles
     std::vector<int64_t> total_cycles;
@@ -218,7 +221,7 @@ private:
 
     void traceEnergyCalc();
 
-    std::vector<CountersDDR4> counters;
+    std::vector<CountersLPDDR4> counters;
 
     bool includeIoAndTermination;
 
@@ -230,4 +233,4 @@ private:
 
 };
 }
-#endif // DDR4_H
+#endif // LPDDR4_H

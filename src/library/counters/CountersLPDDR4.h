@@ -74,7 +74,7 @@ class CountersLPDDR4 final : public Counters {
   void handlePupAct( int64_t timestamp) override;
   void handlePupPre( int64_t timestamp) override;
   void handleNopEnd( int64_t timestamp) override;
-
+  void handlePreA(unsigned bank, int64_t timestamp) override;
 
   // To update idle period information whenever active cycles may be idle
   void idle_act_update(int64_t                     latest_read_cycle,

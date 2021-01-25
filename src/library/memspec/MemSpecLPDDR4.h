@@ -54,37 +54,31 @@ public:
     struct MemTimingSpec{
         double fCKMHz;
         double tCK;
-        int64_t tREFI;
+        int64_t tREFIab;
         int64_t tREFIpb;
         int64_t tRFCab;
         int64_t tRFCpb;
         int64_t tRAS;
         int64_t tRPab;
         int64_t tRPpb;
-        int64_t tRCpb;
-        int64_t tRCab;
+        int64_t tRC;
         int64_t tPPD;
         int64_t tRCD;
         int64_t tFAW;
         int64_t tRRD;
         int64_t tCCD;
+        int64_t tCCDMW;
         int64_t tRL;
-        int64_t tRPST;
         int64_t tDQSCK;
         int64_t tRTP;
         int64_t tWL;
-        int64_t tDQSS;
-        int64_t tDQS2DQ;
         int64_t tWR;
-        int64_t tWPRE;
         int64_t tWTR;
         int64_t tXP;
         int64_t tSR;
         int64_t tXSR;
         int64_t tESCKE;
         int64_t tCKE;
-        int64_t tCMDCKE;
-        int64_t tRTRS;
     };
     // Currents and Voltages:
     // Currents and Voltages:
@@ -93,7 +87,6 @@ public:
      //Vdd1,Vdd2 or VddQ
      double iDD0X;
      double iDD2PX;
-     double iDD2NX;
      double iDD2PSX;
      double iDD2NX;
      double iDD2NSX;

@@ -44,6 +44,7 @@
 #include "./library/dramtypes/DRAMPowerIF.h"
 #include "./library/dramtypes/DRAMPowerDDR3.h"
 #include "./library/dramtypes/DRAMPowerDDR4.h"
+#include "./library/dramtypes/DRAMPowerLPDDR4.h"
 #include "./library/dramtypes/DRAMPowerWideIO.h"
 #include "common/jsonparser/JSONParser.h"
 #include "TraceParser.h"

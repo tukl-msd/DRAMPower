@@ -192,10 +192,17 @@ void CliHandler::loadMemSpec(const std::string &memspecUri)
                                        get_writeToFile(),
                                        "DebugFile");
     }
+    else if (memoryType == "LPDDR4") {
+        MemSpecLPDDR4 memSpecLPDDR4(jMemSpec);
+
+        dramPower = new DRAMPowerLPDDR4(memSpecLPDDR4, get_io_term_active(),
+                                       (get_writeToConsole() | get_writeToFile()),
+                                       get_writeToConsole(),
+                                       get_writeToFile(),
+                                       "DebugFile");
+    }
     //    FUTURE WORK:
     //
-    //    else if (memoryType == "LPDDR4")
-    //        memSpec = new MemSpecLPDDR4(jMemSpec);
     //    else if (memoryType == "WIDEIO2")
     //        memSpec = new MemSpecWideIO2(jMemSpec);
     //    else if (memoryType == "HBM2")

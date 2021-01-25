@@ -165,6 +165,45 @@ void CountersLPDDR4::idle_pre_update_pb(int64_t timestamp, int64_t latest_pre_cy
 
 ////////////////////HANDLERS////////////////////////
 
+void CountersLPDDR4::handlePreA(unsigned bank, int64_t timestamp)
+{
+    printWarningIfPoweredDown("Command issued while in power-down mode.", MemCommand::PREA, timestamp, bank);
+    // If command is explicit PREA (precharge all banks) - update
+    // number of precharges by the number of active banks, update the bank
+    // state of all banks to PRE and set the precharge cycle (the cycle in
+    // which the memory state changes from ACT to PRE, aka last_pre_cycle).
+    // Calculate the number of active cycles if the memory was in the
+    // active state before, but there is a state transition to PRE now.
+
+    if (nActiveBanks() > 0) {
+        // Active banks are being precharged
+        // At least one bank was active, therefore the current memory state is
+        // ACT. Since all banks are being precharged a memory state transition
+        // to PRE is happening. Add to the counter the amount of cycles the
+        // memory remained in the ACT state.
+
+        actcycles += zero_guard(timestamp - first_act_cycle, "first_act_cycle is in the future.");
+        last_pre_cycle = timestamp;
+        // Active banks are being precharged
+        numberofpreA += 1;
+        for (unsigned b = 0; b < num_banks; b++) {
+            if (bank_state[b] == BANK_ACTIVE) {
+                actcyclesBanks[b] += zero_guard(timestamp - first_act_cycle_banks[b], "first_act_cycle is in the future (bank).");
+            }
+        }
+
+        idle_act_update(latest_read_cycle, latest_write_cycle, latest_act_cycle, timestamp);
+
+        latest_pre_cycle = timestamp;
+        // Reset the state for all banks to precharged.
+        for (auto& bs : bank_state) {
+            bs = BANK_PRECHARGED;
+        }
+    } else {
+        PRINTDEBUGMESSAGE("All banks are already precharged!", timestamp, MemCommand::PREA, bank);
+    }
+}
+
 
 void CountersLPDDR4::handleRef(unsigned bank, int64_t timestamp)
 {

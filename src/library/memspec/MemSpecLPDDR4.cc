@@ -51,8 +51,7 @@ MemSpecLPDDR4::MemSpecLPDDR4(nlohmann::json &memspec)
     memTimingSpec.tDQSCK   = (parseUint(memspec["memtimingspec"]["DQSCK"], "DQSCK"));
     memTimingSpec.tPPD     = (parseUint(memspec["memtimingspec"]["PPD"], "PPD"));
     memTimingSpec.tRAS     = (parseUint(memspec["memtimingspec"]["RAS"], "RAS"));
-    memTimingSpec.tRCab    = (parseUint(memspec["memtimingspec"]["RCab"], "RCab"));
-    memTimingSpec.tRCpb    = (parseUint(memspec["memtimingspec"]["RCpb"], "RCpb"));
+    memTimingSpec.tRC    = (parseUint(memspec["memtimingspec"]["RC"], "RC"));
     memTimingSpec.tRCD     = (parseUint(memspec["memtimingspec"]["RCD"], "RCD"));
     memTimingSpec.tRL      = (parseUint(memspec["memtimingspec"]["RL"], "RL"));
     memTimingSpec.tRTP     = (parseUint(memspec["memtimingspec"]["RTP"], "RTP"));
@@ -62,33 +61,27 @@ MemSpecLPDDR4::MemSpecLPDDR4(nlohmann::json &memspec)
     memTimingSpec.tSR      = (parseUint(memspec["memtimingspec"]["SR"], "SR"));
     memTimingSpec.tXSR     = (parseUint(memspec["memtimingspec"]["XSR"], "XSR"));
     memTimingSpec.tESCKE   = (parseUint(memspec["memtimingspec"]["ESCKE"], "ESCKE"));
-    memTimingSpec.tCMDCKE   = (parseUint(memspec["memtimingspec"]["CMDCKE"], "CMDCKE"));
+    memTimingSpec.tCCDMW   = (parseUint(memspec["memtimingspec"]["CCDMW"], "CCDMW"));
     memTimingSpec.tCCD     = (parseUint(memspec["memtimingspec"]["CCD"], "CCD"));
-    memTimingSpec.tRPab    = (parseUint(memspec["memtimingspec"]["RPab"], "RPab"));
-    memTimingSpec.tRPpb    = (parseUint(memspec["memtimingspec"]["RPpb"], "RPpb"));
-    memTimingSpec.tRPST    = (parseUint(memspec["memtimingspec"]["RPST"], "RPST"));
+    memTimingSpec.tRPab    = (parseUint(memspec["memtimingspec"]["RPAB"], "RPAB"));
+    memTimingSpec.tRPpb    = (parseUint(memspec["memtimingspec"]["RPPB"], "RPPB"));
     memTimingSpec.tFAW     = (parseUint(memspec["memtimingspec"]["FAW"], "FAW"));
-    memTimingSpec.tRFCab   = (parseUint(memspec["memtimingspec"]["RFCab"], "RFCab"));
-    memTimingSpec.tRFCpb   = (parseUint(memspec["memtimingspec"]["RFCpb"], "RFCpb"));
-    memTimingSpec.tREFI    = (parseUint(memspec["memtimingspec"]["REFI"], "REFI"));
-    memTimingSpec.tREFIpb  = (parseUint(memspec["memtimingspec"]["REFIpb"], "REFIpb"));
+    memTimingSpec.tRFCab   = (parseUint(memspec["memtimingspec"]["RFCAB"], "RFCAB"));
+    memTimingSpec.tRFCpb   = (parseUint(memspec["memtimingspec"]["RFCPB"], "RFCPB"));
+    memTimingSpec.tREFIab  = (parseUint(memspec["memtimingspec"]["REFIAB"], "REFIAB"));
+    memTimingSpec.tREFIpb  = (parseUint(memspec["memtimingspec"]["REFIPB"], "REFIPB"));
     memTimingSpec.tRRD     = (parseUint(memspec["memtimingspec"]["RRD"], "RRD"));
     memTimingSpec.tWTR     = (parseUint(memspec["memtimingspec"]["WTR"], "WTR"));
     memTimingSpec.tXP      = (parseUint(memspec["memtimingspec"]["XP"], "XP"));
-    memTimingSpec.tRTRS    = (parseUint(memspec["memtimingspec"]["RTRS"], "RTRS"));
-    memTimingSpec.tDQSS    = (parseUint(memspec["memtimingspec"]["DQSS"], "DQSS"));
-    memTimingSpec.tDQS2DQ  = (parseUint(memspec["memtimingspec"]["DQS2DQ"], "DQS2DQ"));
-    memTimingSpec.tWPRE    = (parseUint(memspec["memtimingspec"]["WPRE"], "WPRE"));
 
-    prechargeOffsetRD      =  memTimingsSpec.tRTP + ((burstLength)/(dataRate)) - 6;
-    prechargeOffsetWR      =  memTimingsSpec.tWL + ((burstLength)/(dataRate)) + memTimingsSpec.tWR + 3;
+    prechargeOffsetRD      =  memTimingSpec.tRTP + ((burstLength)/(dataRate)) - 6;
+    prechargeOffsetWR      =  memTimingSpec.tWL + ((burstLength)/(dataRate)) + memTimingSpec.tWR + 3;
 
     //Push back new subject created with default constructor.
     memPowerSpec.push_back(MemPowerSpec());
 
     memPowerSpec[0].iDD0X            = (parseUdouble(memspec["mempowerspec"]["idd0"  ], "idd0"  ));
     memPowerSpec[0].iDD2PX           = (parseUdouble(memspec["mempowerspec"]["idd2p" ], "idd2p" ));
-    memPowerSpec[0].iDD2NX           = (parseUdouble(memspec["mempowerspec"]["idd2n" ], "idd2n" ));
     memPowerSpec[0].iDD2PSX          = (parseUdouble(memspec["mempowerspec"]["idd2ps"], "idd2ps"));
     memPowerSpec[0].iDD2NX           = (parseUdouble(memspec["mempowerspec"]["idd2n" ], "idd2n" ));
     memPowerSpec[0].iDD2NSX          = (parseUdouble(memspec["mempowerspec"]["idd2ns"], "idd2ns"));
@@ -108,7 +101,6 @@ MemSpecLPDDR4::MemSpecLPDDR4(nlohmann::json &memspec)
     memPowerSpec.push_back(MemPowerSpec());
     memPowerSpec[1].iDD0X            = (parseUdouble(memspec["mempowerspec"]["idd02"  ], "idd02"  ));
     memPowerSpec[1].iDD2PX           = (parseUdouble(memspec["mempowerspec"]["idd2p2" ], "idd2p2" ));
-    memPowerSpec[1].iDD2NX           = (parseUdouble(memspec["mempowerspec"]["idd2n2" ], "idd2n2" ));
     memPowerSpec[1].iDD2PSX          = (parseUdouble(memspec["mempowerspec"]["idd2ps2"], "idd2ps2"));
     memPowerSpec[1].iDD2NX           = (parseUdouble(memspec["mempowerspec"]["idd2n2" ], "idd2n2" ));
     memPowerSpec[1].iDD2NSX          = (parseUdouble(memspec["mempowerspec"]["idd2ns2"], "idd2ns2"));
@@ -128,7 +120,6 @@ MemSpecLPDDR4::MemSpecLPDDR4(nlohmann::json &memspec)
     memPowerSpec.push_back(MemPowerSpec());
     memPowerSpec[2].iDD0X            = (parseUdouble(memspec["mempowerspec"]["idd0q"  ], "idd0q"  ));
     memPowerSpec[2].iDD2PX           = (parseUdouble(memspec["mempowerspec"]["idd2pq" ], "idd2pq" ));
-    memPowerSpec[2].iDD2NX           = (parseUdouble(memspec["mempowerspec"]["idd2nq" ], "idd2nq" ));
     memPowerSpec[2].iDD2PSX          = (parseUdouble(memspec["mempowerspec"]["idd2psq"], "idd2psq"));
     memPowerSpec[2].iDD2NX           = (parseUdouble(memspec["mempowerspec"]["idd2nq" ], "idd2nq" ));
     memPowerSpec[2].iDD2NSX          = (parseUdouble(memspec["mempowerspec"]["idd2nsq"], "idd2nsq"));
@@ -178,7 +169,7 @@ int64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::MemCommand::cmds type)
     if (type == DRAMPower::MemCommand::RD) {
         offset = memTimingSpec.tRL + memTimingSpec.tDQSCK + 1 + (burstLength / dataRate); //Why is it the same for all memspec?
     } else if (type == DRAMPower::MemCommand::WR) {
-        offset = memTimingsSpec.tWL + ((burstLength)/(dataRate)) + memTimingsSpec.tWR; //Why is it the same for all memspec?
+        offset = memTimingSpec.tWL + ((burstLength)/(dataRate)) + memTimingSpec.tWR; //Why is it the same for all memspec?
     } else if (type == DRAMPower::MemCommand::ACT) {                                   //LPDDR4 doesn even have tWL and tWR
         offset = memTimingSpec.tRCD;
     } else if (type == DRAMPower::MemCommand::PRE) {

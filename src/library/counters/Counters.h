@@ -72,6 +72,8 @@ class Counters {
   std::vector<int64_t> numberofactsBanks;
   // Number of precharge commands per bank
   std::vector<int64_t> numberofpresBanks;
+  // Number of precharge all commands
+  int64_t numberofpreA;
   // Number of reads commands per bank
   std::vector<int64_t> numberofreadsBanks;
   // Number of writes commands per bank
