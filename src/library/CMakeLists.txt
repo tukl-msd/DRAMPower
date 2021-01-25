@@ -13,15 +13,18 @@ include_directories(counters/
 add_library(DRAMPowerLibrary
             dramtypes/DRAMPowerDDR3.cc
             dramtypes/DRAMPowerDDR4.cc
+            dramtypes/DRAMPowerLPDDR4.cc
             dramtypes/DRAMPowerWideIO.cc
             memspec/MemSpec.cc
             memspec/MemSpecDDR3.cc
             memspec/MemSpecDDR4.cc
+            memspec/MemSpecLPDDR4.cc
             memspec/MemSpecWideIO.cc
             MemCommand.cc
             counters/Counters.cc
             counters/CountersDDR3.cc
             counters/CountersDDR4.cc
+            counters/CountersLPDDR4.cc
             counters/CountersWideIO.cc
             DebugManager.cc
 )

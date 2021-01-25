@@ -5,7 +5,7 @@
             "dataRate": 2,
             "nbrOfBanks": 8,
             "nbrOfColumns": 1024,
-            "nbrOfRanks": 1,
+            "nbrOfRanks": 2,
             "nbrOfRows": 16384,
             "width": 8,
        	    "nbrOfDevicesOnDIMM": 8,

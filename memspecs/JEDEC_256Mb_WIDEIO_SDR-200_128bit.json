@@ -5,7 +5,7 @@
       "memarchitecturespec": {
          "width": 128,
          "nbrOfBanks": 4,
-         "nbrOfRanks": 1,
+         "nbrOfRanks": 2,
          "nbrOfColumns": 128,
          "nbrOfRows": 2048,
          "dataRate": 1,

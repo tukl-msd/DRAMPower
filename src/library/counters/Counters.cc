@@ -188,6 +188,13 @@ void Counters::printWarningIfActive(const string& warning, int type, int64_t tim
     }
 }
 
+void Counters::printWarningIfBankActive(const string& warning, int type, int64_t timestamp, unsigned bank)
+{
+    if (!isPrecharged(bank)) {
+        PRINTDEBUGMESSAGE(warning, timestamp, type, bank);
+    }
+}
+
 void Counters::printWarningIfNotActive(const string& warning, int type, int64_t timestamp, unsigned bank)
 {
     if (get_num_active_banks() == 0) {
