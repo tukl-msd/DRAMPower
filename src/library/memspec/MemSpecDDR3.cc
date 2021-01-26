@@ -233,8 +233,4 @@ int64_t MemSpecDDR3::timeToCompletion(DRAMPower::MemCommand::cmds type)
     return offset;
 } // MemSpecDDR3::timeToCompletion
 
-int64_t MemSpecDDR3::getExitSREFtime()
-{
-    return memTimingSpec.tXSDLL - memTimingSpec.tRCD;
-}
 

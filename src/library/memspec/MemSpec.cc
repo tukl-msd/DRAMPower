@@ -158,10 +158,5 @@ std::string MemSpec::parseStringWithDefault(json &obj, std::string name, std::st
 }
 
 
-int64_t MemSpec::getExitSREFtime()
-{
-    throw std::invalid_argument("getExitSREFtime was not declared");
-}
-
 
 

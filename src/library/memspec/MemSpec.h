@@ -78,7 +78,6 @@ public:
 
     virtual ~MemSpec();
     virtual int64_t timeToCompletion(DRAMPower::MemCommand::cmds type) = 0;
-    virtual int64_t getExitSREFtime();
 
     MemSpec(nlohmann::json &memspec);
 

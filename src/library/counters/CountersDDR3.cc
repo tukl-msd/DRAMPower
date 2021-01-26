@@ -218,8 +218,9 @@ void CountersDDR3::handlePupPre(int64_t timestamp)
         latest_pre_cycle = timestamp;
     } else if (mem_state == Counters::MS_PDN_S_PRE) { //Only memories with DLL can have slow exit
         s_pre_pdcycles += zero_guard(timestamp - pdn_cycle, "pdn_cycle is in the future.");
-        pup_pre_cycles  += memSpec.getExitSREFtime();
-        latest_pre_cycle = timestamp + zero_guard(memSpec.getExitSREFtime() - memSpec.memTimingSpec.tRP, "tXPDLL - tRCD - tRP");
+        pup_pre_cycles  += memSpec.memTimingSpec.tXPDLL - memSpec.memTimingSpec.tRCD ;
+        latest_pre_cycle = timestamp + zero_guard(memSpec.memTimingSpec.tXPDLL - memSpec.memTimingSpec.tRCD
+                                                        - memSpec.memTimingSpec.tRP, "tXPDLL - tRCD - tRP");
     } else {
         cerr << "Incorrect use of Precharged Power-Up!" << endl;
     }
@@ -304,8 +305,8 @@ void CountersDDR3::handleSREx(unsigned bank, int64_t timestamp)
         }
 
         // IDD2N current is consumed when exiting the self-refresh state.
-        spup_cycles     += memSpec.getExitSREFtime();
-        latest_pre_cycle = timestamp + zero_guard(memSpec.getExitSREFtime() - memSpec.memTimingSpec.tRP, "exitSREFtime - tRP < 0");
+        spup_cycles     += memSpec.memTimingSpec.tXSDLL - memSpec.memTimingSpec.tRCD;
+        latest_pre_cycle = timestamp + zero_guard(memSpec.memTimingSpec.tXSDLL - memSpec.memTimingSpec.tRCD - memSpec.memTimingSpec.tRP, "exitSREFtime - tRP < 0");
 
 
     } else {
@@ -363,9 +364,9 @@ void CountersDDR3::handleSREx(unsigned bank, int64_t timestamp)
 
             last_pre_cycle       = timestamp + spup_pre;
 
-            spup_cycles     += memSpec.getExitSREFtime() - spup_pre;
-            latest_pre_cycle = timestamp + zero_guard(memSpec.getExitSREFtime() - spup_pre - memSpec.memTimingSpec.tRP,
-                                                      "exitSREFtime - spup_pre - tRP < 0");
+            spup_cycles     += memSpec.memTimingSpec.tXSDLL - memSpec.memTimingSpec.tRCD - spup_pre;
+            latest_pre_cycle = timestamp + zero_guard(memSpec.memTimingSpec.tXSDLL - memSpec.memTimingSpec.tRCD
+                                   - spup_pre - memSpec.memTimingSpec.tRP, "exitSREFtime - spup_pre - tRP < 0");
         } else {
             /*
        * Self-refresh Exit Context 2B (tSREF < tRFC - tRP):
@@ -408,9 +409,10 @@ void CountersDDR3::handleSREx(unsigned bank, int64_t timestamp)
 
             last_pre_cycle       = timestamp + spup_act + memSpec.memTimingSpec.tRP;
 
-            spup_cycles     += memSpec.getExitSREFtime() - spup_act - memSpec.memTimingSpec.tRP;
-            latest_pre_cycle = timestamp + zero_guard(memSpec.getExitSREFtime() - spup_act - (2 * memSpec.memTimingSpec.tRP),
-                                                      "memSpec.exitSREFtime - spup_act - (2 * tRP) < 0");
+            spup_cycles     += memSpec.memTimingSpec.tXSDLL - memSpec.memTimingSpec.tRCD - spup_act - memSpec.memTimingSpec.tRP;
+
+            latest_pre_cycle = timestamp + zero_guard(memSpec.memTimingSpec.tXSDLL - memSpec.memTimingSpec.tRCD
+                             - spup_act - (2 * memSpec.memTimingSpec.tRP), "memSpec.exitSREFtime - spup_act - (2 * tRP) < 0");
         }
     }
     mem_state = MS_NOT_IN_PD;

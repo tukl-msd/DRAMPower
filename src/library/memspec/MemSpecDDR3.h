@@ -48,8 +48,6 @@ public:
     ~MemSpecDDR3() {}
     int64_t timeToCompletion(DRAMPower::MemCommand::cmds type)  override;
 
-    int64_t getExitSREFtime() override;
-
     unsigned numberOfDevicesOnDIMM;
     unsigned numberOfRanks;
 

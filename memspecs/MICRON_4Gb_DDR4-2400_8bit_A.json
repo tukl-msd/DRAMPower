@@ -6,7 +6,7 @@
             "nbrOfBankGroups": 4,
             "nbrOfBanks": 16,
             "nbrOfColumns": 1024,
-            "nbrOfRanks": 2,
+            "nbrOfRanks": 1,
             "nbrOfRows": 32768,
             "width": 8,
             "nbrOfDevicesOnDIMM": 8,

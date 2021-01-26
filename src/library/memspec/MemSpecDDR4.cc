@@ -271,8 +271,5 @@ int64_t MemSpecDDR4::timeToCompletion(DRAMPower::MemCommand::cmds type)
     return offset;
 } // MemSpecDDR4::timeToCompletion
 
-int64_t MemSpecDDR4::getExitSREFtime()
-{
-    return memTimingSpec.tXSDLL - memTimingSpec.tRCD;
-}
+
 
