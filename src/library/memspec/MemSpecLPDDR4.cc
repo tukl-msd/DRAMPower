@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019, University of Kaiserslautern
- * Copyright (c) 2012-2020, Fraunhofer IESE
+ * Copyright (c) 2012-2021, Fraunhofer IESE
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -170,7 +170,7 @@ int64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::MemCommand::cmds type)
         offset = memTimingSpec.tRL + memTimingSpec.tDQSCK + 1 + (burstLength / dataRate); //Why is it the same for all memspec?
     } else if (type == DRAMPower::MemCommand::WR) {
         offset = memTimingSpec.tWL + ((burstLength)/(dataRate)) + memTimingSpec.tWR; //Why is it the same for all memspec?
-    } else if (type == DRAMPower::MemCommand::ACT) {                                   //LPDDR4 doesn even have tWL and tWR
+    } else if (type == DRAMPower::MemCommand::ACT) {
         offset = memTimingSpec.tRCD;
     } else if (type == DRAMPower::MemCommand::PRE) {
         offset = memTimingSpec.tRPpb;
