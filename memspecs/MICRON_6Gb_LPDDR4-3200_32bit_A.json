@@ -90,7 +90,9 @@
             "WTR": 16,
             "XP": 12,
             "XSR": 458,
-            "clkMhz": 1600
+            "clkMhz": 1600,
+            "DQSS": 1,
+            "DQS2DQ": 1 
         }
     }
 }

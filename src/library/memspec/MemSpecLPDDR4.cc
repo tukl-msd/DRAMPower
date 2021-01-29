@@ -73,6 +73,8 @@ MemSpecLPDDR4::MemSpecLPDDR4(nlohmann::json &memspec)
     memTimingSpec.tRRD     = (parseUint(memspec["memtimingspec"]["RRD"], "RRD"));
     memTimingSpec.tWTR     = (parseUint(memspec["memtimingspec"]["WTR"], "WTR"));
     memTimingSpec.tXP      = (parseUint(memspec["memtimingspec"]["XP"], "XP"));
+    memTimingSpec.tDQSS    = (parseUint(memspec["memtimingspec"]["DQSS"], "DQSS"));
+    memTimingSpec.tDQS2DQ  = (parseUint(memspec["memtimingspec"]["DQS2DQ"], "DQS2DQ"));
 
     prechargeOffsetRD      =  memTimingSpec.tRTP + ((burstLength)/(dataRate)) - 6;
     prechargeOffsetWR      =  memTimingSpec.tWL + ((burstLength)/(dataRate)) + memTimingSpec.tWR + 3;
@@ -165,19 +167,16 @@ int64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::MemCommand::cmds type)
 {
     int64_t offset = 0;
 
-
-    if (type == DRAMPower::MemCommand::RD) {
-        offset = memTimingSpec.tRL + memTimingSpec.tDQSCK + 1 + (burstLength / dataRate); //Why is it the same for all memspec?
-    } else if (type == DRAMPower::MemCommand::WR) {
-        offset = memTimingSpec.tWL + ((burstLength)/(dataRate)) + memTimingSpec.tWR; //Why is it the same for all memspec?
-    } else if (type == DRAMPower::MemCommand::ACT) {
-        offset = memTimingSpec.tRCD;
-    } else if (type == DRAMPower::MemCommand::PRE) {
-        offset = memTimingSpec.tRPpb;
-    } else if (type == DRAMPower::MemCommand::PREA) {
-        offset = memTimingSpec.tRPab;
-    }
+    if (type == DRAMPower::MemCommand::ACT)
+        offset = memTimingSpec.tRCD + 3;
+    else if (type == DRAMPower::MemCommand::RD)
+        offset = memTimingSpec.tRL + memTimingSpec.tDQSCK + ((burstLength)/(dataRate)) + 3;
+    else if (type == DRAMPower::MemCommand::WR)
+        offset = memTimingSpec.tWL + memTimingSpec.tDQSS + memTimingSpec.tDQS2DQ + ((burstLength)/(dataRate)) + 3;
+    else
+        PRINTDEBUGMESSAGE("timeToCompletion not available for given Command Type", 0, type, 0);
     return offset;
+
 } // MemSpecLPDDR4::timeToCompletion
 
 

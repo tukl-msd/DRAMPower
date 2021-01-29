@@ -86,9 +86,6 @@ class CountersLPDDR4 final : public Counters {
   void idle_pre_update(int64_t                     timestamp,
                        int64_t                     latest_pre_cycle) override;
 
-  void idle_pre_update_pb(int64_t                     timestamp,
-                       int64_t                     latest_pre_cycle) ;
-
 };
 }
 

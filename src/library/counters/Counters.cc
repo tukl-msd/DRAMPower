@@ -248,6 +248,7 @@ void Counters::handleAct(unsigned bank, int64_t timestamp)
 
         bank_state[bank] = BANK_ACTIVE;
         latest_act_cycle = timestamp;
+        first_act_cycle_banks[bank]=timestamp;
     } else {
         PRINTDEBUGMESSAGE("Bank is already active!", timestamp, MemCommand::ACT, bank);
     }

@@ -79,6 +79,8 @@ public:
         int64_t tXSR;
         int64_t tESCKE;
         int64_t tCKE;
+        int64_t tDQSS;
+        int64_t tDQS2DQ;
     };
     // Currents and Voltages:
     // Currents and Voltages:

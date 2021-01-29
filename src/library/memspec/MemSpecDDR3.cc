@@ -218,18 +218,14 @@ int64_t MemSpecDDR3::timeToCompletion(DRAMPower::MemCommand::cmds type)
 {
     int64_t offset = 0;
 
-    if (type == DRAMPower::MemCommand::RD) {
-        offset = memTimingSpec.tRL +
-                memTimingSpec.tDQSCK + 1 + (burstLength / dataRate);
-    } else if (type == DRAMPower::MemCommand::WR) {
-        offset = memTimingSpec.tWL +
-                (burstLength / dataRate) +
-                memTimingSpec.tWR;
-    } else if (type == DRAMPower::MemCommand::ACT) {
+    if (type == DRAMPower::MemCommand::ACT)
         offset = memTimingSpec.tRCD;
-    } else if ((type == DRAMPower::MemCommand::PRE) || (type == DRAMPower::MemCommand::PREA)) {
-        offset = memTimingSpec.tRP;
-    }
+    else if (type == DRAMPower::MemCommand::RD)
+        offset = memTimingSpec.tRL + ((burstLength)/(dataRate));
+    else if (type == DRAMPower::MemCommand::WR)
+        offset = memTimingSpec.tWL + ((burstLength)/(dataRate));
+    else
+        PRINTDEBUGMESSAGE("timeToCompletion not available for given Command Type", 0, type, 0);
     return offset;
 } // MemSpecDDR3::timeToCompletion
 

@@ -153,15 +153,6 @@ void CountersLPDDR4::idle_pre_update(int64_t timestamp, int64_t latest_pre_cycle
     }
 }
 
-void CountersLPDDR4::idle_pre_update_pb(int64_t timestamp, int64_t latest_pre_cycle)
-{
-    if (latest_pre_cycle > 0) {
-        idlecycles_pre += max(zero, timestamp - latest_pre_cycle -
-                              memSpec.memTimingSpec.tRPpb);
-    } else if (latest_pre_cycle == 0) {
-        idlecycles_pre += max(zero, timestamp - latest_pre_cycle);
-    }
-}
 
 ////////////////////HANDLERS////////////////////////
 
@@ -237,7 +228,7 @@ void CountersLPDDR4::handleRefB(unsigned bank, int64_t timestamp)
     numberofrefbBanks[bank]++;
 
     if (nActiveBanks() !=0) { //All banks precharged
-        idle_pre_update_pb(timestamp, latest_pre_cycle);
+        idle_pre_update(timestamp, latest_pre_cycle);
         first_act_cycle  = timestamp;
         first_act_cycle_banks[bank] = timestamp;
         precycles       += zero_guard(timestamp - last_pre_cycle, "2 last_pre_cycle is in the future.");
