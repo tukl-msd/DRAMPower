@@ -217,13 +217,16 @@ bool MemSpecDDR3::BankWiseParams::isBankActiveInPasr(const unsigned bankIdx) con
 int64_t MemSpecDDR3::timeToCompletion(DRAMPower::MemCommand::cmds type)
 {
     int64_t offset = 0;
-
-    if (type == DRAMPower::MemCommand::ACT)
+    if (type == MemCommand::ACT)
         offset = memTimingSpec.tRCD;
-    else if (type == DRAMPower::MemCommand::RD)
+    else if (type == MemCommand::RD)
         offset = memTimingSpec.tRL + ((burstLength)/(dataRate));
-    else if (type == DRAMPower::MemCommand::WR)
+    else if (type == MemCommand::WR)
         offset = memTimingSpec.tWL + ((burstLength)/(dataRate));
+    else if (type == MemCommand::REF)
+        offset = memTimingSpec.tRFC;
+    else if (type == MemCommand::PRE || type == MemCommand::PREA)
+        return memTimingSpec.tRP;
     else
         PRINTDEBUGMESSAGE("timeToCompletion not available for given Command Type", 0, type, 0);
     return offset;

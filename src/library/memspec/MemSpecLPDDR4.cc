@@ -173,6 +173,14 @@ int64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::MemCommand::cmds type)
         offset = memTimingSpec.tRL + memTimingSpec.tDQSCK + ((burstLength)/(dataRate)) + 3;
     else if (type == DRAMPower::MemCommand::WR)
         offset = memTimingSpec.tWL + memTimingSpec.tDQSS + memTimingSpec.tDQS2DQ + ((burstLength)/(dataRate)) + 3;
+    else if (type == MemCommand::REF)
+        offset = memTimingSpec.tRFCab + 1;
+    else if (type == MemCommand::REFB)
+        offset = memTimingSpec.tRFCpb + 1;
+    else if (type == MemCommand::PRE)
+        return memTimingSpec.tRPpb + 1;
+    else if (type == MemCommand::PREA)
+        return memTimingSpec.tRPab + 1;
     else
         PRINTDEBUGMESSAGE("timeToCompletion not available for given Command Type", 0, type, 0);
     return offset;
