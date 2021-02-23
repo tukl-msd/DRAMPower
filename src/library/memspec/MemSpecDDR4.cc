@@ -49,7 +49,7 @@ MemSpecDDR4::MemSpecDDR4(nlohmann::json &memspec)
     numberOfRanks          = parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
     refreshMode            = parseUintWithDefaut(memspec["RefreshMode"],"RefreshMode",1);
     memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
-    memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in mili seconds
+    memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in nano seconds
     memTimingSpec.tCKESR   = (parseUint(memspec["memtimingspec"]["CKESR"], "CKESR"));
     memTimingSpec.tCKE     = (parseUint(memspec["memtimingspec"]["CKE"], "CKE"));
     memTimingSpec.tPD      = memTimingSpec.tCKE;
