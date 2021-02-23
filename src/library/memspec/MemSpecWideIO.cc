@@ -46,7 +46,7 @@ MemSpecWideIO::MemSpecWideIO(nlohmann::json &memspec)
     numberOfChannels       = parseUint(memspec["memarchitecturespec"]["nbrOfChannels"],"nbrOfChannels");
     numberOfRanks          = parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
     memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
-    memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in mili seconds
+    memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in nano seconds
     memTimingSpec.tCKESR   = (parseUint(memspec["memtimingspec"]["CKESR"], "CKESR"));
     memTimingSpec.tCKE     = (parseUint(memspec["memtimingspec"]["CKE"], "CKE"));
     memTimingSpec.tDQSCK   = (parseUint(memspec["memtimingspec"]["DQSCK"], "DQSCK"));
