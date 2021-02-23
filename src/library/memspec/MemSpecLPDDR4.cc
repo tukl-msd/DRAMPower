@@ -46,7 +46,7 @@ MemSpecLPDDR4::MemSpecLPDDR4(nlohmann::json &memspec)
     numberOfRanks          = parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
     numberOfChannels       = parseUint(memspec["memarchitecturespec"]["nbrOfChannels"],"nbrOfChannels");
     memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
-    memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in mili seconds
+    memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in nano seconds
     memTimingSpec.tCKE     = (parseUint(memspec["memtimingspec"]["CKE"], "CKE"));
     memTimingSpec.tDQSCK   = (parseUint(memspec["memtimingspec"]["DQSCK"], "DQSCK"));
     memTimingSpec.tPPD     = (parseUint(memspec["memtimingspec"]["PPD"], "PPD"));
