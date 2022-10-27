@@ -1,58 +1,31 @@
-# DRAM Power Model (DRAMPower)
-[![Build Status](https://travis-ci.org/ravenrd/DRAMPower.svg?branch=master)](https://travis-ci.org/ravenrd/DRAMPower)
-[![Coverage Status](https://coveralls.io/repos/ravenrd/DRAMPower/badge.png?branch=master)](https://coveralls.io/r/ravenrd/DRAMPower?branch=master)
+# DRAM Power Model (DRAMPower 5.0)
 ## 0. Releases
-
-The last official release can be found here:
-https://github.com/ravenrd/DRAMPower/releases/tag/4.0
+The last official release can be found here: https://github.com/ravenrd/DRAMPower/releases/tag/5.0
 
 The master branch of the repository should be regarded as the bleeding-edge version, which has all the latest features, but also all the latest bugs. Use at your own discretion.
 
 ## 1. Installation
+CMake is required for the building of DRAMPower. 
+Clone the repository, or download the zip file of the release you would like to use and use CMake to generate the build files, e.g.
 
-Clone the repository, or download the zip file of the release you would like to use. The source code is available in src folder. [drampower.cc](src/cli/drampower.cc) file gives the user interface, where the user can specify the memory to be employed and the commandtrace to be analyzed. To build, use:
-```bash
-make -j4
 ```
-This command will download a set of trace files from https://github.com/Sv3n/DRAMPowerTraces which can be used as test input for the tool.
-
-## 2. Required Packages
-
-The tool was verified on Ubuntu 14.04 using:
-
- * xerces-c (libxerces-c-dev) - v3.1 with Xerces development package
- * gcc - v4.4.3
-
-## 3. Directory Structure
- * src/: contains the source code of the DRAMPower tool that covers the power  model, the command scheduler and the trace analysis tool.
- * memspecs/   : contains the memory specification XMLs, which give the architectural, timing and current/voltage details for different DRAM memories.
- * traces/     : 1 sample command trace (after the installation / compilation)
- * test/       : contains test script and reference output
-
-## 4. Trace Specification
-### Command Traces
-If the command-level interface is being used, a command trace can be logged in a file.
-An example is given in ```traces/commands.trace```
-
-The format it uses is: ```<timestamp>,<command>,<bank>```.
-For example, "500,ACT,2", where ACT is the command and 2 is the bank. Timestamp is in clock cycles (cc), the list of supported commands is
-mentioned in [MemCommand.h](src/MemCommand.h) and the bank is the target bank number. For non-bank-specific commands, bank can be set to 0. Rank need not be
-specified. The timing correctness of the trace is not verified by the tool and is assumed to be accurate. However, warning messages are provided, to identify if the memory or bank state is inconsistent in the trace. A sample command trace is provided in the traces/ folder.
-
-### Transaction Traces
-This feature is obsolete and not supported any more. One can check out [commit](https://github.com/tukl-msd/DRAMPower/commit/0e24b8ebfa6144fc543d3acdcc3e6ad845dd98a9) to use this feature with an older version of DRAMPower, until which the feature is included. The usage and other details are documented. The future versions of DRAMPower will rely on simulators like [DRAMSys](https://www.jstage.jst.go.jp/article/ipsjtsldm/8/0/8_63/_article) and [Ramulator](https://github.com/CMU-SAFARI/ramulator) for this purpose.
-
-## 5. Usage
-
-[drampower.cc](src/cli/drampower.cc) is the main interface file, which accepts user inputs to specify memory to be employed and the command trace to be analyzed.
-
-To use DRAMPower at the command-level (command trace), after make, use the following:
-```bash
-./drampower -m <memory spec (ID)> -c <commands trace>
+cd DRAMPower
+mkdir build && cd build
+cmake ../ 
+make -j4 DRAMPower
 ```
-Also,the user can optionally include IO and Termination power estimates (obtained from 
-Micron's DRAM Power Calculator). To enable the same, the '-r' flag can be employed in 
-command line.
+
+Optionally, test cases can be built by toggling the DRAMPOWER_BUILD_TESTS flag with CMake.
+The command line tool can be built by setting the DRAMPOWER_BUILD_CLI flag.
+
+## 2. Project structure
+The project is structured in a library part and an (optional) Command Line application.
+The library can be built using the CMake target DRAMPower.
+Integration of DRAMPower in other projects can be easily achieved by including it as a git submodule or by using the CMake FetchContent directive.
+
+## 3. Dependencies
+DRAMPower comes bundled with all necessary libraries and no installation of further system packages is required.
+
 
 ## 6. Memory Specifications
 
@@ -76,111 +49,6 @@ or (3) include +3 sigma variation (3s). These measures are derived based on the
 Monte-Carlo analysis performed on our SPICE-based DRAM cross-section.
 
 To include these XMLs in your simulations, simply use them as the target memory.
-
-## 8. Example Usage
-
-An example of using this tool is provided below. To compile the example,
-use the Makefile and make sure the gcc and Xerces-c are installed. Then, run:
-```
-make -j4
-```
-After this, run with the command trace, as described before:
-```
-./drampower -m memspecs/MICRON_1Gb_DDR3-1066_8bit_G.xml -t traces/commands.trace -r
-```
-The output should be something like this:
-
-```
-* Parsing memspecs/MICRON_1Gb_DDR3-1066_8bit_G.xml
-* Analysis start time: Tue Nov 19 15:10:26 2019
-* Analyzing the input trace
-* Bankwise mode: disabled
-* Partial Array Self-Refresh: disabled
-
-* Trace Details:
-
-#ACT commands: 3040
-#RD + #RDA commands: 3040
-#WR + #WRA commands: 0
-#PRE (+ PREA) commands: 3040
-#REF commands: 38525
-#REFB commands: 0
-#Active Cycles: 2064100
-  #Active Idle Cycles: 9120
-  #Active Power-Up Cycles: 0
-    #Auto-Refresh Active cycles during Self-Refresh Power-Up: 0
-#Precharged Cycles: 158203271
-  #Precharged Idle Cycles: 157912282
-  #Precharged Power-Up Cycles: 0
-    #Auto-Refresh Precharged cycles during Self-Refresh Power-Up: 0
-  #Self-Refresh Power-Up Cycles: 0
-Total Idle Cycles (Active + Precharged): 157921402
-#Power-Downs: 0
-  #Active Fast-exit Power-Downs: 0
-  #Active Slow-exit Power-Downs: 0
-  #Precharged Fast-exit Power-Downs: 0
-  #Precharged Slow-exit Power-Downs: 0
-#Power-Down Cycles: 0
-  #Active Fast-exit Power-Down Cycles: 0
-  #Active Slow-exit Power-Down Cycles: 0
-    #Auto-Refresh Active cycles during Self-Refresh: 0
-  #Precharged Fast-exit Power-Down Cycles: 0
-  #Precharged Slow-exit Power-Down Cycles: 0
-    #Auto-Refresh Precharged cycles during Self-Refresh: 0
-#Auto-Refresh Cycles: 2272975
-#Self-Refreshes: 0
-#Self-Refresh Cycles: 0
-----------------------------------------
-Total Trace Length (clock cycles): 160267371
-----------------------------------------
-
-* Trace Power and Energy Estimates:
-
-ACT Cmd Energy: 3422138.84 pJ
-PRE Cmd Energy: 1497185.74 pJ
-RD Cmd Energy: 2224390.24 pJ
-WR Cmd Energy: 0.00 pJACT Stdby Energy: 232356472.80 pJ
-  Active Idle Energy: 1026641.65 pJ
-  Active Power-Up Energy: 0.00 pJ
-    Active Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0.00 pJ
-PRE Stdby Energy: 15582873785.18 pJ
-  Precharge Idle Energy: 15554211641.65 pJ
-  Precharged Power-Up Energy: 0.00 pJ
-    Precharge Stdby Energy during Auto-Refresh cycles in Self-Refresh Power-Up: 0.00 pJ
-  Self-Refresh Power-Up Energy: 0.00 pJ
-Total Idle Energy (Active + Precharged): 15555238283.30 pJ
-Total Power-Down Energy: 0.00 pJ
-  Fast-Exit Active Power-Down Energy: 0.00 pJ
-  Slow-Exit Active Power-Down Energy: 0.00 pJ
-    Slow-Exit Active Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0.00 pJ
-  Fast-Exit Precharged Power-Down Energy: 0.00 pJ
-  Slow-Exit Precharged Power-Down Energy: 0.00 pJ
-    Slow-Exit Precharged Power-Down Energy during Auto-Refresh cycles in Self-Refresh: 0.00 pJ
-Auto-Refresh Energy: 767608818.01 pJ
-Bankwise-Refresh Energy: 0.00 pJ
-Self-Refresh Energy: 0.00 pJ
-----------------------------------------
-Total Trace Energy: 16589982790.81 pJ
-Average Power: 55.17 mW
-----------------------------------------
-* Power Computation End time: Tue Nov 19 15:10:26 2019
-* Total Simulation time: 0.359375 seconds
-```
-
-As can be noticed, the tool performs DRAM command scheduling and reports the number
-of activates, precharges, reads, writes, refreshes, power-downs and self-refreshes
-besides the number of clock cycles spent in the active and precharged states, in the
-power-down (fast/slow-exit) and self-refresh states and in the idle mode. It also
-reports the energy consumption of these components, besides the IO and Termination
-components in pJ (pico Joules) and the average power consumption of the trace in mW.
-It also reports the simulation start/end times and the total simulation time in seconds.
-
-## 9. DRAMPower Library
-
-The DRAMPower tool has an additional feature and can be used as a library.
-In order to use the library run "make lib", include [LibDRAMPower.h](src/libdrampower/LibDRAMPower.h) in your project and
-link the file src/libdrampower.a with your project.
-Examples for the usage of the library are [lib_test.cc](test/libdrampowertest/lib_test.cc) and [window_example.cc](test/libdrampowertest/window_example.cc).
 
 ## 10. Authors & Acknowledgment
 

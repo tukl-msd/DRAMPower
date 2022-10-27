@@ -1,0 +1,2 @@
+add_subdirectory(tests_drampower)
+add_subdirectory(tests_misc)

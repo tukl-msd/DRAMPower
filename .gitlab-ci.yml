@@ -1,6 +1,0 @@
-before_script:
-  - sudo apt-get install -y libxerces-c-dev wget unzip python
-
-default_test:
- script:
- - make test COVERAGE=1

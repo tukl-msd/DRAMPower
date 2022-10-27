@@ -1,0 +1,48 @@
+{
+  "memspec": {
+    "memarchitecturespec": {
+      "nbrOfColumns": 1024,
+      "nbrOfRows": 65536,
+      "width": 8,
+      "burstLength": 8,
+      "dataRate": 2,
+      "nbrOfBankGroups": 1,
+      "nbrOfBanks": 16,
+      "nbrOfRanks": 1
+    },
+    "memoryId": "lpddr4",
+    "memoryType": "LPDDR4",
+    "mempowerspec": {
+      "idd0": 56.25,
+      "idd2n": 33.75,
+      "idd3n": 35,
+      "idd4r": 157.5,
+      "idd4w": 135.0,
+      "idd5": 118.0,
+      "idd5pb": 74.0,
+      "idd6": 20.25,
+      "idd6ds": 13.25,
+      "idd2p": 17.0,
+      "idd3p": 22.5,
+      "vdd": 1.2
+    },
+    "memtimingspec": {
+      "RAS": 10,
+      "RP": 10,
+      "RCD": 13,
+      "RFCab": 25,
+      "RFCpb": 20,
+      "RTP": 2,
+      "WL": 5,
+      "WR": 5,
+      "REFI": 20,
+      "RL": 0,
+      "clkMhz": 1300
+    },
+    "bankwisespec":{
+      "factRho":0.5
+    }
+  }
+}
+
+

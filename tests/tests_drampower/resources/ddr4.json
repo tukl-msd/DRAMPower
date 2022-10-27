@@ -1,0 +1,45 @@
+{
+  "memspec": {
+    "memarchitecturespec": {
+      "nbrOfColumns": 1024,
+      "nbrOfRows": 65536,
+      "width": 8,
+      "burstLength": 8,
+      "dataRate": 2,
+      "nbrOfBankGroups": 2,
+      "nbrOfBanks": 16,
+      "nbrOfRanks": 1
+    },
+    "memoryId": "ddr4",
+    "memoryType": "DDR4",
+    "mempowerspec": {
+      "idd0": 56.25,
+      "idd2n": 33.75,
+      "idd2p": 17.0,
+      "idd3n": 39.5,
+      "idd3p": 22.5,
+      "idd4r": 157.5,
+      "idd4w": 135.0,
+      "idd5B": 118.0,
+      "idd6n": 20.25,
+      "vdd": 1.2
+    },
+    "memtimingspec": {
+      "refreshMode": 1,
+      "AL": 0,
+      "RAS": 10,
+      "RP": 10,
+      "RFC1": 25,
+      "RTP": 5,
+      "RCD": 13,
+      "WL": 5,
+      "WR": 5,
+      "clkMhz": 1300
+    },
+    "bankwisespec":{
+      "factRho":0.5
+    }
+  }
+}
+
+

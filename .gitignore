@@ -1,18 +1,45 @@
-drampower
+# Prerequisites
 *.d
+
+# Compiled Object files
+*.slo
+*.lo
 *.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
 *.a
-test/libdrampowertest/library_test
-test/libdrampowertest/window_example
-*.gcno
-*.gcda
-traces/*
-traces.zip
-.sconf_temp/
-.sconsign.dblite
-*.swp
-*.swo
-cscope.*
-commands.trace
-coverage_report
+*.lib
+
+# Executables
+*.exe
+*.app
+
+# Common project files
 .DS_Store
+.project
+.cproject
+compile_commands.json
+.clangd/
+.vscode
+.idea
+
+build*/
+bin/
+*.swp
+.~*
