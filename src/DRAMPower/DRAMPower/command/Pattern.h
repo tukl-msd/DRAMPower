@@ -4,7 +4,7 @@
 #include <DRAMPower/command/Command.h>
 
 #include <bitset>
-#include <cassert>
+#include <assert.h>
 
 namespace DRAMPower {
 namespace pattern_descriptor {
@@ -168,7 +168,7 @@ public:
                 bitset[n] = row_bits[8];
                 break;
             default:
-                assert(false, "Invalid pattern descriptor received (this should not happen)"
+                assert(("Invalid pattern descriptor received (this should not happen)", false));
                 break;
             }
 
