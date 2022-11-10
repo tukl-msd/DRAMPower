@@ -43,3 +43,5 @@ build*/
 bin/
 *.swp
 .~*
+cmake-build-debug
+cmake-build-release

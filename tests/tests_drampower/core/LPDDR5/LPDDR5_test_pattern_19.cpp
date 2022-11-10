@@ -34,8 +34,10 @@ protected:
         memSpec.numberOfBanks = 8;
         memSpec.numberOfBankGroups = 2;
         memSpec.banksPerGroup = 4;
-		
-		memSpec.memTimingSpec.tRAS = 10;
+        memSpec.BGroupMode = true;
+
+
+        memSpec.memTimingSpec.tRAS = 10;
 		memSpec.memTimingSpec.tRTP = 10;
 		memSpec.memTimingSpec.tRCD = 20;
 		memSpec.memTimingSpec.tRFC = 25;
