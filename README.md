@@ -1,10 +1,22 @@
+<img src="docs/images/logo_drampower_5_0.png" alt="DRAMPower 5.0" width="350" style="float: left;"/>  
+
 # DRAM Power Model (DRAMPower 5.0)
-## 0. Releases
+
+- [Releases](#releases)
+- [Installation](#installation)
+- [Project structure](#project-structure)
+- [Dependencies](#dependencies)
+- [Memory Specifications](#memory-specifications)
+- [Variation-aware Power And Energy Estimation](#variation-aware-power-and-energy-estimation)
+- [Authors & Acknowledgment](#authors--acknowledgment)
+- [Contact Information](#contact-information)
+
+## Releases
 The last official release can be found here: https://github.com/ravenrd/DRAMPower/releases/tag/5.0
 
 The master branch of the repository should be regarded as the bleeding-edge version, which has all the latest features, but also all the latest bugs. Use at your own discretion.
 
-## 1. Installation
+## Installation
 CMake is required for the building of DRAMPower. 
 Clone the repository, or download the zip file of the release you would like to use and use CMake to generate the build files, e.g.
 
@@ -18,22 +30,32 @@ make -j4 DRAMPower
 Optionally, test cases can be built by toggling the DRAMPOWER_BUILD_TESTS flag with CMake.
 The command line tool can be built by setting the DRAMPOWER_BUILD_CLI flag.
 
-## 2. Project structure
+## Project structure
 The project is structured in a library part and an (optional) Command Line application.
 The library can be built using the CMake target DRAMPower.
 Integration of DRAMPower in other projects can be easily achieved by including it as a git submodule or by using the CMake FetchContent directive.
 
-## 3. Dependencies
+This repository contains the following sub-directoires
+
+     DRAMPower                  # top directory
+     └── cmake                  # cmake scripts used by configuration step
+     ├── lib                    # contains bundled dependencies of the project
+     ├── src                    # top level directory containing the actual sources
+         ├── DRAMPower          # source code of the actual DRAMPower library
+         └── cli                # the optional Command Line tool
+     └── tests                  # test cases used by the project
+
+## Dependencies
 DRAMPower comes bundled with all necessary libraries and no installation of further system packages is required.
 
 
-## 6. Memory Specifications
+## Memory Specifications
 
 36 sample memory specifications are given in the XMLs targeting DDR2/DDR3/DDR4, LPDDR/LPDDR2/LPDDR3 and WIDE IO DRAM devices. The memory specifications are based on 1Gb DDR2, 1Gb & 2Gb DDR3, 2Gb LPDDR/LPDDR2 and 4Gb DDR4/LPDDR3 Micron datasheets and the 256Mb Wide IO SDR specifications are based on JEDEC timing specifications and circuit-level IDD measurements by TU Kaiserslautern, inplace of the as yet unavailable vendor datasheets. 4 of the memory specifications target dual-rank DDR3 DIMMs.
 
 Note: The timing specifications in the XMLs are in clock cycles (cc). The current specifications for Reading and Writing do not include the I/O consumption. They are computed and included seperately based on Micron Power Calculator. The IDD measures associated with different power supply sources of equal measure (VDD2, VDDCA and VDDQ) for LPDDR2, LPDDR3, DDR4 and WIDE IO memories have been added up together for simplicity, since it does not impact power computation accuracy. The current measures for dual-rank DIMMs reflect only the measures for the active rank. The default state of the idle rank is assumed to be the same as the complete memory state, for background power estimation. Accordingly, in all dual-rank memory specifications, IDD2P0 has been subtracted from the active currents and all background currents have been halved. They are also accounted for seperately by the power model. Stacking multiple Wide IO DRAM dies can also be captured by the nbrOfRanks parameter.
 
-## 7. Variation-aware Power And Energy Estimation
+## Variation-aware Power And Energy Estimation
 
 15 of the included datasheets reflect the impact of process-variations on DRAM currents for a selection of DDR3 memories manufactured at 50nm process technology. These memories include:
 (1) MICRON_128MB_DDR3-1066_8bit - revision G
@@ -50,7 +72,7 @@ Monte-Carlo analysis performed on our SPICE-based DRAM cross-section.
 
 To include these XMLs in your simulations, simply use them as the target memory.
 
-## 10. Authors & Acknowledgment
+## Authors & Acknowledgment
 
 The tool is based on the DRAM power model developed jointly by the Computer Engineering Research Group at TU Delft and the Electronic Systems Group at TU Eindhoven
 and verified by the Microelectronic System Design Research Group at TU Kaiserslautern with equivalent circuit-level simulations. This tool has been developed by
@@ -85,7 +107,7 @@ Karthik Chandrasekar, Christian Weis, Benny Akesson, Norbert Wehn, and Kees Goos
 In Proc. Design Automation Conference (DAC), 2013
 ```
 
-## 11. Contact Information
+## Contact Information
 
 Further questions about the tool and the power model can be directed to:
 
