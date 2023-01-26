@@ -52,7 +52,7 @@ private:
 public:
 	Bus(std::size_t width) : width(width), burst_storage(width) {};
 public:
-	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
+	void  load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
 
 		// assume no interleaved commands appear, but the old one already finishes cleanly before the next
 		//assert(this->last_load + burst_storage.size() <= timestamp);

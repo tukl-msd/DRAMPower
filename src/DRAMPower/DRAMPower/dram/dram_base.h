@@ -13,7 +13,7 @@
 namespace DRAMPower {
 
 template <typename CommandEnum>
-class dram_base {
+class dram_base : private PatternEncoder{
 public:
     using commandEnum_t = CommandEnum;
     using commandHandler_t = std::function<void(const Command&)>;
@@ -30,7 +30,6 @@ public:
 
 private:
     commandRouter_t commandRouter;
-    commandPatternMap_t commandPatternMap;
     implicitCommandList_t implicitCommandList;
     timestamp_t last_command_time;
 
@@ -44,12 +43,11 @@ protected:
     virtual ~dram_base() = default;
     virtual void handle_interface(const Command& cmd) = 0;
 
+    commandPatternMap_t commandPatternMap;
 public:
-    uint64_t getCommandPattern(const Command& cmd) const
-    {
+    virtual uint64_t getCommandPattern(const Command& cmd) const {
         const auto& pattern = commandPatternMap[static_cast<std::size_t>(cmd.type)];
-
-        return PatternEncoder::encode(cmd, pattern);
+        return encode(cmd, pattern);
     };
 
 protected:

@@ -9,19 +9,19 @@
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMPower/memspec/MemSpecLPDDR4.h>
-
+#include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/data/energy.h>
 
 #include <DRAMPower/util/cycle_stats.h>
 
 #include <deque>
 #include <algorithm>
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 
 namespace DRAMPower {
 
-class LPDDR4 : public dram_base<CmdType>{
+class LPDDR4 : public dram_base<CmdType> {
 public:
 	LPDDR4(const MemSpecLPDDR4& memSpec);
 	virtual ~LPDDR4() = default;
@@ -44,6 +44,10 @@ public:
 
 	//util::Bus dataBus;
 protected:
+    void registerPatterns();
+
+    uint64_t encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern) const  override;
+
 	template<dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func && member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command & command) {
@@ -71,8 +75,6 @@ protected:
 		});
 	};
 
-	void registerPatterns();
-public:
     timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) {
         timestamp_t entryTime = 0;
 

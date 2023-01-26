@@ -2,6 +2,7 @@
 #define DRAMPOWER_STANDARDS_DDR5_DDR5_H
 
 #include <DRAMPower/util/bus.h>
+#include <DRAMPower/util/clock.h>
 #include <DRAMPower/dram/dram_base.h>
 #include <DRAMPower/dram/Rank.h>
 #include <DRAMPower/Types.h>
@@ -26,9 +27,19 @@ namespace DRAMPower {
     public:
         MemSpecDDR5 memSpec;
         std::vector<Rank> ranks;
+
+        util::Clock clock;
+        util::Clock clockInverted;
+
         util::Bus commandBus;
         util::Bus readBus;
         util::Bus writeBus;
+
+        util::Clock readDQS_c;
+        util::Clock readDQS_t;
+
+        util::Clock writeDQS_c;
+        util::Clock writeDQS_t;
     protected:
         template<dram_base::commandEnum_t Cmd, typename Func>
         void registerBankHandler(Func && member_func) {
@@ -69,6 +80,9 @@ namespace DRAMPower {
         };
 
         void registerPatterns();
+
+        uint64_t encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern) const override;
+
     public:
         timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) {
             timestamp_t entryTime = 0;

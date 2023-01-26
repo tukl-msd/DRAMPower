@@ -11,9 +11,13 @@ namespace DRAMPower {
     DDR4::DDR4(const MemSpecDDR4 &memSpec)
 		: memSpec(memSpec)
 		, ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-		, commandBus{6}
-		, readBus{6}
-		, writeBus{6} 
+		, commandBus{27}
+		, readBus{memSpec.bitWidth}
+		, writeBus{memSpec.bitWidth},
+          readDQS_c(2, true),
+          readDQS_t(2, true),
+          writeDQS_c(2, true),
+          writeDQS_t(2, true)
 	{
         this->registerPatterns();
 
@@ -87,7 +91,6 @@ namespace DRAMPower {
                                                     V, V, V,
                                                     H,
                                                     A0, A1, A2, A3, A4, A5, A6, A7, A8, A9
-
                                             });
         this->registerPattern<CmdType::WR>({
                                                    L, H, H, L, L, BG0, BG1, BA0, BA1,
@@ -96,7 +99,6 @@ namespace DRAMPower {
                                                    V, V, V,
                                                    L,
                                                    A0, A1, A2, A3, A4, A5, A6, A7, A8, A9
-
                                            });
         this->registerPattern<CmdType::WRA>({
                                                     L, H, H, L, L, BG0, BG1, BA0, BA1,
@@ -105,7 +107,6 @@ namespace DRAMPower {
                                                     V, V, V,
                                                     H,
                                                     A0, A1, A2, A3, A4, A5, A6, A7, A8, A9
-
                                             });
         this->registerPattern<CmdType::SREFEN>({
                                                        L, H, L, L, H, V, V, V, V,
@@ -114,7 +115,6 @@ namespace DRAMPower {
                                                        V, V, V,
                                                        V,
                                                        V, V, V, V, V, V, V, V, V, V
-
                                                });
         this->registerPattern<CmdType::SREFEX>({
                                                        H, X, X, X, X, X, X, X, X,
@@ -164,10 +164,161 @@ namespace DRAMPower {
                                              });
     }
 
+    uint64_t DDR4::encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern) const
+    {
+        using namespace pattern_descriptor;
+
+        std::bitset<64> bitset(0);
+        std::bitset<32> bank_group_bits(cmd.targetCoordinate.bankGroup);
+        std::bitset<32> bank_bits(cmd.targetCoordinate.bank);
+        std::bitset<32> row_bits(cmd.targetCoordinate.row);
+        std::bitset<32> column_bits(cmd.targetCoordinate.column);
+
+        std::size_t n = pattern.size() - 1;
+        bool is_act = (cmd.type == CmdType::ACT);
+        for (const auto descriptor : pattern) {
+            assert(n >= 0);
+
+            switch (descriptor) {
+                case H:
+                    bitset[n] = true;
+                    break;
+                case L:
+                    bitset[n] = false;
+                    break;
+                case V:
+                case X:
+                    bitset[n] = true;
+                    break;  // ToDo: Variabel machen
+
+                    // Bank bits
+                case BA0:
+                    bitset[n] = bank_bits[0];
+                    break;
+                case BA1:
+                    bitset[n] = bank_bits[1];
+                    break;
+
+                    // Bank Group bits
+                case BG0:
+                    bitset[n] = bank_group_bits[0];
+                    break;
+                case BG1:
+                    if(this->memSpec.bitWidth == 16)
+                        bitset[n] = true; // BG1 is only defined for x4 and x8 configurations
+                    else
+                        bitset[n] = bank_group_bits[1];
+                    break;
+
+                    // Row/Column bits
+                case A0:
+                    bitset[n] = is_act ? row_bits[0] : column_bits[0];
+                    break;
+                case A1:
+                    bitset[n] = is_act ? row_bits[1] : column_bits[1];
+                    break;
+                case A2:
+                    bitset[n] = is_act ? row_bits[2] : column_bits[2];
+                    break;
+                case A3:
+                    bitset[n] = is_act ? row_bits[3] : column_bits[3];
+                    break;
+                case A4:
+                    bitset[n] = is_act ? row_bits[4] : column_bits[4];
+                    break;
+                case A5:
+                    bitset[n] = is_act ? row_bits[5] : column_bits[5];
+                    break;
+                case A6:
+                    bitset[n] = is_act ? row_bits[6] : column_bits[6];
+                    break;
+                case A7:
+                    bitset[n] = is_act ? row_bits[7] : column_bits[7];
+                    break;
+                case A8:
+                    bitset[n] = is_act ? row_bits[8] : column_bits[8];
+                    break;
+                case A9:
+                    bitset[n] = is_act ? row_bits[9] : column_bits[9];
+                    break;
+                case A10:
+                    bitset[n] = row_bits[10];
+                    break;
+                case A11:
+                    bitset[n] = row_bits[11];
+                    break;
+                case A12:
+                    bitset[n] = row_bits[12];
+                    break;
+                case A13:
+                    bitset[n] = row_bits[13];
+                    break;
+                case A14:
+                    bitset[n] = row_bits[14];
+                    break;
+                case A15:
+                    bitset[n] = row_bits[15];
+                    break;
+                case A16:
+                    bitset[n] = row_bits[16];
+                    break;
+                case A17:
+                    if(this->memSpec.bitWidth == 4)
+                        bitset[n] = row_bits[17]; // A17 is only defined for x4 configuration
+                    else
+                        bitset[n] = true;
+                    break;
+                default:
+                    break;
+            }
+
+            --n;
+        }
+
+        return bitset.to_ullong();
+    }
+
     void DDR4::handle_interface(const Command &cmd) {
         auto pattern = this->getCommandPattern(cmd);
         auto length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        this->commandBus.load(cmd.timestamp, pattern, length);
+        this->commandBus.load(cmd.timestamp, pattern, length); // command and address (if any)
+
+        switch (cmd.type) {
+            case CmdType::RD:
+            case CmdType::RDA: {
+                auto length = cmd.sz_bits / readBus.get_width();
+                this->readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                readDQS_c.start(cmd.timestamp);
+                readDQS_c.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+
+                readDQS_t.start(cmd.timestamp);
+                readDQS_t.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+            }
+                break;
+            case CmdType::WR:
+            case CmdType::WRA: {
+                // TODO: Compute CRC code
+                /*
+                * 1. Data is known
+                *      - Calculate CRC
+                *      - Append to the sequence of bits
+                * 2. Data is not known
+                *
+                */
+                auto length = cmd.sz_bits / writeBus.get_width();
+                this->writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                writeDQS_c.start(cmd.timestamp);
+                writeDQS_c.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+
+                writeDQS_t.start(cmd.timestamp);
+                writeDQS_t.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+            }
+                break;
+            default:
+                break;
+        }
     }
 
     void DDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {

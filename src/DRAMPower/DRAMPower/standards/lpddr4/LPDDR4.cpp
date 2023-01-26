@@ -1,6 +1,5 @@
 #include "LPDDR4.h"
 
-#include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/standards/lpddr4/calculation_LPDDR4.h>
 #include <DRAMPower/standards/lpddr4/interface_calculation_LPDDR4.h>
 
@@ -82,10 +81,161 @@ namespace DRAMPower {
                                            });
     };
 
+    uint64_t LPDDR4::encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern) const
+    {
+        using namespace pattern_descriptor;
+
+        std::bitset<64> bitset(0);
+        std::bitset<32> bank_bits(cmd.targetCoordinate.bank);
+        std::bitset<32> row_bits(cmd.targetCoordinate.row);
+        std::bitset<32> column_bits(cmd.targetCoordinate.column);
+
+        std::size_t n = pattern.size() - 1;
+
+        for (const auto descriptor : pattern) {
+            assert(n >= 0);
+
+            switch (descriptor) {
+                case H:
+                    bitset[n] = true;
+                    break;
+                case L:
+                    bitset[n] = false;
+                    break;
+                case V:
+                case X:
+                    bitset[n] = false;
+                    break; // LPDDR4, // ToDo: Variabel machen
+                case AP:
+                    bitset[n] = false;
+                    break; // ToDo: Variabel machen
+                case BL:
+                    bitset[n] = true;
+                    break; // ToDo: Variabel machen
+
+                    // Bank bits
+                case BA0:
+                    bitset[n] = bank_bits[0];
+                    break;
+                case BA1:
+                    bitset[n] = bank_bits[1];
+                    break;
+                case BA2:
+                    bitset[n] = bank_bits[2];
+                    break;
+                case BA3:
+                    bitset[n] = bank_bits[3];
+                    break;
+                case BA4:
+                    bitset[n] = bank_bits[4];
+                    break;
+                case BA5:
+                    bitset[n] = bank_bits[5];
+                    break;
+                case BA6:
+                    bitset[n] = bank_bits[6];
+                    break;
+                case BA7:
+                    bitset[n] = bank_bits[7];
+                    break;
+                case BA8:
+                    bitset[n] = bank_bits[8];
+                    break;
+
+                    // Column bits
+                case C0: // For writes the first 4 bits are always 0, see: Standard
+                    bitset[n] = false;
+                    break;
+                case C1:
+                    bitset[n] = false;
+                    break;
+                case C2:
+                    bitset[n] = false;
+                    break;
+                case C3:
+                    bitset[n] = false;
+                    break;
+                case C4:
+                    bitset[n] = column_bits[4];
+                    break;
+                case C5:
+                    bitset[n] = column_bits[5];
+                    break;
+                case C6:
+                    bitset[n] = column_bits[6];
+                    break;
+                case C7:
+                    bitset[n] = column_bits[7];
+                    break;
+                case C8:
+                    bitset[n] = column_bits[8];
+                    break;
+                case C9:
+                    bitset[n] = column_bits[9];
+                    break;
+                case C10:
+                    bitset[n] = column_bits[10];
+                    break;
+                case C11:
+                    bitset[n] = column_bits[C11];
+                    break;
+                case C12:
+                    bitset[n] = column_bits[C12];
+                    break;
+                case C13:
+                    bitset[n] = column_bits[C13];
+                    break;
+                case C14:
+                    bitset[n] = column_bits[C14];
+                    break;
+                case C15:
+                    bitset[n] = column_bits[C15];
+                    break;
+                case C16:
+                    bitset[n] = column_bits[C16];
+                    break;
+                    // Row bits
+                case R0:
+                    bitset[n] = row_bits[0];
+                    break;
+                case R1:
+                    bitset[n] = row_bits[1];
+                    break;
+                case R2:
+                    bitset[n] = row_bits[2];
+                    break;
+                case R3:
+                    bitset[n] = row_bits[3];
+                    break;
+                case R4:
+                    bitset[n] = row_bits[4];
+                    break;
+                case R5:
+                    bitset[n] = row_bits[5];
+                    break;
+                case R6:
+                    bitset[n] = row_bits[6];
+                    break;
+                case R7:
+                    bitset[n] = row_bits[7];
+                    break;
+                case R8:
+                    bitset[n] = row_bits[8];
+                    break;
+                default:
+                    break;
+            }
+
+            --n;
+        }
+
+        return bitset.to_ullong();
+    }
+
     void LPDDR4::handle_interface(const Command &cmd) {
         auto pattern = this->getCommandPattern(cmd);
         auto length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        this->commandBus.load(cmd.timestamp, pattern, length);
+        this->commandBus.load(cmd.timestamp, pattern, length); // command and address (if any)
 
         switch (cmd.type) {
             case CmdType::RD:
@@ -112,9 +262,9 @@ namespace DRAMPower {
                 writeDQS_t.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
             }
                 break;
-        };
+        }
 
-    };
+    }
 
     void LPDDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         bank.counter.act++;

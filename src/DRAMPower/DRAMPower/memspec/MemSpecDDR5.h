@@ -63,6 +63,26 @@ namespace DRAMPower {
             double iBeta;
         };
 
+        struct MemImpedanceSpec {
+            double C_total_ck;
+            double C_total_cb;
+            double C_total_rb;
+            double C_total_wb;
+            double C_total_dqs;
+
+            double R_eq_ck;
+            double R_eq_cb;
+            double R_eq_rb;
+            double R_eq_wb;
+            double R_eq_dqs;
+        };
+
+        struct DataRateSpec {
+            uint32_t commandBusRate;
+            uint32_t dataBusRate;
+            uint32_t dqsBusRate;
+        };
+
 
         struct BankWiseParams
         {
@@ -72,6 +92,8 @@ namespace DRAMPower {
 
         uint64_t refreshMode;
         MemTimingSpec memTimingSpec;
+        MemImpedanceSpec memImpedanceSpec;
+        DataRateSpec dataRateSpec;
         std::vector<MemPowerSpec> memPowerSpec;
         BankWiseParams bwParams;
     };
