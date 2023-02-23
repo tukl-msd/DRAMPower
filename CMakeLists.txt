@@ -35,14 +35,8 @@ cmake_minimum_required(VERSION 3.10)
 # Set the project name:
 project(DRAMPower)
 
-# Configuration:
-include_directories(
-	src/
-	src/libdrampower
-)
-
 # Build:
-add_library(DRAMPower
+add_library(${PROJECT_NAME} STATIC
 	src/libdrampower/LibDRAMPower.cc
 	src/CommandAnalysis.cc
 	src/MemArchitectureSpec.cc
@@ -57,4 +51,11 @@ add_library(DRAMPower
 	src/CAHelpers.cc
 	src/CmdHandlers.cc
 	src/MemBankWiseParams.cc
+)
+
+# Configuration:
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/libdrampower
 )
