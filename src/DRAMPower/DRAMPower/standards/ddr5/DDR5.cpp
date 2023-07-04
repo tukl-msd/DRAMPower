@@ -8,12 +8,12 @@
 
 namespace DRAMPower {
 
-    DDR5::DDR5(const MemSpecDDR5 &memSpec) 
+    DDR5::DDR5(const MemSpecDDR5 &memSpec)
 		: memSpec(memSpec)
 		, ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks})
 		, commandBus{6}
 		, readBus{6}
-		, writeBus{6} 
+		, writeBus{6}
 	{
         this->registerPatterns();
 
@@ -44,35 +44,59 @@ namespace DRAMPower {
 
         // ---------------------------------:
         this->registerPattern<CmdType::ACT>({
+            // note: CID3 is mutually exclusive with R17 and depends on usage mode
+            L, L, R0, R1, R2, R3, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, CID3
         });
         this->registerPattern<CmdType::PRE>({
-                                            });
+            H, H, L, H, H, CID3, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2
+        });
         this->registerPattern<CmdType::PRESB>({
-                                            });
+            H, H, L, H, L, CID3, BA0, BA1, V, V, H, CID0, CID1, CID2
+        });
         this->registerPattern<CmdType::PREA>({
-                                             });
+            H, H, L, H, L, CID3, V, V, V, V, L, CID0, CID1, CID2
+        });
         this->registerPattern<CmdType::REFSB>({
-                                             });
+            H, H, L, L, H, CID3, BA0, BA1, V, V, H, CID0, CID1, CID2
+        });
         this->registerPattern<CmdType::REFA>({
+            H, H, L, L, H, CID3, V, V, V, V, L, CID0, CID1, CID2
                                              });
         this->registerPattern<CmdType::RD>({
-                                           });
+            H, L, H, H, H, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            C2, C3, C4, C5, C6, C7, C8, C9, C10, V, H, V, V, CID3
+        });
         this->registerPattern<CmdType::RDA>({
-                                            });
+            H, L, H, H, H, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            C2, C3, C4, C5, C6, C7, C8, C9, C10, V, L, V, V, CID3
+        });
         this->registerPattern<CmdType::WR>({
-                                           });
+            H, L, H, H, L, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            V, C3, C4, C5, C6, C7, C8, C9, C10, V, H, H, V, CID3
+        });
         this->registerPattern<CmdType::WRA>({
-                                            });
+            H, L, H, H, L, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            V, C3, C4, C5, C6, C7, C8, C9, C10, V, L, H, V, CID3
+        });
         this->registerPattern<CmdType::SREFEN>({
-                                               });
+            H, H, H, L, H, V, V, V, V, H, L, V, V, V
+        });
+
+        // Power-down mode is different in DDR5. There is no distinct PDEA and PDEP but instead it depends on
+        // bank state upon command issue. Check standard
         this->registerPattern<CmdType::PDEA>({
-                                             });
+            H, H, H, L, H, V, V, V, V, V, H, L, V, V
+        });
         this->registerPattern<CmdType::PDXA>({
-                                             });
+            H, H, H, H, H, V, V, V, V, V, V, V, V, V
+        });
         this->registerPattern<CmdType::PDEP>({
-                                             });
+            H, H, H, L, H, V, V, V, V, V, H, L, V, V
+        });
         this->registerPattern<CmdType::PDXP>({
-                                             });
+            H, H, H, H, H, V, V, V, V, V, V, V, V, V
+        });
     }
 
     void DDR5::handle_interface(const Command &cmd) {
