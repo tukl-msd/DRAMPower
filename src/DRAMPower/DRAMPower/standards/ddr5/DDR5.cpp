@@ -319,7 +319,8 @@ namespace DRAMPower {
     }
 
     interface_energy_info_t DDR5::calcInterfaceEnergy(timestamp_t timestamp) {
-		return {};
+        InterfaceCalculation_DDR5 calculation(*this);
+        return calculation.calculateEnergy(timestamp);
     }
 
     SimulationStats DDR5::getWindowStats(timestamp_t timestamp) {

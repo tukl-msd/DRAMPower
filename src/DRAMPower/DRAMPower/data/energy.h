@@ -49,12 +49,37 @@ struct interface_power_t
 {
 	double dynamicPower = 0.0;
 	double staticPower = 0.0;
+
+	interface_power_t &operator+=(const interface_power_t &rhs) {
+		dynamicPower += rhs.dynamicPower;
+		staticPower += rhs.staticPower;
+		return *this;
+	}
+
+	friend interface_power_t operator+(interface_power_t lhs, const interface_power_t &rhs) {
+		lhs += rhs;
+		return lhs;
+	}
 };
+
+
 
 struct interface_energy_info_t
 {
 	interface_power_t controller;
 	interface_power_t dram;
+
+    interface_energy_info_t &operator+=(const interface_energy_info_t &rhs) {
+        controller += rhs.controller;
+        dram += rhs.dram;
+        return *this;
+    }
+
+	friend interface_energy_info_t operator+(interface_energy_info_t lhs,
+                                             const interface_energy_info_t &rhs) {
+        lhs += rhs;
+        return lhs;
+    }
 };
 
 };
