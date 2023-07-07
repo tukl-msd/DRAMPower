@@ -23,7 +23,7 @@ class InterfaceCalculation_DDR5 {
     double t_CK_;
     double VDDQ_;
 
-    interface_energy_info_t calcClockEnergy();
+    interface_energy_info_t calcClockEnergy(const SimulationStats &stats);
     interface_energy_info_t calcDQSEnergy(const SimulationStats &stats);
     interface_energy_info_t calcDQEnergy(const SimulationStats &stats);
     interface_energy_info_t calcCAEnergy(const SimulationStats &stats);

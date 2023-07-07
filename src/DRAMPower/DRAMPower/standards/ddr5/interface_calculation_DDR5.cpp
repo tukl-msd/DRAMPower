@@ -35,9 +35,20 @@ interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(timestamp_t t
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy() {
-    // TODO
+interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
+
+    // TODO: Review these after the clock is properly accounted for in the DDR5 commands
+    // Since here we're adding 0's + 1's to account for the fact the clock is differential,
+    // so the total number of power-consuming bits is all of them, however, the actual SimulationStats
+    // obtained from the DDR5 may already account for this by adding both clocks (_t and _c) into a single
+    // stats struct
+    result.controller.staticPower =
+        2.0 * calc_static_power(stats.clockStats.zeroes + stats.clockStats.ones,
+                                impedances_.R_eq_ck, t_CK_, VDDQ_);
+    result.controller.dynamicPower =
+        2.0 * calc_dynamic_power(stats.clockStats.zeroes_to_ones + stats.clockStats.ones_to_zeroes,
+                                 impedances_.C_total_ck, t_CK_, VDDQ_);
 
     return result;
 }
