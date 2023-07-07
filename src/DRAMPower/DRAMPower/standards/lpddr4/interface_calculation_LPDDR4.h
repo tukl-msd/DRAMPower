@@ -13,7 +13,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace DRAMPower 
+namespace DRAMPower
 {
 
 class DRAM;
@@ -26,14 +26,13 @@ private:
 
 	MemSpecLPDDR4::MemImpedanceSpec impedanceSpec;
 private:
-	// nur f�r LPDDR4
-	double calc_static_power(uint64_t ones, double R_eq, bool ddr) { 
+	double calc_static_power(uint64_t ones, double R_eq, bool ddr) {
 		double ddr_coeff = ddr ? 0.5 : 1.0;
-		return ones * (VDDQ*VDDQ) * ddr_coeff * t_CK / R_eq; 
+		return ones * (VDDQ*VDDQ) * ddr_coeff * t_CK / R_eq;
 	};
 
-	double calc_dynamic_power(uint64_t zero_to_ones, double C_total) { 
-		return zero_to_ones * (C_total) * 0.5 * (VDDQ*VDDQ); 
+	double calc_dynamic_power(uint64_t zero_to_ones, double C_total) {
+		return zero_to_ones * (C_total) * 0.5 * (VDDQ*VDDQ);
 	};
 
 public:
@@ -48,7 +47,6 @@ public:
 	{
 		interface_energy_info_t energy;
 
-		//TODO: f�r andere Standards anpassen
 		energy.controller.staticPower += calc_static_power(clock_stats.ones, impedanceSpec.R_eq_ck, true);
 		energy.controller.dynamicPower += calc_dynamic_power(clock_stats.ones_to_zeroes, impedanceSpec.C_total_ck);
 
@@ -59,7 +57,6 @@ public:
 	{
 		interface_energy_info_t energy;
 
-		//TODO: f�r andere Standards anpassen
 		energy.dram.staticPower += calc_static_power(stats.readDQSStats.ones, impedanceSpec.R_eq_dqs, true);
 		energy.dram.dynamicPower += calc_dynamic_power(stats.readDQSStats.ones_to_zeroes, impedanceSpec.C_total_dqs);
 
@@ -73,7 +70,6 @@ public:
 	{
 		interface_energy_info_t energy;
 
-		//TODO: f�r andere Standards anpassen
 		energy.controller.staticPower += calc_static_power(bus_stats.commandBus.ones, impedanceSpec.R_eq_cb, false);
 		energy.controller.staticPower += calc_static_power(bus_stats.writeBus.ones, impedanceSpec.R_eq_wb, true);
 		energy.dram.staticPower += calc_static_power(bus_stats.readBus.ones, impedanceSpec.R_eq_rb, true);
