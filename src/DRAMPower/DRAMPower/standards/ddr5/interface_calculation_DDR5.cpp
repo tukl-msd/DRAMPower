@@ -21,7 +21,7 @@ InterfaceCalculation_DDR5::InterfaceCalculation_DDR5(DDR5 &ddr)
 interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(timestamp_t timestamp) {
     SimulationStats stats = ddr_.getWindowStats(timestamp);
 
-    interface_energy_info_t clock_energy = calcClockEnergy();
+    interface_energy_info_t clock_energy = calcClockEnergy(stats);
     interface_energy_info_t DQS_energy = calcDQSEnergy(stats);
     interface_energy_info_t DQ_energy = calcDQEnergy(stats);
     interface_energy_info_t CA_energy = calcCAEnergy(stats);
@@ -48,7 +48,7 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy(const Simulat
                                 impedances_.R_eq_ck, t_CK_, VDDQ_);
     result.controller.dynamicPower =
         2.0 * calc_dynamic_power(stats.clockStats.zeroes_to_ones + stats.clockStats.ones_to_zeroes,
-                                 impedances_.C_total_ck, t_CK_, VDDQ_);
+                                 impedances_.C_total_ck, VDDQ_);
 
     return result;
 }

@@ -1,10 +1,11 @@
-#include "DDR5.h"
+#include "DRAMPower/standards/ddr5/DDR5.h"
 
-#include <DRAMPower/command/Pattern.h>
-#include <DRAMPower/standards/ddr5/calculation_DDR5.h>
-#include <DRAMPower/standards/ddr5/interface_calculation_DDR5.h>
+#include <algorithm>
 #include <iostream>
 
+#include "DRAMPower/command/Pattern.h"
+#include "DRAMPower/standards/ddr5/calculation_DDR5.h"
+#include "DRAMPower/standards/ddr5/interface_calculation_DDR5.h"
 
 namespace DRAMPower {
 
@@ -366,4 +367,18 @@ namespace DRAMPower {
         return getWindowStats(getLastCommandTime());
     }
 
+    timestamp_t DDR5::earliestPossiblePowerDownEntryTime(Rank &rank) {
+        timestamp_t entryTime = 0;
+
+        for (const auto &bank : rank.banks) {
+            entryTime = std::max(
+                {entryTime,
+                 bank.counter.act == 0 ? 0
+                                       : bank.cycles.act.get_start() + memSpec.memTimingSpec.tRCD,
+                 bank.counter.pre == 0 ? 0 : bank.latestPre + memSpec.memTimingSpec.tRP,
+                 bank.refreshEndTime});
+        }
+
+        return entryTime;
+    };
 }

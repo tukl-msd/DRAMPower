@@ -2,6 +2,7 @@
 #define DRAMPOWER_UTIL_COMMAND_COUNTER_H
 
 #include <vector>
+#include <cassert>
 
 namespace DRAMPower::util
 {
@@ -20,7 +21,7 @@ public:
 public:
 	void inc(CommandEnum cmd) {
 		assert(counter.size() > static_cast<std::size_t>(cmd));
-		counter[static_cast<std::size_t>(cmd)] += 1; 
+		counter[static_cast<std::size_t>(cmd)] += 1;
 	};
 
 	std::size_t get(CommandEnum cmd) {
