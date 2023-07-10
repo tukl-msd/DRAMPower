@@ -12,9 +12,9 @@ namespace DRAMPower {
     DDR5::DDR5(const MemSpecDDR5 &memSpec)
 		: memSpec(memSpec)
 		, ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks})
-		, commandBus{6}
-		, readBus{6}
-		, writeBus{6}
+		, commandBus{14}
+		, readBus{16}  // x4, x8, x16 mode?
+		, writeBus{16}
 	{
         this->registerPatterns();
 

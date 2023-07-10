@@ -76,7 +76,7 @@ namespace DRAMPower {
             double R_eq_rb;
             double R_eq_wb;
             double R_eq_dqs;
-	    };
+        };
 
 
         struct BankWiseParams
