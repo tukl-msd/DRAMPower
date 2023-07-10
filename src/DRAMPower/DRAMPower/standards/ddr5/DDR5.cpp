@@ -360,6 +360,8 @@ namespace DRAMPower {
 
         stats.commandBus = this->commandBus.get_stats(timestamp);
 
+        stats.clockStats = this->clock_.get_stats_at(timestamp) + this->clockInverted_.get_stats_at(timestamp);
+
         return stats;
     }
 

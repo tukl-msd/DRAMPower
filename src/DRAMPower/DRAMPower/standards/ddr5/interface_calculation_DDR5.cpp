@@ -25,6 +25,7 @@ interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(timestamp_t t
     interface_energy_info_t DQS_energy = calcDQSEnergy(stats);
     interface_energy_info_t DQ_energy = calcDQEnergy(stats);
     interface_energy_info_t CA_energy = calcCAEnergy(stats);
+    // TODO: CA Bus inversion energy
 
     interface_energy_info_t result;
     result += clock_energy;
@@ -38,17 +39,10 @@ interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(timestamp_t t
 interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
 
-    // TODO: Review these after the clock is properly accounted for in the DDR5 commands
-    // Since here we're adding 0's + 1's to account for the fact the clock is differential,
-    // so the total number of power-consuming bits is all of them, however, the actual SimulationStats
-    // obtained from the DDR5 may already account for this by adding both clocks (_t and _c) into a single
-    // stats struct
     result.controller.staticPower =
-        2.0 * calc_static_power(stats.clockStats.zeroes + stats.clockStats.ones,
-                                impedances_.R_eq_ck, t_CK_, VDDQ_);
+        2.0 * calc_static_power(stats.clockStats.ones, impedances_.R_eq_ck, t_CK_, VDDQ_);
     result.controller.dynamicPower =
-        2.0 * calc_dynamic_power(stats.clockStats.zeroes_to_ones + stats.clockStats.ones_to_zeroes,
-                                 impedances_.C_total_ck, VDDQ_);
+        2.0 * calc_dynamic_power(stats.clockStats.zeroes_to_ones, impedances_.C_total_ck, VDDQ_);
 
     return result;
 }

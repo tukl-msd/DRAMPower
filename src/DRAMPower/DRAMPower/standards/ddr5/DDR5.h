@@ -103,6 +103,7 @@ class DDR5 : public dram_base<CmdType> {
 
    private:
     util::Clock clock_;
+    util::Clock clockInverted_;
 };
 
 }  // namespace DRAMPower
