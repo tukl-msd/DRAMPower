@@ -43,7 +43,7 @@ public:
 	};
 
 	// Currents and Voltages:
-	struct MemPowerSpec 
+	struct MemPowerSpec
 	{
         double vDDX;
         double iDD0X;
@@ -80,7 +80,7 @@ public:
 		uint32_t dqsBusRate;
 	};
 
-	struct BankWiseParams 
+	struct BankWiseParams
 	{
 		// Set of possible PASR modes
 		enum pasrModes {
@@ -115,6 +115,9 @@ public:
 	DataRateSpec dataRateSpec;
 	std::vector<MemPowerSpec> memPowerSpec;
 	BankWiseParams bwParams;
+
+private:
+    void parseImpedanceSpec(nlohmann::json &memspec);
 };
 
 }

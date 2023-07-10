@@ -4,7 +4,7 @@ using json = nlohmann::json;
 
 
 MemSpecDDR5::MemSpecDDR5(nlohmann::json &memspec)
-        : MemSpec(memspec)
+        : MemSpec(memspec), memImpedanceSpec{}
 {
     numberOfBankGroups = parseUint(memspec["memarchitecturespec"]["nbrOfBankGroups"],"nbrOfBankGroups");
     banksPerGroup = numberOfBanks / numberOfBankGroups;
@@ -86,6 +86,8 @@ MemSpecDDR5::MemSpecDDR5(nlohmann::json &memspec)
     memTimingSpec.tBurst = burstLength/dataRate;
     prechargeOffsetRD      =  memTimingSpec.tRTP;
     prechargeOffsetWR      =  memTimingSpec.tBurst + memTimingSpec.tWL + memTimingSpec.tWR;
+
+    parseImpedanceSpec(memspec);
 }
 
 // TODO: is this being used?
@@ -106,5 +108,27 @@ uint64_t MemSpecDDR5::timeToCompletion(DRAMPower::CmdType type)
     return offset;
 }
 
+void MemSpecDDR5::parseImpedanceSpec(nlohmann::json &memspec) {
+    if (!memspec.contains("memimpedancespec")) {
+        // Leaving it to default-initialize to 0 would break static power (div by 0)
+        memImpedanceSpec = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+        return;
+    }
 
+    memImpedanceSpec.C_total_cb =
+        parseUdouble(memspec["memimpedancespec"]["C_total_cb"], "C_total_cb");
+    memImpedanceSpec.C_total_ck =
+        parseUdouble(memspec["memimpedancespec"]["C_total_ck"], "C_total_ck");
+    memImpedanceSpec.C_total_dqs =
+        parseUdouble(memspec["memimpedancespec"]["C_total_dqs"], "C_total_dqs");
+    memImpedanceSpec.C_total_rb =
+        parseUdouble(memspec["memimpedancespec"]["C_total_rb"], "C_total_rb");
+    memImpedanceSpec.C_total_wb =
+        parseUdouble(memspec["memimpedancespec"]["C_total_wb"], "C_total_wb");
 
+    memImpedanceSpec.R_eq_cb = parseUdouble(memspec["memimpedancespec"]["R_eq_cb"], "R_eq_cb");
+    memImpedanceSpec.R_eq_ck = parseUdouble(memspec["memimpedancespec"]["R_eq_ck"], "R_eq_ck");
+    memImpedanceSpec.R_eq_dqs = parseUdouble(memspec["memimpedancespec"]["R_eq_dqs"], "R_eq_dqs");
+    memImpedanceSpec.R_eq_rb = parseUdouble(memspec["memimpedancespec"]["R_eq_rb"], "R_eq_rb");
+    memImpedanceSpec.R_eq_wb = parseUdouble(memspec["memimpedancespec"]["R_eq_wb"], "R_eq_wb");
+}

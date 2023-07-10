@@ -90,6 +90,9 @@ namespace DRAMPower {
         MemImpedanceSpec memImpedanceSpec;
         std::vector<MemPowerSpec> memPowerSpec;
         BankWiseParams bwParams;
+
+    private:
+        void parseImpedanceSpec(nlohmann::json &memspec);
     };
 
 }
