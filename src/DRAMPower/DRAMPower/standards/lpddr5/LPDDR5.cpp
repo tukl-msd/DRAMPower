@@ -38,7 +38,6 @@ namespace DRAMPower {
         this->registerRankHandler<CmdType::DSMEN>(&LPDDR5::handleDSMEntry);
         this->registerRankHandler<CmdType::DSMEX>(&LPDDR5::handleDSMExit);
 
-
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
 
@@ -360,4 +359,18 @@ namespace DRAMPower {
         return getWindowStats(getLastCommandTime());
     }
 
+    timestamp_t LPDDR5::earliestPossiblePowerDownEntryTime(Rank &rank) {
+        timestamp_t entryTime = 0;
+
+        for (const auto &bank : rank.banks) {
+            entryTime = std::max(
+                {entryTime,
+                 bank.counter.act == 0 ? 0
+                                       : bank.cycles.act.get_start() + memSpec.memTimingSpec.tRCD,
+                 bank.counter.pre == 0 ? 0 : bank.latestPre + memSpec.memTimingSpec.tRP,
+                 bank.refreshEndTime});
+        }
+
+        return entryTime;
+    };
 }
