@@ -11,7 +11,7 @@ namespace DRAMPower {
 	LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
 		: memSpec(memSpec)
 		, ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks })
-		, commandBus{6}
+		, commandBus{7}
 		, readBus{6}
 		, writeBus{6}
 	{
@@ -43,53 +43,90 @@ namespace DRAMPower {
 
     void LPDDR5::registerPatterns() {
         using namespace pattern_descriptor;
-
+        // All commands consider 16B bank architecture mode
         // ---------------------------------:
+
+        // LPDDR5 needs 2 commands for activation (ACT-1 and ACT-2)
+        // ACT-1 must be followed by ACT-2 in almost every case (CAS, WRITE,
+        // MASK WRITE and READ commands can be issued inbetween ACT-1 and ACT-2)
+        // Here we consider ACT = ACT-1 + ACT-2, not considering interleaving
         this->registerPattern<CmdType::ACT>({
-
-                                            });
+            // ACT-1
+            H, H, H, R14, R15, R16, R17,
+            BA0, BA1, BA2, BA3, R11, R12, R13,
+            // ACT-2
+            H, H, L, R7, R8, R9, R10,
+            R0, R1, R2, R3, R4, R5, R6
+        });
         this->registerPattern<CmdType::PRE>({
-
-                                            });
-        this->registerPattern<CmdType::PRESB>({
-
-                                              });
+            L, L, L, H, H, H, H,
+            BA0, BA1, BA2, BA3, V, V, L
+        });
         this->registerPattern<CmdType::PREA>({
-
-                                             });
-        this->registerPattern<CmdType::REFSB>({
-
-                                              });
+            L, L, L, H, H, H, H,
+            BA0, BA1, BA2, BA3, V, V, H
+        });
+        // For refresh commands LPDDR5 has RFM (Refresh Management)
+        // Considering RFM is disabled, CA3 is V
+        this->registerPattern<CmdType::REFB>({
+            L, L, L, H, H, H, L,
+            BA0, BA1, BA2, V, V, V, L
+        });
         this->registerPattern<CmdType::REFA>({
-
-                                             });
+            L, L, L, H, H, H, L,
+            BA0, BA1, BA2, V, V, V, H
+        });
+        this->registerPattern<CmdType::REFP2B>({
+            // TODO
+        });
         this->registerPattern<CmdType::RD>({
-
-                                           });
+            H, H, L, C0, C3, C4, C5,
+            BA0, BA1, BA2, BA3, C1, C2, L
+        });
         this->registerPattern<CmdType::RDA>({
-
-                                            });
+            H, H, L, C0, C3, C4, C5,
+            BA0, BA1, BA2, BA3, C1, C2, H
+        });
         this->registerPattern<CmdType::WR>({
-
-                                           });
+            L, H, H, C0, C3, C4, C5,
+            BA0, BA1, BA2, BA3, C1, C2, L
+        });
         this->registerPattern<CmdType::WRA>({
-
-                                            });
+            L, H, H, C0, C3, C4, C5,
+            BA0, BA1, BA2, BA3, C1, C2, H
+        });
         this->registerPattern<CmdType::SREFEN>({
-
-                                               });
+            L, L, L, H, L, H, H,
+            V, V, V, V, V, L, L
+        });
+        this->registerPattern<CmdType::SREFEX>({
+            L, L, L, H, L, H, L,
+            V, V, V, V, V, V, V
+        });
         this->registerPattern<CmdType::PDEA>({
-
-                                             });
+            L, L, L, H, L, H, H,
+            V, V, V, V, V, L, H
+        });
         this->registerPattern<CmdType::PDXA>({
-
-                                             });
+            L, L, L, H, L, H, L,
+            V, V, V, V, V, V, V
+        });
         this->registerPattern<CmdType::PDEP>({
-
-                                             });
+            L, L, L, H, L, H, H,
+            V, V, V, V, V, L, H
+        });
         this->registerPattern<CmdType::PDXP>({
-
-                                             });
+            L, L, L, H, L, H, L,
+            V, V, V, V, V, V, V
+        });
+        this->registerPattern<CmdType::DSMEN>({
+            L, L, L, H, L, H, H,
+            V, V, V, V, V, H, L
+        });
+        this->registerPattern<CmdType::DSMEX>({
+            L, L, L, H, L, H, L,
+            V, V, V, V, V, V, V
+        });
     }
 
     void LPDDR5::handle_interface(const Command &cmd) {
