@@ -102,8 +102,12 @@ class DDR5 : public dram_base<CmdType> {
     void registerPatterns();
 
    private:
-    util::Clock clock_;
-    util::Clock clockInverted_;
+    util::Clock CK_t_;
+    util::Clock CK_c_;
+    util::Clock readDQS_c_;
+    util::Clock readDQS_t_;
+    util::Clock writeDQS_c_;
+    util::Clock writeDQS_t_;
 };
 
 }  // namespace DRAMPower

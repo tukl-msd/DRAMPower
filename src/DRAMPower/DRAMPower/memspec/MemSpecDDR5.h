@@ -78,6 +78,11 @@ namespace DRAMPower {
             double R_eq_dqs;
         };
 
+        struct DataRateSpec {
+            uint32_t commandBusRate;
+            uint32_t dataBusRate;
+            uint32_t dqsBusRate;
+        };
 
         struct BankWiseParams
         {
@@ -88,11 +93,13 @@ namespace DRAMPower {
         uint64_t refreshMode;
         MemTimingSpec memTimingSpec;
         MemImpedanceSpec memImpedanceSpec;
+        DataRateSpec dataRateSpec;
         std::vector<MemPowerSpec> memPowerSpec;
         BankWiseParams bwParams;
 
     private:
         void parseImpedanceSpec(nlohmann::json &memspec);
+        void parseDataRateSpec(nlohmann::json &memspec);
     };
 
 }

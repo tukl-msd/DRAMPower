@@ -10,12 +10,15 @@
 namespace DRAMPower {
 
     DDR5::DDR5(const MemSpecDDR5 &memSpec)
-		: memSpec(memSpec)
-		, ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks})
-		, commandBus{14}
-		, readBus{16}  // x4, x8, x16 mode?
-		, writeBus{16}
-	{
+        : memSpec(memSpec),
+        ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks}),
+        commandBus{14},
+        readBus{16},  // x4, x8, x16 mode?
+        writeBus{16},
+        readDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
+        readDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
+        writeDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
+        writeDQS_c_(memSpec.dataRateSpec.dqsBusRate, true) {
         this->registerPatterns();
 
         this->registerBankHandler<CmdType::ACT>(&DDR5::handleAct);
@@ -37,7 +40,8 @@ namespace DRAMPower {
         this->registerRankHandler<CmdType::PDXA>(&DDR5::handlePowerDownActExit);
         this->registerRankHandler<CmdType::PDXP>(&DDR5::handlePowerDownPreExit);
 
-        routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        routeCommand<CmdType::END_OF_SIMULATION>(
+            [this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
 
     void DDR5::registerPatterns() {
@@ -101,9 +105,34 @@ namespace DRAMPower {
     }
 
     void DDR5::handle_interface(const Command &cmd) {
-        auto pattern = this->getCommandPattern(cmd);
-        auto length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        this->commandBus.load(cmd.timestamp, pattern, length);
+        auto pattern = getCommandPattern(cmd);
+        auto length = getPattern(cmd.type).size() / commandBus.get_width();
+        commandBus.load(cmd.timestamp, pattern, length);
+
+        switch (cmd.type) {
+            case CmdType::RD:
+            case CmdType::RDA: {
+                auto length = cmd.sz_bits / readBus.get_width();
+                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                readDQS_c_.start(cmd.timestamp);
+                readDQS_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+
+                readDQS_t_.start(cmd.timestamp);
+                readDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+            } break;
+            case CmdType::WR:
+            case CmdType::WRA: {
+                auto length = cmd.sz_bits / writeBus.get_width();
+                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                writeDQS_c_.start(cmd.timestamp);
+                writeDQS_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+
+                writeDQS_t_.start(cmd.timestamp);
+                writeDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+            } break;
+        };
     }
 
     void DDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -358,9 +387,13 @@ namespace DRAMPower {
         stats.total.cycles.deepSleepMode = rank.cycles.deepSleepMode.get_count_at(timestamp);
         stats.total.cycles.selfRefresh = rank.cycles.sref.get_count_at(timestamp);
 
-        stats.commandBus = this->commandBus.get_stats(timestamp);
+        stats.commandBus = commandBus.get_stats(timestamp);
+        stats.readBus = readBus.get_stats(timestamp);
+        stats.writeBus = writeBus.get_stats(timestamp);
 
-        stats.clockStats = this->clock_.get_stats_at(timestamp) + this->clockInverted_.get_stats_at(timestamp);
+        stats.clockStats = CK_t_.get_stats_at(timestamp) + CK_c_.get_stats_at(timestamp);
+        stats.readDQSStats = readDQS_c_.get_stats_at(timestamp) + readDQS_t_.get_stats_at(timestamp);
+        stats.writeDQSStats = writeDQS_c_.get_stats_at(timestamp) + writeDQS_t_.get_stats_at(timestamp);
 
         return stats;
     }
