@@ -15,17 +15,12 @@
 #include "DRAMPower/memspec/MemSpec.h"
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
 #include "DRAMPower/util/bus.h"
+#include "DRAMPower/util/clock.h"
 #include "DRAMPower/util/cycle_stats.h"
 
 namespace DRAMPower {
 class LPDDR5 : public dram_base<CmdType> {
    public:
-    MemSpecLPDDR5 memSpec;
-    std::vector<Rank> ranks;
-    util::Bus commandBus;
-    util::Bus readBus;
-    util::Bus writeBus;
-
     LPDDR5(const MemSpecLPDDR5& memSpec);
     virtual ~LPDDR5() = default;
 
@@ -58,6 +53,12 @@ class LPDDR5 : public dram_base<CmdType> {
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp);
     SimulationStats getWindowStats(timestamp_t timestamp);
     SimulationStats getStats();
+
+    MemSpecLPDDR5 memSpec;
+    std::vector<Rank> ranks;
+    util::Bus commandBus;
+    util::Bus readBus;
+    util::Bus writeBus;
 
    private:
     template <dram_base::commandEnum_t Cmd, typename Func>
@@ -100,6 +101,11 @@ class LPDDR5 : public dram_base<CmdType> {
 
     void registerPatterns();
     timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
+
+    util::Clock CK_t_;
+    util::Clock CK_c_;
+    util::Clock WCK_t_;
+    util::Clock WCK_c_;
 };
 };  // namespace DRAMPower
 
