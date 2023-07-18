@@ -106,6 +106,8 @@ class LPDDR5 : public dram_base<CmdType> {
     util::Clock CK_c_;
     util::Clock WCK_t_;
     util::Clock WCK_c_;
+    util::Clock readDQS_c_;
+    util::Clock readDQS_t_;
 };
 };  // namespace DRAMPower
 

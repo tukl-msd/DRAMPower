@@ -133,6 +133,43 @@ namespace DRAMPower {
         auto pattern = this->getCommandPattern(cmd);
         auto length = this->getPattern(cmd.type).size() / commandBus.get_width();
         this->commandBus.load(cmd.timestamp, pattern, length);
+
+        switch (cmd.type) {
+            case CmdType::RD:
+            case CmdType::RDA:
+                auto length = cmd.sz_bits / readBus.get_width();
+                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                readDQS_c_.start(cmd.timestamp);
+                readDQS_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+
+                readDQS_t_.start(cmd.timestamp);
+                readDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+
+                // WCK also during reads
+                if (!memSpec.wckAlwaysOnMode) {
+                    WCK_c_.start(cmd.timestamp);
+                    WCK_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+
+                    WCK_t_.start(cmd.timestamp);
+                    WCK_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                }
+
+                break;
+            case CmdType::WR:
+            case CmdType::WRA:
+                auto length = cmd.sz_bits / writeBus.get_width();
+                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                if (!memSpec.wckAlwaysOnMode) {
+                    WCK_c_.start(cmd.timestamp);
+                    WCK_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+
+                    WCK_t_.start(cmd.timestamp);
+                    WCK_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                }
+                break;
+        };
     }
 
     void LPDDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -388,6 +425,14 @@ namespace DRAMPower {
         stats.total.cycles.deepSleepMode = rank.cycles.deepSleepMode.get_count_at(timestamp);
 
         stats.commandBus = this->commandBus.get_stats(timestamp);
+
+        stats.commandBus = commandBus.get_stats(timestamp);
+        stats.readBus = readBus.get_stats(timestamp);
+        stats.writeBus = writeBus.get_stats(timestamp);
+
+        stats.clockStats = CK_t_.get_stats_at(timestamp) + CK_c_.get_stats_at(timestamp);
+        stats.WClockStats = WCK_t_.get_stats_at(timestamp) + WCK_c_.get_stats_at(timestamp);
+        stats.readDQSStats = readDQS_c_.get_stats_at(timestamp) + readDQS_t_.get_stats_at(timestamp);
 
         return stats;
     }

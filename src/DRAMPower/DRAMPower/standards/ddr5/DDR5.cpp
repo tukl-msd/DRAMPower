@@ -111,7 +111,7 @@ namespace DRAMPower {
 
         switch (cmd.type) {
             case CmdType::RD:
-            case CmdType::RDA: {
+            case CmdType::RDA:
                 auto length = cmd.sz_bits / readBus.get_width();
                 readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
@@ -120,9 +120,9 @@ namespace DRAMPower {
 
                 readDQS_t_.start(cmd.timestamp);
                 readDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
-            } break;
+                break;
             case CmdType::WR:
-            case CmdType::WRA: {
+            case CmdType::WRA:
                 auto length = cmd.sz_bits / writeBus.get_width();
                 writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
@@ -131,7 +131,7 @@ namespace DRAMPower {
 
                 writeDQS_t_.start(cmd.timestamp);
                 writeDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
-            } break;
+                break;
         };
     }
 
