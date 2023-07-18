@@ -1,20 +1,24 @@
-#include "DDR5.h"
+#include "DRAMPower/standards/ddr5/DDR5.h"
 
-#include <DRAMPower/command/Pattern.h>
-#include <DRAMPower/standards/ddr5/calculation_DDR5.h>
-#include <DRAMPower/standards/ddr5/interface_calculation_DDR5.h>
+#include <algorithm>
 #include <iostream>
 
+#include "DRAMPower/command/Pattern.h"
+#include "DRAMPower/standards/ddr5/calculation_DDR5.h"
+#include "DRAMPower/standards/ddr5/interface_calculation_DDR5.h"
 
 namespace DRAMPower {
 
-    DDR5::DDR5(const MemSpecDDR5 &memSpec) 
-		: memSpec(memSpec)
-		, ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks})
-		, commandBus{6}
-		, readBus{6}
-		, writeBus{6} 
-	{
+    DDR5::DDR5(const MemSpecDDR5 &memSpec)
+        : memSpec(memSpec),
+        ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks}),
+        commandBus{14},
+        readBus{16},  // x4, x8, x16 mode?
+        writeBus{16},
+        readDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
+        readDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
+        writeDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
+        writeDQS_c_(memSpec.dataRateSpec.dqsBusRate, true) {
         this->registerPatterns();
 
         this->registerBankHandler<CmdType::ACT>(&DDR5::handleAct);
@@ -36,7 +40,8 @@ namespace DRAMPower {
         this->registerRankHandler<CmdType::PDXA>(&DDR5::handlePowerDownActExit);
         this->registerRankHandler<CmdType::PDXP>(&DDR5::handlePowerDownPreExit);
 
-        routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        routeCommand<CmdType::END_OF_SIMULATION>(
+            [this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
 
     void DDR5::registerPatterns() {
@@ -44,41 +49,90 @@ namespace DRAMPower {
 
         // ---------------------------------:
         this->registerPattern<CmdType::ACT>({
+            // note: CID3 is mutually exclusive with R17 and depends on usage mode
+            L, L, R0, R1, R2, R3, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, CID3
         });
         this->registerPattern<CmdType::PRE>({
-                                            });
+            H, H, L, H, H, CID3, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2
+        });
         this->registerPattern<CmdType::PRESB>({
-                                            });
+            H, H, L, H, L, CID3, BA0, BA1, V, V, H, CID0, CID1, CID2
+        });
         this->registerPattern<CmdType::PREA>({
-                                             });
+            H, H, L, H, L, CID3, V, V, V, V, L, CID0, CID1, CID2
+        });
         this->registerPattern<CmdType::REFSB>({
-                                             });
+            H, H, L, L, H, CID3, BA0, BA1, V, V, H, CID0, CID1, CID2
+        });
         this->registerPattern<CmdType::REFA>({
+            H, H, L, L, H, CID3, V, V, V, V, L, CID0, CID1, CID2
                                              });
         this->registerPattern<CmdType::RD>({
-                                           });
+            H, L, H, H, H, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            C2, C3, C4, C5, C6, C7, C8, C9, C10, V, H, V, V, CID3
+        });
         this->registerPattern<CmdType::RDA>({
-                                            });
+            H, L, H, H, H, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            C2, C3, C4, C5, C6, C7, C8, C9, C10, V, L, V, V, CID3
+        });
         this->registerPattern<CmdType::WR>({
-                                           });
+            H, L, H, H, L, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            V, C3, C4, C5, C6, C7, C8, C9, C10, V, H, H, V, CID3
+        });
         this->registerPattern<CmdType::WRA>({
-                                            });
+            H, L, H, H, L, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            V, C3, C4, C5, C6, C7, C8, C9, C10, V, L, H, V, CID3
+        });
         this->registerPattern<CmdType::SREFEN>({
-                                               });
+            H, H, H, L, H, V, V, V, V, H, L, V, V, V
+        });
+
+        // Power-down mode is different in DDR5. There is no distinct PDEA and PDEP but instead it depends on
+        // bank state upon command issue. Check standard
         this->registerPattern<CmdType::PDEA>({
-                                             });
+            H, H, H, L, H, V, V, V, V, V, H, L, V, V
+        });
         this->registerPattern<CmdType::PDXA>({
-                                             });
+            H, H, H, H, H, V, V, V, V, V, V, V, V, V
+        });
         this->registerPattern<CmdType::PDEP>({
-                                             });
+            H, H, H, L, H, V, V, V, V, V, H, L, V, V
+        });
         this->registerPattern<CmdType::PDXP>({
-                                             });
+            H, H, H, H, H, V, V, V, V, V, V, V, V, V
+        });
     }
 
     void DDR5::handle_interface(const Command &cmd) {
-        auto pattern = this->getCommandPattern(cmd);
-        auto length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        this->commandBus.load(cmd.timestamp, pattern, length);
+        auto pattern = getCommandPattern(cmd);
+        auto length = getPattern(cmd.type).size() / commandBus.get_width();
+        commandBus.load(cmd.timestamp, pattern, length);
+
+        switch (cmd.type) {
+            case CmdType::RD:
+            case CmdType::RDA: {
+                auto length = cmd.sz_bits / readBus.get_width();
+                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                readDQS_c_.start(cmd.timestamp);
+                readDQS_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+
+                readDQS_t_.start(cmd.timestamp);
+                readDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+            } break;
+            case CmdType::WR:
+            case CmdType::WRA: {
+                auto length = cmd.sz_bits / writeBus.get_width();
+                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                writeDQS_c_.start(cmd.timestamp);
+                writeDQS_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+
+                writeDQS_t_.start(cmd.timestamp);
+                writeDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+            } break;
+        };
     }
 
     void DDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -295,7 +349,8 @@ namespace DRAMPower {
     }
 
     interface_energy_info_t DDR5::calcInterfaceEnergy(timestamp_t timestamp) {
-		return {};
+        InterfaceCalculation_DDR5 calculation(*this);
+        return calculation.calculateEnergy(timestamp);
     }
 
     SimulationStats DDR5::getWindowStats(timestamp_t timestamp) {
@@ -332,7 +387,13 @@ namespace DRAMPower {
         stats.total.cycles.deepSleepMode = rank.cycles.deepSleepMode.get_count_at(timestamp);
         stats.total.cycles.selfRefresh = rank.cycles.sref.get_count_at(timestamp);
 
-        stats.commandBus = this->commandBus.get_stats(timestamp);
+        stats.commandBus = commandBus.get_stats(timestamp);
+        stats.readBus = readBus.get_stats(timestamp);
+        stats.writeBus = writeBus.get_stats(timestamp);
+
+        stats.clockStats = CK_t_.get_stats_at(timestamp) + CK_c_.get_stats_at(timestamp);
+        stats.readDQSStats = readDQS_c_.get_stats_at(timestamp) + readDQS_t_.get_stats_at(timestamp);
+        stats.writeDQSStats = writeDQS_c_.get_stats_at(timestamp) + writeDQS_t_.get_stats_at(timestamp);
 
         return stats;
     }
@@ -341,4 +402,18 @@ namespace DRAMPower {
         return getWindowStats(getLastCommandTime());
     }
 
+    timestamp_t DDR5::earliestPossiblePowerDownEntryTime(Rank &rank) {
+        timestamp_t entryTime = 0;
+
+        for (const auto &bank : rank.banks) {
+            entryTime = std::max(
+                {entryTime,
+                 bank.counter.act == 0 ? 0
+                                       : bank.cycles.act.get_start() + memSpec.memTimingSpec.tRCD,
+                 bank.counter.pre == 0 ? 0 : bank.latestPre + memSpec.memTimingSpec.tRP,
+                 bank.refreshEndTime});
+        }
+
+        return entryTime;
+    };
 }

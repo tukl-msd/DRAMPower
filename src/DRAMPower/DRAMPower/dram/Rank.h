@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <cassert>
 
 namespace DRAMPower {
 
@@ -64,8 +65,8 @@ public:
 
 	std::size_t countActiveBanks() const {
 		return (unsigned)std::count_if(banks.begin(), banks.end(),
-			[](const auto& bank) { 
-				return (bank.bankState == Bank::BankState::BANK_ACTIVE); 
+			[](const auto& bank) {
+				return (bank.bankState == Bank::BankState::BANK_ACTIVE);
 		});
 	};
 };
