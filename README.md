@@ -6,6 +6,7 @@
 - [Installation](#installation)
 - [Project structure](#project-structure)
 - [Dependencies](#dependencies)
+- [Usage](#usage)
 - [Memory Specifications](#memory-specifications)
 - [Variation-aware Power And Energy Estimation](#variation-aware-power-and-energy-estimation)
 - [Authors & Acknowledgment](#authors--acknowledgment)
@@ -48,6 +49,89 @@ This repository contains the following sub-directoires
 ## Dependencies
 DRAMPower comes bundled with all necessary libraries and no installation of further system packages is required.
 
+## Usage
+
+The project is [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html) ready and can be easily included in any other CMake based project.
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+drampower
+GIT_REPOSITORY https://github.com/tukl-msd/DRAMPower
+GIT_TAG master)
+FetchContent_MakeAvailable(drampower)
+```
+
+The library target DRAMPower is then available to the rest of the project and can be consumed by any other target, e.g.
+
+```cmake
+add_executable(drampower_app ${SOURCE_FILES})
+target_link_libraries(drampower_app PRIVATE DRAMSys::DRAMPower)
+```
+
+All constructs inside DRAMPower are exposed through the DRAMPower namespace.
+Therefore all the following examples will refer to them with the implied usage of their namespace.
+
+```cpp
+using namespace DRAMPower;
+```
+
+To use the actual DRAM calculations, first a memspec has to be supplied. Some example memspecs are supplied in the [tests directory](https://github.com/tukl-msd/DRAMPower/tree/master/tests/tests_drampower/resources).
+An example snippet to initialize a DDR4 based DRAM spec can look like this:
+
+```cpp
+#include <DRAMPower/standards/ddr4/DDR4.h>
+#include <DRAMPower/standards/ddr4/calculation_DDR4.h>
+#include <DRAMPower/standards/ddr4/interface_calculation_DDR4.h>
+
+std::ifstream ifs("tests/tests_drampower/resources/ddr4.json");
+json data = json::parse(ifs);
+
+DDR4 dram(data["memspec"]);
+```
+
+The created DRAM simulator then has to be fed with commands, e.g.
+
+```cpp
+#include <DRAMPower/command/Command.h>
+
+std::vector<Command> testPattern = {
+    {  0, CmdType::ACT,  { 0, 0, 0 }},
+    { 15, CmdType::RD ,  { 0, 0, 0 }},
+    { 35, CmdType::PRE,  { 0, 0, 0 }},
+    { 35, CmdType::END_OF_SIMULATION },
+};
+
+for (const auto& command : testPattern) {
+    dram.doCommand(command);
+};
+```
+
+The bank stats and energy calculations can then be accessed through their respective methods. e.g.
+
+```cpp
+auto stats = dram.getStats();
+
+stats.bank[0].counter.act;        // 1;
+stats.bank[0].counter.reads;      // 1;
+stats.bank[0].counter.pre;        // 1;
+stats.total.cycles.act;           // 35;
+stats.total.cycles.pre;           // 0;
+stats.bank[0].cycles.act;         // 35;
+stats.bank[0].cycles.pre;         // 0;
+
+auto energy = dram.calcEnergy(testPattern.back().timestamp);
+auto total_energy = energy.total_energy();
+
+total_energy.E_act;        // 179
+total_energy.E_pre;        // 208
+total_energy.E_RD;         // 436
+total_energy.E_bg_act;     // 1189
+energy.E_bg_act_shared;    // 1183
+total_energy.E_bg_pre;     // 0
+total_energy.total();      // 2012
+```
 
 ## Memory Specifications
 
