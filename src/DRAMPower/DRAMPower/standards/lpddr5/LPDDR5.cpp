@@ -383,7 +383,8 @@ namespace DRAMPower {
     }
 
     interface_energy_info_t LPDDR5::calcInterfaceEnergy(timestamp_t timestamp) {
-		return {};
+        InterfaceCalculation_LPDDR5 calculation(*this);
+        return calculation.calculateEnergy(timestamp);
     }
 
     SimulationStats LPDDR5::getWindowStats(timestamp_t timestamp) {
@@ -423,8 +424,6 @@ namespace DRAMPower {
         stats.total.cycles.selfRefresh = rank.cycles.sref.get_count_at(timestamp) -
                                          rank.cycles.deepSleepMode.get_count_at(timestamp);
         stats.total.cycles.deepSleepMode = rank.cycles.deepSleepMode.get_count_at(timestamp);
-
-        stats.commandBus = this->commandBus.get_stats(timestamp);
 
         stats.commandBus = commandBus.get_stats(timestamp);
         stats.readBus = readBus.get_stats(timestamp);
