@@ -1,9 +1,7 @@
-#include "MemSpecLPDDR5.h"
-
+#include "DRAMPower/memspec/MemSpecLPDDR5.h"
 
 using namespace DRAMPower;
 using json = nlohmann::json;
-
 
 MemSpecLPDDR5::MemSpecLPDDR5(nlohmann::json &memspec)
         : MemSpec(memspec)
@@ -74,6 +72,11 @@ MemSpecLPDDR5::MemSpecLPDDR5(nlohmann::json &memspec)
 
     // Source: LPDDR5 standard; figure 97
     prechargeOffsetWR      =  memTimingSpec.tWL + memTimingSpec.tBurst + 1 + memTimingSpec.tWR;
+
+    wckAlwaysOnMode = parseBoolWithDefault(memspec["memarchitecturespec"]["WCKalwaysOn"], "WCKalwaysOn", true);
+
+    parseImpedanceSpec(memspec);
+    parseDataRateSpec(memspec);
 }
 
 // TODO: is this being used?
@@ -95,6 +98,41 @@ uint64_t MemSpecLPDDR5::timeToCompletion(DRAMPower::CmdType type)
     return offset;
 }
 
+void MemSpecLPDDR5::parseImpedanceSpec(nlohmann::json &memspec) {
+    if (!memspec.contains("memimpedancespec")) {
+        // Leaving it to default-initialize to 0 would break static power (div by 0)
+        memImpedanceSpec = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+        return;
+    }
 
+    memImpedanceSpec.C_total_cb =
+        parseUdouble(memspec["memimpedancespec"]["C_total_cb"], "C_total_cb");
+    memImpedanceSpec.C_total_ck =
+        parseUdouble(memspec["memimpedancespec"]["C_total_ck"], "C_total_ck");
+    memImpedanceSpec.C_total_wck =
+        parseUdouble(memspec["memimpedancespec"]["C_total_wck"], "C_total_wck");
+    memImpedanceSpec.C_total_dqs =
+        parseUdouble(memspec["memimpedancespec"]["C_total_dqs"], "C_total_dqs");
+    memImpedanceSpec.C_total_rb =
+        parseUdouble(memspec["memimpedancespec"]["C_total_rb"], "C_total_rb");
+    memImpedanceSpec.C_total_wb =
+        parseUdouble(memspec["memimpedancespec"]["C_total_wb"], "C_total_wb");
 
+    memImpedanceSpec.R_eq_cb = parseUdouble(memspec["memimpedancespec"]["R_eq_cb"], "R_eq_cb");
+    memImpedanceSpec.R_eq_ck = parseUdouble(memspec["memimpedancespec"]["R_eq_ck"], "R_eq_ck");
+    memImpedanceSpec.R_eq_wck = parseUdouble(memspec["memimpedancespec"]["R_eq_wck"], "R_eq_wck");
+    memImpedanceSpec.R_eq_dqs = parseUdouble(memspec["memimpedancespec"]["R_eq_dqs"], "R_eq_dqs");
+    memImpedanceSpec.R_eq_rb = parseUdouble(memspec["memimpedancespec"]["R_eq_rb"], "R_eq_rb");
+    memImpedanceSpec.R_eq_wb = parseUdouble(memspec["memimpedancespec"]["R_eq_wb"], "R_eq_wb");
+}
 
+void MemSpecLPDDR5::parseDataRateSpec(nlohmann::json &memspec) {
+    if (!memspec.contains("dataratespec")) {
+        dataRateSpec = {2, 2, 2};
+        return;
+    }
+
+    dataRateSpec.commandBusRate = parseUint(memspec["dataratespec"]["ca_bus_rate"], "ca_bus_rate");
+    dataRateSpec.dataBusRate = parseUint(memspec["dataratespec"]["dq_bus_rate"], "dq_bus_rate");
+    dataRateSpec.dqsBusRate = parseUint(memspec["dataratespec"]["dqs_bus_rate"], "dqs_bus_rate");
+}

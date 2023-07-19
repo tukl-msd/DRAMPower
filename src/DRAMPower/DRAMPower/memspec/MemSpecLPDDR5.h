@@ -99,9 +99,12 @@ namespace DRAMPower {
         MemImpedanceSpec memImpedanceSpec;
         std::vector<MemPowerSpec> memPowerSpec;
         BankWiseParams bwParams;
+
+       private:
+        void parseImpedanceSpec(nlohmann::json &memspec);
+        void parseDataRateSpec(nlohmann::json &memspec);
     };
 
-}
-
+}  // namespace DRAMPower
 
 #endif /* DRAMPOWER_MEMSPEC_MEMSPECLPDDR5_H */
