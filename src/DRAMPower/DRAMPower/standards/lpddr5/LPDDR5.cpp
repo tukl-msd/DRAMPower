@@ -131,13 +131,15 @@ namespace DRAMPower {
 
     void LPDDR5::handle_interface(const Command &cmd) {
         auto pattern = this->getCommandPattern(cmd);
-        auto length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        this->commandBus.load(cmd.timestamp, pattern, length);
+        auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
+        commandBus.load(cmd.timestamp, pattern, ca_length);
+
+        size_t length = 0;
 
         switch (cmd.type) {
             case CmdType::RD:
             case CmdType::RDA:
-                auto length = cmd.sz_bits / readBus.get_width();
+                length = cmd.sz_bits / readBus.get_width();
                 readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
                 readDQS_c_.start(cmd.timestamp);
@@ -158,7 +160,7 @@ namespace DRAMPower {
                 break;
             case CmdType::WR:
             case CmdType::WRA:
-                auto length = cmd.sz_bits / writeBus.get_width();
+                length = cmd.sz_bits / writeBus.get_width();
                 writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
                 if (!memSpec.wckAlwaysOnMode) {
