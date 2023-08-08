@@ -67,12 +67,6 @@ namespace DRAMPower {
             double iBeta;
         };
 
-        struct DataRateSpec {
-            uint32_t commandBusRate;
-            uint32_t dataBusRate;
-            uint32_t dqsBusRate;
-        };
-
         struct MemImpedanceSpec {
             double C_total_ck;
             double C_total_wck;
@@ -95,14 +89,12 @@ namespace DRAMPower {
         };
 
         MemTimingSpec memTimingSpec;
-        DataRateSpec dataRateSpec;
         MemImpedanceSpec memImpedanceSpec;
         std::vector<MemPowerSpec> memPowerSpec;
         BankWiseParams bwParams;
 
        private:
         void parseImpedanceSpec(nlohmann::json &memspec);
-        void parseDataRateSpec(nlohmann::json &memspec);
     };
 
 }  // namespace DRAMPower

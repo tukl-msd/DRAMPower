@@ -45,9 +45,9 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcClockEnergy(const Simul
         2.0 * calc_dynamic_power(stats.clockStats.zeroes_to_ones, impedances_.C_total_ck, VDDQ_);
 
     result.controller.staticPower +=
-        2.0 * calc_static_power(stats.WClockStats.ones, impedances_.R_eq_wck, t_WCK_, VDDQ_);
+        2.0 * calc_static_power(stats.wClockStats.ones, impedances_.R_eq_wck, t_WCK_, VDDQ_);
     result.controller.dynamicPower +=
-        2.0 * calc_dynamic_power(stats.WClockStats.zeroes_to_ones, impedances_.C_total_wck, VDDQ_);
+        2.0 * calc_dynamic_power(stats.wClockStats.zeroes_to_ones, impedances_.C_total_wck, VDDQ_);
 
     return result;
 }

@@ -8,13 +8,17 @@
 
 namespace DRAMPower {
 
-	LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
-		: memSpec(memSpec)
-		, ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks })
-		, commandBus{7}
-		, readBus{6}
-		, writeBus{6}
-	{
+    LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
+        : memSpec(memSpec),
+        ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks }),
+        commandBus{7},
+        readBus{16},
+        writeBus{16},
+        readDQS_c_(memSpec.dataRate, true),
+        readDQS_t_(memSpec.dataRate, true),
+        WCK_t_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
+        WCK_c_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
+    {
         this->registerPatterns();
 
         this->registerBankHandler<CmdType::ACT>(&LPDDR5::handleAct);
@@ -143,18 +147,18 @@ namespace DRAMPower {
                 readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
                 readDQS_c_.start(cmd.timestamp);
-                readDQS_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                readDQS_c_.stop(cmd.timestamp + length / this->memSpec.dataRate);
 
                 readDQS_t_.start(cmd.timestamp);
-                readDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                readDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRate);
 
                 // WCK also during reads
                 if (!memSpec.wckAlwaysOnMode) {
                     WCK_c_.start(cmd.timestamp);
-                    WCK_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                    WCK_c_.stop(cmd.timestamp + length / this->memSpec.dataRate);
 
                     WCK_t_.start(cmd.timestamp);
-                    WCK_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                    WCK_t_.stop(cmd.timestamp + length / this->memSpec.dataRate);
                 }
 
                 break;
@@ -165,10 +169,10 @@ namespace DRAMPower {
 
                 if (!memSpec.wckAlwaysOnMode) {
                     WCK_c_.start(cmd.timestamp);
-                    WCK_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                    WCK_c_.stop(cmd.timestamp + length / this->memSpec.dataRate);
 
                     WCK_t_.start(cmd.timestamp);
-                    WCK_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                    WCK_t_.stop(cmd.timestamp + length / this->memSpec.dataRate);
                 }
                 break;
         };
@@ -432,7 +436,7 @@ namespace DRAMPower {
         stats.writeBus = writeBus.get_stats(timestamp);
 
         stats.clockStats = CK_t_.get_stats_at(timestamp) + CK_c_.get_stats_at(timestamp);
-        stats.WClockStats = WCK_t_.get_stats_at(timestamp) + WCK_c_.get_stats_at(timestamp);
+        stats.wClockStats = WCK_t_.get_stats_at(timestamp) + WCK_c_.get_stats_at(timestamp);
         stats.readDQSStats = readDQS_c_.get_stats_at(timestamp) + readDQS_t_.get_stats_at(timestamp);
 
         return stats;

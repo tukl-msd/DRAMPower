@@ -76,7 +76,6 @@ MemSpecLPDDR5::MemSpecLPDDR5(nlohmann::json &memspec)
     wckAlwaysOnMode = parseBoolWithDefault(memspec["memarchitecturespec"]["WCKalwaysOn"], "WCKalwaysOn", true);
 
     parseImpedanceSpec(memspec);
-    parseDataRateSpec(memspec);
 }
 
 // TODO: is this being used?
@@ -124,15 +123,4 @@ void MemSpecLPDDR5::parseImpedanceSpec(nlohmann::json &memspec) {
     memImpedanceSpec.R_eq_dqs = parseUdouble(memspec["memimpedancespec"]["R_eq_dqs"], "R_eq_dqs");
     memImpedanceSpec.R_eq_rb = parseUdouble(memspec["memimpedancespec"]["R_eq_rb"], "R_eq_rb");
     memImpedanceSpec.R_eq_wb = parseUdouble(memspec["memimpedancespec"]["R_eq_wb"], "R_eq_wb");
-}
-
-void MemSpecLPDDR5::parseDataRateSpec(nlohmann::json &memspec) {
-    if (!memspec.contains("dataratespec")) {
-        dataRateSpec = {2, 2, 2};
-        return;
-    }
-
-    dataRateSpec.commandBusRate = parseUint(memspec["dataratespec"]["ca_bus_rate"], "ca_bus_rate");
-    dataRateSpec.dataBusRate = parseUint(memspec["dataratespec"]["dq_bus_rate"], "dq_bus_rate");
-    dataRateSpec.dqsBusRate = parseUint(memspec["dataratespec"]["dqs_bus_rate"], "dqs_bus_rate");
 }
