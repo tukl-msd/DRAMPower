@@ -50,6 +50,7 @@ protected:
 		memSpec.memTimingSpec.tRP = 10;
         memSpec.memTimingSpec.tCK = 1;
         memSpec.memTimingSpec.tWCK = 1;
+        memSpec.memTimingSpec.WCKtoCK = 2;
 
 		memSpec.memPowerSpec.resize(4);
 		memSpec.memPowerSpec[0].vDDX = 1;

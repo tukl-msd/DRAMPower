@@ -11,7 +11,7 @@ MemSpecLPDDR5::MemSpecLPDDR5(nlohmann::json &memspec)
     numberOfRanks          = parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
 
     memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
-    memTimingSpec.WCKtoCK  = (parseUint(memspec["memtimingspec"]["WCKtoCK"], "WCKtoCK"));
+    memTimingSpec.WCKtoCK  = (parseUintWithDefaut(memspec["memtimingspec"]["WCKtoCK"], "WCKtoCK", 2));
     memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz);               //clock period in mili seconds
     memTimingSpec.tWCK      = memTimingSpec.tCK / memTimingSpec.WCKtoCK;   //write clock period in mili seconds
     memTimingSpec.tRAS     = (parseUint(memspec["memtimingspec"]["RAS"], "RAS"));
