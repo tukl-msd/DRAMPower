@@ -1,7 +1,5 @@
 #include "DRAMPower/standards/ddr5/interface_calculation_DDR5.h"
 
-#include "DRAMPower/standards/ddr5/DDR5.h"
-
 namespace DRAMPower {
 
 static double calc_static_power(uint64_t NxBits, double R_eq, double t_CK, double voltage) {
@@ -12,15 +10,13 @@ static double calc_dynamic_power(uint64_t transitions, double C_total, double vo
     return transitions * C_total * 0.5 * (voltage * voltage);
 };
 
-InterfaceCalculation_DDR5::InterfaceCalculation_DDR5(DDR5 &ddr)
-    : ddr_(ddr), memspec_(ddr_.memSpec), impedances_(memspec_.memImpedanceSpec) {
+InterfaceCalculation_DDR5::InterfaceCalculation_DDR5(const MemSpecDDR5 &memspec)
+    : memspec_(memspec), impedances_(memspec_.memImpedanceSpec) {
     t_CK_ = memspec_.memTimingSpec.tCK;
     VDDQ_ = memspec_.memPowerSpec[MemSpecDDR5::VoltageDomain::VDDQ].vXX;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(timestamp_t timestamp) {
-    SimulationStats stats = ddr_.getWindowStats(timestamp);
-
+interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(const SimulationStats &stats) {
     interface_energy_info_t clock_energy = calcClockEnergy(stats);
     interface_energy_info_t DQS_energy = calcDQSEnergy(stats);
     interface_energy_info_t DQ_energy = calcDQEnergy(stats);
