@@ -45,10 +45,10 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy(const Simulat
 
 interface_energy_info_t InterfaceCalculation_DDR5::calcDQSEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
-    result.dram.staticPower += calc_static_power(
-        stats.readDQSStats.ones + stats.readDQSStats.zeroes, impedances_.R_eq_dqs, t_CK_, VDDQ_);
-    result.controller.staticPower += calc_static_power(
-        stats.writeDQSStats.ones + stats.writeDQSStats.zeroes, impedances_.R_eq_dqs, t_CK_, VDDQ_);
+    result.dram.staticPower +=
+        calc_static_power(stats.readDQSStats.ones, impedances_.R_eq_dqs, t_CK_, VDDQ_);
+    result.controller.staticPower +=
+        calc_static_power(stats.writeDQSStats.ones, impedances_.R_eq_dqs, t_CK_, VDDQ_);
 
     result.dram.dynamicPower +=
         calc_dynamic_power(stats.readDQSStats.zeroes_to_ones, impedances_.C_total_dqs, VDDQ_);
