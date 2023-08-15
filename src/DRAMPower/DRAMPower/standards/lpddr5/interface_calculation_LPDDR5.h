@@ -8,16 +8,13 @@
 
 namespace DRAMPower {
 
-class LPDDR5;
-
 class InterfaceCalculation_LPDDR5 {
    public:
-    InterfaceCalculation_LPDDR5(LPDDR5 &ddr);
+    InterfaceCalculation_LPDDR5(const MemSpecLPDDR5 &memspec);
 
-    interface_energy_info_t calculateEnergy(timestamp_t timestamp);
+    interface_energy_info_t calculateEnergy(const SimulationStats &stats);
 
    private:
-    LPDDR5 &ddr_;
     const MemSpecLPDDR5 &memspec_;
     const MemSpecLPDDR5::MemImpedanceSpec &impedances_;
     double t_CK_;
