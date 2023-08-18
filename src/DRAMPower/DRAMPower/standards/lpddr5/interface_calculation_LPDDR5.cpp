@@ -50,8 +50,8 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcClockEnergy(const Simul
 
 interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQSEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
-    result.dram.staticPower += calc_static_power(
-        stats.readDQSStats.ones + stats.readDQSStats.zeroes, impedances_.R_eq_dqs, t_CK_, VDDQ_);
+    result.dram.staticPower +=
+        calc_static_power(stats.readDQSStats.ones, impedances_.R_eq_dqs, t_CK_, VDDQ_);
 
     result.dram.dynamicPower +=
         calc_dynamic_power(stats.readDQSStats.zeroes_to_ones, impedances_.C_total_dqs, VDDQ_);
@@ -62,9 +62,9 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQSEnergy(const Simulat
 interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
     result.dram.staticPower +=
-        calc_static_power(stats.readBus.zeroes, impedances_.R_eq_rb, t_CK_, VDDQ_);
+        calc_static_power(stats.readBus.ones, impedances_.R_eq_rb, t_CK_, VDDQ_);
     result.controller.staticPower +=
-        calc_static_power(stats.writeBus.zeroes, impedances_.R_eq_wb, t_CK_, VDDQ_);
+        calc_static_power(stats.writeBus.ones, impedances_.R_eq_wb, t_CK_, VDDQ_);
 
     result.dram.dynamicPower +=
         calc_dynamic_power(stats.readBus.zeroes_to_ones, impedances_.C_total_rb, VDDQ_);
