@@ -42,6 +42,7 @@ namespace DRAMPower
 		util::bus_stats_t readBus;
 		util::bus_stats_t writeBus;
 		util::bus_stats_t clockStats;
+		util::bus_stats_t wClockStats;
 
 		util::bus_stats_t readDQSStats;
 		util::bus_stats_t writeDQSStats;

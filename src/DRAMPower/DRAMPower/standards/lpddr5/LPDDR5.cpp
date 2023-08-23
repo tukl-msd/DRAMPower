@@ -8,13 +8,17 @@
 
 namespace DRAMPower {
 
-	LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
-		: memSpec(memSpec)
-		, ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks })
-		, commandBus{6}
-		, readBus{6}
-		, writeBus{6}
-	{
+    LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
+        : memSpec(memSpec),
+        ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks }),
+        commandBus{7},
+        readBus{16},
+        writeBus{16},
+        readDQS_c_(memSpec.dataRate, true),
+        readDQS_t_(memSpec.dataRate, true),
+        WCK_t_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
+        WCK_c_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
+    {
         this->registerPatterns();
 
         this->registerBankHandler<CmdType::ACT>(&LPDDR5::handleAct);
@@ -38,65 +42,140 @@ namespace DRAMPower {
         this->registerRankHandler<CmdType::DSMEN>(&LPDDR5::handleDSMEntry);
         this->registerRankHandler<CmdType::DSMEX>(&LPDDR5::handleDSMExit);
 
-
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
 
     void LPDDR5::registerPatterns() {
         using namespace pattern_descriptor;
-
+        // All commands consider 16B bank architecture mode
         // ---------------------------------:
+
+        // LPDDR5 needs 2 commands for activation (ACT-1 and ACT-2)
+        // ACT-1 must be followed by ACT-2 in almost every case (CAS, WRITE,
+        // MASK WRITE and READ commands can be issued inbetween ACT-1 and ACT-2)
+        // Here we consider ACT = ACT-1 + ACT-2, not considering interleaving
         this->registerPattern<CmdType::ACT>({
-
-                                            });
+            // ACT-1
+            H, H, H, R14, R15, R16, R17,
+            BA0, BA1, BA2, BA3, R11, R12, R13,
+            // ACT-2
+            H, H, L, R7, R8, R9, R10,
+            R0, R1, R2, R3, R4, R5, R6
+        });
         this->registerPattern<CmdType::PRE>({
-
-                                            });
-        this->registerPattern<CmdType::PRESB>({
-
-                                              });
+            L, L, L, H, H, H, H,
+            BA0, BA1, BA2, BA3, V, V, L
+        });
         this->registerPattern<CmdType::PREA>({
-
-                                             });
-        this->registerPattern<CmdType::REFSB>({
-
-                                              });
+            L, L, L, H, H, H, H,
+            BA0, BA1, BA2, BA3, V, V, H
+        });
+        // For refresh commands LPDDR5 has RFM (Refresh Management)
+        // Considering RFM is disabled, CA3 is V
+        this->registerPattern<CmdType::REFB>({
+            L, L, L, H, H, H, L,
+            BA0, BA1, BA2, V, V, V, L
+        });
         this->registerPattern<CmdType::REFA>({
-
-                                             });
+            L, L, L, H, H, H, L,
+            BA0, BA1, BA2, V, V, V, H
+        });
+        this->registerPattern<CmdType::REFP2B>({
+            // TODO
+        });
         this->registerPattern<CmdType::RD>({
-
-                                           });
+            H, H, L, C0, C3, C4, C5,
+            BA0, BA1, BA2, BA3, C1, C2, L
+        });
         this->registerPattern<CmdType::RDA>({
-
-                                            });
+            H, H, L, C0, C3, C4, C5,
+            BA0, BA1, BA2, BA3, C1, C2, H
+        });
         this->registerPattern<CmdType::WR>({
-
-                                           });
+            L, H, H, C0, C3, C4, C5,
+            BA0, BA1, BA2, BA3, C1, C2, L
+        });
         this->registerPattern<CmdType::WRA>({
-
-                                            });
+            L, H, H, C0, C3, C4, C5,
+            BA0, BA1, BA2, BA3, C1, C2, H
+        });
         this->registerPattern<CmdType::SREFEN>({
-
-                                               });
+            L, L, L, H, L, H, H,
+            V, V, V, V, V, L, L
+        });
+        this->registerPattern<CmdType::SREFEX>({
+            L, L, L, H, L, H, L,
+            V, V, V, V, V, V, V
+        });
         this->registerPattern<CmdType::PDEA>({
-
-                                             });
+            L, L, L, H, L, H, H,
+            V, V, V, V, V, L, H
+        });
         this->registerPattern<CmdType::PDXA>({
-
-                                             });
+            L, L, L, H, L, H, L,
+            V, V, V, V, V, V, V
+        });
         this->registerPattern<CmdType::PDEP>({
-
-                                             });
+            L, L, L, H, L, H, H,
+            V, V, V, V, V, L, H
+        });
         this->registerPattern<CmdType::PDXP>({
-
-                                             });
+            L, L, L, H, L, H, L,
+            V, V, V, V, V, V, V
+        });
+        this->registerPattern<CmdType::DSMEN>({
+            L, L, L, H, L, H, H,
+            V, V, V, V, V, H, L
+        });
+        this->registerPattern<CmdType::DSMEX>({
+            L, L, L, H, L, H, L,
+            V, V, V, V, V, V, V
+        });
     }
 
     void LPDDR5::handle_interface(const Command &cmd) {
         auto pattern = this->getCommandPattern(cmd);
-        auto length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        this->commandBus.load(cmd.timestamp, pattern, length);
+        auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
+        commandBus.load(cmd.timestamp, pattern, ca_length);
+
+        size_t length = 0;
+
+        switch (cmd.type) {
+            case CmdType::RD:
+            case CmdType::RDA:
+                length = cmd.sz_bits / readBus.get_width();
+                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                readDQS_c_.start(cmd.timestamp);
+                readDQS_c_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+
+                readDQS_t_.start(cmd.timestamp);
+                readDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+
+                // WCK also during reads
+                if (!memSpec.wckAlwaysOnMode) {
+                    WCK_c_.start(cmd.timestamp);
+                    WCK_c_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+
+                    WCK_t_.start(cmd.timestamp);
+                    WCK_t_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+                }
+
+                break;
+            case CmdType::WR:
+            case CmdType::WRA:
+                length = cmd.sz_bits / writeBus.get_width();
+                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                if (!memSpec.wckAlwaysOnMode) {
+                    WCK_c_.start(cmd.timestamp);
+                    WCK_c_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+
+                    WCK_t_.start(cmd.timestamp);
+                    WCK_t_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+                }
+                break;
+        };
     }
 
     void LPDDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -310,7 +389,8 @@ namespace DRAMPower {
     }
 
     interface_energy_info_t LPDDR5::calcInterfaceEnergy(timestamp_t timestamp) {
-		return {};
+        InterfaceCalculation_LPDDR5 calculation(*this);
+        return calculation.calculateEnergy(timestamp);
     }
 
     SimulationStats LPDDR5::getWindowStats(timestamp_t timestamp) {
@@ -351,7 +431,13 @@ namespace DRAMPower {
                                          rank.cycles.deepSleepMode.get_count_at(timestamp);
         stats.total.cycles.deepSleepMode = rank.cycles.deepSleepMode.get_count_at(timestamp);
 
-        stats.commandBus = this->commandBus.get_stats(timestamp);
+        stats.commandBus = commandBus.get_stats(timestamp);
+        stats.readBus = readBus.get_stats(timestamp);
+        stats.writeBus = writeBus.get_stats(timestamp);
+
+        stats.clockStats = CK_t_.get_stats_at(timestamp) + CK_c_.get_stats_at(timestamp);
+        stats.wClockStats = WCK_t_.get_stats_at(timestamp) + WCK_c_.get_stats_at(timestamp);
+        stats.readDQSStats = readDQS_c_.get_stats_at(timestamp) + readDQS_t_.get_stats_at(timestamp);
 
         return stats;
     }
@@ -360,4 +446,18 @@ namespace DRAMPower {
         return getWindowStats(getLastCommandTime());
     }
 
+    timestamp_t LPDDR5::earliestPossiblePowerDownEntryTime(Rank &rank) {
+        timestamp_t entryTime = 0;
+
+        for (const auto &bank : rank.banks) {
+            entryTime = std::max(
+                {entryTime,
+                 bank.counter.act == 0 ? 0
+                                       : bank.cycles.act.get_start() + memSpec.memTimingSpec.tRCD,
+                 bank.counter.pre == 0 ? 0 : bank.latestPre + memSpec.memTimingSpec.tRP,
+                 bank.refreshEndTime});
+        }
+
+        return entryTime;
+    };
 }

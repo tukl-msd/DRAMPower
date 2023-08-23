@@ -3,7 +3,6 @@
 
 #include "MemSpec.h"
 
-
 namespace DRAMPower {
 
     class MemSpecLPDDR5 final : public MemSpec {
@@ -27,8 +26,7 @@ namespace DRAMPower {
         unsigned numberOfRanks;
         std::size_t perTwoBankOffset = 8;
         bool BGroupMode;
-
-
+        bool wckAlwaysOnMode;
 
         // Memspec Variables:
         struct MemTimingSpec
@@ -69,6 +67,21 @@ namespace DRAMPower {
             double iBeta;
         };
 
+        struct MemImpedanceSpec {
+            double C_total_ck;
+            double C_total_wck;
+            double C_total_cb;
+            double C_total_rb;
+            double C_total_wb;
+            double C_total_dqs;
+
+            double R_eq_ck;
+            double R_eq_wck;
+            double R_eq_cb;
+            double R_eq_rb;
+            double R_eq_wb;
+            double R_eq_dqs;
+        };
 
         struct BankWiseParams {
             // ACT Standby power factor
@@ -76,11 +89,14 @@ namespace DRAMPower {
         };
 
         MemTimingSpec memTimingSpec;
+        MemImpedanceSpec memImpedanceSpec;
         std::vector<MemPowerSpec> memPowerSpec;
         BankWiseParams bwParams;
+
+       private:
+        void parseImpedanceSpec(nlohmann::json &memspec);
     };
 
-}
-
+}  // namespace DRAMPower
 
 #endif /* DRAMPOWER_MEMSPEC_MEMSPECLPDDR5_H */

@@ -84,14 +84,14 @@ public:
     MemSpec(nlohmann::json &memspec);
 
     bool parseBool(nlohmann::json &obj, const std::string & name);
-    bool parseBoolWithDefault(nlohmann::json &obj, const std::string & name);
-    
+    bool parseBoolWithDefault(nlohmann::json &obj, const std::string & name, bool def = false);
+
 	uint64_t parseUint(nlohmann::json &obj, const std::string & name);
     uint64_t parseUintWithDefaut(json &obj, const std::string & name, uint64_t default_value=0);
-    
+
 	double parseUdouble(nlohmann::json &obj, const std::string & name);
     double parseUdoubleWithDefault(nlohmann::json &obj, const std::string & name);
-    
+
 	std::string parseString(nlohmann::json &obj, const std::string & name);
     std::string parseStringWithDefault(json &obj, const std::string & name, const std::string & defaultString);
 };

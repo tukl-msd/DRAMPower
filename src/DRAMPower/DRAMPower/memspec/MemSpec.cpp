@@ -65,7 +65,7 @@ bool MemSpec::parseBool(json &obj, const std::string & name)
         throw std::invalid_argument("Query json: Parameter " + name + "' not found");
 }
 
-bool MemSpec::parseBoolWithDefault(json &obj, const std::string & name)
+bool MemSpec::parseBoolWithDefault(json &obj, const std::string & name, bool def)
 {
     if (!obj.empty()) {
         if (obj.is_boolean())
@@ -74,7 +74,7 @@ bool MemSpec::parseBoolWithDefault(json &obj, const std::string & name)
             throw std::invalid_argument("Expected type for '" + name + "': bool");
     }
     else
-        return false;
+        return def;
 }
 
 uint64_t MemSpec::parseUint(json &obj, const std::string & name)
@@ -154,7 +154,3 @@ std::string MemSpec::parseStringWithDefault(json &obj, const std::string & name,
 		return defaultString;
 	}
 }
-
-
-
-

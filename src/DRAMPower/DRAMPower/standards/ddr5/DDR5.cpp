@@ -106,13 +106,14 @@ namespace DRAMPower {
 
     void DDR5::handle_interface(const Command &cmd) {
         auto pattern = getCommandPattern(cmd);
-        auto length = getPattern(cmd.type).size() / commandBus.get_width();
-        commandBus.load(cmd.timestamp, pattern, length);
+        auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
+        commandBus.load(cmd.timestamp, pattern, ca_length);
 
+        size_t length = 0;
         switch (cmd.type) {
             case CmdType::RD:
-            case CmdType::RDA: {
-                auto length = cmd.sz_bits / readBus.get_width();
+            case CmdType::RDA:
+                length = cmd.sz_bits / readBus.get_width();
                 readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
                 readDQS_c_.start(cmd.timestamp);
@@ -120,10 +121,10 @@ namespace DRAMPower {
 
                 readDQS_t_.start(cmd.timestamp);
                 readDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
-            } break;
+                break;
             case CmdType::WR:
-            case CmdType::WRA: {
-                auto length = cmd.sz_bits / writeBus.get_width();
+            case CmdType::WRA:
+                length = cmd.sz_bits / writeBus.get_width();
                 writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
                 writeDQS_c_.start(cmd.timestamp);
@@ -131,7 +132,7 @@ namespace DRAMPower {
 
                 writeDQS_t_.start(cmd.timestamp);
                 writeDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
-            } break;
+                break;
         };
     }
 

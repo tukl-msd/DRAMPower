@@ -4,11 +4,11 @@
 
 namespace DRAMPower {
 
-double calc_static_power(uint64_t NxBits, double R_eq, double t_CK, double voltage) {
+static double calc_static_power(uint64_t NxBits, double R_eq, double t_CK, double voltage) {
     return NxBits * (voltage * voltage) * 0.5 * t_CK / R_eq;
 };
 
-double calc_dynamic_power(uint64_t transitions, double C_total, double voltage) {
+static double calc_dynamic_power(uint64_t transitions, double C_total, double voltage) {
     return transitions * C_total * 0.5 * (voltage * voltage);
 };
 
