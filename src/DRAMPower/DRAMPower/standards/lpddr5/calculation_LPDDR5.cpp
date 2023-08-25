@@ -91,7 +91,7 @@ namespace DRAMPower {
                 energy.bank_energy[b].E_pre += E_pre(VDD, IBeta, IDD2N, t_RP, bank.counter.pre);
                 energy.bank_energy[b].E_bg_act += E_BG_act_star(B, VDD, approx_IDD3N, I_rho,stats.bank[b].cycles.activeTime() * t_CK);
                 energy.bank_energy[b].E_bg_pre += E_BG_pre(B, VDD, IDD2N, stats.total.cycles.pre * t_CK);
-                if (dram.memSpec.BGroupMode) {
+                if (dram.memSpec.bank_arch == MemSpecLPDDR5::BG) {
                     energy.bank_energy[b].E_RD += E_RD(VDD, IDD4R, I_2, BL, DR, t_WCK, bank.counter.reads);
                     energy.bank_energy[b].E_WR += E_WR(VDD, IDD4W, I_2, BL, DR, t_WCK, bank.counter.writes);
                     energy.bank_energy[b].E_RDA += E_RD(VDD, IDD4R, I_2, BL, DR, t_WCK, bank.counter.readAuto);
@@ -119,4 +119,3 @@ namespace DRAMPower {
         return energy;
     }
 }
-

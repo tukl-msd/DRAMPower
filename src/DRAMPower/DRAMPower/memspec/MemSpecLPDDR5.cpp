@@ -66,7 +66,35 @@ MemSpecLPDDR5::MemSpecLPDDR5(nlohmann::json &memspec)
     }
 
 
-    BGroupMode = (numberOfBankGroups > 1);
+    auto BankArchError = [this]() {
+        std::cout << "Invalid bank architecture selected" << std::endl;
+        std::cout << "Selected values:" << std::endl;
+        std::cout << "  - Number of banks: " << numberOfBanks << std::endl;
+        std::cout << "  - Number of bank groups: " << numberOfBankGroups << std::endl;
+        std::cout << "Valid values are 16|0 (16B mode), 16|4 (BG mode) or 8|0 (8B mode)" << std::endl;
+        std::cout << std::endl << "Assuming 16B architecture." << std::endl;
+        bank_arch = BankArchitectureMode::B16;
+        numberOfBanks = 16;
+        numberOfBankGroups = 1;
+    };
+
+    if (numberOfBanks == 16) {
+        if (numberOfBankGroups == 1 || numberOfBankGroups == 0) {
+            bank_arch = BankArchitectureMode::B16;
+        } else if (numberOfBankGroups == 4) {
+            bank_arch = BankArchitectureMode::BG;
+        } else {
+            BankArchError();
+        }
+    } else if (numberOfBanks == 8) {
+        if (numberOfBankGroups > 1) {
+            BankArchError();
+        } else {
+            bank_arch = BankArchitectureMode::B8;
+        }
+    } else {
+        BankArchError();
+    }
 
     // Source: LPDDR5 standard; table 312
     memTimingSpec.tBurst = burstLength/(dataRate * memTimingSpec.WCKtoCK);

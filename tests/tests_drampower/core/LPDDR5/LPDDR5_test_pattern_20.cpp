@@ -14,7 +14,7 @@ protected:
 	std::vector<Command> testPattern = {
 		{  0, CmdType::REFA },
 		{  5, CmdType::PDEP },
-		{ 15, CmdType::PDXP }, 
+		{ 15, CmdType::PDXP },
 		{ 30, CmdType::REFB, { 0,0,0} },
 		{ 40, CmdType::ACT, { 1,0,0,}},
 		{ 45, CmdType::PDEA },
@@ -32,7 +32,7 @@ protected:
         memSpec.numberOfBanks = 8;
         memSpec.numberOfBankGroups = 2;
         memSpec.banksPerGroup = 4;
-        memSpec.BGroupMode = true;
+        memSpec.bank_arch = MemSpecLPDDR5::BG;
 
 
         memSpec.memTimingSpec.tRAS = 10;
@@ -158,7 +158,7 @@ TEST_F(DramPowerTest_LPDDR5_20, CalcWindow)
 	ASSERT_EQ(window.total.cycles.powerDownAct, 0); ASSERT_EQ(window.total.cycles.powerDownPre, 0);
 
 	// Cycle 35
-	window = iterate_to_timestamp(command, 35);  
+	window = iterate_to_timestamp(command, 35);
 	ASSERT_EQ(window.total.cycles.act,   30);  ASSERT_EQ(window.total.cycles.pre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 30);  ASSERT_EQ(window.bank[0].cycles.pre, 5);
 	ASSERT_EQ(window.bank[1].cycles.act, 25);  ASSERT_EQ(window.bank[1].cycles.pre, 10);
@@ -166,7 +166,7 @@ TEST_F(DramPowerTest_LPDDR5_20, CalcWindow)
 	ASSERT_EQ(window.total.cycles.powerDownAct, 0); ASSERT_EQ(window.total.cycles.powerDownPre, 0);
 
 	// Cycle 40
-	window = iterate_to_timestamp(command, 40);  
+	window = iterate_to_timestamp(command, 40);
 	ASSERT_EQ(window.total.cycles.act, 35);	   ASSERT_EQ(window.total.cycles.pre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 35);  ASSERT_EQ(window.bank[0].cycles.pre, 5 );
 	ASSERT_EQ(window.bank[1].cycles.act, 25);  ASSERT_EQ(window.bank[1].cycles.pre, 15);
@@ -174,7 +174,7 @@ TEST_F(DramPowerTest_LPDDR5_20, CalcWindow)
 	ASSERT_EQ(window.total.cycles.powerDownAct, 0); ASSERT_EQ(window.total.cycles.powerDownPre, 0);
 
 	// Cycle 50
-	window = iterate_to_timestamp(command, 50);  
+	window = iterate_to_timestamp(command, 50);
 	ASSERT_EQ(window.total.cycles.act, 45);	   ASSERT_EQ(window.total.cycles.pre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 45);  ASSERT_EQ(window.bank[0].cycles.pre, 5);
 	ASSERT_EQ(window.bank[1].cycles.act, 35);  ASSERT_EQ(window.bank[1].cycles.pre, 15);
@@ -182,7 +182,7 @@ TEST_F(DramPowerTest_LPDDR5_20, CalcWindow)
 	ASSERT_EQ(window.total.cycles.powerDownAct, 0); ASSERT_EQ(window.total.cycles.powerDownPre, 0);
 
 	// Cycle 55
-	window = iterate_to_timestamp(command, 55);  
+	window = iterate_to_timestamp(command, 55);
 	ASSERT_EQ(window.total.cycles.act, 50);	   ASSERT_EQ(window.total.cycles.pre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 50);  ASSERT_EQ(window.bank[0].cycles.pre, 5);
 	ASSERT_EQ(window.bank[1].cycles.act, 40);  ASSERT_EQ(window.bank[1].cycles.pre, 15);
@@ -190,7 +190,7 @@ TEST_F(DramPowerTest_LPDDR5_20, CalcWindow)
 	ASSERT_EQ(window.total.cycles.powerDownAct, 0); ASSERT_EQ(window.total.cycles.powerDownPre, 0);
 
 	// Cycle 60
-	window = iterate_to_timestamp(command, 60);  
+	window = iterate_to_timestamp(command, 60);
 	ASSERT_EQ(window.total.cycles.act, 55);	   ASSERT_EQ(window.total.cycles.pre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 50);  ASSERT_EQ(window.bank[0].cycles.pre, 10);
 	ASSERT_EQ(window.bank[1].cycles.act, 45);  ASSERT_EQ(window.bank[1].cycles.pre, 15);

@@ -33,7 +33,7 @@ protected:
         memSpec.numberOfBanks = 8;
         memSpec.numberOfBankGroups = 2;
         memSpec.banksPerGroup = 4;
-        memSpec.BGroupMode = true;
+        memSpec.bank_arch = MemSpecLPDDR5::BG;
 
 
         memSpec.memTimingSpec.tRAS = 10;
