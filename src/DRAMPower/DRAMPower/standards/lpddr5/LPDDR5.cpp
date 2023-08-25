@@ -47,58 +47,121 @@ namespace DRAMPower {
 
     void LPDDR5::registerPatterns() {
         using namespace pattern_descriptor;
-        // All commands consider 16B bank architecture mode
-        // ---------------------------------:
-
         // LPDDR5 needs 2 commands for activation (ACT-1 and ACT-2)
         // ACT-1 must be followed by ACT-2 in almost every case (CAS, WRITE,
         // MASK WRITE and READ commands can be issued inbetween ACT-1 and ACT-2)
         // Here we consider ACT = ACT-1 + ACT-2, not considering interleaving
-        this->registerPattern<CmdType::ACT>({
+        commandPattern_t act_pattern = {
             // ACT-1
             H, H, H, R14, R15, R16, R17,
             BA0, BA1, BA2, BA3, R11, R12, R13,
             // ACT-2
             H, H, L, R7, R8, R9, R10,
             R0, R1, R2, R3, R4, R5, R6
-        });
-        this->registerPattern<CmdType::PRE>({
+        };
+        if (memSpec.bank_arch == MemSpecLPDDR5::BG) {
+            act_pattern[9] = BG0;
+            act_pattern[10] = BG1;
+        } else if (memSpec.bank_arch == MemSpecLPDDR5::B8) {
+            act_pattern[10] = V;
+        }
+        this->registerPattern<CmdType::ACT>(act_pattern);
+
+        commandPattern_t pre_pattern = {
             L, L, L, H, H, H, H,
             BA0, BA1, BA2, BA3, V, V, L
-        });
-        this->registerPattern<CmdType::PREA>({
+        };
+        if (memSpec.bank_arch == MemSpecLPDDR5::BG) {
+            pre_pattern[9] = BG0;
+            pre_pattern[10] = BG1;
+        } else if (memSpec.bank_arch == MemSpecLPDDR5::B8) {
+            pre_pattern[10] = V;
+        }
+        this->registerPattern<CmdType::PRE>(pre_pattern);
+
+        commandPattern_t prea_pattern = {
             L, L, L, H, H, H, H,
             BA0, BA1, BA2, BA3, V, V, H
-        });
+        };
+        if (memSpec.bank_arch == MemSpecLPDDR5::BG) {
+            prea_pattern[9] = BG0;
+            prea_pattern[10] = BG1;
+        } else if (memSpec.bank_arch == MemSpecLPDDR5::B8) {
+            prea_pattern[10] = V;
+        }
+        this->registerPattern<CmdType::PREA>(prea_pattern);
+
         // For refresh commands LPDDR5 has RFM (Refresh Management)
         // Considering RFM is disabled, CA3 is V
-        this->registerPattern<CmdType::REFB>({
+        commandPattern_t refb_pattern = {
             L, L, L, H, H, H, L,
             BA0, BA1, BA2, V, V, V, L
-        });
-        this->registerPattern<CmdType::REFA>({
+        };
+        if (memSpec.bank_arch == MemSpecLPDDR5::BG) {
+            refb_pattern[9] = BG0;
+        }
+        this->registerPattern<CmdType::REFB>(refb_pattern);
+
+        commandPattern_t refa_pattern = {
             L, L, L, H, H, H, L,
             BA0, BA1, BA2, V, V, V, H
-        });
+        };
+        if (memSpec.bank_arch == MemSpecLPDDR5::BG) {
+            refa_pattern[9] = BG0;
+        }
+        this->registerPattern<CmdType::REFA>(refa_pattern);
         this->registerPattern<CmdType::REFP2B>({
             // TODO
         });
-        this->registerPattern<CmdType::RD>({
+
+        commandPattern_t rd_pattern = {
             H, H, L, C0, C3, C4, C5,
             BA0, BA1, BA2, BA3, C1, C2, L
-        });
-        this->registerPattern<CmdType::RDA>({
+        };
+        if (memSpec.bank_arch == MemSpecLPDDR5::BG) {
+            rd_pattern[9] = BG0;
+            rd_pattern[10] = BG1;
+        } else if (memSpec.bank_arch == MemSpecLPDDR5::B8) {
+            rd_pattern[10] = L;
+        }
+        this->registerPattern<CmdType::RD>(rd_pattern);
+
+        commandPattern_t rda_pattern = {
             H, H, L, C0, C3, C4, C5,
             BA0, BA1, BA2, BA3, C1, C2, H
-        });
-        this->registerPattern<CmdType::WR>({
+        };
+        if (memSpec.bank_arch == MemSpecLPDDR5::BG) {
+            rda_pattern[9] = BG0;
+            rda_pattern[10] = BG1;
+        } else if (memSpec.bank_arch == MemSpecLPDDR5::B8) {
+            rda_pattern[10] = L;
+        }
+        this->registerPattern<CmdType::RDA>(rda_pattern);
+
+        commandPattern_t wr_pattern = {
             L, H, H, C0, C3, C4, C5,
             BA0, BA1, BA2, BA3, C1, C2, L
-        });
-        this->registerPattern<CmdType::WRA>({
+        };
+        if (memSpec.bank_arch == MemSpecLPDDR5::BG) {
+            wr_pattern[9] = BG0;
+            wr_pattern[10] = BG1;
+        } else if (memSpec.bank_arch == MemSpecLPDDR5::B8) {
+            wr_pattern[10] = V;
+        }
+        this->registerPattern<CmdType::WR>(wr_pattern);
+
+        commandPattern_t wra_pattern = {
             L, H, H, C0, C3, C4, C5,
             BA0, BA1, BA2, BA3, C1, C2, H
-        });
+        };
+        if (memSpec.bank_arch == MemSpecLPDDR5::BG) {
+            wra_pattern[9] = BG0;
+            wra_pattern[10] = BG1;
+        } else if (memSpec.bank_arch == MemSpecLPDDR5::B8) {
+            wra_pattern[10] = V;
+        }
+        this->registerPattern<CmdType::WRA>(wra_pattern);
+
         this->registerPattern<CmdType::SREFEN>({
             L, L, L, H, L, H, H,
             V, V, V, V, V, L, L

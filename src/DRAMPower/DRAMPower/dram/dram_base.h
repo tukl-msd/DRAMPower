@@ -78,6 +78,12 @@ protected:
         this->commandPatternMap[static_cast<std::size_t>(cmd_type)] = commandPattern_t(pattern);
     };
 
+    template <CommandEnum cmd_type>
+    void registerPattern(const commandPattern_t &pattern)
+    {
+        this->commandPatternMap[static_cast<std::size_t>(cmd_type)] = pattern;
+    };
+
     const commandPattern_t& getPattern(CmdType cmd_type)
     {
         return this->commandPatternMap[static_cast<std::size_t>(cmd_type)];
