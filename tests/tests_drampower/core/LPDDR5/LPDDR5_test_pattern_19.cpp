@@ -34,7 +34,7 @@ protected:
         memSpec.numberOfBanks = 8;
         memSpec.numberOfBankGroups = 2;
         memSpec.banksPerGroup = 4;
-        memSpec.BGroupMode = true;
+        memSpec.bank_arch = MemSpecLPDDR5::BG;
 
 
         memSpec.memTimingSpec.tRAS = 10;
@@ -319,7 +319,7 @@ TEST_F(DramPowerTest_LPDDR5_19, CalcEnergy)
 			ddr->doCommand(*command);
 			++command;
 		}
-	};	
+	};
 
 	auto command = testPattern.begin();
 	iterate_to_timestamp(command, testPattern, 125);

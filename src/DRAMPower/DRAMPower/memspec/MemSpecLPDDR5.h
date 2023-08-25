@@ -11,6 +11,13 @@ namespace DRAMPower {
             VDD = 0,
             VDDQ = 1
         };
+
+        enum BankArchitectureMode {
+            BG,   // 4 banks, 4 bank groups
+            B16,  // 16 banks, no bank groups
+            B8    // 8 banks, no bank groups
+        };
+
     public:
         MemSpecLPDDR5() = default;
 
@@ -25,7 +32,7 @@ namespace DRAMPower {
         unsigned banksPerGroup;
         unsigned numberOfRanks;
         std::size_t perTwoBankOffset = 8;
-        bool BGroupMode;
+        BankArchitectureMode bank_arch;
         bool wckAlwaysOnMode;
 
         // Memspec Variables:
