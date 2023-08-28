@@ -26,6 +26,7 @@ MemSpecLPDDR5::MemSpecLPDDR5(nlohmann::json &memspec)
     memTimingSpec.tRBTP = (parseUint(memspec["memtimingspec"]["RBTP"], "RBTP"));
 
     auto VDD = VoltageDomain::VDD;
+    auto VDDQ = VoltageDomain::VDDQ;
 
     memPowerSpec.push_back(MemPowerSpec());
 
@@ -42,13 +43,16 @@ MemSpecLPDDR5::MemSpecLPDDR5(nlohmann::json &memspec)
     memPowerSpec[VDD].iDD2PX     = (parseUdouble(memspec["mempowerspec"]["idd2p"], "idd2p"));
     memPowerSpec[VDD].iDD3PX     = (parseUdouble(memspec["mempowerspec"]["idd3p"], "idd3p"));
 
-
     if(memspec["mempowerspec"].contains("iBeta")){
         memPowerSpec[VDD].iBeta = parseUdouble( memspec["mempowerspec"]["iBeta"],"iBeta");
     }
     else{
         memPowerSpec[VDD].iBeta = memPowerSpec[VDD].iDD0X;
     }
+
+    memPowerSpec.push_back(MemPowerSpec());
+
+    memPowerSpec[VDDQ].vDDX = parseUdouble(memspec["mempowerspec"]["vddq"], "vddq");
 
 
     if (memspec.contains("bankwisespec")) {

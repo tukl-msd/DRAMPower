@@ -8,8 +8,6 @@
 
 namespace DRAMPower {
 
-class DDR5;
-
 class InterfaceCalculation_DDR5 {
    public:
     InterfaceCalculation_DDR5(const MemSpecDDR5 &memspec);

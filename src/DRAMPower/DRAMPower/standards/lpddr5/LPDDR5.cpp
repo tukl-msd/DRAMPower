@@ -389,8 +389,8 @@ namespace DRAMPower {
     }
 
     interface_energy_info_t LPDDR5::calcInterfaceEnergy(timestamp_t timestamp) {
-        InterfaceCalculation_LPDDR5 calculation(*this);
-        return calculation.calculateEnergy(timestamp);
+        InterfaceCalculation_LPDDR5 calculation(memSpec);
+        return calculation.calculateEnergy(getWindowStats(timestamp));
     }
 
     SimulationStats LPDDR5::getWindowStats(timestamp_t timestamp) {
