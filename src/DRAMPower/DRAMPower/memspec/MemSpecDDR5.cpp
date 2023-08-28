@@ -23,6 +23,7 @@ MemSpecDDR5::MemSpecDDR5(nlohmann::json &memspec)
 
     auto VDD = VoltageDomain::VDD;
     auto VPP = VoltageDomain::VPP;
+    auto VDDQ = VoltageDomain::VDDQ;
 
     memPowerSpec.push_back(MemPowerSpec());
 
@@ -50,6 +51,9 @@ MemSpecDDR5::MemSpecDDR5(nlohmann::json &memspec)
     memPowerSpec[VPP].iXX2P     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp2p"], "ipp2p"));
     memPowerSpec[VPP].iXX3P     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp3p"], "ipp3p"));
 
+    // TODO: have different spec for vddq?
+    memPowerSpec.push_back(MemPowerSpec());
+    memPowerSpec[VDDQ] = memPowerSpec[VDD];
 
     if (refreshMode==1) {
         memPowerSpec[VDD].iXX5X      = (parseUdouble(memspec["mempowerspec"]["idd5B"], "idd5B"));

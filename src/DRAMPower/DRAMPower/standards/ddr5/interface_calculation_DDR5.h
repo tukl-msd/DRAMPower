@@ -12,12 +12,11 @@ class DDR5;
 
 class InterfaceCalculation_DDR5 {
    public:
-    InterfaceCalculation_DDR5(DDR5 &ddr);
+    InterfaceCalculation_DDR5(const MemSpecDDR5 &memspec);
 
-    interface_energy_info_t calculateEnergy(timestamp_t timestamp);
+    interface_energy_info_t calculateEnergy(const SimulationStats &stats);
 
    private:
-    DDR5 &ddr_;
     const MemSpecDDR5 &memspec_;
     const MemSpecDDR5::MemImpedanceSpec &impedances_;
     double t_CK_;
