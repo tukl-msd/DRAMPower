@@ -57,6 +57,15 @@ class LPDDR5_WindowStats_Tests : public ::testing::Test {
             {30, CmdType::END_OF_SIMULATION}  // RD needs time to finish fully
         });
 
+        // With BG != 0 for testing BG mode
+        test_patterns.push_back({
+            {0, CmdType::ACT, {1, 1, 0, 2}},
+            {5, CmdType::WR, {1, 1, 0, 0, 4}, wr_data, SZ_BITS(wr_data)},
+            {10, CmdType::RD, {1, 1, 0, 0, 4}, rd_data, SZ_BITS(rd_data)},
+            {17, CmdType::PRE, {1, 1, 0, 2}},
+            {24, CmdType::END_OF_SIMULATION},
+        });
+
         initSpec();
         ddr = std::make_unique<LPDDR5>(spec);
     }
@@ -207,6 +216,42 @@ TEST_F(LPDDR5_WindowStats_Tests, WriteClockOnDemand) {
     EXPECT_EQ(stats.wClockStats.zeroes, wck_ones);
     EXPECT_EQ(stats.wClockStats.ones_to_zeroes, wck_ones);
     EXPECT_EQ(stats.wClockStats.zeroes_to_ones, wck_ones);
+}
+
+TEST_F(LPDDR5_WindowStats_Tests, Pattern_3_BG_Mode) {
+    spec.bank_arch = MemSpecLPDDR5::BG;
+    ddr = std::make_unique<LPDDR5>(spec);
+
+    runCommands(test_patterns[3]);
+
+    SimulationStats stats = ddr->getStats();
+
+    EXPECT_EQ(stats.writeBus.ones, 16);
+    EXPECT_EQ(stats.writeBus.zeroes, 368);
+    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);
+    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);
+
+    EXPECT_EQ(stats.readBus.ones, 1);
+    EXPECT_EQ(stats.readBus.zeroes, 383);
+    EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
+    EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
+
+    EXPECT_EQ(stats.commandBus.ones, 22);
+    EXPECT_EQ(stats.commandBus.zeroes, 153);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 16);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 16);
+
+    int number_of_cycles = (SZ_BITS(wr_data) / 16) / spec.dataRate;
+
+    int DQS_ones = number_of_cycles * spec.dataRate;
+    int DQS_zeros = DQS_ones;
+    int DQS_zeros_to_ones = DQS_ones;
+    int DQS_ones_to_zeros = DQS_zeros;
+
+    EXPECT_EQ(stats.readDQSStats.ones, DQS_ones);
+    EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros);
+    EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
+    EXPECT_EQ(stats.readDQSStats.zeroes_to_ones, DQS_ones_to_zeros);
 }
 
 // Tests for power consumption (given a known SimulationStats)
