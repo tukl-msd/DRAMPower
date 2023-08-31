@@ -25,7 +25,8 @@
       "idd5F": 135.0,
       "idd6n": 20.25,
       "iBeta": 56.25,
-      "vdd": 1.2
+      "vdd": 1.2,
+      "vddq": 1.1
     },
     "memtimingspec": {
       "refreshMode": 1,
@@ -45,5 +46,3 @@
     }
   }
 }
-
-
