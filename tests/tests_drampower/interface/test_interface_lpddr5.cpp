@@ -219,7 +219,7 @@ TEST_F(LPDDR5_WindowStats_Tests, WriteClockOnDemand) {
 }
 
 TEST_F(LPDDR5_WindowStats_Tests, Pattern_3_BG_Mode) {
-    spec.bank_arch = MemSpecLPDDR5::BG;
+    spec.bank_arch = MemSpecLPDDR5::MBG;
     ddr = std::make_unique<LPDDR5>(spec);
 
     runCommands(test_patterns[3]);

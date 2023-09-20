@@ -13,9 +13,9 @@ namespace DRAMPower {
         };
 
         enum BankArchitectureMode {
-            BG,   // 4 banks, 4 bank groups
-            B16,  // 16 banks, no bank groups
-            B8    // 8 banks, no bank groups
+            MBG,   // 4 banks, 4 bank groups
+            M16B,  // 16 banks, no bank groups
+            M8B    // 8 banks, no bank groups
         };
 
     public:

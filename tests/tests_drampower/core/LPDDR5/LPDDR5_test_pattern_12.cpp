@@ -44,7 +44,7 @@ protected:
         memSpec.numberOfBankGroups = 1;
         memSpec.burstLength = 8;
         memSpec.dataRate = 2;
-        memSpec.bank_arch = MemSpecLPDDR5::B16;
+        memSpec.bank_arch = MemSpecLPDDR5::M16B;
 
 		memSpec.memTimingSpec.tRAS = 10;
 		memSpec.memTimingSpec.tRP = 10;

@@ -71,18 +71,18 @@ MemSpecLPDDR5::MemSpecLPDDR5(nlohmann::json &memspec)
         std::cout << "Selected values:" << std::endl;
         std::cout << "  - Number of banks: " << numberOfBanks << std::endl;
         std::cout << "  - Number of bank groups: " << numberOfBankGroups << std::endl;
-        std::cout << "Valid values are 16|0 (16B mode), 16|4 (BG mode) or 8|0 (8B mode)" << std::endl;
+        std::cout << "Valid values are 16|1 (16B mode), 16|4 (BG mode) or 8|1 (8B mode)" << std::endl;
         std::cout << std::endl << "Assuming 16B architecture." << std::endl;
-        bank_arch = BankArchitectureMode::B16;
+        bank_arch = BankArchitectureMode::M16B;
         numberOfBanks = 16;
         numberOfBankGroups = 1;
     };
 
     if (numberOfBanks == 16) {
         if (numberOfBankGroups == 1 || numberOfBankGroups == 0) {
-            bank_arch = BankArchitectureMode::B16;
+            bank_arch = BankArchitectureMode::M16B;
         } else if (numberOfBankGroups == 4) {
-            bank_arch = BankArchitectureMode::BG;
+            bank_arch = BankArchitectureMode::MBG;
         } else {
             BankArchError();
         }
@@ -90,7 +90,7 @@ MemSpecLPDDR5::MemSpecLPDDR5(nlohmann::json &memspec)
         if (numberOfBankGroups > 1) {
             BankArchError();
         } else {
-            bank_arch = BankArchitectureMode::B8;
+            bank_arch = BankArchitectureMode::M8B;
         }
     } else {
         BankArchError();
