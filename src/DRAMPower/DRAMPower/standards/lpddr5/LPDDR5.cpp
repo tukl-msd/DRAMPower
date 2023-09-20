@@ -110,9 +110,10 @@ namespace DRAMPower {
             refa_pattern[9] = BG0;
         }
         this->registerPattern<CmdType::REFA>(refa_pattern);
-        this->registerPattern<CmdType::REFP2B>({
-            // TODO
-        });
+
+        if (memSpec.bank_arch == MemSpecLPDDR5::MBG || memSpec.bank_arch == MemSpecLPDDR5::M16B) {
+            this->registerPattern<CmdType::REFP2B>(refb_pattern);
+        }
 
         commandPattern_t rd_pattern = {
             H, H, L, C0, C3, C4, C5,
