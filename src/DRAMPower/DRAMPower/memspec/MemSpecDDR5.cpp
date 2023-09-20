@@ -51,37 +51,24 @@ MemSpecDDR5::MemSpecDDR5(nlohmann::json &memspec)
 
     memPowerSpec.push_back(MemPowerSpec());
     memPowerSpec[VDDQ].vXX = parseUdouble(memspec["mempowerspec"]["vddq"], "vddq");
-    memPowerSpec[VDDQ].iXX0 = parseUdoubleWithDefault(memspec["mempowerspec"]["iddq0"], "iddq0");
-    memPowerSpec[VDDQ].iXX2N = parseUdoubleWithDefault(memspec["mempowerspec"]["iddq2n"], "iddq2n");
-    memPowerSpec[VDDQ].iXX3N = parseUdoubleWithDefault(memspec["mempowerspec"]["iddq3n"], "iddq3n");
-    memPowerSpec[VDDQ].iXX4R = parseUdoubleWithDefault(memspec["mempowerspec"]["iddq4r"], "iddq4r");
-    memPowerSpec[VDDQ].iXX4W = parseUdoubleWithDefault(memspec["mempowerspec"]["iddq4w"], "iddq4w");
-    memPowerSpec[VDDQ].iXX5C = parseUdoubleWithDefault(memspec["mempowerspec"]["iddq5C"], "iddq5C");
-    memPowerSpec[VDDQ].iXX6N = parseUdoubleWithDefault(memspec["mempowerspec"]["iddq6n"], "iddq6n");
-    memPowerSpec[VDDQ].iXX2P = parseUdoubleWithDefault(memspec["mempowerspec"]["iddq2p"], "iddq2p");
-    memPowerSpec[VDDQ].iXX3P = parseUdoubleWithDefault(memspec["mempowerspec"]["iddq3p"], "iddq3p");
 
     if (refreshMode == 1) {
         memPowerSpec[VDD].iXX5X = parseUdouble(memspec["mempowerspec"]["idd5B"], "idd5B");
         memPowerSpec[VPP].iXX5X = parseUdoubleWithDefault(memspec["mempowerspec"]["ipp5B"], "ipp5B");
-        memPowerSpec[VDDQ].iXX5X = parseUdoubleWithDefault(memspec["mempowerspec"]["iddq5B"], "iddq5B");
         memTimingSpec.tRFC = parseUint(memspec["memtimingspec"]["RFC1"], "RFC1");
     } else {
         memPowerSpec[VDD].iXX5X = parseUdouble(memspec["mempowerspec"]["idd5F"], "idd5F");
         memPowerSpec[VPP].iXX5X = parseUdoubleWithDefault(memspec["mempowerspec"]["ipp5F"], "ipp5F");
-        memPowerSpec[VDDQ].iXX5X = parseUdoubleWithDefault(memspec["mempowerspec"]["iddq5F"], "iddq5F");
         memTimingSpec.tRFC = parseUint(memspec["memtimingspec"]["RFC2"], "RFC2");
     }
 
     if(memspec["mempowerspec"].contains("iBeta")){
         memPowerSpec[VDD].iBeta = parseUdouble(memspec["mempowerspec"]["iBeta"], "iBeta");
         memPowerSpec[VPP].iBeta = parseUdouble(memspec["mempowerspec"]["iBeta"], "iBeta");
-        memPowerSpec[VDDQ].iBeta = parseUdouble(memspec["mempowerspec"]["iBeta"], "iBeta");
     }
     else{
         memPowerSpec[VDD].iBeta = memPowerSpec[VDD].iXX0;
         memPowerSpec[VPP].iBeta = memPowerSpec[VPP].iXX0;
-        memPowerSpec[VDDQ].iBeta = memPowerSpec[VDDQ].iXX0;
     }
 
 
