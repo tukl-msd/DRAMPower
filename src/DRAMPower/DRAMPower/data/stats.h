@@ -48,7 +48,7 @@ namespace DRAMPower
 		util::bus_stats_t writeDQSStats;
 
 		std::vector<CycleStats> bank;
-		CycleStats total;
+		std::vector<CycleStats> rank_total;
 	};
 };
 
