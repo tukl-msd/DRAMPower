@@ -313,54 +313,70 @@ namespace DRAMPower {
 
     interface_energy_info_t LPDDR4::calcInterfaceEnergy(timestamp_t timestamp) {
         return interface_energy_info_t{};
-        //InterfacePowerCalculation_LPPDR4 interface_calc(this->memSpec);
+        //InterfacePowerCalculation_LPPDR4 interface_calc(memSpec);
 
         //return interface_calc.calcEnergy(;
     }
 
     SimulationStats LPDDR4::getWindowStats(timestamp_t timestamp) {
         // If there are still implicit commands queued up, process them first
-        this->processImplicitCommandQueue(timestamp);
+        processImplicitCommandQueue(timestamp);
 
         SimulationStats stats;
-        stats.bank.resize(this->memSpec.numberOfBanks);
+        stats.bank.resize(memSpec.numberOfBanks * memSpec.numberOfRanks);
+        stats.rank_total.resize(memSpec.numberOfRanks);
 
-        auto &rank = this->ranks[0];
         auto simulation_duration = timestamp;
+        for (size_t i = 0; i < memSpec.numberOfRanks; ++i) {
+            Rank &rank = ranks[i];
+            size_t bank_offset = i * memSpec.numberOfBanks;
 
-        for (std::size_t i = 0; i < this->memSpec.numberOfBanks; ++i) {
-            stats.bank[i].counter = rank.banks[i].counter;
-            stats.bank[i].cycles.act = rank.banks[i].cycles.act.get_count_at(timestamp);
-            stats.bank[i].cycles.ref = rank.banks[i].cycles.ref.get_count_at(timestamp);
-            stats.bank[i].cycles.selfRefresh = rank.cycles.sref.get_count_at(timestamp) -
-                                               rank.cycles.deepSleepMode.get_count_at(timestamp);
-            stats.bank[i].cycles.deepSleepMode =  rank.cycles.deepSleepMode.get_count_at(timestamp);
-            stats.bank[i].cycles.powerDownAct = rank.cycles.powerDownAct.get_count_at(timestamp);
-            stats.bank[i].cycles.powerDownPre = rank.cycles.powerDownPre.get_count_at(timestamp);
-            stats.bank[i].cycles.pre = simulation_duration - (stats.bank[i].cycles.act +
-                                                              rank.cycles.powerDownAct.get_count_at(timestamp) +
-                                                              rank.cycles.powerDownPre.get_count_at(timestamp) +
-                                                              rank.cycles.sref.get_count_at(timestamp));
+            for (std::size_t j = 0; j < memSpec.numberOfBanks; ++j) {
+                stats.bank[bank_offset + j].counter = rank.banks[j].counter;
+                stats.bank[bank_offset + j].cycles.act =
+                    rank.banks[j].cycles.act.get_count_at(timestamp);
+                stats.bank[bank_offset + j].cycles.ref =
+                    rank.banks[j].cycles.ref.get_count_at(timestamp);
+                stats.bank[bank_offset + j].cycles.selfRefresh =
+                    rank.cycles.sref.get_count_at(timestamp) -
+                    rank.cycles.deepSleepMode.get_count_at(timestamp);
+                stats.bank[bank_offset + j].cycles.deepSleepMode =
+                    rank.cycles.deepSleepMode.get_count_at(timestamp);
+                stats.bank[bank_offset + j].cycles.powerDownAct =
+                    rank.cycles.powerDownAct.get_count_at(timestamp);
+                stats.bank[bank_offset + j].cycles.powerDownPre =
+                    rank.cycles.powerDownPre.get_count_at(timestamp);
+                stats.bank[bank_offset + j].cycles.pre =
+                    simulation_duration - (stats.bank[bank_offset + j].cycles.act +
+                                           rank.cycles.powerDownAct.get_count_at(timestamp) +
+                                           rank.cycles.powerDownPre.get_count_at(timestamp) +
+                                           rank.cycles.sref.get_count_at(timestamp));
+            }
+
+            stats.rank_total[i].cycles.pre =
+                simulation_duration - (rank.cycles.act.get_count_at(timestamp) +
+                                       rank.cycles.powerDownAct.get_count_at(timestamp) +
+                                       rank.cycles.powerDownPre.get_count_at(timestamp) +
+                                       rank.cycles.sref.get_count_at(timestamp));
+
+            stats.rank_total[i].cycles.act = rank.cycles.act.get_count_at(timestamp);
+            stats.rank_total[i].cycles.ref = rank.cycles.act.get_count_at(
+                timestamp);  // TODO: I think this counter is never updated
+            stats.rank_total[i].cycles.powerDownAct =
+                rank.cycles.powerDownAct.get_count_at(timestamp);
+            stats.rank_total[i].cycles.powerDownPre =
+                rank.cycles.powerDownPre.get_count_at(timestamp);
+            stats.rank_total[i].cycles.selfRefresh = rank.cycles.sref.get_count_at(timestamp);
         }
 
-        stats.total.cycles.pre = simulation_duration - (rank.cycles.act.get_count_at(timestamp) +
-                                                        rank.cycles.powerDownAct.get_count_at(timestamp) +
-                                                        rank.cycles.powerDownPre.get_count_at(timestamp) +
-                                                        rank.cycles.sref.get_count_at(timestamp));
+        stats.commandBus = commandBus.get_stats(timestamp);
+        stats.readBus = readBus.get_stats(timestamp);
+        stats.writeBus = writeBus.get_stats(timestamp);
 
-        stats.total.cycles.act = rank.cycles.act.get_count_at(timestamp);
-        stats.total.cycles.ref = rank.cycles.act.get_count_at(timestamp); //TODO: I think this counter is never updated
-        stats.total.cycles.powerDownAct = rank.cycles.powerDownAct.get_count_at(timestamp);
-        stats.total.cycles.powerDownPre = rank.cycles.powerDownPre.get_count_at(timestamp);
-        stats.total.cycles.selfRefresh = rank.cycles.sref.get_count_at(timestamp);
-
-        stats.commandBus = this->commandBus.get_stats(timestamp);
-        stats.readBus = this->readBus.get_stats(timestamp);
-        stats.writeBus = this->writeBus.get_stats(timestamp);
-
-        stats.clockStats = this->clock.get_stats_at(timestamp) + this->clockInverted.get_stats_at(timestamp);
-        stats.readDQSStats = this->readDQS_c.get_stats_at(timestamp) + this->readDQS_t.get_stats_at(timestamp);
-        stats.writeDQSStats = this->writeDQS_c.get_stats_at(timestamp) + this->writeDQS_t.get_stats_at(timestamp);
+        stats.clockStats = clock.get_stats_at(timestamp) + clockInverted.get_stats_at(timestamp);
+        stats.readDQSStats = readDQS_c.get_stats_at(timestamp) + readDQS_t.get_stats_at(timestamp);
+        stats.writeDQSStats =
+            writeDQS_c.get_stats_at(timestamp) + writeDQS_t.get_stats_at(timestamp);
 
         return stats;
     }
