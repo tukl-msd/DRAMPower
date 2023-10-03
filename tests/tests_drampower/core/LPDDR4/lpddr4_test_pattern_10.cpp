@@ -56,11 +56,11 @@ TEST_F(DramPowerTest_LPDDR4_10, Counters_and_Cycles){
 
 
     // Check cycles count
-    ASSERT_EQ(stats.total.cycles.act, 60);
-    ASSERT_EQ(stats.total.cycles.pre, 40);
-    ASSERT_EQ(stats.total.cycles.selfRefresh, 0);
-    ASSERT_EQ(stats.total.cycles.powerDownAct, 0);
-    ASSERT_EQ(stats.total.cycles.powerDownPre, 0);
+    ASSERT_EQ(stats.rank_total[0].cycles.act, 60);
+    ASSERT_EQ(stats.rank_total[0].cycles.pre, 40);
+    ASSERT_EQ(stats.rank_total[0].cycles.selfRefresh, 0);
+    ASSERT_EQ(stats.rank_total[0].cycles.powerDownAct, 0);
+    ASSERT_EQ(stats.rank_total[0].cycles.powerDownPre, 0);
 
     // Check bank specific ACT cycle count
     for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){

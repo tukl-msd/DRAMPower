@@ -67,8 +67,8 @@ TEST_F(DramPowerTest_LPDDR4_2, Counters_and_Cycles){
         ASSERT_EQ(stats.bank[b].counter.pre, 0);
 
     // Check cycles count
-    ASSERT_EQ(stats.total.cycles.act, 35);
-    ASSERT_EQ(stats.total.cycles.pre, 15);
+    ASSERT_EQ(stats.rank_total[0].cycles.act, 35);
+    ASSERT_EQ(stats.rank_total[0].cycles.pre, 15);
 
     // Check bank specific ACT cycle count
     ASSERT_EQ(stats.bank[0].cycles.act, 35);

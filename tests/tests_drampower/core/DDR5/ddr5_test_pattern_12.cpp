@@ -73,8 +73,8 @@ TEST_F(DramPowerTest_DDR5_12, Pattern1)
 	auto stats = ddr->getStats();
 
 	// Check global count
-	ASSERT_EQ(stats.total.cycles.act, 70);
-	ASSERT_EQ(stats.total.cycles.pre, 55);
+	ASSERT_EQ(stats.rank_total[0].cycles.act, 70);
+	ASSERT_EQ(stats.rank_total[0].cycles.pre, 55);
 
 	// Check per-bank ACT count
 	ASSERT_EQ(stats.bank[0].cycles.act, 30);
