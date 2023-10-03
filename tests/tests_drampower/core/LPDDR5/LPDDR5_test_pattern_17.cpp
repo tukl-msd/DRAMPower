@@ -96,8 +96,8 @@ TEST_F(DramPowerTest_LPDDR5_17, Test)
 	ASSERT_EQ(stats.bank[6].counter.refPerTwoBanks, 1);
 
 	// Check global cycles count
-	ASSERT_EQ(stats.total.cycles.act, 85);
-	ASSERT_EQ(stats.total.cycles.pre, 40);
+	ASSERT_EQ(stats.rank_total[0].cycles.act, 85);
+	ASSERT_EQ(stats.rank_total[0].cycles.pre, 40);
 
 	// Check bank specific ACT cycle count
 	ASSERT_EQ(stats.bank[0].cycles.act, 75);

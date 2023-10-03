@@ -91,8 +91,8 @@ TEST_F(DramPowerTest_LPDDR5_6, Counters_and_Cycles){
     }
 
     // Check cycles count
-    ASSERT_EQ(stats.total.cycles.act, 75);
-    ASSERT_EQ(stats.total.cycles.pre, 25);
+    ASSERT_EQ(stats.rank_total[0].cycles.act, 75);
+    ASSERT_EQ(stats.rank_total[0].cycles.pre, 25);
 
     // Check bank specific ACT cycle count;
     for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){

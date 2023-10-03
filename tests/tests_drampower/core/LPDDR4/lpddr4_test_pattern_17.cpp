@@ -34,7 +34,7 @@ protected:
         memSpec.numberOfBanks = 8;
         memSpec.numberOfBankGroups = 2;
         memSpec.banksPerGroup = 4;
-		
+
 		memSpec.memTimingSpec.tRAS = 10;
 		memSpec.memTimingSpec.tRTP = 10;
 		memSpec.memTimingSpec.tRCD = 20;
@@ -89,10 +89,10 @@ TEST_F(DramPowerTest_LPDDR4_17, Test)
 	ASSERT_EQ(stats.bank[0].counter.pre, 1);
 
 	// Check global cycles count
-	ASSERT_EQ(stats.total.cycles.act, 55);
-	ASSERT_EQ(stats.total.cycles.pre, 55);
-	ASSERT_EQ(stats.total.cycles.powerDownAct, 10);
-	ASSERT_EQ(stats.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(stats.rank_total[0].cycles.act, 55);
+	ASSERT_EQ(stats.rank_total[0].cycles.pre, 55);
+	ASSERT_EQ(stats.rank_total[0].cycles.powerDownAct, 10);
+	ASSERT_EQ(stats.rank_total[0].cycles.powerDownPre, 5);
 
 	// Check bank specific ACT cycle count
 	ASSERT_EQ(stats.bank[0].cycles.act, 55);
@@ -136,172 +136,172 @@ TEST_F(DramPowerTest_LPDDR4_17, CalcWindow)
 
 	// Cycle 5
 	window = iterate_to_timestamp(command, 5);
-	ASSERT_EQ(window.total.cycles.act, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 5);  ASSERT_EQ(window.bank[0].cycles.pre, 0);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);  ASSERT_EQ(window.bank[1].cycles.pre, 5);
 
 	// Cycle 10
 	window = iterate_to_timestamp(command, 10);
-	ASSERT_EQ(window.total.cycles.act, 10);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 10);
 	ASSERT_EQ(window.bank[0].cycles.act, 10);  ASSERT_EQ(window.bank[0].cycles.pre, 0);
 	ASSERT_EQ(window.bank[1].cycles.act,  0);   ASSERT_EQ(window.bank[1].cycles.pre, 10);
 
 	// Cycle 15
 	window = iterate_to_timestamp(command, 15);
-	ASSERT_EQ(window.total.cycles.act, 15);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 15);
 	ASSERT_EQ(window.bank[0].cycles.act, 15);  ASSERT_EQ(window.bank[0].cycles.pre, 0);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);   ASSERT_EQ(window.bank[1].cycles.pre, 15);
 
 	// Cycle 20
 	window = iterate_to_timestamp(command, 20);
-	ASSERT_EQ(window.total.cycles.act, 20);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 20);
 	ASSERT_EQ(window.bank[0].cycles.act, 20);  ASSERT_EQ(window.bank[0].cycles.pre, 0);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);   ASSERT_EQ(window.bank[1].cycles.pre, 20);
 
 	// Cycle 25
 	window = iterate_to_timestamp(command, 25);
-	ASSERT_EQ(window.total.cycles.act, 20);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 20);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 20);  ASSERT_EQ(window.bank[0].cycles.pre, 0);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);  ASSERT_EQ(window.bank[1].cycles.pre, 20);
 
 	// Cycle 30
 	window = iterate_to_timestamp(command, 30);
-	ASSERT_EQ(window.total.cycles.act, 20);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 20);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10);
 	ASSERT_EQ(window.bank[0].cycles.act, 20);  ASSERT_EQ(window.bank[0].cycles.pre, 0);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);  ASSERT_EQ(window.bank[1].cycles.pre, 20);
 
 	// Cycle 35
 	window = iterate_to_timestamp(command, 35);
-	ASSERT_EQ(window.total.cycles.act, 25);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 25);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10);
 	ASSERT_EQ(window.bank[0].cycles.act, 25);  ASSERT_EQ(window.bank[0].cycles.pre, 0);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);  ASSERT_EQ(window.bank[1].cycles.pre, 25);
 
 	// Cycle 40
 	window = iterate_to_timestamp(command, 40);
-	ASSERT_EQ(window.total.cycles.act, 30);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 30);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10);
 	ASSERT_EQ(window.bank[0].cycles.act, 30);  ASSERT_EQ(window.bank[0].cycles.pre, 0);
 	ASSERT_EQ(window.bank[1].cycles.act,  0);  ASSERT_EQ(window.bank[1].cycles.pre, 30);
 
 	// Cycle 45
 	window = iterate_to_timestamp(command, 45);
-	ASSERT_EQ(window.total.cycles.act, 30);    ASSERT_EQ(window.total.cycles.pre,  5);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 30);    ASSERT_EQ(window.rank_total[0].cycles.pre,  5);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10);
 	ASSERT_EQ(window.bank[0].cycles.act, 30);  ASSERT_EQ(window.bank[0].cycles.pre, 5);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);   ASSERT_EQ(window.bank[1].cycles.pre, 35);
 
 	// Cycle 50
 	window = iterate_to_timestamp(command, 50);
-	ASSERT_EQ(window.total.cycles.act, 30);    ASSERT_EQ(window.total.cycles.pre, 10);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 30);    ASSERT_EQ(window.rank_total[0].cycles.pre, 10);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10);
 	ASSERT_EQ(window.bank[0].cycles.act, 30);  ASSERT_EQ(window.bank[0].cycles.pre, 10);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);   ASSERT_EQ(window.bank[1].cycles.pre, 40);
 
 	// Cycle 55
 	window = iterate_to_timestamp(command, 55);
-	ASSERT_EQ(window.total.cycles.act, 30);    ASSERT_EQ(window.total.cycles.pre, 15);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 30);    ASSERT_EQ(window.rank_total[0].cycles.pre, 15);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10);
 	ASSERT_EQ(window.bank[0].cycles.act, 30);  ASSERT_EQ(window.bank[0].cycles.pre, 15);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);   ASSERT_EQ(window.bank[1].cycles.pre, 45);
 
 	// Cycle 60
 	window = iterate_to_timestamp(command, 60);
-	ASSERT_EQ(window.total.cycles.act, 30);    ASSERT_EQ(window.total.cycles.pre, 20);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 30);    ASSERT_EQ(window.rank_total[0].cycles.pre, 20);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10);
 	ASSERT_EQ(window.bank[0].cycles.act, 30);  ASSERT_EQ(window.bank[0].cycles.pre, 20);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);   ASSERT_EQ(window.bank[1].cycles.pre, 50);
 
 	// Cycle 65
 	window = iterate_to_timestamp(command, 65);
-	ASSERT_EQ(window.total.cycles.act, 30);    ASSERT_EQ(window.total.cycles.pre, 20);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 30);    ASSERT_EQ(window.rank_total[0].cycles.pre, 20);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 30);  ASSERT_EQ(window.bank[0].cycles.pre, 20);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);   ASSERT_EQ(window.bank[1].cycles.pre, 50);
 
 	// Cycle 70
 	window = iterate_to_timestamp(command, 70);
-	ASSERT_EQ(window.total.cycles.act, 30);    ASSERT_EQ(window.total.cycles.pre, 25);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 30);    ASSERT_EQ(window.rank_total[0].cycles.pre, 25);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 30);  ASSERT_EQ(window.bank[0].cycles.pre, 25);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);   ASSERT_EQ(window.bank[1].cycles.pre, 55);
 
 	// Cycle 75
 	window = iterate_to_timestamp(command, 75);
-	ASSERT_EQ(window.total.cycles.act, 30);    ASSERT_EQ(window.total.cycles.pre, 30);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 30);    ASSERT_EQ(window.rank_total[0].cycles.pre, 30);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 30);  ASSERT_EQ(window.bank[0].cycles.pre, 30);
 	ASSERT_EQ(window.bank[1].cycles.act, 0);   ASSERT_EQ(window.bank[1].cycles.pre, 60);
 
 	// Cycle 80
 	window = iterate_to_timestamp(command, 80);
-	ASSERT_EQ(window.total.cycles.act, 35);    ASSERT_EQ(window.total.cycles.pre, 30);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 35);    ASSERT_EQ(window.rank_total[0].cycles.pre, 30);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 35);  ASSERT_EQ(window.bank[0].cycles.pre, 30);
 	ASSERT_EQ(window.bank[1].cycles.act, 5);   ASSERT_EQ(window.bank[1].cycles.pre, 60);
 
 	// Cycle 85
 	window = iterate_to_timestamp(command, 85);
-	ASSERT_EQ(window.total.cycles.act, 40);     ASSERT_EQ(window.total.cycles.pre, 30);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 40);     ASSERT_EQ(window.rank_total[0].cycles.pre, 30);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 40);   ASSERT_EQ(window.bank[0].cycles.pre, 30);
 	ASSERT_EQ(window.bank[1].cycles.act, 10);   ASSERT_EQ(window.bank[1].cycles.pre, 60);
 
 	// Cycle 90
 	window = iterate_to_timestamp(command, 90);
-	ASSERT_EQ(window.total.cycles.act, 45);     ASSERT_EQ(window.total.cycles.pre, 30);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 45);     ASSERT_EQ(window.rank_total[0].cycles.pre, 30);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 45);   ASSERT_EQ(window.bank[0].cycles.pre, 30);
 	ASSERT_EQ(window.bank[1].cycles.act, 15);   ASSERT_EQ(window.bank[1].cycles.pre, 60);
 
 	// Cycle 95
 	window = iterate_to_timestamp(command, 95);
-	ASSERT_EQ(window.total.cycles.act, 50);     ASSERT_EQ(window.total.cycles.pre, 30);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 50);     ASSERT_EQ(window.rank_total[0].cycles.pre, 30);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 50);   ASSERT_EQ(window.bank[0].cycles.pre, 30);
 	ASSERT_EQ(window.bank[1].cycles.act, 20);   ASSERT_EQ(window.bank[1].cycles.pre, 60);
 
 	// Cycle 100
 	window = iterate_to_timestamp(command, 100);
-	ASSERT_EQ(window.total.cycles.act, 55);     ASSERT_EQ(window.total.cycles.pre, 30);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 55);     ASSERT_EQ(window.rank_total[0].cycles.pre, 30);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 55);   ASSERT_EQ(window.bank[0].cycles.pre, 30);
 	ASSERT_EQ(window.bank[1].cycles.act, 25);   ASSERT_EQ(window.bank[1].cycles.pre, 60);
 
 	// Cycle 105
 	window = iterate_to_timestamp(command, 105);
-	ASSERT_EQ(window.total.cycles.act, 55);     ASSERT_EQ(window.total.cycles.pre, 35);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 55);     ASSERT_EQ(window.rank_total[0].cycles.pre, 35);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 55);   ASSERT_EQ(window.bank[0].cycles.pre, 35);
 	ASSERT_EQ(window.bank[1].cycles.act, 25);   ASSERT_EQ(window.bank[1].cycles.pre, 65);
 
 	// Cycle 110
 	window = iterate_to_timestamp(command, 110);
-	ASSERT_EQ(window.total.cycles.act, 55);     ASSERT_EQ(window.total.cycles.pre, 40);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 55);     ASSERT_EQ(window.rank_total[0].cycles.pre, 40);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 55);   ASSERT_EQ(window.bank[0].cycles.pre, 40);
 	ASSERT_EQ(window.bank[1].cycles.act, 25);   ASSERT_EQ(window.bank[1].cycles.pre, 70);
 
 	// Cycle 115
 	window = iterate_to_timestamp(command, 115);
-	ASSERT_EQ(window.total.cycles.act, 55);     ASSERT_EQ(window.total.cycles.pre, 45);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 55);     ASSERT_EQ(window.rank_total[0].cycles.pre, 45);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 55);   ASSERT_EQ(window.bank[0].cycles.pre, 45);
 	ASSERT_EQ(window.bank[1].cycles.act, 25);   ASSERT_EQ(window.bank[1].cycles.pre, 75);
 
 	// Cycle 120
 	window = iterate_to_timestamp(command, 120);
-	ASSERT_EQ(window.total.cycles.act, 55);     ASSERT_EQ(window.total.cycles.pre, 50);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 55);     ASSERT_EQ(window.rank_total[0].cycles.pre, 50);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 55);   ASSERT_EQ(window.bank[0].cycles.pre, 50);
 	ASSERT_EQ(window.bank[1].cycles.act, 25);   ASSERT_EQ(window.bank[1].cycles.pre, 80);
 
 	// Cycle 125
 	window = iterate_to_timestamp(command, 125);
-	ASSERT_EQ(window.total.cycles.act, 55);     ASSERT_EQ(window.total.cycles.pre, 55);
-	ASSERT_EQ(window.total.cycles.powerDownAct, 10); ASSERT_EQ(window.total.cycles.powerDownPre, 5);
+	ASSERT_EQ(window.rank_total[0].cycles.act, 55);     ASSERT_EQ(window.rank_total[0].cycles.pre, 55);
+	ASSERT_EQ(window.rank_total[0].cycles.powerDownAct, 10); ASSERT_EQ(window.rank_total[0].cycles.powerDownPre, 5);
 	ASSERT_EQ(window.bank[0].cycles.act, 55);   ASSERT_EQ(window.bank[0].cycles.pre, 55);
 	ASSERT_EQ(window.bank[1].cycles.act, 25);   ASSERT_EQ(window.bank[1].cycles.pre, 85);
 };
@@ -315,7 +315,7 @@ TEST_F(DramPowerTest_LPDDR4_17, CalcEnergy)
 			ddr->doCommand(*command);
 			++command;
 		}
-	};	
+	};
 
 	auto command = testPattern.begin();
 	iterate_to_timestamp(command, testPattern, 125);

@@ -88,11 +88,11 @@ TEST_F(DramPowerTest_LPDDR4_16, Test)
 	ASSERT_EQ(stats.bank[0].counter.pre, 1);
 
 	// Check global cycles count
-	ASSERT_EQ(stats.total.cycles.activeTime(), 55);
-	ASSERT_EQ(stats.total.cycles.act, 55);
-	ASSERT_EQ(stats.total.cycles.pre, 30);
-	ASSERT_EQ(stats.total.cycles.powerDownAct, 10);
-	ASSERT_EQ(stats.total.cycles.powerDownPre, 30);
+	ASSERT_EQ(stats.rank_total[0].cycles.activeTime(), 55);
+	ASSERT_EQ(stats.rank_total[0].cycles.act, 55);
+	ASSERT_EQ(stats.rank_total[0].cycles.pre, 30);
+	ASSERT_EQ(stats.rank_total[0].cycles.powerDownAct, 10);
+	ASSERT_EQ(stats.rank_total[0].cycles.powerDownPre, 30);
 
 	// Check bank specific ACT cycle count
 	ASSERT_EQ(stats.bank[0].cycles.act, 55); ASSERT_EQ(stats.bank[0].cycles.activeTime(), 55);

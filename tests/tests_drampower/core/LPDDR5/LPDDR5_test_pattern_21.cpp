@@ -89,10 +89,10 @@ TEST_F(DramPowerTest_LPDDR5_21, Test)
     ASSERT_EQ(rank_1.counter.selfRefresh, 3);
 
     // Check global cycles count
-    ASSERT_EQ(stats.total.cycles.act, 30);
-    ASSERT_EQ(stats.total.cycles.pre, 40);
-    ASSERT_EQ(stats.total.cycles.selfRefresh, 20);
-    ASSERT_EQ(stats.total.cycles.deepSleepMode, 35);
+    ASSERT_EQ(stats.rank_total[0].cycles.act, 30);
+    ASSERT_EQ(stats.rank_total[0].cycles.pre, 40);
+    ASSERT_EQ(stats.rank_total[0].cycles.selfRefresh, 20);
+    ASSERT_EQ(stats.rank_total[0].cycles.deepSleepMode, 35);
 
     // Check bank specific ACT cycle count
     ASSERT_EQ(stats.bank[0].cycles.act, 30);

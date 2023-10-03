@@ -66,8 +66,8 @@ TEST_F(DramPowerTest_DDR4_1, Counters_and_Cycles){
         ASSERT_EQ(stats.bank[b].counter.pre, 0);
 
     // Check cycles count
-    ASSERT_EQ(stats.total.cycles.act, 35);
-    ASSERT_EQ(stats.total.cycles.pre, 0);
+    ASSERT_EQ(stats.rank_total[0].cycles.act, 35);
+    ASSERT_EQ(stats.rank_total[0].cycles.pre, 0);
 
     // Check bank specific ACT cycle count
     ASSERT_EQ(stats.bank[0].cycles.act, 35);

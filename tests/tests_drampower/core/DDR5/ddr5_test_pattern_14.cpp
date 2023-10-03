@@ -41,7 +41,7 @@ protected:
         memSpec.numberOfBanks = 8;
         memSpec.banksPerGroup = 8;
         memSpec.numberOfBankGroups = 1;
-		
+
 		memSpec.memTimingSpec.tRAS = 20;
 		memSpec.memTimingSpec.tRTP = 10;
 		memSpec.memTimingSpec.tWR = 12;
@@ -121,8 +121,8 @@ TEST_F(DramPowerTest_DDR5_14, Test)
 	ASSERT_EQ(stats.bank[7].counter.writeAuto, 0);
 
 	// Check cycles count
-	ASSERT_EQ(stats.total.cycles.act, 100);
-	ASSERT_EQ(stats.total.cycles.pre, 25);
+	ASSERT_EQ(stats.rank_total[0].cycles.act, 100);
+	ASSERT_EQ(stats.rank_total[0].cycles.pre, 25);
 
 	// Check bank specific ACT cycle count
 	ASSERT_EQ(stats.bank[0].cycles.act, 75);
