@@ -1,7 +1,7 @@
 #include "LPDDR5.h"
 
 #include <DRAMPower/command/Pattern.h>
-#include <DRAMPower/standards/lpddr5/calculation_LPDDR5.h>
+#include <DRAMPower/standards/lpddr5/core_calculation_LPDDR5.h>
 #include <DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.h>
 #include <iostream>
 

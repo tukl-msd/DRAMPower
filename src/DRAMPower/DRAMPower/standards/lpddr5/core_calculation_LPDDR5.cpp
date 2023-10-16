@@ -1,4 +1,4 @@
-#include "calculation_LPDDR5.h"
+#include "core_calculation_LPDDR5.h"
 
 #include <DRAMPower/standards/lpddr5/LPDDR5.h>
 
