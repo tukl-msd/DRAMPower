@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "DRAMPower/command/Pattern.h"
-#include "DRAMPower/standards/ddr5/calculation_DDR5.h"
+#include "DRAMPower/standards/ddr5/core_calculation_DDR5.h"
 #include "DRAMPower/standards/ddr5/interface_calculation_DDR5.h"
 
 namespace DRAMPower {

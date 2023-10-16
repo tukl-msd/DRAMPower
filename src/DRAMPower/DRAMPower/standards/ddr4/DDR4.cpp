@@ -1,7 +1,7 @@
 #include "DDR4.h"
 
 #include <DRAMPower/command/Pattern.h>
-#include <DRAMPower/standards/ddr4/calculation_DDR4.h>
+#include <DRAMPower/standards/ddr4/core_calculation_DDR4.h>
 #include <DRAMPower/standards/ddr4/interface_calculation_DDR4.h>
 #include <iostream>
 

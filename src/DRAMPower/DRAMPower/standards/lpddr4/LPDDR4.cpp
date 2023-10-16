@@ -1,7 +1,7 @@
 #include "LPDDR4.h"
 
 #include <DRAMPower/command/Pattern.h>
-#include <DRAMPower/standards/lpddr4/calculation_LPDDR4.h>
+#include <DRAMPower/standards/lpddr4/core_calculation_LPDDR4.h>
 #include <DRAMPower/standards/lpddr4/interface_calculation_LPDDR4.h>
 
 

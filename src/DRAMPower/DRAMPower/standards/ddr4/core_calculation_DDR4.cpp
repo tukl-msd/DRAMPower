@@ -1,4 +1,4 @@
-#include "calculation_DDR4.h"
+#include "core_calculation_DDR4.h"
 
 #include <DRAMPower/standards/ddr4/DDR4.h>
 
