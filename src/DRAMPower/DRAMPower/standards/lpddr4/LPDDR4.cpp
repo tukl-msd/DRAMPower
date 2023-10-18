@@ -94,10 +94,10 @@ namespace DRAMPower {
                 this->readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
                 readDQS_c.start(cmd.timestamp);
-                readDQS_c.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                readDQS_c.stop(cmd.timestamp + length / this->memSpec.dataRate);
 
                 readDQS_t.start(cmd.timestamp);
-                readDQS_t.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                readDQS_t.stop(cmd.timestamp + length / this->memSpec.dataRate);
             }
                 break;
             case CmdType::WR:
@@ -106,10 +106,10 @@ namespace DRAMPower {
                 this->writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
                 writeDQS_c.start(cmd.timestamp);
-                writeDQS_c.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                writeDQS_c.stop(cmd.timestamp + length / this->memSpec.dataRate);
 
                 writeDQS_t.start(cmd.timestamp);
-                writeDQS_t.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                writeDQS_t.stop(cmd.timestamp + length / this->memSpec.dataRate);
             }
                 break;
         };
