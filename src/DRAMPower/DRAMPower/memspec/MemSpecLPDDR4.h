@@ -74,12 +74,6 @@ public:
 		double R_eq_dqs;
 	};
 
-	struct DataRateSpec {
-		uint32_t commandBusRate;
-		uint32_t dataBusRate;
-		uint32_t dqsBusRate;
-	};
-
 	struct BankWiseParams
 	{
 		// Set of possible PASR modes
@@ -109,10 +103,8 @@ public:
 
 	};
 
-
 	MemTimingSpec memTimingSpec;
 	MemImpedanceSpec memImpedanceSpec;
-	DataRateSpec dataRateSpec;
 	std::vector<MemPowerSpec> memPowerSpec;
 	BankWiseParams bwParams;
 

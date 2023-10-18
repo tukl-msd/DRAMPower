@@ -62,6 +62,7 @@ protected:
 		memSpec.numberOfBanks = 2;
 		memSpec.bitWidth = 16;
 		memSpec.burstLength = 16;
+		memSpec.dataRate = 2;
 
 		// mem timings
 		memSpec.memTimingSpec.tRAS = 10;
@@ -107,11 +108,6 @@ protected:
 		memSpec.memImpedanceSpec.R_eq_cb = 2.0;
 		memSpec.memImpedanceSpec.R_eq_rb = 2.0;
 		memSpec.memImpedanceSpec.R_eq_wb = 2.0;
-
-		// Data rate specs
-		memSpec.dataRateSpec.commandBusRate = 1;
-		memSpec.dataRateSpec.dataBusRate = 2;
-		memSpec.dataRateSpec.dqsBusRate = 2;
 
 		memSpec.bwParams.bwPowerFactRho = 0.333333333;
 
@@ -172,7 +168,7 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestPower)
 	auto stats = ddr->getStats();
 
 	InterfacePowerCalculation_LPPDR4 interface_calc(this->ddr->memSpec);
-	
+
 	auto interface_stats = interface_calc.calcEnergy(stats);
 	auto dqs_stats = interface_calc.calcDQSEnergy(stats);
 }
