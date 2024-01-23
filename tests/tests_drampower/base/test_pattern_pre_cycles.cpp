@@ -11,6 +11,7 @@ using namespace DRAMPower;
 class DramPowerTest_Pre_Cycles : public ::testing::Test {
 protected:
 	// Test pattern
+	// TODO invalid state transitions
 	std::vector<Command> testPattern = {
 		// Timestamp,   Cmd,  { Bank, BG, Rank}
 			{   0, CmdType::ACT,  { 0, 0, 0 } },

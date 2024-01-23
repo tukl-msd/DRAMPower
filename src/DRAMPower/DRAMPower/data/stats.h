@@ -26,7 +26,7 @@ namespace DRAMPower
 		struct {
 			uint64_t act = 0;
 			uint64_t pre = 0;
-			uint64_t ref = 0;
+			uint64_t ref = 0;		// TODO not used in DDR4 -> Used in other standards ???
 			uint64_t powerDownAct = 0;
 			uint64_t powerDownPre = 0;
 			uint64_t selfRefresh = 0;

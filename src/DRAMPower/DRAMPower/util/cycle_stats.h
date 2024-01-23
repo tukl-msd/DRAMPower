@@ -66,6 +66,11 @@ public:
 		this->start = start;
 		this->end.reset();
 	}
+
+	void start_interval_if_not_running(T start) {
+		if(!is_open())
+			start_interval(start);
+	}
 };
 
 }

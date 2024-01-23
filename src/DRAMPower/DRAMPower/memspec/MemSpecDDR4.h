@@ -99,6 +99,23 @@ public:
         double iBeta;
 	};
 
+	// TODO hier weitermachen
+	// TODO funktionen zum Einlesen erstellen
+	struct MemImpedanceSpec
+	{
+		double C_total_ck;
+		double C_total_cb;
+		double C_total_rb;
+		double C_total_wb;
+		double C_total_dqs;
+
+		double R_eq_ck;
+		double R_eq_cb;
+		double R_eq_rb;
+		double R_eq_wb;
+		double R_eq_dqs;
+	};
+
 
 	struct BankWiseParams 
 	{
@@ -109,7 +126,10 @@ public:
     uint64_t refreshMode;
 	MemTimingSpec memTimingSpec;
 	std::vector<MemPowerSpec> memPowerSpec;
+	MemImpedanceSpec memImpedanceSpec;
 	BankWiseParams bwParams;
+private:
+	void parseImpedanceSpec(nlohmann::json &memspec);
 };
 
 }

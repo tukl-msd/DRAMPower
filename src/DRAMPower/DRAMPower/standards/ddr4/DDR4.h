@@ -11,6 +11,7 @@
 
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/util/cycle_stats.h>
+#include <DRAMPower/util/clock.h>
 
 #include <deque>
 #include <algorithm>
@@ -34,7 +35,10 @@ protected:
 	template<dram_base::commandEnum_t Cmd, typename Func>
 	void registerBankHandler(Func && member_func) {
 		this->routeCommand<Cmd>([this, member_func](const Command & command) {
+			assert(this->ranks.size()>command.targetCoordinate.rank);
 			auto & rank = this->ranks[command.targetCoordinate.rank];
+
+			assert(rank.banks.size()>command.targetCoordinate.bank);
 			auto & bank = rank.banks[command.targetCoordinate.bank];
 
 			rank.commandCounter.inc(command.type);
@@ -45,6 +49,7 @@ protected:
 	template<dram_base::commandEnum_t Cmd, typename Func>
 	void registerRankHandler(Func && member_func) {
 		this->routeCommand<Cmd>([this, member_func](const Command & command) {
+			assert(this->ranks.size()>command.targetCoordinate.rank);
 			auto & rank = this->ranks[command.targetCoordinate.rank];
 
 			rank.commandCounter.inc(command.type);
@@ -98,6 +103,11 @@ public:
 public:
 	SimulationStats getWindowStats(timestamp_t timestamp);
 	SimulationStats getStats();
+
+private:
+	util::Clock clock;
+    util::Clock readDQS_;
+    util::Clock writeDQS_;
 };
 
 };

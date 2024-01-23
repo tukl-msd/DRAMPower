@@ -44,6 +44,7 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy(const Simulat
 }
 
 interface_energy_info_t InterfaceCalculation_DDR5::calcDQSEnergy(const SimulationStats &stats) {
+    // TODO right termination?
     interface_energy_info_t result;
     result.dram.staticPower +=
         calc_static_power(stats.readDQSStats.ones, impedances_.R_eq_dqs, t_CK_, VDDQ_);

@@ -11,10 +11,15 @@ namespace DRAMPower {
     DDR4::DDR4(const MemSpecDDR4 &memSpec)
 		: memSpec(memSpec)
 		, ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-		, commandBus{6}
-		, readBus{6}
-		, writeBus{6}
+        , readBus(memSpec.bitWidth)
+        , writeBus(memSpec.bitWidth)
+        , commandBus(27)
+        , readDQS_(2, true)
+        , writeDQS_(2, true)
 	{
+        for (auto &rank : ranks) {
+            rank.cycles.pre.start_interval(0);
+        }
         this->registerPatterns();
 
         this->registerBankHandler<CmdType::ACT>(&DDR4::handleAct);
@@ -37,178 +42,187 @@ namespace DRAMPower {
 
     void DDR4::registerPatterns() {
         using namespace pattern_descriptor;
-
         // DDR4
         // ---------------------------------:
         this->registerPattern<CmdType::ACT>({
-                                                    L, L, A16, A15, A14, BG0, BG1, BA0, BA1,
-                                                    V, V, V,
-                                                    A12,
-                                                    A17, A13, A11,
-                                                    A10,
-                                                    A0, A1, A2, A3, A4, A5, A6, A7, A8, A9
-                                            });
+            L, L, A16, A15, A14, BG0, BG1, BA0, BA1,
+            V, V, V, A12, A17, A13, A11, A10, A0,
+            A1, A2, A3, A4, A5, A6, A7, A8, A9
+        });
         this->registerPattern<CmdType::PRE>({
-                                                    L, H, L, H, L, BG0, BG1, BA0, BA1,
-                                                    V, V, V,
-                                                    V,
-                                                    V, V, V,
-                                                    V,
-                                                    V, V, V, V, V, V, V, V, V, V
-                                            });
+            L, H, L, H, L, BG0, BG1, BA0, BA1,
+            V, V, V, V, V, V, V, V, V,
+            V, V, V, V, V, V, V, V, V
+        });
         this->registerPattern<CmdType::PREA>({
-                                                     L, H, L, H, L, V, V, V, V,
-                                                     V, V, V,
-                                                     V,
-                                                     V, V, V,
-                                                     H,
-                                                     V, V, V, V, V, V, V, V, V, V
-                                             });
+            L, H, L, H, L, V, V, V, V,
+            V, V, V, V, V, V, V, H, V,
+            V, V, V, V, V, V, V, V, V
+        });
         this->registerPattern<CmdType::REFA>({
-                                                     L, H, L, L, H, V, V, V, V,
-                                                     V, V, V,
-                                                     V,
-                                                     V, V, V,
-                                                     V,
-                                                     V, V, V, V, V, V, V, V, V, V
-                                             });
+            L, H, L, L, H, V, V, V, V,
+            V, V, V, V, V, V, V, V, V,
+            V, V, V, V, V, V, V, V, V
+        });
         this->registerPattern<CmdType::RD>({
-                                                   L, H, H, L, H, BG0, BG1, BA0, BA1,
-                                                   V, V, V,
-                                                   V,
-                                                   V, V, V,
-                                                   L,
-                                                   A0, A1, A2, A3, A4, A5, A6, A7, A8, A9
-                                           });
+            L, H, H, L, H, BG0, BG1, BA0, BA1,
+            V, V, V, V, V, V, V, L, A0,
+            A1, A2, A3, A4, A5, A6, A7, A8, A9
+        });
         this->registerPattern<CmdType::RDA>({
-                                                    L, H, H, L, H, BG0, BG1, BA0, BA1,
-                                                    V, V, V,
-                                                    V,
-                                                    V, V, V,
-                                                    H,
-                                                    A0, A1, A2, A3, A4, A5, A6, A7, A8, A9
-
-                                            });
+            L, H, H, L, H, BG0, BG1, BA0, BA1,
+            V, V, V, V, V, V, V, H, A0,
+            A1, A2, A3, A4, A5, A6, A7, A8, A9
+        });
         this->registerPattern<CmdType::WR>({
-                                                   L, H, H, L, L, BG0, BG1, BA0, BA1,
-                                                   V, V, V,
-                                                   V,
-                                                   V, V, V,
-                                                   L,
-                                                   A0, A1, A2, A3, A4, A5, A6, A7, A8, A9
-
-                                           });
+            L, H, H, L, L, BG0, BG1, BA0, BA1,
+            V, V, V, V, V, V, V, L, A0,
+            A1, A2, A3, A4, A5, A6, A7, A8, A9
+        });
         this->registerPattern<CmdType::WRA>({
-                                                    L, H, H, L, L, BG0, BG1, BA0, BA1,
-                                                    V, V, V,
-                                                    V,
-                                                    V, V, V,
-                                                    H,
-                                                    A0, A1, A2, A3, A4, A5, A6, A7, A8, A9
-
-                                            });
+            L, H, H, L, L, BG0, BG1, BA0, BA1,
+            V, V, V, V, V, V, V, H, A0,
+            A1, A2, A3, A4, A5, A6, A7, A8, A9
+        });
         this->registerPattern<CmdType::SREFEN>({
-                                                       L, H, L, L, H, V, V, V, V,
-                                                       V, V, V,
-                                                       V,
-                                                       V, V, V,
-                                                       V,
-                                                       V, V, V, V, V, V, V, V, V, V
-
-                                               });
+            L, H, L, L, H, V, V, V, V,
+            V, V, V, V, V, V, V, V, V,
+            V, V, V, V, V, V, V, V, V
+        });
+        // two cycle command
         this->registerPattern<CmdType::SREFEX>({
-                                                       H, X, X, X, X, X, X, X, X,
-                                                       X, X, X,
-                                                       X,
-                                                       X, X, X,
-                                                       X,
-                                                       X, X, X, X, X, X, X, X, X, X,
-                                                       L, H, H, H, H, V, V, V, V,
-                                                       V, V, V,
-                                                       V,
-                                                       V, V, V,
-                                                       V,
-                                                       V, V, V, V, V, V, V, V, V, V
-                                               });
+            H, X, X, X, X, X, X, X, X,
+            X, X, X, X, X, X, X, X, X,
+            X, X, X, X, X, X, X, X, X,
+
+            L, H, H, H, H, V, V, V, V,
+            V, V, V, V, V, V, V, V, V,
+            V, V, V, V, V, V, V, V, V
+        });
         this->registerPattern<CmdType::PDEA>({
-                                                     H, X, X, X, X, X, X, X, X,
-                                                     X, X, X,
-                                                     X,
-                                                     X, X, X,
-                                                     X,
-                                                     X, X, X, X, X, X, X, X, X, X,
-                                             });
+            H, X, X, X, X, X, X, X, X,
+            X, X, X, X, X, X, X, X, X,
+            X, X, X, X, X, X, X, X, X,
+        });
         this->registerPattern<CmdType::PDXA>({
-                                                     H, X, X, X, X, X, X, X, X,
-                                                     X, X, X,
-                                                     X,
-                                                     X, X, X,
-                                                     X,
-                                                     X, X, X, X, X, X, X, X, X, X,
-                                             });
+            H, X, X, X, X, X, X, X, X,
+            X, X, X, X, X, X, X, X, X,
+            X, X, X, X, X, X, X, X, X,
+        });
         this->registerPattern<CmdType::PDEP>({
-                                                     H, X, X, X, X, X, X, X, X,
-                                                     X, X, X,
-                                                     X,
-                                                     X, X, X,
-                                                     X,
-                                                     X, X, X, X, X, X, X, X, X, X,
-                                             });
+            H, X, X, X, X, X, X, X, X,
+            X, X, X, X, X, X, X, X, X,
+            X, X, X, X, X, X, X, X, X,
+        });
         this->registerPattern<CmdType::PDXP>({
-                                                     H, X, X, X, X, X, X, X, X,
-                                                     X, X, X,
-                                                     X,
-                                                     X, X, X,
-                                                     X,
-                                                     X, X, X, X, X, X, X, X, X, X,
-                                             });
+            H, X, X, X, X, X, X, X, X,
+            X, X, X, X, X, X, X, X, X,
+            X, X, X, X, X, X, X, X, X,
+        });
     }
 
     void DDR4::handle_interface(const Command &cmd) {
+        // TODO add tests and debug
+        // TODO segfault for invalid cmd -> check for invalid commands ???
+        if (cmd.type == CmdType::END_OF_SIMULATION) {
+            return;
+        }
         auto pattern = this->getCommandPattern(cmd);
-        auto length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        this->commandBus.load(cmd.timestamp, pattern, length);
+        // length needed for dual cycle SREFEX
+        auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
+        // Segfault for End of Simulation
+        this->commandBus.load(cmd.timestamp, pattern, ca_length);
+
+        switch (cmd.type) {
+            case CmdType::RD:
+            case CmdType::RDA: {
+                auto length = cmd.sz_bits / readBus.get_width();
+                if (length == 0) {
+                    // TODO assert
+                    std::cout << "[Error] invalid read length. Interface calculation skipped" << std::endl;
+                    return;
+                }
+                this->readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                readDQS_.start(cmd.timestamp);
+                readDQS_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+            }
+                break;
+            case CmdType::WR:
+            case CmdType::WRA: {
+                auto length = cmd.sz_bits / writeBus.get_width();
+                if (length == 0) {
+                    // TODO assert
+                    std::cout << "[Error] invalid write length. Interface calculation skipped" << std::endl;
+                    return;
+                }
+                this->writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+
+                writeDQS_.start(cmd.timestamp);
+                writeDQS_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+            }
+                break;
+        };
     }
 
     void DDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         bank.counter.act++;
-        bank.cycles.act.start_interval(timestamp);
-        if ( !rank.isActive(timestamp) ) rank.cycles.act.start_interval(timestamp);
         bank.bankState = Bank::BankState::BANK_ACTIVE;
+
+        bank.cycles.act.start_interval(timestamp);
+        
+        rank.cycles.act.start_interval_if_not_running(timestamp);
+        rank.cycles.pre.close_interval(timestamp);
     }
 
     void DDR4::handlePre(Rank &rank, Bank &bank, timestamp_t timestamp) {
-        if (bank.bankState == Bank::BankState::BANK_PRECHARGED) return;
+        if (bank.bankState == Bank::BankState::BANK_PRECHARGED) return;             // TODO Isn't then the bank.counter.pre invalid
         bank.counter.pre++;
-        bank.cycles.act.close_interval(timestamp);
-        bank.latestPre = timestamp;
+
         bank.bankState = Bank::BankState::BANK_PRECHARGED;
-        if ( !rank.isActive(timestamp) )rank.cycles.act.close_interval(timestamp);
+        bank.cycles.act.close_interval(timestamp);
+        bank.latestPre = timestamp;                                                 // used for earliest power down calculation
+        if ( !rank.isActive(timestamp) )                                            // stop rank active interval if no more banks active
+        {
+            rank.cycles.act.close_interval(timestamp);
+            rank.cycles.pre.start_interval_if_not_running(timestamp);               // TODO active counter increased if at least 1 back active, precharge counter increased if all banks precharged
+        }
     }
 
     void DDR4::handlePreAll(Rank &rank, timestamp_t timestamp) {
-        for (auto &bank: rank.banks) handlePre(rank, bank, timestamp);
+        for (auto &bank: rank.banks) 
+            handlePre(rank, bank, timestamp);
     }
 
     void DDR4::handleRefAll(Rank &rank, timestamp_t timestamp) {
+        auto timestamp_end = timestamp + memSpec.memTimingSpec.tRFC;
+        rank.endRefreshTime = timestamp_end;
+        rank.cycles.act.start_interval_if_not_running(timestamp);
+        rank.cycles.pre.close_interval(timestamp);
         for (auto& bank : rank.banks) {
-            ++bank.counter.refAllBank;
-            if (!rank.isActive(timestamp)) rank.cycles.act.start_interval(timestamp);
             bank.bankState = Bank::BankState::BANK_ACTIVE;
-            auto timestamp_end = timestamp + memSpec.memTimingSpec.tRFC;
-            bank.refreshEndTime = timestamp_end;
-            if (!bank.cycles.act.is_open()) bank.cycles.act.start_interval(timestamp);
+            
+            ++bank.counter.refAllBank;                                              // TODO check calculation -> value inserted for all banks
+            bank.cycles.act.start_interval_if_not_running(timestamp);
+
+
+            bank.refreshEndTime = timestamp_end;                                    // used for earliest power down calculation
 
             // Execute implicit pre-charge at refresh end
             addImplicitCommand(timestamp_end, [this, &bank, &rank, timestamp_end]() {
                 bank.bankState = Bank::BankState::BANK_PRECHARGED;
                 bank.cycles.act.close_interval(timestamp_end);
-                if (!rank.isActive(timestamp_end)) rank.cycles.act.close_interval(timestamp_end);
+                // stop rank active interval if no more banks active
+                // TODO if not necessary all banks will be precharged at timestamp_end
+                if (!rank.isActive(timestamp_end))                                  // stop rank active interval if no more banks active
+                {
+                    rank.cycles.act.close_interval(timestamp_end);
+                    rank.cycles.pre.start_interval(timestamp_end);
+                }
             });
         }
 
         // Required for precharge power-down
-        rank.endRefreshTime = timestamp + memSpec.memTimingSpec.tRFC;
     }
 
     void DDR4::handleRead(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -260,8 +274,8 @@ namespace DRAMPower {
     }
 
     void DDR4::handleSelfRefreshExit(Rank &rank, timestamp_t timestamp) {
-        assert(rank.memState == MemState::SREF);
-        rank.cycles.sref.close_interval(timestamp);  // Duration between entry and exit
+        assert(rank.memState == MemState::SREF);                                    // check for previous SelfRefreshEntry
+        rank.cycles.sref.close_interval(timestamp);                                 // Duration between entry and exit
         rank.memState = MemState::NOT_IN_PD;
     }
 
@@ -269,21 +283,18 @@ namespace DRAMPower {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
         addImplicitCommand(entryTime, [this, &rank, entryTime]() {
-            rank.cycles.powerDownAct.start_interval(entryTime);
             rank.memState = MemState::PDN_ACT;
-            if (rank.cycles.act.is_open()) {
-                rank.cycles.act.close_interval(entryTime);
-            }
+            rank.cycles.powerDownAct.start_interval(entryTime);
+            rank.cycles.act.close_interval(entryTime);
+            rank.cycles.pre.close_interval(entryTime);
             for (auto & bank : rank.banks) {
-                if (bank.cycles.act.is_open()) {
-                    bank.cycles.act.close_interval(entryTime);
-                }
-            };
+                bank.cycles.act.close_interval(entryTime);
+            }
         });
     }
 
     void DDR4::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
-        // TODO: Is this computation necessary?
+        assert(rank.memState == MemState::PDN_ACT);
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
@@ -291,18 +302,18 @@ namespace DRAMPower {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownAct.close_interval(exitTime);
 
-            bool rank_active = false;
-
-            for (auto & bank : rank.banks) {
-                if (bank.counter.act != 0 && bank.cycles.act.get_end() == rank.cycles.powerDownAct.get_start()) {
-                    rank_active = true;
+            // Activate banks that were active prior to PDA
+            for (auto & bank : rank.banks)
+            {
+                if (bank.bankState==Bank::BankState::BANK_ACTIVE)
+                {
                     bank.cycles.act.start_interval(exitTime);
                 }
             }
-
-            if (rank_active) {
-                rank.cycles.act.start_interval(exitTime);
-            }
+            // Activate rank if at least one bank is active
+            // TODO At least one bank must be active for PDA -> remove if statement?
+            if(rank.isActive(exitTime))
+                rank.cycles.act.start_interval(exitTime); 
 
         });
     }
@@ -312,25 +323,42 @@ namespace DRAMPower {
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
 
         addImplicitCommand(entryTime, [this, &rank, entryTime]() {
-            rank.cycles.powerDownPre.start_interval(entryTime);
+            for (auto &bank : rank.banks)
+                bank.cycles.act.close_interval(entryTime);
             rank.memState = MemState::PDN_PRE;
+            rank.cycles.powerDownPre.start_interval(entryTime);
+            rank.cycles.pre.close_interval(entryTime);
+            rank.cycles.act.close_interval(entryTime);
         });
     }
 
     void DDR4::handlePowerDownPreExit(Rank &rank, timestamp_t timestamp) {
-        // TODO: Is this computation necessary?
+        // TODO: can the device exit in the same clock cycle as the entry?
+        // The computation is necessary to exit at the earliest upon entry
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
         addImplicitCommand(exitTime, [this, &rank, exitTime]() {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownPre.close_interval(exitTime);
+
+            // Precharge banks that were precharged prior to PDP
+            for (auto & bank : rank.banks)
+            {
+                if (bank.bankState==Bank::BankState::BANK_ACTIVE)
+                {
+                    bank.cycles.act.start_interval(exitTime);
+                }
+            }
+            // Precharge rank if all banks are precharged
+            // TODO At least one bank must be precharged for PDP -> remove if statement?
+            if(!rank.isActive(exitTime))
+                rank.cycles.pre.start_interval(exitTime); 
         });
     }
 
     void DDR4::endOfSimulation(timestamp_t timestamp) {
-        if (this->implicitCommandCount() > 0)
-			std::cout << ("[WARN] End of simulation but still implicit commands left!");
+        assert(this->implicitCommandCount() == 0);
 	}
 
     energy_t DDR4::calcEnergy(timestamp_t timestamp) {
@@ -339,7 +367,9 @@ namespace DRAMPower {
     }
 
     interface_energy_info_t DDR4::calcInterfaceEnergy(timestamp_t timestamp) {
-        return {};
+        // TODO add test and debug
+        InterfaceCalculation_DDR4 calculation(memSpec);
+        return calculation.calculateEnergy(getWindowStats(timestamp));
     }
 
     SimulationStats DDR4::getWindowStats(timestamp_t timestamp) {
@@ -374,17 +404,38 @@ namespace DRAMPower {
                                            rank.cycles.sref.get_count_at(timestamp));
             }
 
-            stats.rank_total[i].cycles.pre =
-                simulation_duration - (rank.cycles.act.get_count_at(timestamp) +
-                                       rank.cycles.powerDownAct.get_count_at(timestamp) +
-                                       rank.cycles.powerDownPre.get_count_at(timestamp) +
-                                       rank.cycles.sref.get_count_at(timestamp));
             stats.rank_total[i].cycles.act = rank.cycles.act.get_count_at(timestamp);
-            stats.rank_total[i].cycles.ref = rank.cycles.ref.get_count_at(
-                timestamp);  // TODO: I think this counter is never updated
             stats.rank_total[i].cycles.powerDownAct = rank.cycles.powerDownAct.get_count_at(timestamp);
             stats.rank_total[i].cycles.powerDownPre = rank.cycles.powerDownPre.get_count_at(timestamp);
             stats.rank_total[i].cycles.selfRefresh = rank.cycles.sref.get_count_at(timestamp);
+            // TODO: check if this is correct
+            // idle time not taken into account
+            stats.rank_total[i].cycles.pre = simulation_duration - 
+            (
+                stats.rank_total[i].cycles.act +
+                stats.rank_total[i].cycles.powerDownAct +
+                stats.rank_total[i].cycles.powerDownPre +
+                stats.rank_total[i].cycles.selfRefresh
+            );
+            // TODO remove
+            uint64_t pre = rank.cycles.pre.get_count_at(timestamp);
+            if ( pre != stats.rank_total[i].cycles.pre)
+                std::cout << "[Error] invalid rank.cycles.pre calculation" << std::endl;
+        }
+
+        stats.commandBus = commandBus.get_stats(timestamp);
+        stats.readBus = readBus.get_stats(timestamp);
+        stats.writeBus = writeBus.get_stats(timestamp);
+
+        // differential pair -> one line always active
+        stats.clockStats = clock.get_stats_at(timestamp);
+        stats.readDQSStats = readDQS_.get_stats_at(timestamp);
+        stats.writeDQSStats = writeDQS_.get_stats_at(timestamp);
+        if (memSpec.bitWidth == 16) {
+            // two 2 differential pairs for upper and lower byte
+            // TODO is there a special case ??? -> check thesis
+            stats.readDQSStats *= 2;
+            stats.writeDQSStats *= 2;
         }
 
         return stats;
