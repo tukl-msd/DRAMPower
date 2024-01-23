@@ -37,6 +37,9 @@ protected:
     virtual void SetUp()
     {
         MemSpecDDR4 memSpec;
+
+		memSpec.bitWidth = 16;
+		
 		memSpec.numberOfRanks = 1;
         memSpec.numberOfBanks = 8;
         memSpec.numberOfBankGroups = 1;
@@ -63,8 +66,10 @@ protected:
 		memSpec.dataRate = 2;
 
         memSpec.memTimingSpec.tBurst = memSpec.burstLength/memSpec.dataRate;
-        memSpec.prechargeOffsetRD      =  memSpec.memTimingSpec.tAL + memSpec.memTimingSpec.tRTP;
-        memSpec.prechargeOffsetWR      =  memSpec.memTimingSpec.tBurst + memSpec.memTimingSpec.tWL + memSpec.memTimingSpec.tWR;
+        memSpec.prechargeOffsetRD    =  memSpec.memTimingSpec.tAL + memSpec.memTimingSpec.tRTP;
+        memSpec.prechargeOffsetWR    =  memSpec.memTimingSpec.tBurst + memSpec.memTimingSpec.tWL + memSpec.memTimingSpec.tWR;
+
+		memSpec.memImpedanceSpec = {1.0};
 
         ddr = std::make_unique<DDR4>(memSpec);
     }

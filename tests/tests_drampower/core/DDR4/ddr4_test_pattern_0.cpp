@@ -44,7 +44,9 @@ protected:
 
 TEST_F(DramPowerTest_DDR4_0, Counters_and_Cycles){
     for (const auto& command : testPattern) {
+        ddr->handle_interface(command);
         ddr->doCommand(command);
+        //TODO remove
     }
 
     auto stats = ddr->getStats();

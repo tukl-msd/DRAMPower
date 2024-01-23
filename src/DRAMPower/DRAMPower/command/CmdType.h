@@ -14,31 +14,31 @@ namespace DRAMPower
 //												 \            \_v
 //												  \_______> DRAMCommon	
 enum class CmdType {
-	NOP = 0,    // 0
-	RD,     // 1
-	WR,     // 2
-	RDA,    // 3
-	WRA,    // 4
-	ACT,    // 5
-	PRE,    // 6
-	REFB,   // 7
-	REFP2B,
-	PRESB,  // 8
-	REFSB,  // 9
-	PREA,   // 10
-	REFA,   // 11
-	PDEA,   // 12
-	PDEP,   // 13
-	PDXA,   // 15
-	PDXP,   // 16
-	SREFEN, // 14
-	SREFEX,  // 17
-	DSMEN,
-	DSMEX,
-	DDR5_EXTRA_COMMAND,
-	CALC_WINDOW,
-	END_OF_SIMULATION,
-	COUNT,
+	NOP = 0,    			// 0
+	RD,     				// 1
+	WR,     				// 2
+	RDA,    				// 3
+	WRA,    				// 4
+	ACT,    				// 5
+	PRE,    				// 6
+	REFB,   				// 7
+	REFP2B,					// 8
+	PRESB,  				// 9
+	REFSB,  				// 10
+	PREA,   				// 11
+	REFA,   				// 12
+	PDEA,   				// 13
+	PDEP,   				// 14
+	PDXA,   				// 15
+	PDXP,   				// 16
+	SREFEN, 				// 17
+	SREFEX,  				// 18
+	DSMEN,					// 19
+	DSMEX,					// 20
+	DDR5_EXTRA_COMMAND,		// 21
+	CALC_WINDOW,			// 22
+	END_OF_SIMULATION,		// 23
+	COUNT,					// 24
 };
 
 constexpr const char * to_string(CmdType cmd)

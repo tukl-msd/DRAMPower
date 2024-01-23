@@ -31,8 +31,25 @@ struct bus_stats_t {
 		return *this;
 	};
 
+	bus_stats_t& operator*=(const uint64_t rhs) {
+		this->bit_changes *= rhs;
+		this->ones *= rhs;
+		this->zeroes *= rhs;
+		this->ones_to_zeroes *= rhs;
+		this->zeroes_to_ones *= rhs;
+		return *this;
+	};
+
 	friend bus_stats_t operator+(bus_stats_t lhs, const bus_stats_t& rhs) {
 		return lhs += rhs;
+	}
+
+	friend bus_stats_t operator*(bus_stats_t lhs, const uint64_t rhs) {
+		return lhs *= rhs;
+	}
+
+	friend bus_stats_t operator*(const uint64_t lhs, bus_stats_t rhs) {
+		return rhs *= lhs;
 	}
 };
 
@@ -119,7 +136,7 @@ public:
 	bus_stats_t diff(burst_t high, burst_t low) const {
 		bus_stats_t stats;
 		stats.ones += util::BinaryOps::popcount(low);
-		stats.zeroes += width - util::BinaryOps::popcount(low);
+		stats.zeroes += width - stats.ones;
 		stats.bit_changes += util::BinaryOps::bit_changes(high, low);
 		stats.ones_to_zeroes += util::BinaryOps::one_to_zeroes(high, low);
 		stats.zeroes_to_ones += util::BinaryOps::zero_to_ones(high, low);

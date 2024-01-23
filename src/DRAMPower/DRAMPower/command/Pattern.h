@@ -51,7 +51,7 @@ public:
             case V:
             case X:
                 bitset[n] = false;
-                break; // LPDDR4, // ToDo: Variabel machen
+                break; // LPDDR4, // TODO: Variabel machen
             case AP:
                 bitset[n] = false;
                 break; // ToDo: Variabel machen

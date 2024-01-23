@@ -38,6 +38,7 @@ public:
 	commandCounter_t commandCounter;
 public:
 	struct {
+		interval_t pre; // useful ???
 		interval_t act;
 		interval_t ref;
 		interval_t sref;
@@ -60,7 +61,16 @@ public:
 	{};
 public:
 	bool isActive(timestamp_t timestamp) {
-		return countActiveBanks() > 0 || timestamp < this->endRefreshTime;
+		if ( timestamp < this->endRefreshTime ) {
+			// TODO Invalid in test cases
+			// Implicit given in the dram implementation
+			std::cout << "[WARN] Rank::isActive() -> timestamp (" << timestamp <<") < "  << "endRefreshTime (" << this->endRefreshTime << ")"  << std::endl;
+		}
+		return countActiveBanks() > 0 || timestamp < this->endRefreshTime;	// TODO check for endRefreshTime not necessary -> implicit
+		/*
+			TODO theoretisch check für timestamp < endRefreshTime nicht notwending,
+			wenn der Memory Zustand vor dem Check gesetzt wird
+		*/
 	};
 
 	std::size_t countActiveBanks() const {

@@ -84,6 +84,7 @@ TEST_F(DDR4_MultirankTests, Pattern_1) {
 }
 
 TEST_F(DDR4_MultirankTests, Pattern_2) {
+    // TODO error no read data
     runCommands({
         {0, CmdType::ACT, {0, 0, 0}},
         {5, CmdType::ACT, {0, 0, 1}},  // r1

@@ -30,6 +30,9 @@ protected:
     virtual void SetUp()
     {
         MemSpecDDR4 memSpec;
+
+		memSpec.bitWidth = 16;
+
 		memSpec.numberOfRanks = 1;
         memSpec.numberOfBanks = 8;
         memSpec.numberOfBankGroups = 2;
