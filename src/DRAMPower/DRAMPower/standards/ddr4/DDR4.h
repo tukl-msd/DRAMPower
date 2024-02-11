@@ -31,6 +31,10 @@ public:
 	util::Bus commandBus;
 	util::Bus readBus;
 	util::Bus writeBus;
+
+	uint64_t prepostambleReadMinTccd;
+	uint64_t prepostambleWriteMinTccd;
+
 protected:
 	template<dram_base::commandEnum_t Cmd, typename Func>
 	void registerBankHandler(Func && member_func) {
@@ -97,6 +101,15 @@ public:
     void handlePowerDownPreEntry(Rank & rank, timestamp_t timestamp);
 	void handlePowerDownPreExit(Rank & rank, timestamp_t timestamp);
 	void endOfSimulation(timestamp_t timestamp);
+
+private:
+	void handlePrePostamble(
+        const timestamp_t   timestamp,
+        const uint64_t      length,
+        Rank &              rank,
+        bool                read
+    );
+
 public:
 	energy_t calcEnergy(timestamp_t timestamp);
 	interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp);

@@ -38,6 +38,18 @@
     },
     "bankwisespec":{
       "factRho":0.5
+    },
+    "prepostamble":{
+      "read_zeroes": 2.5,
+      "write_zeroes": 2.5,
+      "read_ones": 2.5,
+      "write_ones": 2.5,
+      "read_zeroes_to_ones": 2,
+      "write_zeroes_to_ones": 2,
+      "read_ones_to_zeroes": 2,
+      "write_ones_to_zeroes": 2,
+      "readMinTccd": 3,
+      "writeMinTccd": 3
     }
   }
 }

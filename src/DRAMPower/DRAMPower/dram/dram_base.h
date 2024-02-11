@@ -33,23 +33,28 @@ private:
     commandPatternMap_t commandPatternMap;
     implicitCommandList_t implicitCommandList;
     timestamp_t last_command_time;
+    PatternEncoder encoder;
+    uint64_t lastPattern;
 
 public:
-    dram_base()
+    dram_base(PatternEncoderSettings encodersettings)
         : commandCount(static_cast<std::size_t>(CommandEnum::COUNT), 0)
         , commandRouter(static_cast<std::size_t>(CommandEnum::COUNT), [](const Command& cmd) {})
-        , commandPatternMap(static_cast<std::size_t>(CommandEnum::COUNT), commandPattern_t {}) {};
+        , commandPatternMap(static_cast<std::size_t>(CommandEnum::COUNT), commandPattern_t {})
+        , encoder(encodersettings)
+        , lastPattern(0) 
+        {};
 
 protected:
     virtual ~dram_base() = default;
     virtual void handle_interface(const Command& cmd) = 0;
 
 public:
-    uint64_t getCommandPattern(const Command& cmd) const
+    uint64_t getCommandPattern(const Command& cmd)
     {
         const auto& pattern = commandPatternMap[static_cast<std::size_t>(cmd.type)];
-
-        return PatternEncoder::encode(cmd, pattern);
+        lastPattern = encoder.encode(cmd, pattern, lastPattern);
+        return lastPattern;
     };
 
 protected:

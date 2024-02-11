@@ -23,20 +23,14 @@ enum class MemState {
 
 
 struct Rank {
-public:
+
+// Type aliases
 	using commandCounter_t = util::CommandCounter<CmdType>;
+
 public:
-	enum class RankState {
-		ACTIVE = 0,
-		ACTIVE_POWERDOWN = 1,
-		PRECHARGED_POWERDOWN = 2,
-		SELF_REFRESH_DEEP_SLEEP_MODE = 3,
-		DEEP_SLEEP_MODE = 4,
-	};
-public:
+// Variables
 	MemState memState = MemState::NOT_IN_PD;
 	commandCounter_t commandCounter;
-public:
 	struct {
 		interval_t pre; // useful ???
 		interval_t act;
@@ -46,19 +40,29 @@ public:
 		interval_t powerDownPre;
 		interval_t deepSleepMode;
 	} cycles;
-public:
-	timestamp_t endRefreshTime = 0;
-
 	struct {
 		uint64_t selfRefresh = 0;
 		uint64_t deepSleepMode = 0;
 	} counter = { 0 };
-
+	timestamp_t endRefreshTime = 0;
 	std::vector<Bank> banks;
+
+	uint64_t 	seamlessPrePostambleCounter_read	= 0;
+	uint64_t 	seamlessPrePostambleCounter_write	= 0;
+	uint64_t	mergedPrePostambleCounter_read		= 0;
+	uint64_t	mergedPrePostambleCounter_write		= 0;
+	timestamp_t	mergedPrePostambleTime_read			= 0;
+	timestamp_t	mergedPrePostambleTime_write		= 0;
+	timestamp_t lastReadEnd = 0;
+	timestamp_t lastWriteEnd = 0;
+
 public:
+// Constructors
 	Rank(std::size_t numBanks)
 		: banks(numBanks)
 	{};
+
+// Functions
 public:
 	bool isActive(timestamp_t timestamp) {
 		if ( timestamp < this->endRefreshTime ) {

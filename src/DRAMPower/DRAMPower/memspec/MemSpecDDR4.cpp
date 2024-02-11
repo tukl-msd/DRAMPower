@@ -127,6 +127,7 @@ MemSpecDDR4::MemSpecDDR4(nlohmann::json &memspec)
     prechargeOffsetWR      =  memTimingSpec.tBurst + memTimingSpec.tWL + memTimingSpec.tWR;
 
     parseImpedanceSpec(memspec);
+    parsePrePostamble(memspec);
 }
 
 void MemSpecDDR4::parseImpedanceSpec(nlohmann::json &memspec) {
@@ -152,6 +153,26 @@ void MemSpecDDR4::parseImpedanceSpec(nlohmann::json &memspec) {
     memImpedanceSpec.R_eq_dqs = parseUdouble(memspec["memimpedancespec"]["R_eq_dqs"], "R_eq_dqs");
     memImpedanceSpec.R_eq_rb = parseUdouble(memspec["memimpedancespec"]["R_eq_rb"], "R_eq_rb");
     memImpedanceSpec.R_eq_wb = parseUdouble(memspec["memimpedancespec"]["R_eq_wb"], "R_eq_wb");
+}
+
+void MemSpecDDR4::parsePrePostamble(nlohmann::json &memspec)
+{
+    if(!memspec.contains("prepostamble"))
+    {
+        prePostamble = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        return;
+    }
+
+    prePostamble.read_zeroes = parseUdouble(memspec["prepostamble"]["read_zeroes"], "read_zeroes");
+    prePostamble.write_zeroes = parseUdouble(memspec["prepostamble"]["write_zeroes"], "write_zeroes");
+    prePostamble.read_ones = parseUdouble(memspec["prepostamble"]["read_ones"], "read_ones");
+    prePostamble.write_ones = parseUdouble(memspec["prepostamble"]["write_ones"], "write_ones");
+    prePostamble.read_zeroes_to_ones = parseUint(memspec["prepostamble"]["read_zeroes_to_ones"], "read_zeroes_to_ones");
+    prePostamble.write_zeroes_to_ones = parseUint(memspec["prepostamble"]["write_zeroes_to_ones"], "write_zeroes_to_ones");
+    prePostamble.write_ones_to_zeroes = parseUint(memspec["prepostamble"]["write_ones_to_zeroes"], "write_ones_to_zeroes");
+    prePostamble.read_ones_to_zeroes = parseUint(memspec["prepostamble"]["read_ones_to_zeroes"], "read_ones_to_zeroes");
+    prePostamble.readMinTccd = parseUint(memspec["prepostamble"]["readMinTccd"], "readMinTccd");
+    prePostamble.writeMinTccd = parseUint(memspec["prepostamble"]["writeMinTccd"], "writeMinTccd");
 }
 
 // TODO: is this being used?

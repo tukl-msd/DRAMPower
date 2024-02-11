@@ -5,35 +5,35 @@
 namespace DRAMPower {
 
     inline double Calculation_DDR4::E_BG_pre(std::size_t B, double VDD, double IDD2_N, double T_BG_pre) {
-		return (1.0 / B) * VDD * IDD2_N * T_BG_pre; // Thesis formula 4.3
+		return (1.0 / B) * VDD * IDD2_N * T_BG_pre;
 	};
 
 	inline double Calculation_DDR4::E_BG_act_shared(double VDD, double I_rho, double T_BG_act){
-		return VDD * I_rho * T_BG_act; // Diss formula 3.15
+		return VDD * I_rho * T_BG_act;
 	}
 
 	inline double Calculation_DDR4::E_BG_act_star(std::size_t B, double VDD, double IDD3_N, double I_rho, double T_BG_act_star){
-        return VDD * (1.0 / B) * (IDD3_N - I_rho) * T_BG_act_star; // Diff formula 3.14
+        return VDD * (1.0 / B) * (IDD3_N - I_rho) * T_BG_act_star;
 	}
 
     inline double Calculation_DDR4::E_pre(double VDD, double IBeta, double IDD2_N, double t_RP, uint64_t N_pre) {
-		return VDD * (IBeta - IDD2_N) * t_RP * N_pre; // thesis formula 4.4
+		return VDD * (IBeta - IDD2_N) * t_RP * N_pre;
 	}
 
 	inline double Calculation_DDR4::E_act(double VDD, double I_theta, double I_1, double t_RAS, uint64_t N_act) {
-		return VDD * (I_theta - I_1) * t_RAS * N_act; // thesis formula 4.5
+		return VDD * (I_theta - I_1) * t_RAS * N_act;
 	}
 
 	inline double Calculation_DDR4::E_RD(double VDD, double IDD4_R, double IDD3_N, double t_CK, std::size_t BL, std::size_t DR, uint64_t N_RD) {
-        return VDD * (IDD4_R - IDD3_N) * (double(BL) / DR) * t_CK * N_RD; // thesis formula 4.6
+        return VDD * (IDD4_R - IDD3_N) * (double(BL) / DR) * t_CK * N_RD;
 	}
 
 	inline double Calculation_DDR4::E_WR(double VDD, double IDD4_W, double IDD3_N, double t_CK, std::size_t BL, std::size_t DR, uint64_t N_WR) {
-		return VDD * (IDD4_W - IDD3_N) * (BL / DR) * t_CK * N_WR; // thesis formula 4.7
+		return VDD * (IDD4_W - IDD3_N) * (BL / DR) * t_CK * N_WR;
 	}
 
 	inline double Calculation_DDR4::E_ref_ab(std::size_t B, double VDD, double IDD5B, double IDD3_N, double tRFC, uint64_t N_REF) {
-        return (1.0 / B) * VDD * (IDD5B - IDD3_N) * tRFC * N_REF; // thesis formula 4.8
+        return (1.0 / B) * VDD * (IDD5B - IDD3_N) * tRFC * N_REF;
 	}
 
 	energy_t Calculation_DDR4::calcEnergy(timestamp_t timestamp, DDR4 & dram) {
@@ -65,9 +65,9 @@ namespace DRAMPower {
                 auto IXX6N = dram.memSpec.memPowerSpec[vd].iXX6N;
                 auto IBeta = dram.memSpec.memPowerSpec[vd].iBeta;
 
-                auto I_rho = rho * (IXX3N - IXX2N) + IXX2N; // Thesis figure 4.3
-                auto I_theta = (IXX_0 * (t_RP + t_RAS) - IBeta * t_RP) * (1 / t_RAS); // Thesis formula 4.23
-                auto I_1 = (1.0 / B) * (IXX3N + (B - 1) * (rho * (IXX3N - IXX2N) + IXX2N)); // Diss formula 3.20
+                auto I_rho = rho * (IXX3N - IXX2N) + IXX2N;
+                auto I_theta = (IXX_0 * (t_RP + t_RAS) - IBeta * t_RP) * (1 / t_RAS);
+                auto I_1 = (1.0 / B) * (IXX3N + (B - 1) * (rho * (IXX3N - IXX2N) + IXX2N));
 
                 for (size_t i = 0; i < dram.memSpec.numberOfRanks; ++i) {
                     size_t bank_offset = i * dram.memSpec.numberOfBanks;

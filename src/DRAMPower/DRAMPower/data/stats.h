@@ -33,7 +33,16 @@ namespace DRAMPower
 			uint64_t deepSleepMode = 0;
 			uint64_t activeTime() { return act; };
 			//uint64_t prechargeTime;
-		}cycles;
+		} cycles;
+
+		struct {
+			uint64_t readMerged = 0;
+			uint64_t readMergedTime = 0;
+			uint64_t writeMerged = 0;
+			uint64_t writeMergedTime = 0;
+			uint64_t readSeamless = 0;
+			uint64_t writeSeamless = 0;
+		} prepos;
 	};
 
 	struct SimulationStats

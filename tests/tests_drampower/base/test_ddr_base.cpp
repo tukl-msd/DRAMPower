@@ -4,6 +4,8 @@
 
 #include "DRAMPower/dram/dram_base.h"
 
+#include "DRAMPower/command/Pattern.h"
+
 #include <memory>
 
 using namespace DRAMPower;
@@ -14,7 +16,10 @@ public:
 	void handle_interface(const Command& cmd) override {};
 	std::vector<timestamp_t> execution_order;
 
-	test_ddr()
+	test_ddr() : dram_base<CmdType>(PatternEncoderSettings{
+		.V = PatternEncoderLastBit::L,
+		.X = PatternEncoderLastBit::L,
+	})
 	{
 		this->routeCommand<CmdType::ACT>([this](const Command & command) {
 			execution_order.push_back(command.timestamp);

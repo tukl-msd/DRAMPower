@@ -18,7 +18,12 @@ namespace DRAMPower {
         readDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
         readDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
         writeDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
-        writeDQS_c_(memSpec.dataRateSpec.dqsBusRate, true) {
+        writeDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
+        dram_base<CmdType>(PatternEncoderSettings{
+            .V = PatternEncoderLastBit::L,
+            .X = PatternEncoderLastBit::L   
+        })
+    {
         this->registerPatterns();
 
         this->registerBankHandler<CmdType::ACT>(&DDR5::handleAct);
@@ -340,7 +345,7 @@ namespace DRAMPower {
 
     void DDR5::endOfSimulation(timestamp_t timestamp) {
         if (this->implicitCommandCount() > 0)
-            std::cout << ("[WARN] End of simulation but still implicit commands left!");
+            std::cout << ("[WARN] End of simulation but still implicit commands left!") << std::endl;
     }
 
     energy_t DDR5::calcEnergy(timestamp_t timestamp) {

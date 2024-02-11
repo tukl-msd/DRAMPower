@@ -123,13 +123,30 @@ public:
         double bwPowerFactRho;
 	};
 
+	struct PrePostamble
+	{
+		double read_zeroes;
+		double write_zeroes;
+		double read_ones;
+		double write_ones;
+		uint64_t read_zeroes_to_ones;
+		uint64_t write_zeroes_to_ones;
+		uint64_t write_ones_to_zeroes;
+		uint64_t read_ones_to_zeroes;
+
+		uint64_t readMinTccd;
+		uint64_t writeMinTccd;
+	};
+
     uint64_t refreshMode;
 	MemTimingSpec memTimingSpec;
 	std::vector<MemPowerSpec> memPowerSpec;
 	MemImpedanceSpec memImpedanceSpec;
+	PrePostamble prePostamble;
 	BankWiseParams bwParams;
 private:
 	void parseImpedanceSpec(nlohmann::json &memspec);
+	void parsePrePostamble(nlohmann::json &memspec);
 };
 
 }
