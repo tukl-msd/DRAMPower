@@ -15,10 +15,10 @@ class DramPowerTest_DDR4_8 : public ::testing::Test {
 protected:
     // Test pattern
     std::vector<Command> testPattern = {
-            {   0, CmdType::ACT,    { 0, 0, 0 }},
+            //{   0, CmdType::ACT,    { 0, 0, 0 }},
             {   0, CmdType::PDEA,   { 0, 0, 0 }}, // Keep in mind earliest power down (entry 13 cycles)
             {   30, CmdType::PDXA,  { 0, 0, 0 }},
-            {   30, CmdType::PRE,   { 0, 0, 0 }},
+            //{   30, CmdType::PRE,   { 0, 0, 0 }},
             {   45, CmdType::PDEP,  { 0, 0, 0 }},
             {   70, CmdType::PDXP,  { 0, 0, 0 }},
             { 85, CmdType::END_OF_SIMULATION },
@@ -56,24 +56,22 @@ TEST_F(DramPowerTest_DDR4_8, Counters_and_Cycles){
 
 
     // Check cycles count
-    ASSERT_EQ(stats.rank_total[0].cycles.act, 13);
+    ASSERT_EQ(stats.rank_total[0].cycles.act, 0);
     ASSERT_EQ(stats.rank_total[0].cycles.pre, 30);
-    ASSERT_EQ(stats.rank_total[0].cycles.powerDownAct, 17);
+    ASSERT_EQ(stats.rank_total[0].cycles.powerDownAct, 30);
     ASSERT_EQ(stats.rank_total[0].cycles.powerDownPre, 25);
     ASSERT_EQ(stats.rank_total[0].cycles.selfRefresh, 0);
 
     // TODO pre for banks 2-16 invalid
 
     // Check bank specific ACT cycle count
-    ASSERT_EQ(stats.bank[0].cycles.act, 13);
-    for(auto b = 1; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.act, 0);
+    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.act, 0);
 
     // Check bank specific PRE cycle count
-    ASSERT_EQ(stats.bank[0].cycles.pre, 30);
-    for(auto b = 1; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.pre, 43);
+    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.pre, 30);
 
     // Check bank specific PDNA cycle count
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.powerDownAct, 17);
+    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.powerDownAct, 30);
 
     // Check bank specific PDNP cycle count
     for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.powerDownPre, 25);

@@ -21,12 +21,28 @@ namespace pattern_descriptor {
     };
 }
 
+enum class PatternEncoderLastBit
+{
+    L = 0,
+    H = 1,
+    LAST_BIT = 2
+};
+
+struct PatternEncoderSettings
+{
+    PatternEncoderLastBit V;
+    PatternEncoderLastBit X;    
+};
+
 // TODO: Has to be standard specific
 class PatternEncoder // Currently LPDDR4
 {
 private:
+    PatternEncoderSettings settings;
 public:
-    static uint64_t encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern)
+    PatternEncoder(PatternEncoderSettings settings)
+        : settings(settings) {};
+    uint64_t encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern)
     {
         using namespace pattern_descriptor;
 
@@ -37,6 +53,8 @@ public:
         std::bitset<32> bank_group_bits(cmd.targetCoordinate.bankGroup);
 
         std::size_t n = pattern.size() - 1;
+
+        assert(n < 64);
 
         for (const auto descriptor : pattern) {
             assert(n >= 0);
@@ -49,9 +67,33 @@ public:
                 bitset[n] = false;
                 break;
             case V:
+                switch(settings.V)
+                {
+                case PatternEncoderLastBit::L:
+                    bitset[n] = false;
+                    break;
+                case PatternEncoderLastBit::H:
+                    bitset[n] = true;
+                    break;
+                case PatternEncoderLastBit::LAST_BIT:
+                    bitset[n] = (lastpattern >> n) & 1;
+                    break;
+                }
+                break;
             case X:
-                bitset[n] = false;
-                break; // LPDDR4, // TODO: Variabel machen
+                switch(settings.X)
+                {
+                case PatternEncoderLastBit::L:
+                    bitset[n] = false;
+                    break;
+                case PatternEncoderLastBit::H:
+                    bitset[n] = true;
+                    break;
+                case PatternEncoderLastBit::LAST_BIT:
+                    bitset[n] = (lastpattern >> n) & 1;
+                    break;
+                }
+                break;
             case AP:
                 bitset[n] = false;
                 break; // ToDo: Variabel machen
@@ -178,6 +220,33 @@ public:
                 break;
             case R8:
                 bitset[n] = row_bits[8];
+                break;
+            case R9:
+                bitset[n] = row_bits[9];
+                break;
+            case R10:
+                bitset[n] = row_bits[10];
+                break;
+            case R11:
+                bitset[n] = row_bits[11];
+                break;
+            case R12:
+                bitset[n] = row_bits[12];
+                break;
+            case R13:
+                bitset[n] = row_bits[13];
+                break;
+            case R14:
+                bitset[n] = row_bits[14];
+                break;
+            case R15:
+                bitset[n] = row_bits[15];
+                break;
+            case R16:
+                bitset[n] = row_bits[16];
+                break;
+            case R17:
+                bitset[n] = row_bits[17];
                 break;
             default:
                 break;

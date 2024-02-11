@@ -17,7 +17,11 @@ namespace DRAMPower {
         readDQS_c_(memSpec.dataRate, true),
         readDQS_t_(memSpec.dataRate, true),
         WCK_t_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
-        WCK_c_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
+        WCK_c_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
+        dram_base<CmdType>(PatternEncoderSettings{
+            .V = PatternEncoderLastBit::L,
+            .X = PatternEncoderLastBit::L   
+        })
     {
         this->registerPatterns();
 
@@ -444,7 +448,7 @@ namespace DRAMPower {
 
     void LPDDR5::endOfSimulation(timestamp_t timestamp) {
         if (this->implicitCommandCount() > 0)
-			std::cout << ("[WARN] End of simulation but still implicit commands left!");
+			std::cout << ("[WARN] End of simulation but still implicit commands left!") << std::endl;
 	}
 
     energy_t LPDDR5::calcEnergy(timestamp_t timestamp) {

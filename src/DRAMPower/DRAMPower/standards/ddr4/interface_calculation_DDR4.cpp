@@ -2,8 +2,8 @@
 
 namespace DRAMPower {
 
-static double calc_static_power(uint64_t NxBits, double R_eq, double t_CK, double voltage, double datainterval) {
-    return NxBits * (voltage * voltage) * datainterval * t_CK / R_eq;
+static double calc_static_power(uint64_t NxBits, double R_eq, double t_CK, double voltage, double factor) {
+    return NxBits * (voltage * voltage) * factor * t_CK / R_eq;
 };
 
 static double calc_dynamic_power(uint64_t transitions, double C_total, double voltage) {
@@ -43,17 +43,58 @@ interface_energy_info_t InterfaceCalculation_DDR4::calcClockEnergy(const Simulat
 interface_energy_info_t InterfaceCalculation_DDR4::calcDQSEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
     // Pull up -> zeros
-    // TODO x16 devices have 2 DQS lines
+    // TODO x16 devices have 2 DQS line
+    uint64_t readcount = 0;
+    uint64_t writecount = 0;
+
+    uint64_t preposreadseamless = 0;
+    uint64_t preposwriteseamless = 0;
+
+    double preposreadzeroes = memspec_.prePostamble.read_zeroes;
+    double preposwritezeroes = memspec_.prePostamble.write_zeroes;
+    uint64_t preposreadzero_to_one = memspec_.prePostamble.read_zeroes_to_ones;
+    uint64_t preposwritezero_to_one = memspec_.prePostamble.write_zeroes_to_ones;
+    
+
+    for (auto& rank : stats.rank_total)
+    {
+        // Reads
+        readcount +=    rank.counter.reads +
+                        rank.counter.readAuto;
+
+        // Writes
+        writecount +=   rank.counter.writes +
+                        rank.counter.writeAuto;
+
+        // PrePostamble
+        preposreadseamless += rank.prepos.readSeamless;
+        preposwriteseamless += rank.prepos.writeSeamless;
+    }
+    
+    // TODO add tests and check calculation
+    // PrePostamble
     result.dram.staticPower +=
-        calc_static_power(stats.readDQSStats.zeroes, impedances_.R_eq_dqs, t_CK_, VDDQ_, 0.5);
+        calc_static_power(preposreadzeroes * (readcount - preposreadseamless), impedances_.R_eq_dqs, t_CK_, VDDQ_, 1);
     result.controller.staticPower +=
-        calc_static_power(stats.writeDQSStats.zeroes, impedances_.R_eq_dqs, t_CK_, VDDQ_, 0.5);
+        calc_static_power(preposwritezeroes * (writecount - preposwriteseamless), impedances_.R_eq_dqs, t_CK_, VDDQ_, 1);
+
+    result.dram.dynamicPower +=
+        calc_dynamic_power(preposreadzero_to_one * (readcount - preposreadseamless), impedances_.C_total_dqs, VDDQ_);
+    result.controller.dynamicPower +=
+        calc_dynamic_power(preposwritezero_to_one * (writecount - preposwriteseamless), impedances_.C_total_dqs, VDDQ_);
+
+    // Data
+    result.dram.staticPower +=
+        calc_static_power(stats.readDQSStats.zeroes, impedances_.R_eq_dqs, t_CK_, VDDQ_, 1);
+    result.controller.staticPower +=
+        calc_static_power(stats.writeDQSStats.zeroes, impedances_.R_eq_dqs, t_CK_, VDDQ_, 1);
 
     result.dram.dynamicPower +=
         calc_dynamic_power(stats.readDQSStats.zeroes_to_ones, impedances_.C_total_dqs, VDDQ_);
     result.controller.dynamicPower +=
         calc_dynamic_power(stats.writeDQSStats.zeroes_to_ones, impedances_.C_total_dqs, VDDQ_);
 
+    
     return result;
 }
 

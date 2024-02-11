@@ -16,10 +16,17 @@ namespace DRAMPower {
         , commandBus(27)
         , readDQS_(2, true)
         , writeDQS_(2, true)
+        , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
+        , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
+        , dram_base<CmdType>(PatternEncoderSettings{
+            PatternEncoderLastBit::L,
+            PatternEncoderLastBit::L,  
+        })
 	{
-        for (auto &rank : ranks) {
-            rank.cycles.pre.start_interval(0);
-        }
+        // In the first state all ranks are precharged
+        //for (auto &rank : ranks) {
+        //    rank.cycles.pre.start_interval(0);
+        //}
         this->registerPatterns();
 
         this->registerBankHandler<CmdType::ACT>(&DDR4::handleAct);
@@ -38,6 +45,7 @@ namespace DRAMPower {
         this->registerRankHandler<CmdType::PDXP>(&DDR4::handlePowerDownPreExit);
 
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+
     };
 
     void DDR4::registerPatterns() {
@@ -45,13 +53,13 @@ namespace DRAMPower {
         // DDR4
         // ---------------------------------:
         this->registerPattern<CmdType::ACT>({
-            L, L, A16, A15, A14, BG0, BG1, BA0, BA1,
-            V, V, V, A12, A17, A13, A11, A10, A0,
-            A1, A2, A3, A4, A5, A6, A7, A8, A9
+            L, L, R16, R15, R14, BG0, BG1, BA0, BA1,
+            V, V, V, R12, R17, R13, R11, R10, R0,
+            R1, R2, R3, R4, R5, R6, R7, R8, R9
         });
         this->registerPattern<CmdType::PRE>({
             L, H, L, H, L, BG0, BG1, BA0, BA1,
-            V, V, V, V, V, V, V, V, V,
+            V, V, V, V, V, V, V, L, V,
             V, V, V, V, V, V, V, V, V
         });
         this->registerPattern<CmdType::PREA>({
@@ -66,23 +74,23 @@ namespace DRAMPower {
         });
         this->registerPattern<CmdType::RD>({
             L, H, H, L, H, BG0, BG1, BA0, BA1,
-            V, V, V, V, V, V, V, L, A0,
-            A1, A2, A3, A4, A5, A6, A7, A8, A9
+            V, V, V, V, V, V, V, L, C0,
+            C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
         this->registerPattern<CmdType::RDA>({
             L, H, H, L, H, BG0, BG1, BA0, BA1,
-            V, V, V, V, V, V, V, H, A0,
-            A1, A2, A3, A4, A5, A6, A7, A8, A9
+            V, V, V, V, V, V, V, H, C0,
+            C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
         this->registerPattern<CmdType::WR>({
             L, H, H, L, L, BG0, BG1, BA0, BA1,
-            V, V, V, V, V, V, V, L, A0,
-            A1, A2, A3, A4, A5, A6, A7, A8, A9
+            V, V, V, V, V, V, V, L, C0,
+            C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
         this->registerPattern<CmdType::WRA>({
             L, H, H, L, L, BG0, BG1, BA0, BA1,
-            V, V, V, V, V, V, V, H, A0,
-            A1, A2, A3, A4, A5, A6, A7, A8, A9
+            V, V, V, V, V, V, V, H, C0,
+            C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
         this->registerPattern<CmdType::SREFEN>({
             L, H, L, L, H, V, V, V, V,
@@ -121,9 +129,47 @@ namespace DRAMPower {
         });
     }
 
+    void DDR4::handlePrePostamble(
+        const timestamp_t   timestamp,
+        const uint64_t      length,
+        Rank                &rank,
+        bool                read
+    )
+    {
+        // TODO: If simulation finishes in read/write transaction the postamble needs to be substracted
+        uint64_t minTccd = prepostambleWriteMinTccd;
+        uint64_t *lastAccess = &rank.lastWriteEnd;
+        uint64_t diff = 0;
+
+        if(read)
+        {
+            lastAccess = &rank.lastReadEnd;
+            minTccd = prepostambleReadMinTccd;
+        }
+        
+        diff = timestamp - *lastAccess;
+        *lastAccess = timestamp + length;
+        
+        if(diff < 0)
+        {
+            std::cout << "[Error] PrePostamble diff is negative. The last read/write transaction was not completed" << std::endl;
+            return;
+        }
+        //assert(diff >= 0);
+        
+        // Pre and Postamble seamless
+        if(diff = 0)
+        {
+            // Seamless read or write
+            if(read)
+                rank.seamlessPrePostambleCounter_read++;
+            else
+                rank.seamlessPrePostambleCounter_write++;
+        }
+    }
+
     void DDR4::handle_interface(const Command &cmd) {
-        // TODO add tests and debug
-        // TODO segfault for invalid cmd -> check for invalid commands ???
+        // TODO add tests
         if (cmd.type == CmdType::END_OF_SIMULATION) {
             return;
         }
@@ -133,12 +179,17 @@ namespace DRAMPower {
         // Segfault for End of Simulation
         this->commandBus.load(cmd.timestamp, pattern, ca_length);
 
-        switch (cmd.type) {
+        // For PrePostamble
+        assert(this->ranks.size()>cmd.targetCoordinate.rank);
+        auto & rank = this->ranks[cmd.targetCoordinate.rank];
+
+            switch (cmd.type) {
             case CmdType::RD:
             case CmdType::RDA: {
                 auto length = cmd.sz_bits / readBus.get_width();
+                // TODO assert
+                //assert(length == 0);
                 if (length == 0) {
-                    // TODO assert
                     std::cout << "[Error] invalid read length. Interface calculation skipped" << std::endl;
                     return;
                 }
@@ -146,13 +197,17 @@ namespace DRAMPower {
 
                 readDQS_.start(cmd.timestamp);
                 readDQS_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+
+                this->handlePrePostamble(cmd.timestamp, length / this->memSpec.dataRate, rank, true);
             }
                 break;
             case CmdType::WR:
             case CmdType::WRA: {
+                // TODO add multi device support
                 auto length = cmd.sz_bits / writeBus.get_width();
+                // TODO assert
+                //assert(length == 0);
                 if (length == 0) {
-                    // TODO assert
                     std::cout << "[Error] invalid write length. Interface calculation skipped" << std::endl;
                     return;
                 }
@@ -160,6 +215,8 @@ namespace DRAMPower {
 
                 writeDQS_.start(cmd.timestamp);
                 writeDQS_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+
+                this->handlePrePostamble(cmd.timestamp, length / this->memSpec.dataRate, rank, false);
             }
                 break;
         };
@@ -172,20 +229,24 @@ namespace DRAMPower {
         bank.cycles.act.start_interval(timestamp);
         
         rank.cycles.act.start_interval_if_not_running(timestamp);
-        rank.cycles.pre.close_interval(timestamp);
+        //rank.cycles.pre.close_interval(timestamp);
     }
 
     void DDR4::handlePre(Rank &rank, Bank &bank, timestamp_t timestamp) {
-        if (bank.bankState == Bank::BankState::BANK_PRECHARGED) return;             // TODO Isn't then the bank.counter.pre invalid
+        // If statement necessary for core power calculation
+        // bank.counter.pre doesn't correspond to the number of pre commands
+        // It corresponds to the number of state transisitons to the pre state
+        if (bank.bankState == Bank::BankState::BANK_PRECHARGED) return;
         bank.counter.pre++;
 
         bank.bankState = Bank::BankState::BANK_PRECHARGED;
         bank.cycles.act.close_interval(timestamp);
-        bank.latestPre = timestamp;                                                 // used for earliest power down calculation
+        bank.latestPre = timestamp;                                                // used for earliest power down calculation
         if ( !rank.isActive(timestamp) )                                            // stop rank active interval if no more banks active
         {
+            // active counter increased if at least 1 bank is active, precharge counter increased if all banks are precharged
             rank.cycles.act.close_interval(timestamp);
-            rank.cycles.pre.start_interval_if_not_running(timestamp);               // TODO active counter increased if at least 1 back active, precharge counter increased if all banks precharged
+            //rank.cycles.pre.start_interval_if_not_running(timestamp);             
         }
     }
 
@@ -198,11 +259,12 @@ namespace DRAMPower {
         auto timestamp_end = timestamp + memSpec.memTimingSpec.tRFC;
         rank.endRefreshTime = timestamp_end;
         rank.cycles.act.start_interval_if_not_running(timestamp);
-        rank.cycles.pre.close_interval(timestamp);
+        //rank.cycles.pre.close_interval(timestamp);
+        // TODO loop over all banks and implicit commands for all banks can be simplified
         for (auto& bank : rank.banks) {
             bank.bankState = Bank::BankState::BANK_ACTIVE;
             
-            ++bank.counter.refAllBank;                                              // TODO check calculation -> value inserted for all banks
+            ++bank.counter.refAllBank;
             bank.cycles.act.start_interval_if_not_running(timestamp);
 
 
@@ -213,11 +275,10 @@ namespace DRAMPower {
                 bank.bankState = Bank::BankState::BANK_PRECHARGED;
                 bank.cycles.act.close_interval(timestamp_end);
                 // stop rank active interval if no more banks active
-                // TODO if not necessary all banks will be precharged at timestamp_end
                 if (!rank.isActive(timestamp_end))                                  // stop rank active interval if no more banks active
                 {
                     rank.cycles.act.close_interval(timestamp_end);
-                    rank.cycles.pre.start_interval(timestamp_end);
+                    //rank.cycles.pre.start_interval(timestamp_end);
                 }
             });
         }
@@ -286,7 +347,7 @@ namespace DRAMPower {
             rank.memState = MemState::PDN_ACT;
             rank.cycles.powerDownAct.start_interval(entryTime);
             rank.cycles.act.close_interval(entryTime);
-            rank.cycles.pre.close_interval(entryTime);
+            //rank.cycles.pre.close_interval(entryTime);
             for (auto & bank : rank.banks) {
                 bank.cycles.act.close_interval(entryTime);
             }
@@ -311,7 +372,7 @@ namespace DRAMPower {
                 }
             }
             // Activate rank if at least one bank is active
-            // TODO At least one bank must be active for PDA -> remove if statement?
+            // At least one bank must be active for PDA -> remove if statement?
             if(rank.isActive(exitTime))
                 rank.cycles.act.start_interval(exitTime); 
 
@@ -327,14 +388,13 @@ namespace DRAMPower {
                 bank.cycles.act.close_interval(entryTime);
             rank.memState = MemState::PDN_PRE;
             rank.cycles.powerDownPre.start_interval(entryTime);
-            rank.cycles.pre.close_interval(entryTime);
+            //rank.cycles.pre.close_interval(entryTime);
             rank.cycles.act.close_interval(entryTime);
         });
     }
 
     void DDR4::handlePowerDownPreExit(Rank &rank, timestamp_t timestamp) {
-        // TODO: can the device exit in the same clock cycle as the entry?
-        // The computation is necessary to exit at the earliest upon entry
+        // The computation is necessary to exit at the earliest timestamp (upon entry)
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
@@ -351,9 +411,10 @@ namespace DRAMPower {
                 }
             }
             // Precharge rank if all banks are precharged
-            // TODO At least one bank must be precharged for PDP -> remove if statement?
-            if(!rank.isActive(exitTime))
-                rank.cycles.pre.start_interval(exitTime); 
+            // At least one bank must be precharged for PDP -> remove if statement?
+            // If statement ensures right state diagramm traversal
+            //if(!rank.isActive(exitTime))
+            //    rank.cycles.pre.start_interval(exitTime); 
         });
     }
 
@@ -367,7 +428,7 @@ namespace DRAMPower {
     }
 
     interface_energy_info_t DDR4::calcInterfaceEnergy(timestamp_t timestamp) {
-        // TODO add test and debug
+        // TODO add tests
         InterfaceCalculation_DDR4 calculation(memSpec);
         return calculation.calculateEnergy(getWindowStats(timestamp));
     }
@@ -379,6 +440,11 @@ namespace DRAMPower {
         SimulationStats stats;
         stats.bank.resize(memSpec.numberOfBanks * memSpec.numberOfRanks);
         stats.rank_total.resize(memSpec.numberOfRanks);
+
+        // Two DQs Pairs for x16
+        uint_fast8_t DQsPairs = 1;
+        if(memSpec.bitWidth == 16)
+            DQsPairs = 2;
 
         auto simulation_duration = timestamp;
         for (size_t i = 0; i < memSpec.numberOfRanks; ++i) {
@@ -403,13 +469,10 @@ namespace DRAMPower {
                                            rank.cycles.powerDownPre.get_count_at(timestamp) +
                                            rank.cycles.sref.get_count_at(timestamp));
             }
-
             stats.rank_total[i].cycles.act = rank.cycles.act.get_count_at(timestamp);
             stats.rank_total[i].cycles.powerDownAct = rank.cycles.powerDownAct.get_count_at(timestamp);
             stats.rank_total[i].cycles.powerDownPre = rank.cycles.powerDownPre.get_count_at(timestamp);
             stats.rank_total[i].cycles.selfRefresh = rank.cycles.sref.get_count_at(timestamp);
-            // TODO: check if this is correct
-            // idle time not taken into account
             stats.rank_total[i].cycles.pre = simulation_duration - 
             (
                 stats.rank_total[i].cycles.act +
@@ -417,10 +480,15 @@ namespace DRAMPower {
                 stats.rank_total[i].cycles.powerDownPre +
                 stats.rank_total[i].cycles.selfRefresh
             );
-            // TODO remove
-            uint64_t pre = rank.cycles.pre.get_count_at(timestamp);
-            if ( pre != stats.rank_total[i].cycles.pre)
-                std::cout << "[Error] invalid rank.cycles.pre calculation" << std::endl;
+            //stats.rank_total[i].cycles.pre = rank.cycles.pre.get_count_at(timestamp);
+
+            stats.rank_total[i].prepos.readSeamless = DQsPairs * rank.seamlessPrePostambleCounter_read;;
+            stats.rank_total[i].prepos.writeSeamless = DQsPairs * rank.seamlessPrePostambleCounter_write;
+            
+            stats.rank_total[i].prepos.readMerged = DQsPairs * rank.mergedPrePostambleCounter_read;
+            stats.rank_total[i].prepos.readMergedTime = DQsPairs * rank.mergedPrePostambleTime_read;
+            stats.rank_total[i].prepos.writeMerged = DQsPairs * rank.mergedPrePostambleCounter_write;
+            stats.rank_total[i].prepos.writeMergedTime = DQsPairs * rank.mergedPrePostambleTime_write;
         }
 
         stats.commandBus = commandBus.get_stats(timestamp);
@@ -431,12 +499,10 @@ namespace DRAMPower {
         stats.clockStats = clock.get_stats_at(timestamp);
         stats.readDQSStats = readDQS_.get_stats_at(timestamp);
         stats.writeDQSStats = writeDQS_.get_stats_at(timestamp);
-        if (memSpec.bitWidth == 16) {
-            // two 2 differential pairs for upper and lower byte
-            // TODO is there a special case ??? -> check thesis
-            stats.readDQSStats *= 2;
-            stats.writeDQSStats *= 2;
-        }
+        
+        // TODO add tests
+        stats.readDQSStats *= DQsPairs;
+        stats.writeDQSStats *= DQsPairs;
 
         return stats;
     }
