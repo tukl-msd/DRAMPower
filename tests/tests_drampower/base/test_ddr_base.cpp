@@ -17,8 +17,8 @@ public:
 	std::vector<timestamp_t> execution_order;
 
 	test_ddr() : dram_base<CmdType>(PatternEncoderSettings{
-		.V = PatternEncoderLastBit::L,
-		.X = PatternEncoderLastBit::L,
+		.V = PatternEncoderBitSpec::L,
+		.X = PatternEncoderBitSpec::L,
 	})
 	{
 		this->routeCommand<CmdType::ACT>([this](const Command & command) {
