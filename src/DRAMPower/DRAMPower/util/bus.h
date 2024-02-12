@@ -10,6 +10,7 @@
 #include <bitset>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <cassert>
 
 namespace DRAMPower::util 
@@ -53,6 +54,18 @@ struct bus_stats_t {
 	}
 };
 
+enum class BusIdlePatternSpec
+{
+    L = 0,
+    H = 1,
+    LAST_PATTERN = 2
+};
+
+struct BusSettings
+{
+    BusIdlePatternSpec idle_pattern;
+};
+
 // TODO: Idle state einbauen wenn Kommando fertig (done?)
 class Bus {
 public:
@@ -64,10 +77,13 @@ public:
 	bus_stats_t stats;
 private:
 	burst_storage_t burst_storage;
-private:
 	timestamp_t last_load = 0;
+	burst_t last_pattern;
+	BusSettings settings;
 public:
-	Bus(std::size_t width) : width(width), burst_storage(width) {};
+	Bus(std::size_t width, BusSettings settings) :
+		width(width), burst_storage(width), settings(settings) 
+		{};
 public:
 	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
 
@@ -81,9 +97,9 @@ public:
 		};
 
 		// adjust new timestamp
-		burst_t old_high = burst_t(width, 0x00000000);
+		this->last_pattern = burst_t(width, 0x0);
 		if(timestamp > 0)
-			old_high = this->at(timestamp - 1);
+			this->last_pattern = this->at(timestamp - 1);
 
 		this->last_load = timestamp;
 
@@ -91,7 +107,7 @@ public:
 		this->burst_storage.insert_data(data, n_bits);
 
 		// Adjust statistics for new data
-		this->stats += diff(old_high, this->burst_storage.get_burst(0));
+		this->stats += diff(this->last_pattern, this->burst_storage.get_burst(0));
 	};
 
 	void load(timestamp_t timestamp, uint64_t data, std::size_t length) {
@@ -103,8 +119,21 @@ public:
 		// Assert timestamp does not lie in past
 		assert(n - last_load >= 0);
 
+		// Assert for BusIdlePatternSpec::H case all ones
+		assert(width >= 0 && width < std::numeric_limits<std::size_t>::digits);
+
 		if (n - last_load >= burst_storage.size()) {
-			return burst_t(width, 0x0000); // ToDO: Configurable idle value
+			switch(settings.idle_pattern)
+			{
+				case BusIdlePatternSpec::L:
+					return burst_t(width, 0x00000000);
+				case BusIdlePatternSpec::H:
+					return burst_t(width, (1 << width) - 1);
+				case BusIdlePatternSpec::LAST_PATTERN:
+					return last_pattern;
+				default:
+					assert(false);
+			}
 		}
 
 		auto burst = this->burst_storage.get_burst(std::size_t(n - last_load));

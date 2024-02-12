@@ -8,12 +8,23 @@
 namespace DRAMPower {
 
     LPDDR4::LPDDR4(const MemSpecLPDDR4 &memSpec): 
-            memSpec(memSpec), ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks}), commandBus{6}, readBus{16},
-            writeBus{16}, readDQS_c(2, true), readDQS_t(2, true), writeDQS_c(2, true), writeDQS_t(2, true),
-            dram_base<CmdType>(PatternEncoderSettings{
-                .V = PatternEncoderLastBit::L,
-                .X = PatternEncoderLastBit::L   
-            }) 
+        memSpec(memSpec), ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks}),
+        commandBus{6, util::BusSettings{
+            .idle_pattern = util::BusIdlePatternSpec::L
+        }}, 
+        readBus{16, util::BusSettings{
+		    .idle_pattern = util::BusIdlePatternSpec::L
+	    }},
+        writeBus{16, util::BusSettings{
+		    .idle_pattern = util::BusIdlePatternSpec::L
+	    }},
+        readDQS_c(2, true), readDQS_t(2, true), writeDQS_c(2, true), writeDQS_t(2, true),
+        dram_base<CmdType>(PatternEncoderSettings{
+            .V = PatternEncoderBitSpec::L,
+            .X = PatternEncoderBitSpec::L,
+            .AP = PatternEncoderBitSpec::L,
+            .BL = PatternEncoderBitSpec::H,
+        }) 
     {
         this->registerPatterns();
 

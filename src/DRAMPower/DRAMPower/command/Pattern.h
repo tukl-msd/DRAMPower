@@ -21,7 +21,7 @@ namespace pattern_descriptor {
     };
 }
 
-enum class PatternEncoderLastBit
+enum class PatternEncoderBitSpec
 {
     L = 0,
     H = 1,
@@ -30,8 +30,10 @@ enum class PatternEncoderLastBit
 
 struct PatternEncoderSettings
 {
-    PatternEncoderLastBit V;
-    PatternEncoderLastBit X;    
+    PatternEncoderBitSpec V;
+    PatternEncoderBitSpec X;
+    PatternEncoderBitSpec AP;
+    PatternEncoderBitSpec BL;
 };
 
 // TODO: Has to be standard specific
@@ -42,6 +44,25 @@ private:
 public:
     PatternEncoder(PatternEncoderSettings settings)
         : settings(settings) {};
+private:
+inline bool applyBitSpec(PatternEncoderBitSpec &spec, bool LAST_BIT)
+{
+    switch (spec)
+    {
+    case PatternEncoderBitSpec::L:
+        return false;
+    case PatternEncoderBitSpec::H:
+        return true;
+    case PatternEncoderBitSpec::LAST_BIT:
+        return LAST_BIT;
+    default:
+        assert(false);
+        break;
+    }
+};
+
+// TODO test shift direction for LAST_BIT
+public:
     uint64_t encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern)
     {
         using namespace pattern_descriptor;
@@ -67,39 +88,17 @@ public:
                 bitset[n] = false;
                 break;
             case V:
-                switch(settings.V)
-                {
-                case PatternEncoderLastBit::L:
-                    bitset[n] = false;
-                    break;
-                case PatternEncoderLastBit::H:
-                    bitset[n] = true;
-                    break;
-                case PatternEncoderLastBit::LAST_BIT:
-                    bitset[n] = (lastpattern >> n) & 1;
-                    break;
-                }
+                bitset[n] = applyBitSpec(settings.V, ((lastpattern >> n) & 1) == 1);
                 break;
             case X:
-                switch(settings.X)
-                {
-                case PatternEncoderLastBit::L:
-                    bitset[n] = false;
-                    break;
-                case PatternEncoderLastBit::H:
-                    bitset[n] = true;
-                    break;
-                case PatternEncoderLastBit::LAST_BIT:
-                    bitset[n] = (lastpattern >> n) & 1;
-                    break;
-                }
+                bitset[n] = applyBitSpec(settings.X, ((lastpattern >> n) & 1) == 1);
                 break;
             case AP:
-                bitset[n] = false;
-                break; // ToDo: Variabel machen
+                bitset[n] = applyBitSpec(settings.AP, ((lastpattern >> n) & 1) == 1);
+                break;
             case BL:
-                bitset[n] = true;
-                break; // ToDo: Variabel machen
+                bitset[n] = applyBitSpec(settings.BL, ((lastpattern >> n) & 1) == 1);
+                break;
 
             // Bank bits
             case BA0:

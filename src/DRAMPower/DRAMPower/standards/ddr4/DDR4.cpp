@@ -11,16 +11,24 @@ namespace DRAMPower {
     DDR4::DDR4(const MemSpecDDR4 &memSpec)
 		: memSpec(memSpec)
 		, ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-        , readBus(memSpec.bitWidth)
-        , writeBus(memSpec.bitWidth)
-        , commandBus(27)
+        , readBus(memSpec.bitWidth, util::BusSettings{
+		    .idle_pattern = util::BusIdlePatternSpec::L
+	    })
+        , writeBus(memSpec.bitWidth, util::BusSettings{
+		    .idle_pattern = util::BusIdlePatternSpec::L
+	    })
+        , commandBus(27, util::BusSettings{
+		    .idle_pattern = util::BusIdlePatternSpec::L
+	    })
         , readDQS_(2, true)
         , writeDQS_(2, true)
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
         , dram_base<CmdType>(PatternEncoderSettings{
-            PatternEncoderLastBit::L,
-            PatternEncoderLastBit::L,  
+            .V = PatternEncoderBitSpec::L,
+            .X = PatternEncoderBitSpec::L,
+            .AP = PatternEncoderBitSpec::L,
+            .BL = PatternEncoderBitSpec::H,
         })
 	{
         // In the first state all ranks are precharged
@@ -158,7 +166,7 @@ namespace DRAMPower {
         //assert(diff >= 0);
         
         // Pre and Postamble seamless
-        if(diff = 0)
+        if(diff == 0)
         {
             // Seamless read or write
             if(read)
@@ -482,7 +490,7 @@ namespace DRAMPower {
             );
             //stats.rank_total[i].cycles.pre = rank.cycles.pre.get_count_at(timestamp);
 
-            stats.rank_total[i].prepos.readSeamless = DQsPairs * rank.seamlessPrePostambleCounter_read;;
+            stats.rank_total[i].prepos.readSeamless = DQsPairs * rank.seamlessPrePostambleCounter_read;
             stats.rank_total[i].prepos.writeSeamless = DQsPairs * rank.seamlessPrePostambleCounter_write;
             
             stats.rank_total[i].prepos.readMerged = DQsPairs * rank.mergedPrePostambleCounter_read;
