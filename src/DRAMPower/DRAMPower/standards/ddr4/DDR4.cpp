@@ -449,11 +449,6 @@ namespace DRAMPower {
         stats.bank.resize(memSpec.numberOfBanks * memSpec.numberOfRanks);
         stats.rank_total.resize(memSpec.numberOfRanks);
 
-        // Two DQs Pairs for x16
-        uint_fast8_t DQsPairs = 1;
-        if(memSpec.bitWidth == 16)
-            DQsPairs = 2;
-
         auto simulation_duration = timestamp;
         for (size_t i = 0; i < memSpec.numberOfRanks; ++i) {
             Rank &rank = ranks[i];
@@ -490,27 +485,24 @@ namespace DRAMPower {
             );
             //stats.rank_total[i].cycles.pre = rank.cycles.pre.get_count_at(timestamp);
 
-            stats.rank_total[i].prepos.readSeamless = DQsPairs * rank.seamlessPrePostambleCounter_read;
-            stats.rank_total[i].prepos.writeSeamless = DQsPairs * rank.seamlessPrePostambleCounter_write;
+            stats.rank_total[i].prepos.readSeamless = rank.seamlessPrePostambleCounter_read;
+            stats.rank_total[i].prepos.writeSeamless = rank.seamlessPrePostambleCounter_write;
             
-            stats.rank_total[i].prepos.readMerged = DQsPairs * rank.mergedPrePostambleCounter_read;
-            stats.rank_total[i].prepos.readMergedTime = DQsPairs * rank.mergedPrePostambleTime_read;
-            stats.rank_total[i].prepos.writeMerged = DQsPairs * rank.mergedPrePostambleCounter_write;
-            stats.rank_total[i].prepos.writeMergedTime = DQsPairs * rank.mergedPrePostambleTime_write;
+            stats.rank_total[i].prepos.readMerged = rank.mergedPrePostambleCounter_read;
+            stats.rank_total[i].prepos.readMergedTime = rank.mergedPrePostambleTime_read;
+            stats.rank_total[i].prepos.writeMerged = rank.mergedPrePostambleCounter_write;
+            stats.rank_total[i].prepos.writeMergedTime = rank.mergedPrePostambleTime_write;
         }
 
         stats.commandBus = commandBus.get_stats(timestamp);
         stats.readBus = readBus.get_stats(timestamp);
         stats.writeBus = writeBus.get_stats(timestamp);
 
-        // differential pair -> one line always active
+        // single line stored in stats
+        // differential power calculated in interface calculation
         stats.clockStats = clock.get_stats_at(timestamp);
         stats.readDQSStats = readDQS_.get_stats_at(timestamp);
         stats.writeDQSStats = writeDQS_.get_stats_at(timestamp);
-        
-        // TODO add tests
-        stats.readDQSStats *= DQsPairs;
-        stats.writeDQSStats *= DQsPairs;
 
         return stats;
     }
