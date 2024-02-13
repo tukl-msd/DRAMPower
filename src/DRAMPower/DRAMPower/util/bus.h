@@ -79,11 +79,17 @@ private:
 	burst_storage_t burst_storage;
 	timestamp_t last_load = 0;
 	burst_t last_pattern;
+	burst_t zero_pattern;
+	burst_t one_pattern;
 	BusSettings settings;
 public:
 	Bus(std::size_t width, BusSettings settings) :
 		width(width), burst_storage(width), settings(settings) 
-		{};
+		{
+			assert(width >= 0 && width < std::numeric_limits<std::size_t>::digits);
+			this->zero_pattern = burst_t(width, 0x0);
+			this->one_pattern = burst_t(width, (1 << width) - 1);
+		};
 public:
 	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
 
@@ -119,16 +125,13 @@ public:
 		// Assert timestamp does not lie in past
 		assert(n - last_load >= 0);
 
-		// Assert for BusIdlePatternSpec::H case all ones
-		assert(width >= 0 && width < std::numeric_limits<std::size_t>::digits);
-
 		if (n - last_load >= burst_storage.size()) {
 			switch(settings.idle_pattern)
 			{
 				case BusIdlePatternSpec::L:
-					return burst_t(width, 0x00000000);
+					return zero_pattern;
 				case BusIdlePatternSpec::H:
-					return burst_t(width, (1 << width) - 1);
+					return one_pattern;
 				case BusIdlePatternSpec::LAST_PATTERN:
 					return last_pattern;
 				default:

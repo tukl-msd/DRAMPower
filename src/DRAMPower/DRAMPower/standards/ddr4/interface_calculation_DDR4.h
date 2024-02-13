@@ -19,7 +19,7 @@ class InterfaceCalculation_DDR4 {
     const MemSpecDDR4 &memspec_;
     const MemSpecDDR4::MemImpedanceSpec &impedances_;
     double t_CK_;
-    double VDDQ_;
+    double VDD_;
 
     interface_energy_info_t calcClockEnergy(const SimulationStats &stats);
     interface_energy_info_t calcDQSEnergy(const SimulationStats &stats);
