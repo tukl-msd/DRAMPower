@@ -10,20 +10,20 @@ namespace DRAMPower {
     LPDDR4::LPDDR4(const MemSpecLPDDR4 &memSpec): 
         memSpec(memSpec), ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks}),
         commandBus{6, util::BusSettings{
-            .idle_pattern = util::BusIdlePatternSpec::L
+            util::BusIdlePatternSpec::L // idle pattern
         }}, 
         readBus{16, util::BusSettings{
-		    .idle_pattern = util::BusIdlePatternSpec::L
+		    util::BusIdlePatternSpec::L // idle pattern
 	    }},
         writeBus{16, util::BusSettings{
-		    .idle_pattern = util::BusIdlePatternSpec::L
+		    util::BusIdlePatternSpec::L // idle pattern
 	    }},
         readDQS_c(2, true), readDQS_t(2, true), writeDQS_c(2, true), writeDQS_t(2, true),
         dram_base<CmdType>(PatternEncoderSettings{
-            .V = PatternEncoderBitSpec::L,
-            .X = PatternEncoderBitSpec::L,
-            .AP = PatternEncoderBitSpec::L,
-            .BL = PatternEncoderBitSpec::H,
+            PatternEncoderBitSpec::L,   // V
+            PatternEncoderBitSpec::L,   // X
+            PatternEncoderBitSpec::L,   // AP
+            PatternEncoderBitSpec::H,   // BL
         }) 
     {
         this->registerPatterns();

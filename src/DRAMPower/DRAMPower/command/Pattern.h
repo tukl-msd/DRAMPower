@@ -59,6 +59,7 @@ inline bool applyBitSpec(PatternEncoderBitSpec &spec, bool LAST_BIT)
         assert(false);
         break;
     }
+    return false;
 };
 
 // TODO test shift direction for LAST_BIT

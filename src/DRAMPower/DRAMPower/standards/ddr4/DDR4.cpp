@@ -12,23 +12,23 @@ namespace DRAMPower {
 		: memSpec(memSpec)
 		, ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
         , readBus(memSpec.bitWidth, util::BusSettings{
-		    .idle_pattern = util::BusIdlePatternSpec::L
+		    util::BusIdlePatternSpec::L // idle pattern
 	    })
         , writeBus(memSpec.bitWidth, util::BusSettings{
-		    .idle_pattern = util::BusIdlePatternSpec::L
+		    util::BusIdlePatternSpec::L // idle pattern
 	    })
         , commandBus(27, util::BusSettings{
-		    .idle_pattern = util::BusIdlePatternSpec::L
+		    util::BusIdlePatternSpec::L // idle pattern
 	    })
         , readDQS_(2, true)
         , writeDQS_(2, true)
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
         , dram_base<CmdType>(PatternEncoderSettings{
-            .V = PatternEncoderBitSpec::L,
-            .X = PatternEncoderBitSpec::L,
-            .AP = PatternEncoderBitSpec::L,
-            .BL = PatternEncoderBitSpec::H,
+            PatternEncoderBitSpec::L,   // V
+            PatternEncoderBitSpec::L,   // X
+            PatternEncoderBitSpec::L,   // AP
+            PatternEncoderBitSpec::H,   // BL
         })
 	{
         // In the first state all ranks are precharged
