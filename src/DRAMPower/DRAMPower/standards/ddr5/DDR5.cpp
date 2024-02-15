@@ -13,23 +13,23 @@ namespace DRAMPower {
         : memSpec(memSpec),
         ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks}),
         commandBus{14, util::BusSettings{
-		    .idle_pattern = util::BusIdlePatternSpec::L
+		    util::BusIdlePatternSpec::L // idle pattern
 	    }},
         readBus{16, util::BusSettings{
-		    .idle_pattern = util::BusIdlePatternSpec::L
+		    util::BusIdlePatternSpec::L // idle pattern
 	    }},  // x4, x8, x16 mode?
         writeBus{16, util::BusSettings{
-		    .idle_pattern = util::BusIdlePatternSpec::L
+		    util::BusIdlePatternSpec::L // idle pattern
 	    }},
         readDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
         readDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
         writeDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
         writeDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
         dram_base<CmdType>(PatternEncoderSettings{
-            .V = PatternEncoderBitSpec::L,
-            .X = PatternEncoderBitSpec::L,
-            .AP = PatternEncoderBitSpec::L,
-            .BL = PatternEncoderBitSpec::H,
+            PatternEncoderBitSpec::L,   // V
+            PatternEncoderBitSpec::L,   // X
+            PatternEncoderBitSpec::L,   // AP
+            PatternEncoderBitSpec::H,   // BL
         })
     {
         this->registerPatterns();
