@@ -99,8 +99,6 @@ public:
         double iBeta;
 	};
 
-	// TODO hier weitermachen
-	// TODO funktionen zum Einlesen erstellen
 	struct MemImpedanceSpec
 	{
 		double C_total_ck;
@@ -123,17 +121,25 @@ public:
         double bwPowerFactRho;
 	};
 
+	// Pre and Postamble
+	// Total number of zero cycles relative to tCK (one cycle = tCK) for example, if tCK = 1ns, and read_zeroes = 2.5, then the total time is 2.5ns
 	struct PrePostamble
 	{
+		// Total number of zero/one cycles per DQs differential pair
+		// relative to tCK (one cycle = tCK)
+		// for example, if tCK = 1ns, and read_zeroes = 2.5, then the total time is 2.5ns
 		double read_zeroes;
 		double write_zeroes;
 		double read_ones;
 		double write_ones;
+
+		// Total number of zero to one and one to zero transitions per DQs differential pair
 		uint64_t read_zeroes_to_ones;
 		uint64_t write_zeroes_to_ones;
 		uint64_t write_ones_to_zeroes;
 		uint64_t read_ones_to_zeroes;
 
+		// Minimum time interval between two consecutive read/write commands to prevent merging or seamless transition.
 		uint64_t readMinTccd;
 		uint64_t writeMinTccd;
 	};

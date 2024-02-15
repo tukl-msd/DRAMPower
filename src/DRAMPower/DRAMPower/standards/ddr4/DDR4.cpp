@@ -445,6 +445,11 @@ namespace DRAMPower {
         // If there are still implicit commands queued up, process them first
         processImplicitCommandQueue(timestamp);
 
+        // DDR4 x16 have 2 DQs differential pairs
+        uint_fast8_t NumDQsPairs = 1;
+        if(memSpec.bitWidth == 16)
+            NumDQsPairs = 2;
+
         SimulationStats stats;
         stats.bank.resize(memSpec.numberOfBanks * memSpec.numberOfRanks);
         stats.rank_total.resize(memSpec.numberOfRanks);
@@ -493,16 +498,15 @@ namespace DRAMPower {
             stats.rank_total[i].prepos.writeMerged = rank.mergedPrePostambleCounter_write;
             stats.rank_total[i].prepos.writeMergedTime = rank.mergedPrePostambleTime_write;
         }
-
         stats.commandBus = commandBus.get_stats(timestamp);
         stats.readBus = readBus.get_stats(timestamp);
         stats.writeBus = writeBus.get_stats(timestamp);
 
         // single line stored in stats
         // differential power calculated in interface calculation
-        stats.clockStats = clock.get_stats_at(timestamp);
-        stats.readDQSStats = readDQS_.get_stats_at(timestamp);
-        stats.writeDQSStats = writeDQS_.get_stats_at(timestamp);
+        stats.clockStats = 2u * clock.get_stats_at(timestamp);
+        stats.readDQSStats = NumDQsPairs * 2u * readDQS_.get_stats_at(timestamp);
+        stats.writeDQSStats = NumDQsPairs * 2u * writeDQS_.get_stats_at(timestamp);
 
         return stats;
     }
