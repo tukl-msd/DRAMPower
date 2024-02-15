@@ -100,18 +100,17 @@ class DDR4_WindowStats_Tests : public ::testing::Test {
     std::unique_ptr<DDR4> ddr;
 };
 
-// Tests for the window stats (ones to zeros, ones etc)
-// Tests for command bus, data bus and DQs 
+// Test patterns for stats (counter)
 TEST_F(DDR4_WindowStats_Tests, Pattern_0) {
     runCommands(test_patterns[0]);
 
     SimulationStats stats = ddr->getStats();
 
     // Clock
-    EXPECT_EQ(stats.clockStats.ones, 24);
-    EXPECT_EQ(stats.clockStats.zeroes, 24);
-    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 24);
-    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 24);
+    EXPECT_EQ(stats.clockStats.ones, 48);
+    EXPECT_EQ(stats.clockStats.zeroes, 48);
+    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 48);
+    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 48);
 
     // Data bus
     EXPECT_EQ(stats.writeBus.ones, 8);
@@ -138,7 +137,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_0) {
 
     // In this example read data and write data are the same size, so stats should be the same
     // DQs modelled as single line
-    int DQS_ones = number_of_cycles;
+    int DQS_ones = number_of_cycles * spec.dataRate;
     int DQS_zeros = DQS_ones;
     int DQS_zeros_to_ones = DQS_ones;
     int DQS_ones_to_zeros = DQS_zeros;
@@ -170,10 +169,10 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_1) {
     SimulationStats stats = ddr->getStats();
 
     // Clock
-    EXPECT_EQ(stats.clockStats.ones, 24);
-    EXPECT_EQ(stats.clockStats.zeroes, 24);
-    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 24);
-    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 24);
+    EXPECT_EQ(stats.clockStats.ones, 48);
+    EXPECT_EQ(stats.clockStats.zeroes, 48);
+    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 48);
+    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 48);
 
     // Data bus
     EXPECT_EQ(stats.writeBus.ones, 16);
@@ -196,7 +195,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_1) {
     // (("number of writes/reads" * "size in bits") / bus_size) / bus_rate
     int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec.dataRate;
 
-    int DQS_ones = number_of_cycles;
+    int DQS_ones = number_of_cycles * spec.dataRate;
     int DQS_zeros = DQS_ones;
     int DQS_zeros_to_ones = DQS_ones;
     int DQS_ones_to_zeros = DQS_zeros;
@@ -227,10 +226,10 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_2) {
     SimulationStats stats = ddr->getStats();
 
     // Clock
-    EXPECT_EQ(stats.clockStats.ones, 24);
-    EXPECT_EQ(stats.clockStats.zeroes, 24);
-    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 24);
-    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 24);
+    EXPECT_EQ(stats.clockStats.ones, 48);
+    EXPECT_EQ(stats.clockStats.zeroes, 48);
+    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 48);
+    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 48);
 
     // Data bus
     EXPECT_EQ(stats.writeBus.ones, 0);
@@ -254,7 +253,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_2) {
     int number_of_cycles = ((2 * SZ_BITS(rd_data)) / 8) / spec.dataRate;
 
     // Only read
-    int DQS_ones = number_of_cycles;
+    int DQS_ones = number_of_cycles * spec.dataRate;
     int DQS_zeros = DQS_ones;
     int DQS_zeros_to_ones = DQS_ones;
     int DQS_ones_to_zeros = DQS_zeros;
@@ -285,10 +284,10 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_3) {
     SimulationStats stats = ddr->getStats();
 
     // Clock
-    EXPECT_EQ(stats.clockStats.ones, 24);
-    EXPECT_EQ(stats.clockStats.zeroes, 24);
-    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 24);
-    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 24);
+    EXPECT_EQ(stats.clockStats.ones, 48);
+    EXPECT_EQ(stats.clockStats.zeroes, 48);
+    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 48);
+    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 48);
 
     // Data bus
     EXPECT_EQ(stats.writeBus.ones, 16);
@@ -312,7 +311,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_3) {
     int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec.dataRate;
 
     // Only writes
-    int DQS_ones = number_of_cycles;
+    int DQS_ones = number_of_cycles * spec.dataRate;
     int DQS_zeros = DQS_ones;
     int DQS_zeros_to_ones = DQS_ones;
     int DQS_ones_to_zeros = DQS_zeros;
@@ -343,10 +342,10 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_4) {
     SimulationStats stats = ddr->getStats();
 
     // Clock
-    EXPECT_EQ(stats.clockStats.ones, 24);
-    EXPECT_EQ(stats.clockStats.zeroes, 24);
-    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 24);
-    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 24);
+    EXPECT_EQ(stats.clockStats.ones, 48);
+    EXPECT_EQ(stats.clockStats.zeroes, 48);
+    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 48);
+    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 48);
 
     // Data bus
     EXPECT_EQ(stats.writeBus.ones, 0);
@@ -370,7 +369,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_4) {
     int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec.dataRate;
 
     // Only reads
-    int DQS_ones = number_of_cycles;
+    int DQS_ones = number_of_cycles * spec.dataRate;
     int DQS_zeros = DQS_ones;
     int DQS_zeros_to_ones = DQS_ones;
     int DQS_ones_to_zeros = DQS_zeros;
@@ -455,6 +454,7 @@ TEST_F(DDR4_Energy_Tests, Parameters) {
     ASSERT_TRUE(voltage > 0.0);
 }
 
+// Test pattern for energy consumption
 TEST_F(DDR4_Energy_Tests, Clock_Energy) {
     SimulationStats stats = {0};
     stats.clockStats.ones = 200;
@@ -468,10 +468,13 @@ TEST_F(DDR4_Energy_Tests, Clock_Energy) {
     EXPECT_DOUBLE_EQ(result.dram.dynamicPower, 0.0);
     EXPECT_DOUBLE_EQ(result.dram.staticPower, 0.0);
 
-    // DDR5 clock power consumed on 1's
-    double expected_static = (2 * stats.clockStats.ones) * voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_ck;
+    // Note
+    // The clock stats include both lines of the differential pair
+
+    // DDR4 clock power consumed on 0's
+    double expected_static = stats.clockStats.zeroes * voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_ck;
     // Dynamic power is consumed on 0 -> 1 transition
-    double expected_dynamic = (2 * stats.clockStats.zeroes_to_ones) * 0.5 * spec.memImpedanceSpec.C_total_ck * voltage * voltage;
+    double expected_dynamic = stats.clockStats.zeroes_to_ones * 0.5 * spec.memImpedanceSpec.C_total_ck * voltage * voltage;
 
     EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static);  // value itself doesn't matter, only that it matches the formula
     EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic);
@@ -489,18 +492,21 @@ TEST_F(DDR4_Energy_Tests, DQS_Energy) {
     stats.writeDQSStats.ones_to_zeroes = 2000;
     stats.writeDQSStats.zeroes_to_ones = 999;
 
+    // Note
+    // The DQS stats include both lines of the differential pair
+
     // Controller -> write power
     // Dram -> read power
     // Note dqs is modeled as clock. The clock class incorporates the data rate
-    double expected_static_controller = (2 * stats.writeDQSStats.zeroes) *
-                        voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_dqs;
-    double expected_static_dram = (2 * stats.readDQSStats.zeroes) *
-                        voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_dqs;
+    double expected_static_controller = stats.writeDQSStats.zeroes *
+                        voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_dqs;
+    double expected_static_dram = stats.readDQSStats.zeroes *
+                        voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_dqs;
 
     // Dynamic power is consumed on 0 -> 1 transition
-    double expected_dynamic_controller = (2 * stats.writeDQSStats.zeroes_to_ones) *
+    double expected_dynamic_controller = stats.writeDQSStats.zeroes_to_ones *
                                          0.5 * spec.memImpedanceSpec.C_total_dqs * voltage * voltage;
-    double expected_dynamic_dram = (2 * stats.readDQSStats.zeroes_to_ones) *
+    double expected_dynamic_dram = stats.readDQSStats.zeroes_to_ones *
                                    0.5 * spec.memImpedanceSpec.C_total_dqs * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
@@ -524,7 +530,7 @@ TEST_F(DDR4_Energy_Tests, DQ_Energy) {
 
     // Controller -> write power
     // Dram -> read power
-    // zeroes and ones of the data bus are the zeroes and ones per pattern (data rate is not modelled in the bus)
+    // zeroes and ones of the data bus are the zeroes and ones per pattern (data rate is not modeled in the bus)
     // data rate data bus is 2 -> t_per_bit = 0.5 * t_CK
     double expected_static_controller =
         stats.writeBus.zeroes * voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_wb;
@@ -598,18 +604,18 @@ TEST_F(DDR4_Energy_Tests, PrePostamble_Energy) {
     double readcount = stats.rank_total[0].counter.reads + stats.rank_total[0].counter.readAuto;
 
     // Dynamic power is consumed on 0 -> 1 transition
-    double expected_dynamic_controller = (2 * stats.writeDQSStats.zeroes_to_ones) *
+    double expected_dynamic_controller = stats.writeDQSStats.zeroes_to_ones *
                                          0.5 * spec.memImpedanceSpec.C_total_dqs * voltage * voltage;
-    double expected_dynamic_dram = (2 * stats.readDQSStats.zeroes_to_ones) *
+    double expected_dynamic_dram = stats.readDQSStats.zeroes_to_ones *
                                    0.5 * spec.memImpedanceSpec.C_total_dqs * voltage * voltage;
        
     // Controller -> write power
     // Dram -> read power
     // Note dqs is modeled as clock. The clock class incorporates the data rate
-    double expected_static_controller = (2 * stats.writeDQSStats.zeroes) *
-                        voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_dqs;
-    double expected_static_dram = (2 * stats.readDQSStats.zeroes) *
-                        voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_dqs;
+    double expected_static_controller = stats.writeDQSStats.zeroes *
+                        voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_dqs;
+    double expected_static_dram = stats.readDQSStats.zeroes *
+                        voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_dqs;
 
     // Note DQS already tested in DDR4_Energy_Tests.DQS_Energy
 
