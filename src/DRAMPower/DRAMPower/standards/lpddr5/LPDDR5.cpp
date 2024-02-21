@@ -11,25 +11,14 @@ namespace DRAMPower {
     LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
         : memSpec(memSpec),
         ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks }),
-        commandBus{7, util::BusSettings{
-		    util::BusIdlePatternSpec::L // idle pattern
-	    }},
-        readBus{16, util::BusSettings{
-		    util::BusIdlePatternSpec::L // idle pattern
-	    }},
-        writeBus{16, util::BusSettings{
-		    util::BusIdlePatternSpec::L // idle pattern
-	    }},
+        commandBus{7, util::BusIdlePatternSpec::L},
+        readBus{16, util::BusIdlePatternSpec::L},
+        writeBus{16, util::BusIdlePatternSpec::L},
         readDQS_c_(memSpec.dataRate, true),
         readDQS_t_(memSpec.dataRate, true),
         WCK_t_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
         WCK_c_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
-        dram_base<CmdType>(PatternEncoderSettings{
-            PatternEncoderBitSpec::L,   // V
-            PatternEncoderBitSpec::L,   // X
-            PatternEncoderBitSpec::L,   // AP
-            PatternEncoderBitSpec::H,   // BL
-        })
+        dram_base<CmdType>(PatternEncoderSettings{})
     {
         this->registerPatterns();
 

@@ -13,6 +13,8 @@
 #include <limits>
 #include <cassert>
 
+#include <iostream>
+
 namespace DRAMPower::util 
 {
 
@@ -61,11 +63,6 @@ enum class BusIdlePatternSpec
     LAST_PATTERN = 2
 };
 
-struct BusSettings
-{
-    BusIdlePatternSpec idle_pattern;
-};
-
 // TODO: Idle state einbauen wenn Kommando fertig (done?)
 class Bus {
 public:
@@ -81,14 +78,31 @@ private:
 	burst_t last_pattern;
 	burst_t zero_pattern;
 	burst_t one_pattern;
-	BusSettings settings;
+	BusIdlePatternSpec idle_pattern;
 public:
-	Bus(std::size_t width, BusSettings settings) :
-		width(width), burst_storage(width), settings(settings) 
+	Bus(std::size_t width, BusIdlePatternSpec idle_pattern) :
+		width(width), burst_storage(width), idle_pattern(idle_pattern) 
 		{
-			assert(width >= 0 && width < std::numeric_limits<std::size_t>::digits);
+			
+			assert(
+				width >= 0 &&
+				width <= std::numeric_limits<std::size_t>::digits &&
+				(std::numeric_limits<std::size_t>::is_signed == false) // for clarity
+			);
 			this->zero_pattern = burst_t(width, 0x0);
-			this->one_pattern = burst_t(width, (1 << width) - 1);
+			if(width == std::numeric_limits<std::size_t>::digits)
+			{
+				this->one_pattern = burst_t(width, std::numeric_limits<std::size_t>::max());
+			}
+			else if(width == 0)
+			{
+				this->one_pattern = burst_t(width, 0x0);
+				std::cout << "[Warning] Bus width is 0" << std::endl;
+			}
+			else
+			{
+				this->one_pattern = burst_t(width, (1 << width) - 1);
+			}
 		};
 public:
 	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
@@ -126,7 +140,7 @@ public:
 		assert(n - last_load >= 0);
 
 		if (n - last_load >= burst_storage.size()) {
-			switch(settings.idle_pattern)
+			switch(idle_pattern)
 			{
 				case BusIdlePatternSpec::L:
 					return zero_pattern;

@@ -16,12 +16,7 @@ public:
 	void handle_interface(const Command& cmd) override {};
 	std::vector<timestamp_t> execution_order;
 
-	test_ddr() : dram_base<CmdType>(PatternEncoderSettings{
-		PatternEncoderBitSpec::L,   // V
-		PatternEncoderBitSpec::L,   // X
-		PatternEncoderBitSpec::L,   // AP
-		PatternEncoderBitSpec::H,   // BL
-	})
+	test_ddr() : dram_base<CmdType>(PatternEncoderSettings{})
 	{
 		this->routeCommand<CmdType::ACT>([this](const Command & command) {
 			execution_order.push_back(command.timestamp);
