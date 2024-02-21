@@ -5,6 +5,7 @@
 
 #include <bitset>
 #include <cassert>
+#include <unordered_map>
 
 namespace DRAMPower {
 namespace pattern_descriptor {
