@@ -11,24 +11,25 @@ namespace DRAMPower {
     DDR4::DDR4(const MemSpecDDR4 &memSpec)
 		: memSpec(memSpec)
 		, ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-        , readBus(memSpec.bitWidth, util::BusSettings{
-		    util::BusIdlePatternSpec::L // idle pattern
-	    })
-        , writeBus(memSpec.bitWidth, util::BusSettings{
-		    util::BusIdlePatternSpec::L // idle pattern
-	    })
-        , commandBus(27, util::BusSettings{
-		    util::BusIdlePatternSpec::L // idle pattern
-	    })
+        , readBus(
+            memSpec.bitWidth,
+            util::BusIdlePatternSpec::L
+        )
+        , writeBus(
+            memSpec.bitWidth,
+            util::BusIdlePatternSpec::L
+        )
+        , commandBus(
+            27,
+            util::BusIdlePatternSpec::L
+        )
         , readDQS_(2, true)
         , writeDQS_(2, true)
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
-        , dram_base<CmdType>(PatternEncoderSettings{
-            PatternEncoderBitSpec::L,   // V
-            PatternEncoderBitSpec::L,   // X
-            PatternEncoderBitSpec::L,   // AP
-            PatternEncoderBitSpec::H,   // BL
+        , dram_base<CmdType>({
+            {pattern_descriptor::V, PatternEncoderBitSpec::L},  // TODO change to H 
+            {pattern_descriptor::X, PatternEncoderBitSpec::L}
         })
 	{
         // In the first state all ranks are precharged

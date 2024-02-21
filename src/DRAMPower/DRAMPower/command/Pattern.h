@@ -28,12 +28,53 @@ enum class PatternEncoderBitSpec
     LAST_BIT = 2
 };
 
-struct PatternEncoderSettings
+// struct for initializer list in PatternEncoderSettings
+struct PatternEncoderSettingsEntry {
+    pattern_descriptor::t descriptor;
+    PatternEncoderBitSpec bitSpec;
+};
+
+// class to store pattern descriptor overrides
+class PatternEncoderSettings
 {
-    PatternEncoderBitSpec V;
-    PatternEncoderBitSpec X;
-    PatternEncoderBitSpec AP;
-    PatternEncoderBitSpec BL;
+
+private:
+    std::unordered_map<pattern_descriptor::t, PatternEncoderBitSpec> settings;
+public:
+    // Constructor with initializer list for settings
+    PatternEncoderSettings(std::initializer_list<PatternEncoderSettingsEntry> settings)
+    {
+        for (const auto &setting : settings)
+        {
+            this->settings[setting.descriptor] = setting.bitSpec;
+        }
+    };
+    PatternEncoderSettings() = default;
+
+public:
+    void updateSettings(std::initializer_list<PatternEncoderSettingsEntry> settings)
+    {
+        // Update settings if descriptor is already present
+        for (const auto &setting : settings)
+        {
+            this->settings[setting.descriptor] = setting.bitSpec;
+        }
+    };
+
+    std::unordered_map<pattern_descriptor::t, PatternEncoderBitSpec> getSettings()
+    {
+        return this->settings;   
+    };
+
+    PatternEncoderBitSpec getSetting(pattern_descriptor::t descriptor)
+    {
+        return this->settings[descriptor];
+    };
+
+    bool hasSetting(pattern_descriptor::t descriptor)
+    {
+        return this->settings.find(descriptor) != this->settings.end();
+    };
 };
 
 // TODO: Has to be standard specific
@@ -45,9 +86,19 @@ public:
     PatternEncoder(PatternEncoderSettings settings)
         : settings(settings) {};
 private:
-inline bool applyBitSpec(PatternEncoderBitSpec &spec, bool LAST_BIT)
+inline bool applyBitSpec(
+    PatternEncoderSettings &spec,
+    pattern_descriptor::t descriptor,
+    bool LAST_BIT,
+    bool default_bit
+)
 {
-    switch (spec)
+    if(!spec.hasSetting(descriptor))
+    {
+        return default_bit;
+    }
+
+    switch (spec.getSetting(descriptor))
     {
     case PatternEncoderBitSpec::L:
         return false;
@@ -81,25 +132,24 @@ public:
         for (const auto descriptor : pattern) {
             assert(n >= 0);
 
+            // Command bits
             switch (descriptor) {
             case H:
-                bitset[n] = true;
+            case BL:
+                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, true);
                 break;
             case L:
-                bitset[n] = false;
-                break;
             case V:
-                bitset[n] = applyBitSpec(settings.V, ((lastpattern >> n) & 1) == 1);
-                break;
             case X:
-                bitset[n] = applyBitSpec(settings.X, ((lastpattern >> n) & 1) == 1);
-                break;
             case AP:
-                bitset[n] = applyBitSpec(settings.AP, ((lastpattern >> n) & 1) == 1);
+            case C0: // For writes the first 4 column bits are always 0, see: Standard
+            case C1:
+            case C2:
+            case C3:
+                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, false);
                 break;
-            case BL:
-                bitset[n] = applyBitSpec(settings.BL, ((lastpattern >> n) & 1) == 1);
-                break;
+
+            // Target Coordinate bits
 
             // Bank bits
             case BA0:
@@ -141,19 +191,6 @@ public:
                 bitset[n] = bank_group_bits[2];
                 break;
 
-            // Column bits
-            case C0: // For writes the first 4 bits are always 0, see: Standard
-                bitset[n] = false;
-                break;
-            case C1:
-                bitset[n] = false;
-                break;
-            case C2:
-                bitset[n] = false;
-                break;
-            case C3:
-                bitset[n] = false;
-                break;
             case C4:
                 bitset[n] = column_bits[4];
                 break;
