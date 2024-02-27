@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <DRAMPower/util/bus.h>
+#include <array>
 
 using namespace DRAMPower;
 
