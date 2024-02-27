@@ -11,9 +11,9 @@ namespace DRAMPower {
     LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
         : memSpec(memSpec),
         ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks }),
-        commandBus{7, util::BusIdlePatternSpec::L},
-        readBus{16, util::BusIdlePatternSpec::L},
-        writeBus{16, util::BusIdlePatternSpec::L},
+        commandBus{7, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
+        readBus{16, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
+        writeBus{16, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
         readDQS_c_(memSpec.dataRate, true),
         readDQS_t_(memSpec.dataRate, true),
         WCK_t_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
