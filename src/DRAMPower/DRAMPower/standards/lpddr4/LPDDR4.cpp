@@ -9,9 +9,9 @@ namespace DRAMPower {
 
     LPDDR4::LPDDR4(const MemSpecLPDDR4 &memSpec): 
         memSpec(memSpec), ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks}),
-        commandBus{6, util::BusIdlePatternSpec::L}, 
-        readBus{16, util::BusIdlePatternSpec::L},
-        writeBus{16, util::BusIdlePatternSpec::L},
+        commandBus{6, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
+        readBus{16, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
+        writeBus{16, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
         readDQS_c(2, true), readDQS_t(2, true), writeDQS_c(2, true), writeDQS_t(2, true),
         dram_base<CmdType>(PatternEncoderSettings{}) 
     {

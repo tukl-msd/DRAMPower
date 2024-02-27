@@ -12,16 +12,16 @@ namespace DRAMPower {
 		: memSpec(memSpec)
 		, ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
         , readBus(
-            memSpec.bitWidth,
-            util::BusIdlePatternSpec::L
+            memSpec.bitWidth * memSpec.numberOfDevices,
+             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
         )
         , writeBus(
-            memSpec.bitWidth,
-            util::BusIdlePatternSpec::L
+            memSpec.bitWidth * memSpec.numberOfDevices,
+             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
         )
         , commandBus(
             27,
-            util::BusIdlePatternSpec::L
+            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
         )
         , readDQS_(2, true)
         , writeDQS_(2, true)

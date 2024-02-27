@@ -56,59 +56,96 @@ struct bus_stats_t {
 	}
 };
 
-enum class BusIdlePatternSpec
-{
-    L = 0,
-    H = 1,
-    LAST_PATTERN = 2
-};
-
-// TODO: Idle state einbauen wenn Kommando fertig (done?)
 class Bus {
+
+private:
+	enum class __BusInitPatternSpec
+	{
+		L = 0,
+		H = 1,
+		CUSTOM = 2
+	};
+
 public:
+	enum class BusIdlePatternSpec
+	{
+		L = 0,
+		H = 1,
+		LAST_PATTERN = 2
+	};
+	enum class BusInitPatternSpec
+	{
+		L = 0,
+		H = 1,
+	};
 	using burst_storage_t = util::burst_storage;
 	using burst_t = typename burst_storage_t::burst_t;
-public:
 	const std::size_t width;
-public:
 	bus_stats_t stats;
+
 private:
 	burst_storage_t burst_storage;
 	timestamp_t last_load = 0;
+	bool init_load = false;
 	burst_t last_pattern;
 	burst_t zero_pattern;
 	burst_t one_pattern;
 	BusIdlePatternSpec idle_pattern;
-public:
-	Bus(std::size_t width, BusIdlePatternSpec idle_pattern) :
-		width(width), burst_storage(width), idle_pattern(idle_pattern) 
-		{
+	__BusInitPatternSpec init_pattern;
+	std::optional<burst_t> custom_init_pattern;
+
+private:
+	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, __BusInitPatternSpec init_pattern,
+		std::optional<burst_t> custom_init_pattern = std::nullopt
+	) :
+		width(width), burst_storage(width), 
+		idle_pattern(idle_pattern), init_pattern(init_pattern), custom_init_pattern (custom_init_pattern)
+	{
 			
-			assert(
-				width >= 0 &&
-				width <= std::numeric_limits<std::size_t>::digits &&
-				(std::numeric_limits<std::size_t>::is_signed == false) // for clarity
-			);
-			this->zero_pattern = burst_t(width, 0x0);
-			if(width == std::numeric_limits<std::size_t>::digits)
+			assert(width >= 0);
+			
+			// Initialize zero and one patterns
+			this->zero_pattern = burst_t();
+			this->one_pattern = burst_t();
+			for(std::size_t i = 0; i < width; i++)
 			{
-				this->one_pattern = burst_t(width, std::numeric_limits<std::size_t>::max());
+				this->zero_pattern.push_back(false);
+				this->one_pattern.push_back(true);
 			}
-			else if(width == 0)
+
+			// Initialize last pattern
+			switch(init_pattern)
 			{
-				this->one_pattern = burst_t(width, 0x0);
-				std::cout << "[Warning] Bus width is 0" << std::endl;
+				case __BusInitPatternSpec::L:
+					this->last_pattern = this->zero_pattern;
+					break;
+				case __BusInitPatternSpec::H:
+					this->last_pattern = this->one_pattern;
+					break;
+				case __BusInitPatternSpec::CUSTOM:
+					assert(custom_init_pattern.has_value());
+					assert(custom_init_pattern.value().size() == width);
+					this->last_pattern = custom_init_pattern.value();
+					break;
+				default:
+					assert(false);
 			}
-			else
-			{
-				this->one_pattern = burst_t(width, (1 << width) - 1);
-			}
-		};
-public:
+	};
+public: // Ensure type safety for init_pattern with 2 seperate constructors
+	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
+		: Bus(width, idle_pattern,
+		  init_pattern ==  BusInitPatternSpec::H ? __BusInitPatternSpec::H : __BusInitPatternSpec::L) {}
+	
+	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
+		: Bus(width, idle_pattern, __BusInitPatternSpec::CUSTOM, custom_init_pattern) {}
+
 	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
 
 		// assume no interleaved commands appear, but the old one already finishes cleanly before the next
 		//assert(this->last_load + burst_storage.size() <= timestamp);
+
+		if(timestamp == 0)
+			this->init_load = true;
 
 		// Advance counters to new timestamp
 		for (auto n = this->last_load; timestamp != 0 && n < timestamp - 1; n++) {
@@ -117,7 +154,6 @@ public:
 		};
 
 		// adjust new timestamp
-		this->last_pattern = burst_t(width, 0x0);
 		if(timestamp > 0)
 			this->last_pattern = this->at(timestamp - 1);
 
@@ -133,31 +169,35 @@ public:
 	void load(timestamp_t timestamp, uint64_t data, std::size_t length) {
 		this->load(timestamp, (uint8_t*)&data, (width * length));
 	};
-public:
+
 	burst_t at(timestamp_t n) const
 	{
 		// Assert timestamp does not lie in past
 		assert(n - last_load >= 0);
 
-		if (n - last_load >= burst_storage.size()) {
-			switch(idle_pattern)
+		// Init load overrides init pattern
+		if(n == 0 && !this->init_load)
+			return this->last_pattern; 
+
+		if (n - this->last_load >= burst_storage.size()) {
+			switch(this->idle_pattern)
 			{
 				case BusIdlePatternSpec::L:
-					return zero_pattern;
+					return this->zero_pattern;
 				case BusIdlePatternSpec::H:
-					return one_pattern;
+					return this->one_pattern;
 				case BusIdlePatternSpec::LAST_PATTERN:
-					return last_pattern;
+					return this->last_pattern;
 				default:
 					assert(false);
 			}
 		}
 
-		auto burst = this->burst_storage.get_burst(std::size_t(n - last_load));
+		auto burst = this->burst_storage.get_burst(std::size_t(n - this->last_load));
 
 		return burst;
 	};
-public:
+
 	auto get_width() const { return width; };
 
 	auto get_stats(timestamp_t t) const 
@@ -178,7 +218,7 @@ public:
 
 		return stats;
 	};
-public:
+
 	bus_stats_t diff(burst_t high, burst_t low) const {
 		bus_stats_t stats;
 		stats.ones += util::BinaryOps::popcount(low);
