@@ -18,7 +18,7 @@ namespace DRAMPower {
         readDQS_t_(memSpec.dataRate, true),
         WCK_t_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
         WCK_c_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
-        dram_base<CmdType>(PatternEncoderSettings{})
+        dram_base<CmdType>(PatternEncoderOverrides{}, dram_base<CmdType>::PatternEncoderInit::L)
     {
         this->registerPatterns();
 

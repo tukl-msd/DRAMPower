@@ -30,7 +30,7 @@ namespace DRAMPower {
         , dram_base<CmdType>({
             {pattern_descriptor::V, PatternEncoderBitSpec::L},  // TODO change to H 
             {pattern_descriptor::X, PatternEncoderBitSpec::L}
-        })
+        }, dram_base<CmdType>::PatternEncoderInit::L)
 	{
         // In the first state all ranks are precharged
         //for (auto &rank : ranks) {

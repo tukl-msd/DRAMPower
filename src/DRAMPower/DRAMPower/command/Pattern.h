@@ -36,21 +36,21 @@ struct PatternEncoderSettingsEntry {
 };
 
 // class to store pattern descriptor overrides
-class PatternEncoderSettings
+class PatternEncoderOverrides
 {
 
 private:
     std::unordered_map<pattern_descriptor::t, PatternEncoderBitSpec> settings;
 public:
     // Constructor with initializer list for settings
-    PatternEncoderSettings(std::initializer_list<PatternEncoderSettingsEntry> settings)
+    PatternEncoderOverrides(std::initializer_list<PatternEncoderSettingsEntry> settings)
     {
         for (const auto &setting : settings)
         {
             this->settings[setting.descriptor] = setting.bitSpec;
         }
     };
-    PatternEncoderSettings() = default;
+    PatternEncoderOverrides() = default;
 
 public:
     void updateSettings(std::initializer_list<PatternEncoderSettingsEntry> settings)
@@ -82,13 +82,13 @@ public:
 class PatternEncoder // Currently LPDDR4
 {
 private:
-    PatternEncoderSettings settings;
+    PatternEncoderOverrides settings;
 public:
-    PatternEncoder(PatternEncoderSettings settings)
+    PatternEncoder(PatternEncoderOverrides settings)
         : settings(settings) {};
 private:
 inline bool applyBitSpec(
-    PatternEncoderSettings &spec,
+    PatternEncoderOverrides &spec,
     pattern_descriptor::t descriptor,
     bool LAST_BIT,
     bool default_bit

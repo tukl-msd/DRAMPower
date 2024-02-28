@@ -13,8 +13,19 @@ using namespace DRAMPower;
 
 class PatternTest : public ::testing::Test {
 protected:
+
+	std::vector<DRAMPower::pattern_descriptor::t> pattern;
+
 	virtual void SetUp()
 	{
+		using namespace pattern_descriptor;
+		pattern = {
+			H, L, X, V, AP, BL, H, L, // 8
+			BA0, BA1, BA2, BA3, BA4, BA5, BA6, BA7, // 8
+			BG0, BG1, BG2, X, X, X, X, X, // 8
+			C0,  C1,  C2,  C3, C4, // 5
+			R0, R1, R2, // 3
+		};
 	}
 
 	virtual void TearDown()
@@ -22,22 +33,85 @@ protected:
 	}
 };
 
-TEST_F(PatternTest, Test)
+TEST_F(PatternTest, Test_Override_Low)
 {
 	using namespace pattern_descriptor;
 
 	std::bitset<64> bitset;
 
-	const auto pattern_wr = {
-		H,   L,   H,   L,  L,   BL,
-		BA0, BA1, BA2, V,  C7,  AP,
-		L,   H,   L,   L,  H,   C6,
-		C0,  C1,  C2,  C3, C4,  C5
-	};
+	auto encoder = PatternEncoder(PatternEncoderOverrides{
+		{X, PatternEncoderBitSpec::L},
+		{V, PatternEncoderBitSpec::L},
+		{AP, PatternEncoderBitSpec::L},
+		{BL, PatternEncoderBitSpec::L},
+	});
 
-	//auto wr = PatternEncoder::encode(Command{ 0, CmdType::ACT, { 1,2,3,4,5} }, pattern_wr);
-	//ASSERT_EQ(wr, 0b101001'100000'010010'101000);
+	// Bank, Bank Group, Rank, Row, Column
+	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, 0);
+	ASSERT_EQ(result, 2189443081);
+};
 
-	//auto act = PatternEncoder::encode(Command{ 0, CmdType::ACT, { 1, 0, 0, 2, 0} }, { H, L, L, H, R1, R2, BA0, R0 });
-	//ASSERT_EQ(act, 0b1001'1010);
+TEST_F(PatternTest, Test_Override_High)
+{
+	using namespace pattern_descriptor;
+
+	std::bitset<64> bitset;
+
+	auto encoder = PatternEncoder(PatternEncoderOverrides{
+		{X, PatternEncoderBitSpec::H},
+		{V, PatternEncoderBitSpec::H},
+		{AP, PatternEncoderBitSpec::H},
+		{BL, PatternEncoderBitSpec::H},
+	});
+
+	// Bank, Bank Group, Rank, Row, Column
+	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, 0);
+	ASSERT_EQ(result, 3196083977);
+};
+
+TEST_F(PatternTest, Test_Override_Last)
+{
+	using namespace pattern_descriptor;
+
+	std::bitset<64> bitset;
+
+	auto encoder = PatternEncoder(PatternEncoderOverrides{
+		{X, PatternEncoderBitSpec::LAST_BIT},
+		{V, PatternEncoderBitSpec::LAST_BIT},
+		{AP, PatternEncoderBitSpec::LAST_BIT},
+		{BL, PatternEncoderBitSpec::LAST_BIT},
+	});
+
+	// last_pattern
+	uint64_t init_pattern = 0xAA'AA'AA'AA'AA'AA'AA'AA; // 0b10101010...
+
+	// Bank, Bank Group, Rank, Row, Column
+	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, init_pattern);
+	ASSERT_EQ(result, 2860534281);
+};
+
+TEST_F(PatternTest, Test_Override_2_Patterns)
+{
+	using namespace pattern_descriptor;
+
+	std::bitset<64> bitset;
+
+	auto encoder = PatternEncoder(PatternEncoderOverrides{
+		{X, PatternEncoderBitSpec::LAST_BIT},
+		{V, PatternEncoderBitSpec::LAST_BIT},
+		{AP, PatternEncoderBitSpec::LAST_BIT},
+		{BL, PatternEncoderBitSpec::LAST_BIT},
+	});
+
+	// last_pattern
+	uint64_t init_pattern = 0xAA'AA'AA'AA'AA'AA'AA'AA; // 0b10101010...
+
+	// Set X after BG2 to one
+	init_pattern |= 0b1111100000000;
+
+	// Bank, Bank Group, Rank, Row, Column
+	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, init_pattern);
+	ASSERT_EQ(result, 2860539657);
+	result = encoder.encode(Command{0, CmdType::ACT, { 7,3,3,7,17} }, pattern, result);
+	ASSERT_EQ(result, 2866863887);
 };

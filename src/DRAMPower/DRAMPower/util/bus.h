@@ -59,7 +59,7 @@ struct bus_stats_t {
 class Bus {
 
 private:
-	enum class __BusInitPatternSpec
+	enum class _BusInitPatternSpec
 	{
 		L = 0,
 		H = 1,
@@ -91,11 +91,11 @@ private:
 	burst_t zero_pattern;
 	burst_t one_pattern;
 	BusIdlePatternSpec idle_pattern;
-	__BusInitPatternSpec init_pattern;
+	_BusInitPatternSpec init_pattern;
 	std::optional<burst_t> custom_init_pattern;
 
 private:
-	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, __BusInitPatternSpec init_pattern,
+	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, _BusInitPatternSpec init_pattern,
 		std::optional<burst_t> custom_init_pattern = std::nullopt
 	) :
 		width(width), burst_storage(width), 
@@ -116,13 +116,13 @@ private:
 			// Initialize last pattern
 			switch(init_pattern)
 			{
-				case __BusInitPatternSpec::L:
+				case _BusInitPatternSpec::L:
 					this->last_pattern = this->zero_pattern;
 					break;
-				case __BusInitPatternSpec::H:
+				case _BusInitPatternSpec::H:
 					this->last_pattern = this->one_pattern;
 					break;
-				case __BusInitPatternSpec::CUSTOM:
+				case _BusInitPatternSpec::CUSTOM:
 					assert(custom_init_pattern.has_value());
 					assert(custom_init_pattern.value().size() == width);
 					this->last_pattern = custom_init_pattern.value();
@@ -134,10 +134,10 @@ private:
 public: // Ensure type safety for init_pattern with 2 seperate constructors
 	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
 		: Bus(width, idle_pattern,
-		  init_pattern ==  BusInitPatternSpec::H ? __BusInitPatternSpec::H : __BusInitPatternSpec::L) {}
+		  init_pattern ==  BusInitPatternSpec::H ? _BusInitPatternSpec::H : _BusInitPatternSpec::L) {}
 	
 	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
-		: Bus(width, idle_pattern, __BusInitPatternSpec::CUSTOM, custom_init_pattern) {}
+		: Bus(width, idle_pattern, _BusInitPatternSpec::CUSTOM, custom_init_pattern) {}
 
 	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
 
