@@ -6,7 +6,7 @@
 using namespace DRAMPower;
 
 
-class BusIdlePatternTest : public ::testing::Test {
+class ExtendedBusIdlePatternTest : public ::testing::Test {
 protected:
 
 	util::dynamic_bitset burst_ones;
@@ -31,7 +31,7 @@ protected:
 
 #define ASSERT_EQ_BITSET(lhs, rhs) ASSERT_EQ(lhs, util::dynamic_bitset( lhs.size(), rhs))
 
-TEST_F(BusIdlePatternTest, EmptyIdleLow_1)
+TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_1)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
 
@@ -39,31 +39,31 @@ TEST_F(BusIdlePatternTest, EmptyIdleLow_1)
 	ASSERT_EQ(bus.at(1), burst_zeroes);
 };
 
-TEST_F(BusIdlePatternTest, EmptyIdleLow_2)
+TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_2)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::H);
 
-	ASSERT_EQ(bus.at(0), burst_ones);
+	ASSERT_EQ(bus.at(0), burst_zeroes);
 	ASSERT_EQ(bus.at(1), burst_zeroes);
 };
 
-TEST_F(BusIdlePatternTest, EmptyIdleLow_3)
+TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_3)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, burst_custom);
 
-	ASSERT_EQ(bus.at(0), burst_custom);
+	ASSERT_EQ(bus.at(0), burst_zeroes);
 	ASSERT_EQ(bus.at(1), burst_zeroes);
 };
 
-TEST_F(BusIdlePatternTest, EmptyIdleHigh_1)
+TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_1)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::L);
 
-	ASSERT_EQ(bus.at(0), burst_zeroes);
+	ASSERT_EQ(bus.at(0), burst_ones);
 	ASSERT_EQ(bus.at(1), burst_ones);
 };
 
-TEST_F(BusIdlePatternTest, EmptyIdleHigh_2)
+TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_2)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H);
 
@@ -71,15 +71,15 @@ TEST_F(BusIdlePatternTest, EmptyIdleHigh_2)
 	ASSERT_EQ(bus.at(1), burst_ones);
 };
 
-TEST_F(BusIdlePatternTest, EmptyIdleHigh_3)
+TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_3)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::H, burst_custom);
 
-	ASSERT_EQ(bus.at(0), burst_custom);
+	ASSERT_EQ(bus.at(0), burst_ones);
 	ASSERT_EQ(bus.at(1), burst_ones);
 };
 
-TEST_F(BusIdlePatternTest, EmptyIdleLastPattern_1)
+TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_1)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, util::Bus::BusInitPatternSpec::L);
 
@@ -87,7 +87,7 @@ TEST_F(BusIdlePatternTest, EmptyIdleLastPattern_1)
 	ASSERT_EQ(bus.at(1), burst_zeroes);
 };
 
-TEST_F(BusIdlePatternTest, EmptyIdleLastPattern_2)
+TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_2)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, util::Bus::BusInitPatternSpec::H);
 
@@ -95,7 +95,7 @@ TEST_F(BusIdlePatternTest, EmptyIdleLastPattern_2)
 	ASSERT_EQ(bus.at(1), burst_ones);
 };
 
-TEST_F(BusIdlePatternTest, EmptyIdleLastPattern_3)
+TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_3)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
 
@@ -103,7 +103,7 @@ TEST_F(BusIdlePatternTest, EmptyIdleLastPattern_3)
 	ASSERT_EQ(bus.at(1), burst_custom);
 };
 
-TEST_F(BusIdlePatternTest, Load_Width_8)
+TEST_F(ExtendedBusIdlePatternTest, Load_Width_8)
 {
 	util::Bus bus(8, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
 
@@ -113,7 +113,7 @@ TEST_F(BusIdlePatternTest, Load_Width_8)
 	ASSERT_EQ_BITSET(bus.at(1), 0b1001'0110);
 };
 
-TEST_F(BusIdlePatternTest, Load_Width_64)
+TEST_F(ExtendedBusIdlePatternTest, Load_Width_64)
 {
 	const uint32_t buswidth = 8 * 8;
 	const uint32_t number_bytes = (buswidth + 7) / 8;
@@ -146,7 +146,7 @@ TEST_F(BusIdlePatternTest, Load_Width_64)
 	ASSERT_EQ(bus.at(0), expected);
 };
 
-TEST_F(BusIdlePatternTest, Load_Width_512)
+TEST_F(ExtendedBusIdlePatternTest, Load_Width_512)
 {
 	const uint32_t buswidth = 64 * 8;
 	const uint32_t number_bytes = (buswidth + 7) / 8;
@@ -177,4 +177,153 @@ TEST_F(BusIdlePatternTest, Load_Width_512)
 	}
 	
 	ASSERT_EQ(bus.at(0), expected);
+};
+
+class ExtendedBusStatsTest : public ::testing::Test {
+protected:
+
+	util::dynamic_bitset burst_ones;
+	util::dynamic_bitset burst_zeroes;
+	util::dynamic_bitset burst_custom;
+	const size_t buswidth = 128; // test bus width greater than 64
+
+	virtual void SetUp()
+	{
+		for(int i = 0; i < buswidth; i++)
+		{
+			burst_ones.push_back(true);
+			burst_zeroes.push_back(false);
+			burst_custom.push_back(i % 3 ? true : false);
+		}
+	}
+
+	virtual void TearDown()
+	{
+	}
+};
+
+TEST_F(ExtendedBusStatsTest, Stats_Pattern_1)
+{
+	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, burst_custom);
+	std::size_t custom_ones = burst_custom.count();
+	std::size_t custom_zeroes = buswidth - custom_ones;
+	uint8_t burst_ones_data[(buswidth + 7) / 8] = { 0xFF };
+	uint8_t burst_zeroes_data[(buswidth + 7) / 8] = { 0 };
+
+	for(auto i = 0; i < (buswidth + 7) / 8; i++) {
+		burst_ones_data[i] = 0xFF;
+	}
+
+	ASSERT_EQ(buswidth, 128);
+	ASSERT_EQ(custom_ones, 85);
+	ASSERT_EQ(custom_zeroes, 43);
+
+	auto stats = bus.get_stats(1);
+	ASSERT_EQ(stats.ones, 0);
+	ASSERT_EQ(stats.zeroes, 128);
+	ASSERT_EQ(stats.ones_to_zeroes, 85);
+	ASSERT_EQ(stats.zeroes_to_ones, 0);
+	ASSERT_EQ(stats.bit_changes, 85);
+
+	stats = bus.get_stats(2);
+	ASSERT_EQ(stats.ones, 0 + 0);
+	ASSERT_EQ(stats.zeroes, 128 + 128);
+	ASSERT_EQ(stats.ones_to_zeroes, 85 + 0);
+	ASSERT_EQ(stats.zeroes_to_ones, 0 + 0);
+	ASSERT_EQ(stats.bit_changes, 85 + 0);
+
+	bus.load(2, burst_ones_data, buswidth);
+	
+	stats = bus.get_stats(3);
+	ASSERT_EQ(stats.ones, 0 + 0 + 128);
+	ASSERT_EQ(stats.zeroes, 128 + 128 + 0);
+	ASSERT_EQ(stats.ones_to_zeroes, 85 + 0 + 0);
+	ASSERT_EQ(stats.zeroes_to_ones, 0 + 0 + 128);
+	ASSERT_EQ(stats.bit_changes, 85 + 0 + 128);
+
+	stats = bus.get_stats(4);
+	ASSERT_EQ(stats.ones, 0 + 0 + 128 + 0);
+	ASSERT_EQ(stats.zeroes, 128 + 128 + 0 + 128);
+	ASSERT_EQ(stats.ones_to_zeroes, 85 + 0 + 0 + 128);
+	ASSERT_EQ(stats.zeroes_to_ones, 0 + 0 + 128 + 0);
+	ASSERT_EQ(stats.bit_changes, 85 + 0 + 128 + 128);
+
+	bus.load(4, burst_ones_data, buswidth);
+
+	stats = bus.get_stats(5);
+	ASSERT_EQ(stats.ones, 0 + 0 + 128 + 0 + 128);
+	ASSERT_EQ(stats.zeroes, 128 + 128 + 0 + 128 + 0);
+	ASSERT_EQ(stats.ones_to_zeroes, 85 + 0 + 0 + 128 + 0);
+	ASSERT_EQ(stats.zeroes_to_ones, 0 + 0 + 128 + 0 + 128);
+	ASSERT_EQ(stats.bit_changes, 85 + 0 + 128 + 128 + 128);
+
+	stats = bus.get_stats(6);
+	ASSERT_EQ(stats.ones, 0 + 0 + 128 + 0 + 128 + 0);
+	ASSERT_EQ(stats.zeroes, 128 + 128 + 0 + 128 + 0 + 128);
+	ASSERT_EQ(stats.ones_to_zeroes, 85 + 0 + 0 + 128 + 0 + 128);
+	ASSERT_EQ(stats.zeroes_to_ones, 0 + 0 + 128 + 0 + 128 + 0);
+	ASSERT_EQ(stats.bit_changes, 85 + 0 + 128 + 128 + 128 + 128);
+};
+
+TEST_F(ExtendedBusStatsTest, Stats_Pattern_2)
+{
+	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
+	std::size_t custom_ones = burst_custom.count();
+	std::size_t custom_zeroes = buswidth - custom_ones;
+	uint8_t burst_ones_data[(buswidth + 7) / 8] = { 0xFF };
+	uint8_t burst_zeroes_data[(buswidth + 7) / 8] = { 0 };
+
+	for(auto i = 0; i < (buswidth + 7) / 8; i++) {
+		burst_ones_data[i] = 0xFF;
+	}
+
+	ASSERT_EQ(buswidth, 128);
+	ASSERT_EQ(custom_ones, 85);
+	ASSERT_EQ(custom_zeroes, 43);
+
+	auto stats = bus.get_stats(1);
+	ASSERT_EQ(stats.ones, 85); // 85
+	ASSERT_EQ(stats.zeroes, 43); // 43
+	ASSERT_EQ(stats.ones_to_zeroes, 0); // 0
+	ASSERT_EQ(stats.zeroes_to_ones, 0); // 0
+	ASSERT_EQ(stats.bit_changes, 0); // 0
+
+	stats = bus.get_stats(2);
+	ASSERT_EQ(stats.ones, 85 + 85); // 85 + 0
+	ASSERT_EQ(stats.zeroes, 43 + 43); // 43 + 128
+	ASSERT_EQ(stats.ones_to_zeroes, 0 + 0); // 0 + 85
+	ASSERT_EQ(stats.zeroes_to_ones, 0 + 0); // 0 + 0
+	ASSERT_EQ(stats.bit_changes, 0 + 0); // 0 + 85
+
+	bus.load(2, burst_ones_data, buswidth);
+	
+	stats = bus.get_stats(3);
+	ASSERT_EQ(stats.ones, 85 + 85 + 128);  // 85 + 0 + 128
+	ASSERT_EQ(stats.zeroes, 43 + 43 + 0);
+	ASSERT_EQ(stats.ones_to_zeroes, 0 + 0 + 0);
+	ASSERT_EQ(stats.zeroes_to_ones, 0 + 0 + 43);
+	ASSERT_EQ(stats.bit_changes, 0 + 0 + 43);
+
+	stats = bus.get_stats(4);
+	ASSERT_EQ(stats.ones, 85 + 85 + 128 + 128);
+	ASSERT_EQ(stats.zeroes, 43 + 43 + 0 + 0);
+	ASSERT_EQ(stats.ones_to_zeroes, 0 + 0 + 0 + 0);
+	ASSERT_EQ(stats.zeroes_to_ones, 0 + 0 + 43 + 0);
+	ASSERT_EQ(stats.bit_changes, 0 + 0 + 43 + 0);
+
+	bus.load(4, burst_ones_data, buswidth);
+
+	stats = bus.get_stats(5);
+	ASSERT_EQ(stats.ones, 85 + 85 + 128 + 128 + 128);
+	ASSERT_EQ(stats.zeroes, 43 + 43 + 0 + 0 + 0);
+	ASSERT_EQ(stats.ones_to_zeroes, 0 + 0 + 0 + 0 + 0);
+	ASSERT_EQ(stats.zeroes_to_ones, 0 + 0 + 43 + 0 + 0);
+	ASSERT_EQ(stats.bit_changes, 0 + 0 + 43 + 0 + 0);
+
+	stats = bus.get_stats(6);
+	ASSERT_EQ(stats.ones,  85 + 85 + 128 + 128 + 128 + 128);
+	ASSERT_EQ(stats.zeroes, 43 + 43 + 0 + 0 + 0 + 0);
+	ASSERT_EQ(stats.ones_to_zeroes, 0 + 0 + 0 + 0 + 0 + 0);
+	ASSERT_EQ(stats.zeroes_to_ones, 0 + 0 + 43 + 0 + 0 + 0);
+	ASSERT_EQ(stats.bit_changes, 0 + 0 + 43 + 0 + 0 + 0);
 };

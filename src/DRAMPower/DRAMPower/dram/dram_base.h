@@ -28,67 +28,40 @@ public:
 
 public:
     commandCount_t commandCount;
-    enum class PatternEncoderInit{
-        L,
-        H
-    };
 protected:
     uint64_t lastPattern;
 private:
-    enum class _PatternEncoderInit{
-        L,
-        H,
-        CUSTOM
-    };
     commandRouter_t commandRouter;
     commandPatternMap_t commandPatternMap;
     implicitCommandList_t implicitCommandList;
     timestamp_t last_command_time;
     PatternEncoder encoder;
-    std::optional<uint64_t> custom_init_pattern;
-    _PatternEncoderInit init_pattern;
 
-    dram_base(PatternEncoderOverrides encoderoverrides, _PatternEncoderInit init_pattern,
-        std::optional<uint64_t> custom_init_pattern = std::nullopt
-    )
+public:
+    dram_base(PatternEncoderOverrides encoderoverrides)
         : commandCount(static_cast<std::size_t>(CommandEnum::COUNT), 0)
         , commandRouter(static_cast<std::size_t>(CommandEnum::COUNT), [](const Command& cmd) {})
         , commandPatternMap(static_cast<std::size_t>(CommandEnum::COUNT), commandPattern_t {})
         , encoder(encoderoverrides)
         , lastPattern(0)
-        , init_pattern(init_pattern)
-        , custom_init_pattern(custom_init_pattern)
         {
-            // TODO 
-            // lastPattern is the same as command bus init pattern
-            // if the command bus is loaded at 0 and the init pattern is overwritten
-            // the lastPattern should be updated otherwise the init pattern
-            // for pattern encoder and the init pattern of the bus are different
-            if (init_pattern == _PatternEncoderInit::CUSTOM)
-            {
-                assert(custom_init_pattern.has_value());
-                lastPattern = custom_init_pattern.value();
-            }
-            else
-            {
-                lastPattern = (init_pattern == _PatternEncoderInit::H ? std::numeric_limits<uint64_t>::max() : 0);
-            }
+            init();
         };
-    
 
-public:
-    dram_base(PatternEncoderOverrides encoderoverrides, PatternEncoderInit init_pattern)
-		: dram_base(encoderoverrides,
-            init_pattern ==  PatternEncoderInit::H ? _PatternEncoderInit::H : _PatternEncoderInit::L)
-    {};
-	
-	dram_base(PatternEncoderOverrides encoderoverrides, uint64_t init_pattern)
-		: dram_base(encoderoverrides, _PatternEncoderInit::CUSTOM, init_pattern)
-    {};
+private:
+    void init()
+    {
+        this->lastPattern = getInitEncoderPattern();
+    };
 
 protected:
     virtual ~dram_base() = default;
     virtual void handle_interface(const Command& cmd) = 0;
+    virtual uint64_t getInitEncoderPattern()
+    {
+        // Default encoder init pattern
+        return 0;
+    };
 
 public:
     uint64_t getCommandPattern(const Command& cmd)

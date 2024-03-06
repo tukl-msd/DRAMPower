@@ -28,6 +28,13 @@ public:
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
 
+// commandBus dependes on cmdBusInitPattern
+// cmdBusInitPattern must be initialized before commandBus
+// See order of execution in initializer list
+private:
+	uint64_t cmdBusInitPattern;
+public:
+	const std::size_t cmdBusWidth = 27;
 	util::Bus commandBus;
 	util::Bus readBus;
 	util::Bus writeBus;
@@ -84,6 +91,7 @@ public:
         return entryTime;
 	};
 public:
+	uint64_t getInitEncoderPattern() override;
 	void handle_interface(const Command& cmd) override;
 
     void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);

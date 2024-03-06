@@ -19,9 +19,11 @@ namespace DRAMPower {
             memSpec.bitWidth,
              util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
         )
+        , cmdBusInitPattern(0)
         , commandBus(
-            27,
-            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
+            cmdBusWidth,
+            util::Bus::BusIdlePatternSpec::L,
+            util::Bus::burst_t(cmdBusWidth, cmdBusInitPattern)
         )
         , readDQS_(2, true)
         , writeDQS_(2, true)
@@ -30,7 +32,7 @@ namespace DRAMPower {
         , dram_base<CmdType>({
             {pattern_descriptor::V, PatternEncoderBitSpec::L},  // TODO change to H 
             {pattern_descriptor::X, PatternEncoderBitSpec::L}
-        }, dram_base<CmdType>::PatternEncoderInit::L)
+        })
 	{
         // In the first state all ranks are precharged
         //for (auto &rank : ranks) {
@@ -56,6 +58,11 @@ namespace DRAMPower {
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
 
     };
+
+    uint64_t DDR4::getInitEncoderPattern()
+    {
+        return this->cmdBusInitPattern;
+    }
 
     void DDR4::registerPatterns() {
         using namespace pattern_descriptor;
