@@ -19,7 +19,7 @@ namespace DRAMPower {
         readDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
         writeDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
         writeDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
-        dram_base<CmdType>(PatternEncoderOverrides{}, dram_base<CmdType>::PatternEncoderInit::L)
+        dram_base<CmdType>(PatternEncoderOverrides{})
     {
         this->registerPatterns();
 
