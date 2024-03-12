@@ -108,7 +108,7 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_0) {
     //            "V" bits are 0
     //            CID and Rank doesn't matter
     EXPECT_EQ(stats.commandBus.ones, 21);  // taken by applying the parameters to the command patterns and counting
-    EXPECT_EQ(stats.commandBus.zeroes, 329);  // 14 (bus width) * 25 (time for CA bus is simulation time + 1) - 21 (ones)
+    EXPECT_EQ(stats.commandBus.zeroes, 315);  // 14 (bus width) * 24 (time) - 21 (ones)
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 21);  // Since interval between commands is > 2 all commands are interleaved with idle states (all 0's)
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 21);  // so the only possibility of a bit going staying 1 (1->1) is if it stays 1 within the command pattern itself
 
@@ -149,7 +149,7 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_1) {
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 0);
 
     EXPECT_EQ(stats.commandBus.ones, 23);
-    EXPECT_EQ(stats.commandBus.zeroes, 341);
+    EXPECT_EQ(stats.commandBus.zeroes, 327);
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 21);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 21);
 }
@@ -170,7 +170,7 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_2) {
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 
     EXPECT_EQ(stats.commandBus.ones, 31);
-    EXPECT_EQ(stats.commandBus.zeroes, 403);
+    EXPECT_EQ(stats.commandBus.zeroes, 389);
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 28);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 28);
 }

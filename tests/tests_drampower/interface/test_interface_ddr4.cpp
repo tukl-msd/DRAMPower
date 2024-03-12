@@ -124,7 +124,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_0) {
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 
     EXPECT_EQ(stats.commandBus.ones, 14);
-    EXPECT_EQ(stats.commandBus.zeroes, 661);
+    EXPECT_EQ(stats.commandBus.zeroes, 634);
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 14);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 14);
 
@@ -186,7 +186,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_1) {
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 0);
 
     EXPECT_EQ(stats.commandBus.ones, 13);
-    EXPECT_EQ(stats.commandBus.zeroes, 662);
+    EXPECT_EQ(stats.commandBus.zeroes, 635);
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 13);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 13);
 
@@ -243,7 +243,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_2) {
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 2);
 
     EXPECT_EQ(stats.commandBus.ones, 15);
-    EXPECT_EQ(stats.commandBus.zeroes, 660);
+    EXPECT_EQ(stats.commandBus.zeroes, 633);
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 15);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 15);
 
@@ -301,7 +301,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_3) {
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 0);
 
     EXPECT_EQ(stats.commandBus.ones, 13);
-    EXPECT_EQ(stats.commandBus.zeroes, 662);
+    EXPECT_EQ(stats.commandBus.zeroes, 635);
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 13);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 13);
 
@@ -359,7 +359,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_4) {
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 2);
 
     EXPECT_EQ(stats.commandBus.ones, 15);
-    EXPECT_EQ(stats.commandBus.zeroes, 660);
+    EXPECT_EQ(stats.commandBus.zeroes, 633);
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 15);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 15);
 
