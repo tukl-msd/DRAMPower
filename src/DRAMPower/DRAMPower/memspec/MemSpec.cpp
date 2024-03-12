@@ -45,6 +45,7 @@ MemSpec::MemSpec(nlohmann::json &memspec)
     numberOfBanks = parseUint(memspec["memarchitecturespec"]["nbrOfBanks"],"nbrOfBanks");
     numberOfRows = (parseUint(memspec["memarchitecturespec"]["nbrOfRows"],"nbrOfRows"));
     numberOfColumns = (parseUint(memspec["memarchitecturespec"]["nbrOfColumns"],"nbrOfColumns"));
+    numberOfDevices = parseUintWithDefaut(memspec["memarchitecturespec"]["nbrOfDevices"], "nbrOfDevices", 1); // default to 1 device
     burstLength = (parseUint(memspec["memarchitecturespec"]["burstLength"],"burstLength"));
     dataRate = (parseUint(memspec["memarchitecturespec"]["dataRate"],"dataRate"));
     bitWidth = (parseUint(memspec["memarchitecturespec"]["width"],"width"));

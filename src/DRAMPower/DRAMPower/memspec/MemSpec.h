@@ -56,6 +56,7 @@ public:
     uint64_t numberOfBanks;
 	uint64_t numberOfRows;
 	uint64_t numberOfColumns;
+	uint64_t numberOfDevices;   // Number of devices per rank
 	uint64_t burstLength;
 	uint64_t dataRate;
 	uint64_t bitWidth;

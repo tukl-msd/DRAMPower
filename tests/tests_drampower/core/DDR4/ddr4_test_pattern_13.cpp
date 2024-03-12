@@ -32,6 +32,7 @@ protected:
     {
         MemSpecDDR4 memSpec;
 		memSpec.numberOfRanks = 1;
+		memSpec.numberOfDevices = 1;
         memSpec.numberOfBanks = 8;
         memSpec.numberOfBankGroups = 1;
 
