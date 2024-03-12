@@ -185,8 +185,8 @@ protected:
 	util::dynamic_bitset burst_ones;
 	util::dynamic_bitset burst_zeroes;
 	util::dynamic_bitset burst_custom;
-	const size_t buswidth = 128; // test bus width greater than 64
-	const size_t bus_array_size = (buswidth + 7) / 8;
+	const static constexpr size_t buswidth = 128; // test bus width greater than 64
+	const static constexpr size_t bus_array_size = (buswidth + 7) / 8;
 
 	virtual void SetUp()
 	{
