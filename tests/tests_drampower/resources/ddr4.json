@@ -8,7 +8,8 @@
       "dataRate": 2,
       "nbrOfBankGroups": 2,
       "nbrOfBanks": 16,
-      "nbrOfRanks": 1
+      "nbrOfRanks": 1,
+      "nbrOfDevices": 1
     },
     "memoryId": "ddr4",
     "memoryType": "DDR4",
