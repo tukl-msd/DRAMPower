@@ -185,7 +185,8 @@ protected:
 	util::dynamic_bitset burst_ones;
 	util::dynamic_bitset burst_zeroes;
 	util::dynamic_bitset burst_custom;
-	const size_t buswidth = 128; // test bus width greater than 64
+	const static size_t buswidth = 128; // test bus width greater than 64
+	const static size_t bus_array_size = (buswidth + 7) / 8;
 
 	virtual void SetUp()
 	{
@@ -207,10 +208,10 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_1)
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, burst_custom);
 	std::size_t custom_ones = burst_custom.count();
 	std::size_t custom_zeroes = buswidth - custom_ones;
-	uint8_t burst_ones_data[(buswidth + 7) / 8] = { 0xFF };
-	uint8_t burst_zeroes_data[(buswidth + 7) / 8] = { 0 };
+	uint8_t burst_ones_data[bus_array_size] = { 0xFF };
+	uint8_t burst_zeroes_data[bus_array_size] = { 0 };
 
-	for(auto i = 0; i < (buswidth + 7) / 8; i++) {
+	for(auto i = 0; i < bus_array_size; i++) {
 		burst_ones_data[i] = 0xFF;
 	}
 
@@ -270,10 +271,10 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_2)
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
 	std::size_t custom_ones = burst_custom.count();
 	std::size_t custom_zeroes = buswidth - custom_ones;
-	uint8_t burst_ones_data[(buswidth + 7) / 8] = { 0xFF };
-	uint8_t burst_zeroes_data[(buswidth + 7) / 8] = { 0 };
+	uint8_t burst_ones_data[bus_array_size] = { 0xFF };
+	uint8_t burst_zeroes_data[bus_array_size] = { 0 };
 
-	for(auto i = 0; i < (buswidth + 7) / 8; i++) {
+	for(auto i = 0; i < bus_array_size; i++) {
 		burst_ones_data[i] = 0xFF;
 	}
 
