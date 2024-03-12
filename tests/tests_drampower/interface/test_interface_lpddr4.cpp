@@ -211,83 +211,88 @@ TEST_F(DramPowerTest_Interface_LPDDR4, Test_Detailed)
 	// Inspect first rank
 	auto & rank_1 = ddr->ranks[0];
 
-	// Cycle 0
+	// Cycle 0 to 0 (0 delta)
 	window = iterate_to_timestamp(0);
+	ASSERT_EQ(window.commandBus.ones, 0);
+	ASSERT_EQ(window.commandBus.zeroes, 0);
+
+	// Cycle 0 to 1 (1 delta)
+	window = iterate_to_timestamp(1);
 	ASSERT_EQ(window.commandBus.ones, 1);
 	ASSERT_EQ(window.commandBus.zeroes, 5);
 
-	// Cycle 1
-	window = iterate_to_timestamp(1);
+	// Cycle 0 to 2 (2 delta)
+	window = iterate_to_timestamp(2);
 	ASSERT_EQ(window.commandBus.ones, 2);
 	ASSERT_EQ(window.commandBus.zeroes, 10);
 
-	// Cycle 2
-	window = iterate_to_timestamp(2);
+	// Cycle 0 to 3 (3 delta)
+	window = iterate_to_timestamp(3);
 	ASSERT_EQ(window.commandBus.ones, 2);
 	ASSERT_EQ(window.commandBus.zeroes, 16);
 
-	// Cycle 3
-	window = iterate_to_timestamp(3);
+	// Cycle 0 to 4 (4 delta)
+	window = iterate_to_timestamp(4);
 	ASSERT_EQ(window.commandBus.ones, 3);
 	ASSERT_EQ(window.commandBus.zeroes, 21);
 
-	// Cycle 4
-	window = iterate_to_timestamp(4);
+	// Cycle 0 to 5 (5 delta)
+	window = iterate_to_timestamp(5);
 	ASSERT_EQ(window.commandBus.ones, 5);
 	ASSERT_EQ(window.commandBus.zeroes, 25);
 
-	// Cycle 5
-	window = iterate_to_timestamp(5);
+	// Cycle 0 to 6 (6 delta)
+	window = iterate_to_timestamp(6);
 	ASSERT_EQ(window.commandBus.ones, 6);
 	ASSERT_EQ(window.commandBus.zeroes, 30);
 
-	// Cycle 6-9
-	window = iterate_to_timestamp(9);
+	// Cycle 0 to 10 (10 delta)
+	window = iterate_to_timestamp(10);
 	ASSERT_EQ(window.commandBus.ones, 8);
 	ASSERT_EQ(window.commandBus.zeroes, 52);
 
-	// Cycle 10
-	window = iterate_to_timestamp(10);
+	// Cycle 0 to 11 (11 delta)
+	window = iterate_to_timestamp(11);
 	ASSERT_EQ(window.commandBus.ones, 10);
 	ASSERT_EQ(window.commandBus.zeroes, 56);
 
-	// Cycle 11
-	window = iterate_to_timestamp(11);
+	// Cycle 0 to 12 (12 delta)
+	window = iterate_to_timestamp(12);
 	ASSERT_EQ(window.commandBus.ones, 11);
 	ASSERT_EQ(window.commandBus.zeroes, 61);
 
-	// Cycle 12
-	window = iterate_to_timestamp(12);
+	// Cycle 0 to 13 (13 delta)
+	window = iterate_to_timestamp(13);
 	ASSERT_EQ(window.commandBus.ones, 13);
 	ASSERT_EQ(window.commandBus.zeroes, 65);
 
-	// Cycle 13
-	window = iterate_to_timestamp(13);
+	// Cycle 0 to 14 (14 delta)
+	window = iterate_to_timestamp(14);
 	ASSERT_EQ(window.commandBus.ones, 13);
 	ASSERT_EQ(window.commandBus.zeroes, 71);
 
-	// Cycle 14-16
-	window = iterate_to_timestamp(16);
+	// Cycle 0 to 17 (17 delta)
+	window = iterate_to_timestamp(17);
 	ASSERT_EQ(window.commandBus.ones, 13);
 	ASSERT_EQ(window.commandBus.zeroes, 89);
 
-	// Cycle 17
-	window = iterate_to_timestamp(17);
+	// Cycle 0 to 18 (18 delta)
+	window = iterate_to_timestamp(18);
 	ASSERT_EQ(window.commandBus.ones, 14);
 	ASSERT_EQ(window.commandBus.zeroes, 94);
 
-	// Cycle 18
-	window = iterate_to_timestamp(18);
+	// Cycle 0 to 19 (19 delta)
+	window = iterate_to_timestamp(19);
 	ASSERT_EQ(window.commandBus.ones, 15);
 	ASSERT_EQ(window.commandBus.zeroes, 99);
 
-	// Cycle 22
+	// Cycle 0 to 23 (23 delta)
 	window = iterate_to_timestamp(23);
 	ASSERT_EQ(window.commandBus.ones, 15);
-	ASSERT_EQ(window.commandBus.zeroes, 129);
+	ASSERT_EQ(window.commandBus.zeroes, 123);
 
-	// Cycle 23
+	// Cycle 0 to 24 (24 delta)
 	window = iterate_to_timestamp(24);
 	ASSERT_EQ(window.commandBus.ones, 15);
-	ASSERT_EQ(window.commandBus.zeroes, 135);
+	ASSERT_EQ(window.commandBus.zeroes, 129);
 }
