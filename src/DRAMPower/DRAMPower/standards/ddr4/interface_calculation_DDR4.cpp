@@ -6,6 +6,11 @@ static double calc_static_power(uint64_t NxBits, double R_eq, double t_CK, doubl
     return NxBits * (voltage * voltage) * factor * t_CK / R_eq;
 };
 
+// Needed for prepostamble calculation
+static double calc_static_power(double NxBits, double R_eq, double t_CK, double voltage, double factor) {
+    return NxBits * (voltage * voltage) * factor * t_CK / R_eq;
+};
+
 static double calc_dynamic_power(uint64_t transitions, double C_total, double voltage) {
     return 0.5 * transitions * (voltage * voltage) * C_total;
 };
