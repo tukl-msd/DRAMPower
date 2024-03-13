@@ -2,6 +2,7 @@
 
 #include <DRAMPower/util/bus.h>
 #include <array>
+#include <optional>
 
 using namespace DRAMPower;
 
@@ -29,78 +30,81 @@ protected:
 	}
 };
 
-#define ASSERT_EQ_BITSET(lhs, rhs) ASSERT_EQ(lhs, util::dynamic_bitset( lhs.size(), rhs))
+#define ASSERT_HAS_DATA(lhs) ASSERT_TRUE(lhs.has_value())
+#define ASSERT_NO_DATA(lhs) ASSERT_FALSE(!lhs.has_value())
+#define ASSERT_EQ_BITSET(lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), util::dynamic_bitset( lhs.value().size(), rhs))
+#define ASSERT_EQ_BURST(lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), rhs)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_1)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
 
-	ASSERT_EQ(bus.at(0), burst_zeroes);
-	ASSERT_EQ(bus.at(1), burst_zeroes);
+	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
+	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
 };
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_2)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::H);
 
-	ASSERT_EQ(bus.at(0), burst_zeroes);
-	ASSERT_EQ(bus.at(1), burst_zeroes);
+	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
+	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
 };
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_3)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, burst_custom);
 
-	ASSERT_EQ(bus.at(0), burst_zeroes);
-	ASSERT_EQ(bus.at(1), burst_zeroes);
+	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
+	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
 };
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_1)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::L);
 
-	ASSERT_EQ(bus.at(0), burst_ones);
-	ASSERT_EQ(bus.at(1), burst_ones);
+	ASSERT_EQ_BURST(bus.at(0), burst_ones);
+	ASSERT_EQ_BURST(bus.at(1), burst_ones);
 };
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_2)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H);
 
-	ASSERT_EQ(bus.at(0), burst_ones);
-	ASSERT_EQ(bus.at(1), burst_ones);
+	ASSERT_EQ_BURST(bus.at(0), burst_ones);
+	ASSERT_EQ_BURST(bus.at(1), burst_ones);
 };
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_3)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::H, burst_custom);
 
-	ASSERT_EQ(bus.at(0), burst_ones);
-	ASSERT_EQ(bus.at(1), burst_ones);
+	ASSERT_EQ_BURST(bus.at(0), burst_ones);
+	ASSERT_EQ_BURST(bus.at(1), burst_ones);
 };
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_1)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, util::Bus::BusInitPatternSpec::L);
 
-	ASSERT_EQ(bus.at(0), burst_zeroes);
-	ASSERT_EQ(bus.at(1), burst_zeroes);
+	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
+	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
 };
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_2)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, util::Bus::BusInitPatternSpec::H);
 
-	ASSERT_EQ(bus.at(0), burst_ones);
-	ASSERT_EQ(bus.at(1), burst_ones);
+	ASSERT_EQ_BURST(bus.at(0), burst_ones);
+	ASSERT_EQ_BURST(bus.at(1), burst_ones);
 };
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_3)
 {
 	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
 
-	ASSERT_EQ(bus.at(0), burst_custom);
-	ASSERT_EQ(bus.at(1), burst_custom);
+	ASSERT_EQ_BURST(bus.at(0), burst_custom);
+	ASSERT_EQ_BURST(bus.at(1), burst_custom);
 };
 
 TEST_F(ExtendedBusIdlePatternTest, Load_Width_8)
@@ -143,7 +147,7 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_64)
 		expected.push_back(byte & (1 << (i % 8)));
 	}
 	
-	ASSERT_EQ(bus.at(0), expected);
+	ASSERT_EQ_BURST(bus.at(0), expected);
 };
 
 TEST_F(ExtendedBusIdlePatternTest, Load_Width_512)
@@ -176,7 +180,7 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_512)
 		expected.push_back(byte & (1 << (i % 8)));
 	}
 	
-	ASSERT_EQ(bus.at(0), expected);
+	ASSERT_EQ_BURST(bus.at(0), expected);
 };
 
 class ExtendedBusStatsTest : public ::testing::Test {

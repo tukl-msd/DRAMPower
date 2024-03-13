@@ -63,7 +63,45 @@ private:
 	{
 		L = 0,
 		H = 1,
-		CUSTOM = 2
+		Z = 2,
+		CUSTOM = 3
+	};
+
+	class PendingStats
+	{
+		private:
+		timestamp_t timestamp;
+		bus_stats_t stats;
+		bool 		pending;
+
+		public:
+		PendingStats() : timestamp(0), stats(), pending(false) {}
+		void setPendingStats(timestamp_t timestamp, bus_stats_t stats)
+		{
+			this->timestamp = timestamp;
+			this->stats = stats;
+			this->pending = true;
+		}
+
+		bool isPending() const
+		{
+			return this->pending;
+		}
+
+		void clear()
+		{
+			this->pending = false;
+		}
+
+		timestamp_t getTimestamp() const
+		{
+			return this->timestamp;
+		}
+
+		bus_stats_t getStats() const
+		{
+			return this->stats;
+		}
 	};
 
 public:
@@ -71,12 +109,14 @@ public:
 	{
 		L = 0,
 		H = 1,
-		LAST_PATTERN = 2
+		Z = 2,
+		LAST_PATTERN = 3
 	};
 	enum class BusInitPatternSpec
 	{
 		L = 0,
 		H = 1,
+		Z = 2,
 	};
 	using burst_storage_t = util::burst_storage;
 	using burst_t = typename burst_storage_t::burst_t;
@@ -89,11 +129,10 @@ private:
 	timestamp_t last_load = 0;
 	bool init_load = false;
 	
-	timestamp_t pending_timestamp = 0;
-	bool pending = false;
-	bus_stats_t pending_stats;
+	PendingStats pending_stats;
 	
-	burst_t last_pattern;
+	std::optional<burst_t> last_pattern;
+
 	burst_t zero_pattern;
 	burst_t one_pattern;
 	
@@ -129,19 +168,29 @@ private:
 			case BusInitPatternSpec_::H:
 				this->last_pattern = one_pattern;
 				break;
+			case BusInitPatternSpec_::Z:
+				this->last_pattern = std::nullopt;
+				break;
 			case BusInitPatternSpec_::CUSTOM:
-				assert(custom_init_pattern.has_value());
-				assert(custom_init_pattern.value().size() == width);
-				this->last_pattern = custom_init_pattern.value();
+				// Custom init pattern with no value is equivalent to Z
+				this->last_pattern = custom_init_pattern;
+				if(custom_init_pattern.has_value())
+				{
+					assert(custom_init_pattern.value().size() == width);
+				}
+				else
+				{
+					this->init_pattern = BusInitPatternSpec_::Z;
+				}
 				break;
 			default:
 				assert(false);
+				this->last_pattern = std::nullopt;
 		}
 	};
 public: // Ensure type safety for init_pattern with 2 seperate constructors
 	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
-		: Bus(width, idle_pattern,
-		  init_pattern ==  BusInitPatternSpec::H ? BusInitPatternSpec_::H : BusInitPatternSpec_::L) {}
+		: Bus(width, idle_pattern, static_cast<BusInitPatternSpec_>(init_pattern)) {} // TODO alternative to static_cast ??
 	
 	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
 		: Bus(width, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern) {}
@@ -154,36 +203,46 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		// Init pattern consumed on first load
 		if(!this->init_load && timestamp == 0)
 		{
+			// init load processed
 			this->init_load = true;
+
 			// Add new burst to storage to calculate pending stats and last pattern
 			this->burst_storage.clear();
 			this->burst_storage.insert_data(data, n_bits);
 
-			// Pending stats
-			this->pending_stats = diff(this->last_pattern, this->burst_storage.get_burst(0));
-			this->pending_timestamp = 0;
-			this->pending = true;
-
+			// Add pending init stats if not high impedance
+			this->pending_stats.setPendingStats(0, 
+				diff(
+					this->last_pattern,
+					this->burst_storage.get_burst(0)
+				)
+			);
+			
 			this->last_load = timestamp;
 
-			// last pattern for idle pattern	
+			// last pattern for idle pattern
 			this->last_pattern = this->burst_storage.get_burst(this->burst_storage.size()-1);
 			return;
 		}
 		else if(!this->init_load)
 		{
-			this->init_load = true;
 			// timestamp > 0
-			// Use idle pattern for stats
+			// Init load then idle pattern
+
+			// Init load processed
+			this->init_load = true;
+
+			// Use init pattern and idle pattern at t=0 for stats
 			this->stats += diff(this->last_pattern, this->at(0));
 		}
 		
 		
 		// Add pending stats from last load
-		if(this->pending && this->pending_timestamp < timestamp)
+		// TODO implicit this->pending.getTimestamp() > timestamp -> see assume no interleaved commands appear
+		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < timestamp)
 		{
-			this->stats += this->pending_stats;
-			this->pending = false;
+			this->stats += this->pending_stats.getStats();
+			this->pending_stats.clear();
 		}
 
 		// Advance counters to new timestamp
@@ -191,9 +250,11 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 			this->stats += diff(this->at(n), this->at(n + 1)); // Last: (timestamp - 2, timestamp - 1)
 		};
 
-		// adjust new timestamp
+		// Pattern for pending stats (timestamp - 1, timestamp)
 		if(timestamp > 0) // TODO implicit
+		{
 			this->last_pattern = this->at(timestamp - 1);
+		}
 
 		this->last_load = timestamp;
 
@@ -202,9 +263,10 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		this->burst_storage.insert_data(data, n_bits);
 
 		// Adjust statistics for new data
-		this->pending_stats = diff(this->last_pattern, this->burst_storage.get_burst(0));
-		this->pending_timestamp = timestamp;
-		this->pending = true;
+		this->pending_stats.setPendingStats(timestamp, diff(
+			this->last_pattern,
+			this->burst_storage.get_burst(0)
+		));
 
 		// last pattern for idle pattern
 		this->last_pattern = this->burst_storage.get_burst(this->burst_storage.size()-1);
@@ -214,7 +276,8 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		this->load(timestamp, (uint8_t*)&data, (width * length));
 	};
 
-	burst_t at(timestamp_t n) const
+	// Returns optional burst (std::nullopt if idle pattern is Z)
+	std::optional<burst_t> at(timestamp_t n) const
 	{
 		// Assert timestamp does not lie in past
 		assert(n - last_load >= 0);
@@ -223,19 +286,22 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 			switch(this->idle_pattern)
 			{
 				case BusIdlePatternSpec::L:
-					return this->zero_pattern;
+					return std::make_optional(this->zero_pattern);
 				case BusIdlePatternSpec::H:
-					return this->one_pattern;
+					return std::make_optional(this->one_pattern);
+				case BusIdlePatternSpec::Z:
+					return std::nullopt;
 				case BusIdlePatternSpec::LAST_PATTERN:
 					return this->last_pattern;
 				default:
 					assert(false);
+					return std::nullopt;
 			}
 		}
 
 		auto burst = this->burst_storage.get_burst(std::size_t(n - this->last_load));
 
-		return burst;
+		return std::make_optional(burst);
 	};
 
 	auto get_width() const { return width; };
@@ -254,14 +320,15 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 
 		if(!this->init_load)
 		{
+			// t > 0 and no load on bus
 			// Add transition from init pattern to idle pattern
 			stats += diff(this->last_pattern, this->at(0));
 		}
-
+		
 		// Add pending stats from last load
-		if(this->pending && this->pending_timestamp < t)
+		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < t)
 		{
-			stats += this->pending_stats;
+			stats += this->pending_stats.getStats();
 		}
 
 		// Advance stats to new timestamp
@@ -272,14 +339,25 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		return stats;
 	};
 
-	bus_stats_t diff(burst_t high, burst_t low) const {
+	bus_stats_t diff(std::optional<burst_t> high, std::optional<burst_t> low) const {
 		bus_stats_t stats;
-		stats.ones += util::BinaryOps::popcount(low);
-		stats.zeroes += width - stats.ones;
-		stats.bit_changes += util::BinaryOps::bit_changes(high, low);
-		stats.ones_to_zeroes += util::BinaryOps::one_to_zeroes(high, low);
-		stats.zeroes_to_ones += util::BinaryOps::zero_to_ones(high, low);
+		if(low.has_value())
+		{
+			stats.ones += util::BinaryOps::popcount(low.value());
+			stats.zeroes += width - stats.ones;
+		}
+
+		if(high.has_value() && low.has_value())
+		{
+			stats.bit_changes += util::BinaryOps::bit_changes(high.value(), low.value());
+			stats.ones_to_zeroes += util::BinaryOps::one_to_zeroes(high.value(), low.value());
+			stats.zeroes_to_ones += util::BinaryOps::zero_to_ones(high.value(), low.value());
+		}
 		return stats;
+	};
+
+	bus_stats_t diff(std::optional<burst_t> high, burst_t low) const {
+		return diff(high, std::make_optional(low));
 	};
 };
 
