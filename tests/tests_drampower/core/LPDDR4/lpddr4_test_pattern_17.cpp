@@ -34,6 +34,8 @@ protected:
         memSpec.numberOfBanks = 8;
         memSpec.numberOfBankGroups = 2;
         memSpec.banksPerGroup = 4;
+		memSpec.bitWidth = 16;
+		memSpec.numberOfDevices = 1;
 
 		memSpec.memTimingSpec.tRAS = 10;
 		memSpec.memTimingSpec.tRTP = 10;

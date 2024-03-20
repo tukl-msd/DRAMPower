@@ -63,6 +63,7 @@ protected:
 		memSpec.bitWidth = 16;
 		memSpec.burstLength = 16;
 		memSpec.dataRate = 2;
+		memSpec.numberOfDevices = 1;
 
 		// mem timings
 		memSpec.memTimingSpec.tRAS = 10;

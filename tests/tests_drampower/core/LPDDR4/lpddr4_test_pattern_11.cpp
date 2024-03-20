@@ -42,6 +42,8 @@ protected:
         memSpec.numberOfBankGroups = 1;
         memSpec.burstLength = 8;
         memSpec.dataRate = 2;
+		memSpec.bitWidth = 16;
+		memSpec.numberOfDevices = 1;
 
 		memSpec.memTimingSpec.tRAS = 10;
 		memSpec.memTimingSpec.tRP = 10;

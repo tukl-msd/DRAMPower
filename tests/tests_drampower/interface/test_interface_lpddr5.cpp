@@ -80,6 +80,8 @@ class LPDDR5_WindowStats_Tests : public ::testing::Test {
 
         json data = json::parse(f);
         spec = MemSpecLPDDR5{data["memspec"]};
+        spec.numberOfDevices = 1;
+        spec.bitWidth = 16;
     }
 
     void runCommands(const std::vector<Command> &commands) {
