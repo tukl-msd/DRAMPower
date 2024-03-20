@@ -8,7 +8,8 @@
       "dataRate": 2,
       "nbrOfBankGroups": 1,
       "nbrOfBanks": 16,
-      "nbrOfRanks": 1
+      "nbrOfRanks": 1,
+      "nbrOfDevices": 1
     },
     "memoryId": "lpddr5",
     "memoryType": "LPDDR5",

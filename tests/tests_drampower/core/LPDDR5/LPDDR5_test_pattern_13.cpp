@@ -56,6 +56,8 @@ protected:
         memSpec.banksPerGroup = 8;
 		memSpec.numberOfBankGroups = 1;
         memSpec.bank_arch = MemSpecLPDDR5::M16B;
+        memSpec.numberOfDevices = 1;
+        memSpec.bitWidth = 16;
 
 		memSpec.memTimingSpec.tCK = 1;
         memSpec.memTimingSpec.tWCK = 1;

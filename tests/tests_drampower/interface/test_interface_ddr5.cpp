@@ -71,6 +71,7 @@ class DDR5_WindowStats_Tests : public ::testing::Test {
 
         json data = json::parse(f);
         spec = MemSpecDDR5{data["memspec"]};
+        spec.bitWidth = 16;
     }
 
     void runCommands(const std::vector<Command> &commands) {

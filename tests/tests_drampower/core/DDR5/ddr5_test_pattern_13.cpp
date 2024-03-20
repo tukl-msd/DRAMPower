@@ -51,6 +51,8 @@ protected:
     virtual void SetUp()
     {
         MemSpecDDR5 memSpec;
+		memSpec.bitWidth = 16;
+		memSpec.numberOfDevices = 1;
 		memSpec.numberOfRanks = 1;
         memSpec.numberOfBanks = 8;
         memSpec.banksPerGroup = 8;

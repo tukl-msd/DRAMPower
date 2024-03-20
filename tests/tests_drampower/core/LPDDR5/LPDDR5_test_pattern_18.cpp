@@ -35,6 +35,8 @@ protected:
         memSpec.banksPerGroup = 4;
 		memSpec.perTwoBankOffset = 2;
         memSpec.bank_arch = MemSpecLPDDR5::MBG;
+        memSpec.numberOfDevices = 1;
+        memSpec.bitWidth = 16;
 
 
         memSpec.memTimingSpec.tRAS = 10;
