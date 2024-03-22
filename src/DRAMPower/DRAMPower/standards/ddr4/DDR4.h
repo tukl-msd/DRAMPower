@@ -28,13 +28,14 @@ public:
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
 
-// commandBus dependes on cmdBusInitPattern
+// commandBus dependes on cmdBusInitPattern and cmdBusWidth
 // cmdBusInitPattern must be initialized before commandBus
+// cmdBusWidth must be initialized before cmdBusInitPattern
 // See order of execution in initializer list
 private:
+	std::size_t cmdBusWidth;
 	uint64_t cmdBusInitPattern;
 public:
-	const std::size_t cmdBusWidth = 27;
 	util::Bus commandBus;
 	util::Bus readBus;
 	util::Bus writeBus;
