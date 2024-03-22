@@ -12,17 +12,18 @@ namespace DRAMPower {
 		: memSpec(memSpec)
 		, ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
         , readBus(
-            memSpec.bitWidth * memSpec.numberOfDevices,
-             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
+            memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
+             util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H
         )
         , writeBus(
-            memSpec.bitWidth * memSpec.numberOfDevices,
-             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
+            memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
+             util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H
         )
-        , cmdBusInitPattern(0)
+        , cmdBusWidth(27)
+        , cmdBusInitPattern((1<<cmdBusWidth)-1)
         , commandBus(
-            cmdBusWidth,
-            util::Bus::BusIdlePatternSpec::L,
+            cmdBusWidth, 1,
+            util::Bus::BusIdlePatternSpec::H,
             util::Bus::burst_t(cmdBusWidth, cmdBusInitPattern)
         )
         , readDQS_(2, true)
@@ -30,8 +31,8 @@ namespace DRAMPower {
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
         , dram_base<CmdType>({
-            {pattern_descriptor::V, PatternEncoderBitSpec::L},  // TODO change to H 
-            {pattern_descriptor::X, PatternEncoderBitSpec::L}
+            {pattern_descriptor::V, PatternEncoderBitSpec::H},
+            {pattern_descriptor::X, PatternEncoderBitSpec::H}
         })
 	{
         // In the first state all ranks are precharged

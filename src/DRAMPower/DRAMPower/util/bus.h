@@ -127,6 +127,7 @@ private:
 	burst_storage_t burst_storage;
 	
 	timestamp_t last_load = 0;
+	uint64_t datarate = 1;
 	bool init_load = false;
 	
 	PendingStats pending_stats;
@@ -141,10 +142,10 @@ private:
 	std::optional<burst_t> custom_init_pattern;
 
 private:
-	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, BusInitPatternSpec_ init_pattern,
+	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec_ init_pattern,
 		std::optional<burst_t> custom_init_pattern = std::nullopt
 	) :
-		width(width), burst_storage(width), 
+		width(width), burst_storage(width), datarate(datarate),
 		idle_pattern(idle_pattern), init_pattern(init_pattern), custom_init_pattern (custom_init_pattern)
 	{
 			
@@ -189,19 +190,32 @@ private:
 		}
 	};
 public: // Ensure type safety for init_pattern with 2 seperate constructors
-	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
-		: Bus(width, idle_pattern, static_cast<BusInitPatternSpec_>(init_pattern)) {} // TODO alternative to static_cast ??
+	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
+		: Bus(width, datarate, idle_pattern, static_cast<BusInitPatternSpec_>(init_pattern)) {} // TODO alternative to static_cast ??
 	
-	Bus(std::size_t width, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
-		: Bus(width, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern) {}
+	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
+		: Bus(width, datarate, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern) {}
+
+	void set_idle_pattern(BusIdlePatternSpec idle_pattern)
+	{
+		this->idle_pattern = idle_pattern;
+	}
 
 	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
 
 		// assume no interleaved commands appear, but the old one already finishes cleanly before the next
-		//assert(this->last_load + burst_storage.size() <= timestamp);
+		//assert(this->last_load + burst_storage.size() <= timestamp); // TODO add this assert??
+		
+		// check timestamp * this->datarate no overflow
+		assert(timestamp <= std::numeric_limits<timestamp_t>::max() / this->datarate);
+		if(timestamp > std::numeric_limits<timestamp_t>::max() / this->datarate)
+		{
+			std::cout << "[Error] timestamp * datarate overflows" << std::endl;
+		}
+		timestamp_t virtual_timestamp = timestamp * this->datarate;
 		
 		// Init pattern consumed on first load
-		if(!this->init_load && timestamp == 0)
+		if(!this->init_load && virtual_timestamp == 0)
 		{
 			// init load processed
 			this->init_load = true;
@@ -211,14 +225,14 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 			this->burst_storage.insert_data(data, n_bits);
 
 			// Add pending init stats if not high impedance
-			this->pending_stats.setPendingStats(0, 
+			this->pending_stats.setPendingStats(virtual_timestamp, 
 				diff(
 					this->last_pattern,
 					this->burst_storage.get_burst(0)
 				)
 			);
 			
-			this->last_load = timestamp;
+			this->last_load = virtual_timestamp;
 
 			// last pattern for idle pattern
 			this->last_pattern = this->burst_storage.get_burst(this->burst_storage.size()-1);
@@ -226,7 +240,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		}
 		else if(!this->init_load)
 		{
-			// timestamp > 0
+			// virtual_timestamp > 0
 			// Init load then idle pattern
 
 			// Init load processed
@@ -238,32 +252,32 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		
 		
 		// Add pending stats from last load
-		// TODO implicit this->pending.getTimestamp() > timestamp -> see assume no interleaved commands appear
-		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < timestamp)
+		// TODO implicit this->pending.getTimestamp() > virtual_timestamp -> see assume no interleaved commands appear
+		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < virtual_timestamp)
 		{
 			this->stats += this->pending_stats.getStats();
 			this->pending_stats.clear();
 		}
 
 		// Advance counters to new timestamp
-		for (auto n = this->last_load; timestamp != 0 && n < timestamp - 1; n++) {
-			this->stats += diff(this->at(n), this->at(n + 1)); // Last: (timestamp - 2, timestamp - 1)
+		for (auto n = this->last_load; virtual_timestamp != 0 && n < virtual_timestamp - 1; n++) {
+			this->stats += diff(this->at(n), this->at(n + 1)); // Last: (virtual_timestamp - 2, virtual_timestamp - 1)
 		};
 
-		// Pattern for pending stats (timestamp - 1, timestamp)
-		if(timestamp > 0) // TODO implicit
+		// Pattern for pending stats (virtual_timestamp - 1, virtual_timestamp)
+		if(virtual_timestamp > 0) // TODO implicit
 		{
-			this->last_pattern = this->at(timestamp - 1);
+			this->last_pattern = this->at(virtual_timestamp - 1);
 		}
 
-		this->last_load = timestamp;
+		this->last_load = virtual_timestamp;
 
 		// Add new burst to storage
 		this->burst_storage.clear();
 		this->burst_storage.insert_data(data, n_bits);
 
 		// Adjust statistics for new data
-		this->pending_stats.setPendingStats(timestamp, diff(
+		this->pending_stats.setPendingStats(virtual_timestamp, diff(
 			this->last_pattern,
 			this->burst_storage.get_burst(0)
 		));
@@ -309,9 +323,10 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 	// Get stats not including timestamp t
 	auto get_stats(timestamp_t t) const 
 	{
-		assert(t >= this->last_load);
-		// Return empty stats for t = 0
-		if(t == 0)
+		timestamp_t virtual_t = t * this->datarate;
+		assert(virtual_t >= this->last_load);
+		// Return empty stats for virtual_t = 0
+		if(virtual_t == 0)
 		{
 			return this->stats;
 		}
@@ -326,13 +341,13 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		}
 		
 		// Add pending stats from last load
-		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < t)
+		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < virtual_t)
 		{
 			stats += this->pending_stats.getStats();
 		}
 
 		// Advance stats to new timestamp
-		for (auto n = this->last_load; n < t - 1; n++) {
+		for (auto n = this->last_load; n < virtual_t - 1; n++) {
 			stats += diff(this->at(n), this->at(n + 1)); // Last: (timestamp - 2, timestamp - 1)
 		}
 

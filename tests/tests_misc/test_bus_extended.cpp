@@ -37,7 +37,7 @@ protected:
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_1)
 {
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
 	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
@@ -45,7 +45,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_1)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_2)
 {
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::H);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::H);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
 	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
@@ -53,7 +53,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_2)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_3)
 {
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, burst_custom);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::L, burst_custom);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
 	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
@@ -61,7 +61,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_3)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_1)
 {
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::L);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::L);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_ones);
 	ASSERT_EQ_BURST(bus.at(1), burst_ones);
@@ -69,7 +69,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_1)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_2)
 {
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_ones);
 	ASSERT_EQ_BURST(bus.at(1), burst_ones);
@@ -77,7 +77,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_2)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_3)
 {
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::H, burst_custom);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::H, burst_custom);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_ones);
 	ASSERT_EQ_BURST(bus.at(1), burst_ones);
@@ -85,7 +85,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_3)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_1)
 {
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, util::Bus::BusInitPatternSpec::L);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::LAST_PATTERN, util::Bus::BusInitPatternSpec::L);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
 	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
@@ -93,7 +93,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_1)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_2)
 {
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, util::Bus::BusInitPatternSpec::H);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::LAST_PATTERN, util::Bus::BusInitPatternSpec::H);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_ones);
 	ASSERT_EQ_BURST(bus.at(1), burst_ones);
@@ -101,7 +101,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_2)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_3)
 {
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_custom);
 	ASSERT_EQ_BURST(bus.at(1), burst_custom);
@@ -109,7 +109,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_3)
 
 TEST_F(ExtendedBusIdlePatternTest, Load_Width_8)
 {
-	util::Bus bus(8, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	util::Bus bus(8, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
 
 	// Init load overrides init pattern
 	bus.load(0, 0b0010'1010'1001'0110, 2);
@@ -122,7 +122,7 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_64)
 	const uint32_t buswidth = 8 * 8;
 	const uint32_t number_bytes = (buswidth + 7) / 8;
 
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
 	std::array<uint8_t, number_bytes> data = { 0 }; 
 	
 	auto expected = util::Bus::burst_t();
@@ -155,7 +155,7 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_512)
 	const uint32_t buswidth = 64 * 8;
 	const uint32_t number_bytes = (buswidth + 7) / 8;
 
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
 	std::array<uint8_t, number_bytes> data = { 0 }; 
 	
 	auto expected = util::Bus::burst_t();
@@ -209,7 +209,7 @@ protected:
 
 TEST_F(ExtendedBusStatsTest, Stats_Pattern_1)
 {
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::L, burst_custom);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::L, burst_custom);
 	std::size_t custom_ones = burst_custom.count();
 	std::size_t custom_zeroes = buswidth - custom_ones;
 	uint8_t burst_ones_data[bus_array_size] = { 0xFF };
@@ -272,7 +272,7 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_1)
 
 TEST_F(ExtendedBusStatsTest, Stats_Pattern_2)
 {
-	util::Bus bus(buswidth, util::Bus::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
+	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
 	std::size_t custom_ones = burst_custom.count();
 	std::size_t custom_zeroes = buswidth - custom_ones;
 	uint8_t burst_ones_data[bus_array_size] = { 0xFF };
