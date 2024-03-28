@@ -105,12 +105,12 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_0) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 368);  // 24 (time) * 16 (bus width) - 16 (ones)
+    EXPECT_EQ(stats.writeBus.zeroes, 752);  // 2 (datarate) * 24 (time) * 16 (bus width) - 16 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);  // 0 -> 255 = 8 transitions, *2 = 16
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);  // back to 0
 
     EXPECT_EQ(stats.readBus.ones, 1);
-    EXPECT_EQ(stats.readBus.zeroes, 383);  // 24 (time) * 16 (bus width) - 1 (ones)
+    EXPECT_EQ(stats.readBus.zeroes, 767);  // 2 (datarate) * 24 (time) * 16 (bus width) - 1 (ones)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 
@@ -144,12 +144,12 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_1) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 384);
+    EXPECT_EQ(stats.writeBus.zeroes, 784); // 2 (datarate) * 25 (time) * 16 (bus width) - 16 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);
 
     EXPECT_EQ(stats.readBus.ones, 0);
-    EXPECT_EQ(stats.readBus.zeroes, 400);
+    EXPECT_EQ(stats.readBus.zeroes, 800); // 2 (datarate) * 25 (time) * 16 (bus width)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 0);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 0);
 
@@ -170,12 +170,12 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_2) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 464);
+    EXPECT_EQ(stats.writeBus.zeroes, 944); // 2 (datarate) * 30 (time) * 16 (bus width) - 16 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);
 
     EXPECT_EQ(stats.readBus.ones, 1);
-    EXPECT_EQ(stats.readBus.zeroes, 479);
+    EXPECT_EQ(stats.readBus.zeroes, 959); // 2 (datarate) * 30 (time) * 16 (bus width) - 1 (ones)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 
@@ -229,12 +229,12 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_3_BG_Mode) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 368);
+    EXPECT_EQ(stats.writeBus.zeroes, 752); // 2 (datarate) * 24 (time) * 16 (bus width) - 16 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);
 
     EXPECT_EQ(stats.readBus.ones, 1);
-    EXPECT_EQ(stats.readBus.zeroes, 383);
+    EXPECT_EQ(stats.readBus.zeroes, 767); // 2 (datarate) * 24 (time) * 16 (bus width) - 1 (ones)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 

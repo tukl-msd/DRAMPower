@@ -94,15 +94,15 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_0) {
 
     SimulationStats stats = ddr->getStats();
 
-    EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 368);  // 24 (time) * 16 (bus width) - 16 (ones)
-    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);  // 0 -> 255 = 8 transitions, *2 = 16
-    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);  // back to 0
+    EXPECT_EQ(stats.writeBus.ones, 528); // 2 (datarate) * 16 (bus width) * 24 (time) - 240 (zeroes)
+    EXPECT_EQ(stats.writeBus.zeroes, 240);  // 14 (bursts) * 16 (bus width) + 2 (bursts) * 8 (zeroes in data burst)
+    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 24);  // 16 (first burst) + 8 (data ones to zeroes in bursts)
+    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 24);  // 8 (data ones to zeroes in bursts) + 8 (last burst data) + 8 (end last burst)
 
-    EXPECT_EQ(stats.readBus.ones, 1);
-    EXPECT_EQ(stats.readBus.zeroes, 383);  // 24 (time) * 16 (bus width) - 1 (ones)
-    EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
-    EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
+    EXPECT_EQ(stats.readBus.ones, 513); // 2 (datarate) * 16 (bus width) * 24 (time) - 255 (zeroes)
+    EXPECT_EQ(stats.readBus.zeroes, 255);  // 15 (bursts) * 16 (bus width) + 15 (zeroes in data burst)
+    EXPECT_EQ(stats.readBus.ones_to_zeroes, 17); // 16 (first burst) + 1 (data ones to zeroes in bursts)
+    EXPECT_EQ(stats.readBus.zeroes_to_ones, 17); // 1 (data ones to zeroes in bursts) + 16 (end last burst)
 
     // Notes
     // Pattern.h: first 4 bits of column (C0-C3) are set to 0 (for reads and writes)

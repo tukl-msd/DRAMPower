@@ -16,7 +16,7 @@ protected:
 		0, 0, 0, 0,  0, 0, 0, 255,  0, 0, 0, 0,  0, 0, 0, 0,
 		0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 255,
 	};
-
+	// Cycles: 16
 	// Ones: 16
 	// Zeroes: 240
 	// 0 -> 1: 16
@@ -27,6 +27,12 @@ protected:
 		0, 0, 0, 0,  0, 0, 0, 1,  0, 0, 0, 0,  0, 0, 0, 0,
 		0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,
 	};
+	// Cycles: 16
+	// Ones: 1
+	// Zeroes: 255
+	// 0 -> 1: 1
+	// 1 -> 0: 1
+	// Toggles: 2
 
 	// Test pattern #1
 	std::vector<Command> testPattern = {
@@ -135,20 +141,20 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestStats)
 	auto stats = ddr->getStats();
 
 	ASSERT_EQ(stats.commandBus.ones, 15);
-	//ASSERT_EQ(stats.commandBus.zeroes, 129);
+	ASSERT_EQ(stats.commandBus.zeroes, 129);
 	ASSERT_EQ(stats.commandBus.ones_to_zeroes, 14);
 	ASSERT_EQ(stats.commandBus.zeroes_to_ones, 14);
 
 	// Verify read bus stats
-	ASSERT_EQ(stats.readBus.ones, 1);
-	ASSERT_EQ(stats.readBus.zeroes, 383);
+	ASSERT_EQ(stats.readBus.ones, 1);	// 1
+	ASSERT_EQ(stats.readBus.zeroes, 767);  // 2 (datarate) * 24 (time) * 16 (bus width) - 1 (ones) 
 	ASSERT_EQ(stats.readBus.ones_to_zeroes, 1);
 	ASSERT_EQ(stats.readBus.zeroes_to_ones, 1);
 	ASSERT_EQ(stats.readBus.bit_changes, 2);
 
 	// Verify write bus stats
-	ASSERT_EQ(stats.writeBus.ones, 16);
-	ASSERT_EQ(stats.writeBus.zeroes, 368);
+	ASSERT_EQ(stats.writeBus.ones, 16);	   // 2 (bursts) * 8 (ones per burst)
+	ASSERT_EQ(stats.writeBus.zeroes, 752); // 2 (datarate) * 24 (time) * 16 (bus width) - 16 (ones) 
 	ASSERT_EQ(stats.writeBus.ones_to_zeroes, 16);
 	ASSERT_EQ(stats.writeBus.zeroes_to_ones, 16);
 	ASSERT_EQ(stats.writeBus.bit_changes, 32);
