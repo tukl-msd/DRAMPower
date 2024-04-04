@@ -12,7 +12,13 @@ namespace DRAMPower {
     DDR5::DDR5(const MemSpecDDR5 &memSpec)
         : memSpec(memSpec),
         ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks}),
-        commandBus{14, 1, util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H},
+        cmdBusWidth(14),
+        cmdBusInitPattern((1<<cmdBusWidth)-1),
+        commandBus(
+            cmdBusWidth, 1,
+            util::Bus::BusIdlePatternSpec::H,
+            util::Bus::burst_t(cmdBusWidth, cmdBusInitPattern)
+        ),
         readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
             util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H},
         writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
@@ -21,7 +27,15 @@ namespace DRAMPower {
         readDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
         writeDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
         writeDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
-        dram_base<CmdType>(PatternEncoderOverrides{})
+        dram_base<CmdType>(PatternEncoderOverrides{
+            {pattern_descriptor::V, PatternEncoderBitSpec::H},
+            {pattern_descriptor::X, PatternEncoderBitSpec::H}, // TODO high impedance ???
+            // Default value for CID0-3 is H in Pattern.h
+            // {pattern_descriptor::CID0, PatternEncoderBitSpec::H},
+            // {pattern_descriptor::CID1, PatternEncoderBitSpec::H},
+            // {pattern_descriptor::CID2, PatternEncoderBitSpec::H},
+            // {pattern_descriptor::CID3, PatternEncoderBitSpec::H},
+        })
     {
         this->registerPatterns();
 
@@ -47,6 +61,11 @@ namespace DRAMPower {
         routeCommand<CmdType::END_OF_SIMULATION>(
             [this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
+
+    uint64_t DDR5::getInitEncoderPattern()
+    {
+        return this->cmdBusInitPattern;
+    }
 
     void DDR5::registerPatterns() {
         using namespace pattern_descriptor;
@@ -297,7 +316,6 @@ namespace DRAMPower {
     }
 
     void DDR5::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
-        // TODO: Is this computation necessary?
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
@@ -332,7 +350,6 @@ namespace DRAMPower {
     }
 
     void DDR5::handlePowerDownPreExit(Rank &rank, timestamp_t timestamp) {
-        // TODO: Is this computation necessary?
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
