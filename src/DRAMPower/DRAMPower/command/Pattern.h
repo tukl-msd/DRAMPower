@@ -137,6 +137,10 @@ public:
             switch (descriptor) {
             case H:
             case BL:
+            case CID0:
+            case CID1:
+            case CID2:
+            case CID3:
                 bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, true);
                 break;
             case L:

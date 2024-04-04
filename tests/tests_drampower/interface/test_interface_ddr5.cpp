@@ -34,27 +34,26 @@ class DDR5_WindowStats_Tests : public ::testing::Test {
     DDR5_WindowStats_Tests() {
         test_patterns.push_back({
             {0, CmdType::ACT, {1, 0, 0, 2}},
-            {4, CmdType::WR, {1, 0, 0, 0, 4}, wr_data, SZ_BITS(wr_data)},
-            {10, CmdType::RD, {1, 0, 0, 0, 4}, rd_data, SZ_BITS(rd_data)},
-            {17, CmdType::PRE, {1, 0, 0, 2}},
+            {3, CmdType::WR, {1, 0, 0, 0, 4}, wr_data, SZ_BITS(wr_data)},
+            {12, CmdType::RD, {1, 0, 0, 0, 4}, rd_data, SZ_BITS(rd_data)},
+            {21, CmdType::PRE, {1, 0, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 
         test_patterns.push_back({
             {0, CmdType::ACT, {2, 0, 0, 372}},
-            {5, CmdType::PRE, {2, 0, 0, 372}},
-            {10, CmdType::WRA, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
+            {3, CmdType::WR, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
+            {12, CmdType::PRE, {2, 0, 0, 372}},
             {15, CmdType::SREFEN},
-            {25, CmdType::END_OF_SIMULATION}
+            {42, CmdType::END_OF_SIMULATION}
         });
 
         test_patterns.push_back({
             {0, CmdType::ACT, {2, 0, 0, 372}},
-            {5, CmdType::PRE, {2, 0, 0, 372}},
-            {10, CmdType::WRA, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
-            {15, CmdType::RD, {2, 0, 0, 372, 27}, rd_data, SZ_BITS(rd_data)},
-            {20, CmdType::SREFEN},
-            {30, CmdType::END_OF_SIMULATION}  // RD needs time to finish fully
+            {3, CmdType::RD, {2, 0, 0, 372, 27}, rd_data, SZ_BITS(rd_data)},
+            {12, CmdType::WRA, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
+            {28, CmdType::SREFEN},
+            {55, CmdType::END_OF_SIMULATION}
         });
 
         initSpec();
@@ -105,13 +104,11 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_0) {
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 17); // 1 (data ones to zeroes in bursts) + 16 (end last burst)
 
     // Notes
-    // Pattern.h: first 4 bits of column (C0-C3) are set to 0 (for reads and writes)
-    //            "V" bits are 0
-    //            CID and Rank doesn't matter
-    EXPECT_EQ(stats.commandBus.ones, 21);  // taken by applying the parameters to the command patterns and counting
-    EXPECT_EQ(stats.commandBus.zeroes, 315);  // 14 (bus width) * 24 (time) - 21 (ones)
-    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 21);  // Since interval between commands is > 2 all commands are interleaved with idle states (all 0's)
-    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 21);  // so the only possibility of a bit going staying 1 (1->1) is if it stays 1 within the command pattern itself
+    // Pattern.h: first 4 bits of column (C0-C3) are set to 0 (for reads and writes) // TODO correct???
+    EXPECT_EQ(stats.commandBus.ones, 281);
+    EXPECT_EQ(stats.commandBus.zeroes, 55);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 39);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 39);
 
     // For write and read the number of clock cycles the strobes stay on is
     // currently ("size in bits" / bus_size) / bus_rate
@@ -139,20 +136,20 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_1) {
 
     SimulationStats stats = ddr->getStats();
 
-    EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 384);
-    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);
-    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);
+    EXPECT_EQ(stats.writeBus.ones, 1104); // 2 (datarate) * 16 (bus width) * 42 (time) - 240 (zeroes)
+    EXPECT_EQ(stats.writeBus.zeroes, 240); // 14 (bursts) * 16 (bus width) + 2 (bursts) * 8 (zeroes in data burst)
+    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 24); // 16 (first burst) + 8 (data ones to zeroes in bursts)
+    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 24); // 8 (data ones to zeroes in bursts) + 8 (last burst data) + 8 (end last burst)
 
-    EXPECT_EQ(stats.readBus.ones, 0);
-    EXPECT_EQ(stats.readBus.zeroes, 400);
+    EXPECT_EQ(stats.readBus.ones, 1344); // 2 (datarate) * 16 (bus width) * 42 (time)
+    EXPECT_EQ(stats.readBus.zeroes, 0);
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 0);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 0);
 
-    EXPECT_EQ(stats.commandBus.ones, 23);
-    EXPECT_EQ(stats.commandBus.zeroes, 327);
-    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 21);
-    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 21);
+    EXPECT_EQ(stats.commandBus.ones, 550);
+    EXPECT_EQ(stats.commandBus.zeroes, 38);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 28);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 28);
 }
 
 TEST_F(DDR5_WindowStats_Tests, Pattern_2) {
@@ -160,20 +157,20 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_2) {
 
     SimulationStats stats = ddr->getStats();
 
-    EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 464);
-    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);
-    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);
+    EXPECT_EQ(stats.writeBus.ones, 1520); // 2 (datarate) * 16 (bus width) * 55 (time) - 240 (zeroes)
+    EXPECT_EQ(stats.writeBus.zeroes, 240);  // 14 (bursts) * 16 (bus width) + 2 (bursts) * 8 (zeroes in data burst)
+    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 24);  // 16 (first burst) + 8 (data ones to zeroes in bursts)
+    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 24);  // 8 (data ones to zeroes in bursts) + 8 (last burst data) + 8 (end last burst)
 
-    EXPECT_EQ(stats.readBus.ones, 1);
-    EXPECT_EQ(stats.readBus.zeroes, 479);
-    EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
-    EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
+    EXPECT_EQ(stats.readBus.ones, 1505); // 2 (datarate) * 16 (bus width) * 55 (time) - 255 (zeroes)
+    EXPECT_EQ(stats.readBus.zeroes, 255);  // 15 (bursts) * 16 (bus width) + 15 (zeroes in data burst)
+    EXPECT_EQ(stats.readBus.ones_to_zeroes, 17); // 16 (first burst) + 1 (data ones to zeroes in bursts)
+    EXPECT_EQ(stats.readBus.zeroes_to_ones, 17); // 1 (data ones to zeroes in bursts) + 16 (end last burst)
 
-    EXPECT_EQ(stats.commandBus.ones, 31);
-    EXPECT_EQ(stats.commandBus.zeroes, 389);
-    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 28);
-    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 28);
+    EXPECT_EQ(stats.commandBus.ones, 723);
+    EXPECT_EQ(stats.commandBus.zeroes, 47);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 33);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 33);
 }
 
 // Tests for power consumption (given a known SimulationStats)

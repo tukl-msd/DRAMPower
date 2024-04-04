@@ -19,6 +19,10 @@
 namespace DRAMPower {
 
 class DDR5 : public dram_base<CmdType> {
+
+   private:
+	std::size_t cmdBusWidth;
+	uint64_t cmdBusInitPattern;
    public:
     MemSpecDDR5 memSpec;
     std::vector<Rank> ranks;
@@ -32,6 +36,7 @@ class DDR5 : public dram_base<CmdType> {
     timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
 
     void handle_interface(const Command& cmd) override;
+	uint64_t getInitEncoderPattern() override;
 
     // Commands
     void handleAct(Rank& rank, Bank& bank, timestamp_t timestamp);
