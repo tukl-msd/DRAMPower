@@ -417,7 +417,7 @@ TEST_F(LPDDR5_Energy_Tests, CA_Energy) {
     stats.commandBus.zeroes_to_ones = 39;
     stats.commandBus.ones_to_zeroes = 49;
 
-    double expected_static_controller = 0.5 * stats.commandBus.zeroes * voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_cb;
+    double expected_static_controller = stats.commandBus.zeroes * voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_cb;
     double expected_dynamic_controller = stats.commandBus.zeroes_to_ones * spec.memImpedanceSpec.C_total_cb / 2.0 * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);

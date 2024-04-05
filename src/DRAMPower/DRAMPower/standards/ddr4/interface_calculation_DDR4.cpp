@@ -110,9 +110,9 @@ interface_energy_info_t InterfaceCalculation_DDR4::calcDQEnergy(const Simulation
     interface_energy_info_t result;
     // Pull up -> zeros
     result.dram.staticPower +=
-        calc_static_power(stats.readBus.zeroes, impedances_.R_eq_rb, 0.5 * t_CK_, VDD_, 1);
+        calc_static_power(stats.readBus.zeroes, impedances_.R_eq_rb, t_CK_ / memspec_.dataRate, VDD_, 1.0);
     result.controller.staticPower +=
-        calc_static_power(stats.writeBus.zeroes, impedances_.R_eq_wb, 0.5 * t_CK_, VDD_, 1);
+        calc_static_power(stats.writeBus.zeroes, impedances_.R_eq_wb, t_CK_ / memspec_.dataRate, VDD_, 1.0);
 
     result.dram.dynamicPower +=
         calc_dynamic_power(stats.readBus.zeroes_to_ones, impedances_.C_total_rb, VDD_);

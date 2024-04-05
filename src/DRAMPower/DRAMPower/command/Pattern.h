@@ -81,9 +81,8 @@ public:
 // TODO: Has to be standard specific
 class PatternEncoder // Currently LPDDR4
 {
-private:
-    PatternEncoderOverrides settings;
 public:
+    PatternEncoderOverrides settings;
     PatternEncoder(PatternEncoderOverrides settings)
         : settings(settings) {};
 private:

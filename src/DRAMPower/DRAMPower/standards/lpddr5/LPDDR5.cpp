@@ -17,10 +17,8 @@ namespace DRAMPower {
             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
         writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
-        readDQS_c_(memSpec.dataRate, true),
-        readDQS_t_(memSpec.dataRate, true),
-        WCK_t_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
-        WCK_c_(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
+        readDQS(memSpec.dataRate, true),
+        wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
         dram_base<CmdType>(PatternEncoderOverrides{})
     {
         this->registerPatterns();
@@ -214,19 +212,13 @@ namespace DRAMPower {
                 length = cmd.sz_bits / readBus.get_width();
                 readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
-                readDQS_c_.start(cmd.timestamp);
-                readDQS_c_.stop(cmd.timestamp + length / this->memSpec.dataRate);
-
-                readDQS_t_.start(cmd.timestamp);
-                readDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+                readDQS.start(cmd.timestamp);
+                readDQS.stop(cmd.timestamp + length / this->memSpec.dataRate);
 
                 // WCK also during reads
                 if (!memSpec.wckAlwaysOnMode) {
-                    WCK_c_.start(cmd.timestamp);
-                    WCK_c_.stop(cmd.timestamp + length / this->memSpec.dataRate);
-
-                    WCK_t_.start(cmd.timestamp);
-                    WCK_t_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+                    wck.start(cmd.timestamp);
+                    wck.stop(cmd.timestamp + length / this->memSpec.dataRate);
                 }
 
                 break;
@@ -236,11 +228,8 @@ namespace DRAMPower {
                 writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
                 if (!memSpec.wckAlwaysOnMode) {
-                    WCK_c_.start(cmd.timestamp);
-                    WCK_c_.stop(cmd.timestamp + length / this->memSpec.dataRate);
-
-                    WCK_t_.start(cmd.timestamp);
-                    WCK_t_.stop(cmd.timestamp + length / this->memSpec.dataRate);
+                    wck.start(cmd.timestamp);
+                    wck.stop(cmd.timestamp + length / this->memSpec.dataRate);
                 }
                 break;
         };
@@ -520,10 +509,9 @@ namespace DRAMPower {
         stats.readBus = readBus.get_stats(timestamp);
         stats.writeBus = writeBus.get_stats(timestamp);
 
-        stats.clockStats = CK_t_.get_stats_at(timestamp) + CK_c_.get_stats_at(timestamp);
-        stats.wClockStats = WCK_t_.get_stats_at(timestamp) + WCK_c_.get_stats_at(timestamp);
-        stats.readDQSStats =
-            readDQS_c_.get_stats_at(timestamp) + readDQS_t_.get_stats_at(timestamp);
+        stats.clockStats = 2.0 * clock.get_stats_at(timestamp);
+        stats.wClockStats = 2.0 * wck.get_stats_at(timestamp);
+        stats.readDQSStats = 2.0 * readDQS.get_stats_at(timestamp);
 
         return stats;
     }

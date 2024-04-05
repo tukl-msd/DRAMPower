@@ -218,6 +218,7 @@ TEST_F(DDR5_Energy_Tests, Parameters) {
 }
 
 TEST_F(DDR5_Energy_Tests, Clock_Energy) {
+    // Note: stats of both clock lines
     SimulationStats stats;
     stats.clockStats.ones = 200;
     stats.clockStats.zeroes_to_ones = 200;
@@ -231,9 +232,9 @@ TEST_F(DDR5_Energy_Tests, Clock_Energy) {
     EXPECT_DOUBLE_EQ(result.dram.staticPower, 0.0);
 
     // DDR5 clock power consumed on 1's
-    double expected_static = stats.clockStats.ones * voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_ck;
+    double expected_static = stats.clockStats.ones * voltage * voltage * 0.5 * t_CK / spec.memImpedanceSpec.R_eq_ck;
     // Dynamic power is consumed on 0 -> 1 transition
-    double expected_dynamic = stats.clockStats.zeroes_to_ones * spec.memImpedanceSpec.C_total_ck * voltage * voltage;
+    double expected_dynamic = stats.clockStats.zeroes_to_ones * 0.5 * spec.memImpedanceSpec.C_total_ck * voltage * voltage;
 
     EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static);  // value itself doesn't matter, only that it matches the formula
     EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic);
@@ -313,7 +314,7 @@ TEST_F(DDR5_Energy_Tests, CA_Energy) {
     stats.commandBus.zeroes_to_ones = 39;
     stats.commandBus.ones_to_zeroes = 49;
 
-    double expected_static_controller = 0.5 * stats.commandBus.zeroes * voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_cb;
+    double expected_static_controller = stats.commandBus.zeroes * voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_cb;
     double expected_dynamic_controller = stats.commandBus.zeroes_to_ones * spec.memImpedanceSpec.C_total_cb / 2.0 * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
