@@ -30,17 +30,14 @@ public:
     std::vector<Rank> ranks;
 
 	util::Clock clock;
-	util::Clock clockInverted;
 
 	util::Bus commandBus;
 	util::Bus readBus;
 	util::Bus writeBus;
 
-	util::Clock readDQS_c;
-	util::Clock readDQS_t;
+	util::Clock readDQS;
 
-	util::Clock writeDQS_c;
-	util::Clock writeDQS_t;
+	util::Clock writeDQS;
 
 	//util::Bus dataBus;
 protected:

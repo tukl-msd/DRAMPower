@@ -16,7 +16,7 @@ namespace DRAMPower {
         writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
         },
-        readDQS_c(2, true), readDQS_t(2, true), writeDQS_c(2, true), writeDQS_t(2, true),
+        readDQS(memSpec.dataRate, true), writeDQS(memSpec.dataRate, true),
         dram_base<CmdType>(PatternEncoderOverrides{}) 
     {
         this->registerPatterns();
@@ -102,11 +102,8 @@ namespace DRAMPower {
                 auto length = cmd.sz_bits / readBus.get_width();
                 this->readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
-                readDQS_c.start(cmd.timestamp);
-                readDQS_c.stop(cmd.timestamp + length / this->memSpec.dataRate);
-
-                readDQS_t.start(cmd.timestamp);
-                readDQS_t.stop(cmd.timestamp + length / this->memSpec.dataRate);
+                readDQS.start(cmd.timestamp);
+                readDQS.stop(cmd.timestamp + length / this->memSpec.dataRate);
             }
                 break;
             case CmdType::WR:
@@ -114,11 +111,8 @@ namespace DRAMPower {
                 auto length = cmd.sz_bits / writeBus.get_width();
                 this->writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
-                writeDQS_c.start(cmd.timestamp);
-                writeDQS_c.stop(cmd.timestamp + length / this->memSpec.dataRate);
-
-                writeDQS_t.start(cmd.timestamp);
-                writeDQS_t.stop(cmd.timestamp + length / this->memSpec.dataRate);
+                writeDQS.start(cmd.timestamp);
+                writeDQS.stop(cmd.timestamp + length / this->memSpec.dataRate);
             }
                 break;
         };
@@ -321,10 +315,8 @@ namespace DRAMPower {
     }
 
     interface_energy_info_t LPDDR4::calcInterfaceEnergy(timestamp_t timestamp) {
-        return interface_energy_info_t{};
-        //InterfacePowerCalculation_LPPDR4 interface_calc(memSpec);
-
-        //return interface_calc.calcEnergy(;
+        InterfacePowerCalculation_LPPDR4 interface_calc(memSpec);
+        return interface_calc.calcEnergy(getWindowStats(timestamp));
     }
 
     SimulationStats LPDDR4::getWindowStats(timestamp_t timestamp) {
@@ -382,10 +374,9 @@ namespace DRAMPower {
         stats.readBus = readBus.get_stats(timestamp);
         stats.writeBus = writeBus.get_stats(timestamp);
 
-        stats.clockStats = clock.get_stats_at(timestamp) + clockInverted.get_stats_at(timestamp);
-        stats.readDQSStats = readDQS_c.get_stats_at(timestamp) + readDQS_t.get_stats_at(timestamp);
-        stats.writeDQSStats =
-            writeDQS_c.get_stats_at(timestamp) + writeDQS_t.get_stats_at(timestamp);
+        stats.clockStats = 2 * clock.get_stats_at(timestamp);
+        stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);
+        stats.writeDQSStats = 2 * writeDQS.get_stats_at(timestamp);
 
         return stats;
     }

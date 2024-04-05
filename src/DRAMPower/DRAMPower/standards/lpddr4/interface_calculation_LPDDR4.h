@@ -23,12 +23,12 @@ class InterfacePowerCalculation_LPPDR4
 private:
 	double VDDQ;
 	double t_CK;
+	MemSpecLPDDR4 memspec_;
 
 	MemSpecLPDDR4::MemImpedanceSpec impedanceSpec;
 private:
-	double calc_static_power(uint64_t ones, double R_eq, bool ddr) {
-		double ddr_coeff = ddr ? 0.5 : 1.0;
-		return ones * (VDDQ*VDDQ) * ddr_coeff * t_CK / R_eq;
+	double calc_static_power(uint64_t ones, double R_eq, double factor) {
+		return ones * (VDDQ*VDDQ) * factor * t_CK / R_eq;
 	};
 
 	double calc_dynamic_power(uint64_t zero_to_ones, double C_total) {
@@ -37,6 +37,7 @@ private:
 
 public:
 	InterfacePowerCalculation_LPPDR4(const MemSpecLPDDR4 & memspec)
+	: memspec_(memspec)
 	{
 		VDDQ = memspec.memPowerSpec[MemSpecLPDDR4::VoltageDomain::VDDQ].vDDX;
 		t_CK = memspec.memTimingSpec.tCK;
@@ -47,8 +48,9 @@ public:
 	{
 		interface_energy_info_t energy;
 
-		energy.controller.staticPower += calc_static_power(clock_stats.ones, impedanceSpec.R_eq_ck, true);
-		energy.controller.dynamicPower += calc_dynamic_power(clock_stats.ones_to_zeroes, impedanceSpec.C_total_ck);
+		// Clock 0.5 * t_CK high, 0.5 * t_CK low
+		energy.controller.staticPower += 2.0 * calc_static_power(clock_stats.ones, impedanceSpec.R_eq_ck, 0.5);
+		energy.controller.dynamicPower += 2.0 *calc_dynamic_power(clock_stats.ones_to_zeroes, impedanceSpec.C_total_ck);
 
 		return energy;
 	};
@@ -57,10 +59,11 @@ public:
 	{
 		interface_energy_info_t energy;
 
-		energy.dram.staticPower += calc_static_power(stats.readDQSStats.ones, impedanceSpec.R_eq_dqs, true);
+		// Datarate of data bus
+		energy.dram.staticPower += calc_static_power(stats.readDQSStats.ones, impedanceSpec.R_eq_dqs, 1.0 / memspec_.dataRate);
 		energy.dram.dynamicPower += calc_dynamic_power(stats.readDQSStats.ones_to_zeroes, impedanceSpec.C_total_dqs);
 
-		energy.controller.staticPower += calc_static_power(stats.writeDQSStats.ones, impedanceSpec.R_eq_dqs, true);
+		energy.controller.staticPower += calc_static_power(stats.writeDQSStats.ones, impedanceSpec.R_eq_dqs, 1.0 /  memspec_.dataRate);
 		energy.controller.dynamicPower += calc_dynamic_power(stats.writeDQSStats.ones_to_zeroes, impedanceSpec.C_total_dqs);
 
 		return energy;
@@ -71,8 +74,8 @@ public:
 		interface_energy_info_t energy;
 
 		energy.controller.staticPower += calc_static_power(bus_stats.commandBus.ones, impedanceSpec.R_eq_cb, false);
-		energy.controller.staticPower += calc_static_power(bus_stats.writeBus.ones, impedanceSpec.R_eq_wb, true);
-		energy.dram.staticPower += calc_static_power(bus_stats.readBus.ones, impedanceSpec.R_eq_rb, true);
+		energy.controller.staticPower += calc_static_power(bus_stats.writeBus.ones, impedanceSpec.R_eq_wb, 1.0 /  memspec_.dataRate);
+		energy.dram.staticPower += calc_static_power(bus_stats.readBus.ones, impedanceSpec.R_eq_rb, 1.0 /  memspec_.dataRate);
 
 		energy.controller.dynamicPower += calc_dynamic_power(bus_stats.commandBus.ones_to_zeroes, impedanceSpec.C_total_cb);
 		energy.controller.dynamicPower += calc_dynamic_power(bus_stats.writeBus.ones_to_zeroes, impedanceSpec.C_total_rb);

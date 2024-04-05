@@ -3,7 +3,7 @@
 namespace DRAMPower {
 
 static double calc_static_power(uint64_t NxBits, double R_eq, double t_CK, double voltage) {
-    return NxBits * (voltage * voltage) * 0.5 * t_CK / R_eq;
+    return NxBits * (voltage * voltage) * t_CK / R_eq;
 };
 
 static double calc_dynamic_power(uint64_t transitions, double C_total, double voltage) {
@@ -36,9 +36,9 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy(const Simulat
     interface_energy_info_t result;
 
     result.controller.staticPower =
-        2.0 * calc_static_power(stats.clockStats.ones, impedances_.R_eq_ck, t_CK_, VDDQ_);
+       calc_static_power(stats.clockStats.ones, impedances_.R_eq_ck, 0.5 * t_CK_, VDDQ_);
     result.controller.dynamicPower =
-        2.0 * calc_dynamic_power(stats.clockStats.zeroes_to_ones, impedances_.C_total_ck, VDDQ_);
+       calc_dynamic_power(stats.clockStats.zeroes_to_ones, impedances_.C_total_ck, VDDQ_);
 
     return result;
 }
@@ -47,9 +47,9 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcDQSEnergy(const Simulatio
     // TODO right termination?
     interface_energy_info_t result;
     result.dram.staticPower +=
-        calc_static_power(stats.readDQSStats.ones, impedances_.R_eq_dqs, t_CK_, VDDQ_);
+        calc_static_power(stats.readDQSStats.ones, impedances_.R_eq_dqs, t_CK_ / memspec_.dataRateSpec.dqsBusRate, VDDQ_);
     result.controller.staticPower +=
-        calc_static_power(stats.writeDQSStats.ones, impedances_.R_eq_dqs, t_CK_, VDDQ_);
+        calc_static_power(stats.writeDQSStats.ones, impedances_.R_eq_dqs, t_CK_ / memspec_.dataRateSpec.dqsBusRate, VDDQ_);
 
     result.dram.dynamicPower +=
         calc_dynamic_power(stats.readDQSStats.zeroes_to_ones, impedances_.C_total_dqs, VDDQ_);
@@ -62,9 +62,9 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcDQSEnergy(const Simulatio
 interface_energy_info_t InterfaceCalculation_DDR5::calcDQEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
     result.dram.staticPower +=
-        calc_static_power(stats.readBus.zeroes, impedances_.R_eq_rb, t_CK_, VDDQ_);
+        calc_static_power(stats.readBus.zeroes, impedances_.R_eq_rb, t_CK_ / memspec_.dataRate , VDDQ_);
     result.controller.staticPower +=
-        calc_static_power(stats.writeBus.zeroes, impedances_.R_eq_wb, t_CK_, VDDQ_);
+        calc_static_power(stats.writeBus.zeroes, impedances_.R_eq_wb, t_CK_ / memspec_.dataRate, VDDQ_);
 
     result.dram.dynamicPower +=
         calc_dynamic_power(stats.readBus.zeroes_to_ones, impedances_.C_total_rb, VDDQ_);

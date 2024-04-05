@@ -23,13 +23,13 @@ namespace DRAMPower {
             util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H},
         writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
             util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H},
-        readDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
-        readDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
-        writeDQS_t_(memSpec.dataRateSpec.dqsBusRate, true),
-        writeDQS_c_(memSpec.dataRateSpec.dqsBusRate, true),
+        readDQS(memSpec.dataRateSpec.dqsBusRate, true),
+        writeDQS(memSpec.dataRateSpec.dqsBusRate, true),
         dram_base<CmdType>(PatternEncoderOverrides{
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
             {pattern_descriptor::X, PatternEncoderBitSpec::H}, // TODO high impedance ???
+            {pattern_descriptor::C0, PatternEncoderBitSpec::H},
+            {pattern_descriptor::C1, PatternEncoderBitSpec::H}, // TODO C2, C3, C10 override (burst order and burst length)
             // Default value for CID0-3 is H in Pattern.h
             // {pattern_descriptor::CID0, PatternEncoderBitSpec::H},
             // {pattern_descriptor::CID1, PatternEncoderBitSpec::H},
@@ -139,22 +139,16 @@ namespace DRAMPower {
                 length = cmd.sz_bits / readBus.get_width();
                 readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
-                readDQS_c_.start(cmd.timestamp);
-                readDQS_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
-
-                readDQS_t_.start(cmd.timestamp);
-                readDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                readDQS.start(cmd.timestamp);
+                readDQS.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
                 break;
             case CmdType::WR:
             case CmdType::WRA:
                 length = cmd.sz_bits / writeBus.get_width();
                 writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
 
-                writeDQS_c_.start(cmd.timestamp);
-                writeDQS_c_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
-
-                writeDQS_t_.start(cmd.timestamp);
-                writeDQS_t_.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                writeDQS.start(cmd.timestamp);
+                writeDQS.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
                 break;
         };
     }
@@ -428,9 +422,9 @@ namespace DRAMPower {
         stats.readBus = readBus.get_stats(timestamp);
         stats.writeBus = writeBus.get_stats(timestamp);
 
-        stats.clockStats = CK_t_.get_stats_at(timestamp) + CK_c_.get_stats_at(timestamp);
-        stats.readDQSStats = readDQS_c_.get_stats_at(timestamp) + readDQS_t_.get_stats_at(timestamp);
-        stats.writeDQSStats = writeDQS_c_.get_stats_at(timestamp) + writeDQS_t_.get_stats_at(timestamp);
+        stats.clockStats = 2 * clock.get_stats_at(timestamp);
+        stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);
+        stats.writeDQSStats = 2 * writeDQS.get_stats_at(timestamp);
 
         return stats;
     }

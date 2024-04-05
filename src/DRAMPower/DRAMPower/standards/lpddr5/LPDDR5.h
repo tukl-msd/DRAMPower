@@ -102,12 +102,9 @@ class LPDDR5 : public dram_base<CmdType> {
     void registerPatterns();
     timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
 
-    util::Clock CK_t_;
-    util::Clock CK_c_;
-    util::Clock WCK_t_;
-    util::Clock WCK_c_;
-    util::Clock readDQS_c_;
-    util::Clock readDQS_t_;
+    util::Clock clock;
+    util::Clock wck;
+    util::Clock readDQS;
 };
 };  // namespace DRAMPower
 
