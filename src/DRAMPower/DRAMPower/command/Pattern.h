@@ -76,6 +76,11 @@ public:
     {
         return this->settings.find(descriptor) != this->settings.end();
     };
+
+    bool removeSetting(pattern_descriptor::t descriptor)
+    {
+        return this->settings.erase(descriptor) > 0;
+    };
 };
 
 // TODO: Has to be standard specific
@@ -132,9 +137,15 @@ public:
         for (const auto descriptor : pattern) {
             assert(n >= 0);
 
-            // Command bits
             switch (descriptor) {
             case H:
+                bitset[n] = true;
+                break;
+            case L:
+                bitset[n] = false;
+                break;
+
+            // Command bits
             case BL:
             case CID0:
             case CID1:
@@ -142,14 +153,9 @@ public:
             case CID3:
                 bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, true);
                 break;
-            case L:
             case V:
             case X:
             case AP:
-            case C0: // For writes the first 4 column bits are always 0, see: Standard
-            case C1:
-            case C2:
-            case C3:
                 bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, false);
                 break;
 
@@ -195,6 +201,18 @@ public:
                 bitset[n] = bank_group_bits[2];
                 break;
 
+            case C0:
+                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[0]);
+                break;
+            case C1:
+                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[1]);
+                break;
+            case C2:
+                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[2]);
+                break;
+            case C3:
+                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[3]);
+                break;
             case C4:
                 bitset[n] = column_bits[4];
                 break;
@@ -214,7 +232,7 @@ public:
                 bitset[n] = column_bits[9];
                 break;
             case C10:
-                bitset[n] = column_bits[10];
+                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[10]);
                 break;
             case C11:
                 bitset[n] = column_bits[C11];

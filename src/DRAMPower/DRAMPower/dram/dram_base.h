@@ -30,12 +30,12 @@ public:
     commandCount_t commandCount;
 protected:
     uint64_t lastPattern;
+    PatternEncoder encoder;
 private:
     commandRouter_t commandRouter;
     commandPatternMap_t commandPatternMap;
     implicitCommandList_t implicitCommandList;
     timestamp_t last_command_time;
-    PatternEncoder encoder;
 
 public:
     dram_base(PatternEncoderOverrides encoderoverrides)

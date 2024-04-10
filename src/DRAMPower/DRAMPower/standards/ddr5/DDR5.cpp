@@ -29,7 +29,7 @@ namespace DRAMPower {
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
             {pattern_descriptor::X, PatternEncoderBitSpec::H}, // TODO high impedance ???
             {pattern_descriptor::C0, PatternEncoderBitSpec::H},
-            {pattern_descriptor::C1, PatternEncoderBitSpec::H}, // TODO C2, C3, C10 override (burst order and burst length)
+            {pattern_descriptor::C1, PatternEncoderBitSpec::H},
             // Default value for CID0-3 is H in Pattern.h
             // {pattern_descriptor::CID0, PatternEncoderBitSpec::H},
             // {pattern_descriptor::CID1, PatternEncoderBitSpec::H},
@@ -127,30 +127,106 @@ namespace DRAMPower {
         });
     }
 
-    void DDR5::handle_interface(const Command &cmd) {
-        auto pattern = getCommandPattern(cmd);
-        auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
-        commandBus.load(cmd.timestamp, pattern, ca_length);
+    void DDR5::handleInterfaceOverrides(size_t length, bool read)
+    {
+        // Set command bus pattern overrides
+        switch(length) {
+            case 8:
+                this->encoder.settings.removeSetting(pattern_descriptor::C10);
+                if(read)
+                {
+                    // Read
+                    this->encoder.settings.updateSettings({
+                        {pattern_descriptor::C3, PatternEncoderBitSpec::L},
+                        {pattern_descriptor::C2, PatternEncoderBitSpec::L},
+                    });
+                }
+                else
+                {
+                    // Write
+                    this->encoder.settings.updateSettings({
+                        {pattern_descriptor::C3, PatternEncoderBitSpec::L},
+                        {pattern_descriptor::C2, PatternEncoderBitSpec::H},
+                    });
+                }
+                break;
+            case 16:
+                this->encoder.settings.removeSetting(pattern_descriptor::C10);
+                if(read)
+                {
+                    // Read
+                    this->encoder.settings.updateSettings({
+                        {pattern_descriptor::C3, PatternEncoderBitSpec::L},
+                        {pattern_descriptor::C2, PatternEncoderBitSpec::L},
+                    });
+                }
+                else
+                {
+                    // Write
+                    this->encoder.settings.updateSettings({
+                        {pattern_descriptor::C3, PatternEncoderBitSpec::H},
+                        {pattern_descriptor::C2, PatternEncoderBitSpec::H},
+                    });
+                }
+                break;
+            case 32:
+                if(read)
+                {
+                    // Read
+                    this->encoder.settings.updateSettings({
+                        {pattern_descriptor::C10, PatternEncoderBitSpec::L},
+                        {pattern_descriptor::C3, PatternEncoderBitSpec::L},
+                        {pattern_descriptor::C2, PatternEncoderBitSpec::L},
+                    });
+                }
+                else
+                {
+                    // Write
+                    this->encoder.settings.updateSettings({
+                        {pattern_descriptor::C10, PatternEncoderBitSpec::L},
+                        {pattern_descriptor::C3, PatternEncoderBitSpec::H},
+                        {pattern_descriptor::C2, PatternEncoderBitSpec::H},
+                    });
+                }
+                break;
+            default:
+                this->encoder.settings.removeSetting(pattern_descriptor::C10);
+                this->encoder.settings.updateSettings({
+                    {pattern_descriptor::C3, PatternEncoderBitSpec::H},
+                    {pattern_descriptor::C2, PatternEncoderBitSpec::H},
+                });
+                std::cout << ("[WARN] Invalid burst length") << std::endl;
+                break;
+        }
+    }
 
+    void DDR5::handle_interface(const Command &cmd) {
         size_t length = 0;
+
+        // Handle data bus and dqs lines
         switch (cmd.type) {
             case CmdType::RD:
             case CmdType::RDA:
                 length = cmd.sz_bits / readBus.get_width();
                 readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-
                 readDQS.start(cmd.timestamp);
                 readDQS.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                handleInterfaceOverrides(length, true);
                 break;
             case CmdType::WR:
             case CmdType::WRA:
                 length = cmd.sz_bits / writeBus.get_width();
                 writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-
                 writeDQS.start(cmd.timestamp);
                 writeDQS.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                handleInterfaceOverrides(length, false);
                 break;
         };
+
+        // command bus
+        auto pattern = getCommandPattern(cmd);
+        auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
+        commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
     void DDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {

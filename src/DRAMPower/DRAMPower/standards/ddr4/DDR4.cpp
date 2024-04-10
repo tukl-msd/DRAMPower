@@ -31,6 +31,7 @@ namespace DRAMPower {
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
         , dram_base<CmdType>({
+            // TODO column overrides
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
             {pattern_descriptor::X, PatternEncoderBitSpec::H}
         })

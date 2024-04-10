@@ -105,8 +105,8 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_0) {
 
     // Notes
     // Pattern.h: first 4 bits of column (C0-C3) are set to 0 (for reads and writes) // TODO correct???
-    EXPECT_EQ(stats.commandBus.ones, 281);
-    EXPECT_EQ(stats.commandBus.zeroes, 55);
+    EXPECT_EQ(stats.commandBus.ones, 282);
+    EXPECT_EQ(stats.commandBus.zeroes, 54);
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 39);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 39);
 
@@ -146,8 +146,8 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_1) {
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 0);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 0);
 
-    EXPECT_EQ(stats.commandBus.ones, 550);
-    EXPECT_EQ(stats.commandBus.zeroes, 38);
+    EXPECT_EQ(stats.commandBus.ones, 551);
+    EXPECT_EQ(stats.commandBus.zeroes, 37);
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 28);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 28);
 }
@@ -167,8 +167,8 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_2) {
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 17); // 16 (first burst) + 1 (data ones to zeroes in bursts)
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 17); // 1 (data ones to zeroes in bursts) + 16 (end last burst)
 
-    EXPECT_EQ(stats.commandBus.ones, 723);
-    EXPECT_EQ(stats.commandBus.zeroes, 47);
+    EXPECT_EQ(stats.commandBus.ones, 724);
+    EXPECT_EQ(stats.commandBus.zeroes, 46);
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 33);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 33);
 }
