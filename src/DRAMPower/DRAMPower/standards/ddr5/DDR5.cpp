@@ -502,6 +502,13 @@ namespace DRAMPower {
         stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);
         stats.writeDQSStats = 2 * writeDQS.get_stats_at(timestamp);
 
+        // x16 devices have two dqs pairs
+        if(memSpec.bitWidth == 16)
+        {
+            stats.readDQSStats *= 2;
+            stats.writeDQSStats *= 2;
+        }
+
         return stats;
     }
 

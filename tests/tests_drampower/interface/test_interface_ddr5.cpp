@@ -115,7 +115,8 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_0) {
     int number_of_cycles = (SZ_BITS(wr_data) / 16) / spec.dataRate;
 
     // In this example read data and write data are the same size, so stats should be the same
-    int DQS_ones = number_of_cycles * spec.dataRate;
+    uint_fast8_t dqspairs = 2 ? spec.bitWidth == 16 : 1;
+    int DQS_ones = dqspairs * number_of_cycles * spec.dataRate * 2; // Differential_Pairs * cycles * datarate * 2(Differential Pair)
     int DQS_zeros = DQS_ones;
     int DQS_zeros_to_ones = DQS_ones;
     int DQS_ones_to_zeros = DQS_zeros;
