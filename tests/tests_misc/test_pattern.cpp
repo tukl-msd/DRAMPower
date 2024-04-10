@@ -48,7 +48,7 @@ TEST_F(PatternTest, Test_Override_Low)
 
 	// Bank, Bank Group, Rank, Row, Column
 	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, 0);
-	ASSERT_EQ(result, 2189443081);
+	ASSERT_EQ(result, 2189443209);
 };
 
 TEST_F(PatternTest, Test_Override_High)
@@ -66,7 +66,7 @@ TEST_F(PatternTest, Test_Override_High)
 
 	// Bank, Bank Group, Rank, Row, Column
 	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, 0);
-	ASSERT_EQ(result, 3196083977);
+	ASSERT_EQ(result, 3196084105);
 };
 
 TEST_F(PatternTest, Test_Override_Last)
@@ -87,7 +87,7 @@ TEST_F(PatternTest, Test_Override_Last)
 
 	// Bank, Bank Group, Rank, Row, Column
 	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, init_pattern);
-	ASSERT_EQ(result, 2860534281);
+	ASSERT_EQ(result, 2860534409);
 };
 
 TEST_F(PatternTest, Test_Override_2_Patterns)
@@ -111,7 +111,7 @@ TEST_F(PatternTest, Test_Override_2_Patterns)
 
 	// Bank, Bank Group, Rank, Row, Column
 	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, init_pattern);
-	ASSERT_EQ(result, 2860539657);
+	ASSERT_EQ(result, 2860539785);
 	result = encoder.encode(Command{0, CmdType::ACT, { 7,3,3,7,17} }, pattern, result);
-	ASSERT_EQ(result, 2866863887);
+	ASSERT_EQ(result, 2866864015);
 };
