@@ -17,7 +17,12 @@ namespace DRAMPower {
             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
         },
         readDQS(memSpec.dataRate, true), writeDQS(memSpec.dataRate, true),
-        dram_base<CmdType>(PatternEncoderOverrides{}) 
+        dram_base<CmdType>(PatternEncoderOverrides{
+            {pattern_descriptor::C0, PatternEncoderBitSpec::L},
+            {pattern_descriptor::C1, PatternEncoderBitSpec::L},
+            {pattern_descriptor::C2, PatternEncoderBitSpec::L},
+            {pattern_descriptor::C3, PatternEncoderBitSpec::L},
+        }) 
     {
         this->registerPatterns();
 

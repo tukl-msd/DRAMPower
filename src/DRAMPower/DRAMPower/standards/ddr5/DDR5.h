@@ -36,6 +36,7 @@ class DDR5 : public dram_base<CmdType> {
     timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
 
     void handle_interface(const Command& cmd) override;
+    void handleInterfaceOverrides(size_t length, bool read);
 	uint64_t getInitEncoderPattern() override;
 
     // Commands
@@ -109,9 +110,7 @@ class DDR5 : public dram_base<CmdType> {
    private:
     util::Clock clock;
     util::Clock readDQS;
-    util::Clock readDQS_t_;
     util::Clock writeDQS;
-    util::Clock writeDQS_t_;
 };
 
 }  // namespace DRAMPower
