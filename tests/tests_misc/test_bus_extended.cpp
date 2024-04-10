@@ -207,6 +207,54 @@ protected:
 	}
 };
 
+TEST_F(ExtendedBusStatsTest, Stats_Pattern_Datarate_1)
+{
+	uint_fast8_t datarate = 2;
+	timestamp_t timestamp = 3;
+	util::Bus bus(buswidth, datarate, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	std::size_t custom_ones = burst_custom.count();
+	std::size_t custom_zeroes = buswidth - custom_ones;
+	uint8_t burst_ones_data[bus_array_size] = { 0xFF };
+	uint8_t burst_zeroes_data[bus_array_size] = { 0 };
+
+	for(auto i = 0; i < bus_array_size; i++) {
+		burst_ones_data[i] = 0xFF;
+	}
+
+	ASSERT_EQ(buswidth, 128);
+
+	auto stats = bus.get_stats(timestamp); // 3 cycles with double data rate
+	ASSERT_EQ(stats.ones, 0);
+	ASSERT_EQ(stats.zeroes, buswidth * timestamp * datarate);
+	ASSERT_EQ(stats.ones_to_zeroes, 0);
+	ASSERT_EQ(stats.zeroes_to_ones, 0);
+	ASSERT_EQ(stats.bit_changes, 0);
+}
+
+TEST_F(ExtendedBusStatsTest, Stats_Pattern_Datarate_2)
+{
+	uint_fast8_t datarate = 13;
+	timestamp_t timestamp = 47;
+	util::Bus bus(buswidth, datarate, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	std::size_t custom_ones = burst_custom.count();
+	std::size_t custom_zeroes = buswidth - custom_ones;
+	uint8_t burst_ones_data[bus_array_size] = { 0xFF };
+	uint8_t burst_zeroes_data[bus_array_size] = { 0 };
+
+	for(auto i = 0; i < bus_array_size; i++) {
+		burst_ones_data[i] = 0xFF;
+	}
+
+	ASSERT_EQ(buswidth, 128);
+
+	auto stats = bus.get_stats(timestamp); // 3 cycles with double data rate
+	ASSERT_EQ(stats.ones, 0);
+	ASSERT_EQ(stats.zeroes, buswidth * timestamp * datarate);
+	ASSERT_EQ(stats.ones_to_zeroes, 0);
+	ASSERT_EQ(stats.zeroes_to_ones, 0);
+	ASSERT_EQ(stats.bit_changes, 0);
+}
+
 TEST_F(ExtendedBusStatsTest, Stats_Pattern_1)
 {
 	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::L, burst_custom);
