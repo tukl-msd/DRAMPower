@@ -208,7 +208,6 @@ namespace DRAMPower {
         {
             return;
         }
-
         // Handle data bus and dqs lines
         switch (cmd.type) {
             case CmdType::RD:
