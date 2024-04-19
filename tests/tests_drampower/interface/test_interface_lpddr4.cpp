@@ -38,22 +38,23 @@ protected:
 	std::vector<Command> testPattern = {
 		// Timestamp,   Cmd,  { Bank, BG, Rank, Row, Co-lumn}
 			{  0, CmdType::ACT, { 1, 0, 0, 2 } },
-			{  4, CmdType::WR,  { 1, 0, 0, 0, 4 }, wr_data, sizeof(wr_data) * 8 },
-			{ 10, CmdType::RD,  { 1, 0, 0, 0, 4 }, rd_data, sizeof(rd_data) * 8 },
-			{ 17, CmdType::PRE, { 1, 0, 0, 2 } },
-			{ 24,  CmdType::END_OF_SIMULATION },
+			{  5, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, sizeof(wr_data) * 8 },
+			{ 14, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, sizeof(rd_data) * 8 },
+			{ 23, CmdType::PRE, { 1, 0, 0, 2 } },
+			{ 26,  CmdType::END_OF_SIMULATION },
 	};
 
 	// Test pattern #2
 	std::vector<Command> testPattern_2 = {
 		// Timestamp,   Cmd,  { Bank, BG, Rank, Row, Co-lumn}
-			{  0, CmdType::WR,  { 1, 0, 0, 0, 4 }, wr_data, sizeof(wr_data) * 8 },
-			{ 10, CmdType::RD,  { 1, 0, 0, 0, 4 }, rd_data, sizeof(rd_data) * 8 },
-			{ 20, CmdType::WR,  { 1, 0, 0, 0, 4 }, wr_data, sizeof(wr_data) * 8 },
-			{ 28, CmdType::WR,  { 1, 0, 0, 0, 4 }, wr_data, sizeof(wr_data) * 8 },
-			{ 38, CmdType::RD,  { 1, 0, 0, 0, 4 }, rd_data, sizeof(rd_data) * 8 },
-			{ 50, CmdType::WR,  { 1, 0, 0, 0, 4 }, wr_data, sizeof(wr_data) * 8 },
-			{ 58, CmdType::RD,  { 1, 0, 0, 0, 4 }, rd_data, sizeof(rd_data) * 8 },
+			{  0, CmdType::ACT, { 1, 0, 0, 2 } },
+			{  5, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, sizeof(wr_data) * 8 },
+			{ 14, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, sizeof(rd_data) * 8 },
+			{ 23, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, sizeof(wr_data) * 8 },
+			{ 31, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, sizeof(wr_data) * 8 },
+			{ 40, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, sizeof(rd_data) * 8 },
+			{ 49, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, sizeof(wr_data) * 8 },
+			{ 57, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, sizeof(rd_data) * 8 },
 			{ 70,  CmdType::END_OF_SIMULATION },
 	};
 
@@ -131,9 +132,6 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestStats)
 	Rank & rank_1 = ddr->ranks[0];
 
 	for (const auto& command : testPattern) {
-		auto stats = ddr->getWindowStats(command.timestamp);
-		int j = 2;
-
 		ddr->doCommand(command);
 		ddr->handleInterfaceCommand(command);
 	};
@@ -141,20 +139,20 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestStats)
 	auto stats = ddr->getStats();
 
 	ASSERT_EQ(stats.commandBus.ones, 15);
-	ASSERT_EQ(stats.commandBus.zeroes, 129);
+	ASSERT_EQ(stats.commandBus.zeroes, 141);
 	ASSERT_EQ(stats.commandBus.ones_to_zeroes, 14);
 	ASSERT_EQ(stats.commandBus.zeroes_to_ones, 14);
 
 	// Verify read bus stats
 	ASSERT_EQ(stats.readBus.ones, 1);	// 1
-	ASSERT_EQ(stats.readBus.zeroes, 767);  // 2 (datarate) * 24 (time) * 16 (bus width) - 1 (ones) 
+	ASSERT_EQ(stats.readBus.zeroes, 831);  // 2 (datarate) * 26 (time) * 16 (bus width) - 1 (ones) 
 	ASSERT_EQ(stats.readBus.ones_to_zeroes, 1);
 	ASSERT_EQ(stats.readBus.zeroes_to_ones, 1);
 	ASSERT_EQ(stats.readBus.bit_changes, 2);
 
 	// Verify write bus stats
 	ASSERT_EQ(stats.writeBus.ones, 16);	   // 2 (bursts) * 8 (ones per burst)
-	ASSERT_EQ(stats.writeBus.zeroes, 752); // 2 (datarate) * 24 (time) * 16 (bus width) - 16 (ones) 
+	ASSERT_EQ(stats.writeBus.zeroes, 816); // 2 (datarate) * 26 (time) * 16 (bus width) - 16 (ones) 
 	ASSERT_EQ(stats.writeBus.ones_to_zeroes, 16);
 	ASSERT_EQ(stats.writeBus.zeroes_to_ones, 16);
 	ASSERT_EQ(stats.writeBus.bit_changes, 32);
@@ -165,14 +163,13 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestPower)
 	Rank& rank_1 = ddr->ranks[0];
 
 	for (const auto& command : testPattern) {
-		auto stats = ddr->getWindowStats(command.timestamp);
-		int j = 2;
-
 		ddr->doCommand(command);
 		ddr->handleInterfaceCommand(command);
 	};
 
 	auto stats = ddr->getStats();
+
+	// TODO add tests
 
 	InterfacePowerCalculation_LPPDR4 interface_calc(this->ddr->memSpec);
 
@@ -193,11 +190,11 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestDQS)
 
 	auto stats = ddr->getStats();
 
-	ASSERT_EQ(stats.readDQSStats.ones, 24*2);
-	ASSERT_EQ(stats.readDQSStats.zeroes, 24*2);
+	ASSERT_EQ(stats.readDQSStats.ones, 16*3); // 16 (burst length) * 3 (reads)
+	ASSERT_EQ(stats.readDQSStats.zeroes, 16*3);
 
-	ASSERT_EQ(stats.writeDQSStats.ones, 32*2);
-	ASSERT_EQ(stats.writeDQSStats.zeroes, 32*2);
+	ASSERT_EQ(stats.writeDQSStats.ones, 16*4); // 16 (burst length) * 4 (writes)
+	ASSERT_EQ(stats.writeDQSStats.zeroes, 16*4);
 }
 
 
@@ -245,61 +242,100 @@ TEST_F(DramPowerTest_Interface_LPDDR4, Test_Detailed)
 
 	// Cycle 0 to 5 (5 delta)
 	window = iterate_to_timestamp(5);
-	ASSERT_EQ(window.commandBus.ones, 5);
-	ASSERT_EQ(window.commandBus.zeroes, 25);
+	ASSERT_EQ(window.commandBus.ones, 3);
+	ASSERT_EQ(window.commandBus.zeroes, 27);
 
 	// Cycle 0 to 6 (6 delta)
 	window = iterate_to_timestamp(6);
-	ASSERT_EQ(window.commandBus.ones, 6);
-	ASSERT_EQ(window.commandBus.zeroes, 30);
+	ASSERT_EQ(window.commandBus.ones, 4);
+	ASSERT_EQ(window.commandBus.zeroes, 32);
+
+	// Cycle 0 to 7 (7 delta)
+	window = iterate_to_timestamp(7);
+	ASSERT_EQ(window.commandBus.ones, 5);
+	ASSERT_EQ(window.commandBus.zeroes, 37);
+
+	// Cycle 0 to 8 (8 delta)
+	window = iterate_to_timestamp(8);
+	ASSERT_EQ(window.commandBus.ones, 7);
+	ASSERT_EQ(window.commandBus.zeroes, 41);
+
+	// Cycle 0 to 9 (9 delta)
+	window = iterate_to_timestamp(9);
+	ASSERT_EQ(window.commandBus.ones, 8);
+	ASSERT_EQ(window.commandBus.zeroes, 46);
 
 	// Cycle 0 to 10 (10 delta)
 	window = iterate_to_timestamp(10);
 	ASSERT_EQ(window.commandBus.ones, 8);
 	ASSERT_EQ(window.commandBus.zeroes, 52);
 
-	// Cycle 0 to 11 (11 delta)
-	window = iterate_to_timestamp(11);
-	ASSERT_EQ(window.commandBus.ones, 10);
-	ASSERT_EQ(window.commandBus.zeroes, 56);
-
-	// Cycle 0 to 12 (12 delta)
-	window = iterate_to_timestamp(12);
-	ASSERT_EQ(window.commandBus.ones, 11);
-	ASSERT_EQ(window.commandBus.zeroes, 61);
-
-	// Cycle 0 to 13 (13 delta)
-	window = iterate_to_timestamp(13);
-	ASSERT_EQ(window.commandBus.ones, 13);
-	ASSERT_EQ(window.commandBus.zeroes, 65);
-
 	// Cycle 0 to 14 (14 delta)
 	window = iterate_to_timestamp(14);
-	ASSERT_EQ(window.commandBus.ones, 13);
-	ASSERT_EQ(window.commandBus.zeroes, 71);
+	ASSERT_EQ(window.commandBus.ones, 8);
+	ASSERT_EQ(window.commandBus.zeroes, 76);
+
+	// Cycle 0 to 15 (15 delta)
+	window = iterate_to_timestamp(15);
+	ASSERT_EQ(window.commandBus.ones, 9);
+	ASSERT_EQ(window.commandBus.zeroes, 81);
+
+	// Cycle 0 to 16 (16 delta)
+	window = iterate_to_timestamp(16);
+	ASSERT_EQ(window.commandBus.ones, 10);
+	ASSERT_EQ(window.commandBus.zeroes, 86);
 
 	// Cycle 0 to 17 (17 delta)
 	window = iterate_to_timestamp(17);
-	ASSERT_EQ(window.commandBus.ones, 13);
-	ASSERT_EQ(window.commandBus.zeroes, 89);
+	ASSERT_EQ(window.commandBus.ones, 12);
+	ASSERT_EQ(window.commandBus.zeroes, 90);
 
 	// Cycle 0 to 18 (18 delta)
 	window = iterate_to_timestamp(18);
-	ASSERT_EQ(window.commandBus.ones, 14);
-	ASSERT_EQ(window.commandBus.zeroes, 94);
+	ASSERT_EQ(window.commandBus.ones, 13);
+	ASSERT_EQ(window.commandBus.zeroes, 95);
 
 	// Cycle 0 to 19 (19 delta)
 	window = iterate_to_timestamp(19);
-	ASSERT_EQ(window.commandBus.ones, 15);
-	ASSERT_EQ(window.commandBus.zeroes, 99);
+	ASSERT_EQ(window.commandBus.ones, 13);
+	ASSERT_EQ(window.commandBus.zeroes, 101);
 
 	// Cycle 0 to 23 (23 delta)
 	window = iterate_to_timestamp(23);
-	ASSERT_EQ(window.commandBus.ones, 15);
-	ASSERT_EQ(window.commandBus.zeroes, 123);
+	ASSERT_EQ(window.commandBus.ones, 13);
+	ASSERT_EQ(window.commandBus.zeroes, 125);
 
 	// Cycle 0 to 24 (24 delta)
 	window = iterate_to_timestamp(24);
+	ASSERT_EQ(window.commandBus.ones, 14);
+	ASSERT_EQ(window.commandBus.zeroes, 130);
+
+	
+	window = iterate_to_timestamp(25);
 	ASSERT_EQ(window.commandBus.ones, 15);
-	ASSERT_EQ(window.commandBus.zeroes, 129);
+	ASSERT_EQ(window.commandBus.zeroes, 135);
+
+	window = iterate_to_timestamp(26);
+	ASSERT_EQ(window.commandBus.ones, 15);
+	ASSERT_EQ(window.commandBus.zeroes, 141);
+
+	window = iterate_to_timestamp(26);
+	ASSERT_EQ(window.commandBus.ones, 15);
+	ASSERT_EQ(window.commandBus.zeroes, 141);
+
+	window = iterate_to_timestamp(26);
+	ASSERT_EQ(window.commandBus.ones, 15);
+	ASSERT_EQ(window.commandBus.zeroes, 141);
+
+	// EOS
+	window = iterate_to_timestamp(26);
+	ASSERT_EQ(window.commandBus.ones, 15);
+	ASSERT_EQ(window.commandBus.zeroes, 141);
+
+	// After EOS
+	for(auto i = 1; i <= 100; i++) {
+		window = iterate_to_timestamp(26+i);
+		ASSERT_EQ(window.commandBus.ones, 15);
+		ASSERT_EQ(window.commandBus.zeroes, 141+i*6);
+	}
 }

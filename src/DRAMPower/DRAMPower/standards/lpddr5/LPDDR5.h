@@ -24,6 +24,8 @@ class LPDDR5 : public dram_base<CmdType> {
     LPDDR5(const MemSpecLPDDR5& memSpec);
     virtual ~LPDDR5() = default;
 
+    void handleInterfaceOverrides(size_t length, bool read);
+
     // Commands
     void handle_interface(const Command& cmd) override;
     void handleAct(Rank& rank, Bank& bank, timestamp_t timestamp);

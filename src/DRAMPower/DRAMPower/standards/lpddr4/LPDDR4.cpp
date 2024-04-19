@@ -20,8 +20,6 @@ namespace DRAMPower {
         dram_base<CmdType>(PatternEncoderOverrides{
             {pattern_descriptor::C0, PatternEncoderBitSpec::L},
             {pattern_descriptor::C1, PatternEncoderBitSpec::L},
-            {pattern_descriptor::C2, PatternEncoderBitSpec::L},
-            {pattern_descriptor::C3, PatternEncoderBitSpec::L},
         }) 
     {
         this->registerPatterns();
@@ -84,45 +82,89 @@ namespace DRAMPower {
                                                });
         this->registerPattern<CmdType::WR>({
                                                    L, L, H, L, L, BL,
-                                                   BA0, BA1, BA2, V, C9, AP,
+                                                   BA0, BA1, BA2, V, C9, L,
                                                    L, H, L, L, H, C8,
                                                    C2, C3, C4, C5, C6, C7,
                                            });
         this->registerPattern<CmdType::RD>({
                                                    L, H, L, L, L, BL,
-                                                   BA0, BA1, BA2, V, C9, AP,
+                                                   BA0, BA1, BA2, V, C9, L,
+                                                   L, H, L, L, H, C8,
+                                                   C2, C3, C4, C5, C6, C7
+                                           });
+        this->registerPattern<CmdType::WRA>({
+                                                   L, L, H, L, L, BL,
+                                                   BA0, BA1, BA2, V, C9, H,
+                                                   L, H, L, L, H, C8,
+                                                   C2, C3, C4, C5, C6, C7,
+                                           });
+        this->registerPattern<CmdType::RDA>({
+                                                   L, H, L, L, L, BL,
+                                                   BA0, BA1, BA2, V, C9, H,
                                                    L, H, L, L, H, C8,
                                                    C2, C3, C4, C5, C6, C7
                                            });
     };
 
-    void LPDDR4::handle_interface(const Command &cmd) {
-        auto pattern = this->getCommandPattern(cmd);
-        auto length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        this->commandBus.load(cmd.timestamp, pattern, length);
+    void LPDDR4::handleInterfaceOverrides(size_t length, bool read)
+    {
+        // Set command bus pattern overrides
+        bool def = false;
+        switch(length) {
+            case 32:
+                this->encoder.settings.updateSettings({
+                    {pattern_descriptor::C4, PatternEncoderBitSpec::L},
+                    {pattern_descriptor::C3, PatternEncoderBitSpec::L},
+                    {pattern_descriptor::C2, PatternEncoderBitSpec::L},
+                    {pattern_descriptor::BL, PatternEncoderBitSpec::H},
+                });
+                break;
+            default:
+                def = true;
+            case 16:
+                this->encoder.settings.removeSetting(pattern_descriptor::C4);
+                this->encoder.settings.updateSettings({
+                    {pattern_descriptor::C3, PatternEncoderBitSpec::L},
+                    {pattern_descriptor::C2, PatternEncoderBitSpec::L},
+                    {pattern_descriptor::BL, PatternEncoderBitSpec::L},
+                });
+                if(def)
+                {
+                    std::cout << ("[WARN] Invalid burst length") << std::endl;
+                    assert(false);
+                }
+                break;
+        }
+    }
 
+    void LPDDR4::handle_interface(const Command &cmd) {
+        size_t length = 0;
+
+        // Handle data bus and dqs lines
         switch (cmd.type) {
             case CmdType::RD:
-            case CmdType::RDA: {
-                auto length = cmd.sz_bits / readBus.get_width();
+            case CmdType::RDA:
+                length = cmd.sz_bits / readBus.get_width();
                 this->readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-
                 readDQS.start(cmd.timestamp);
                 readDQS.stop(cmd.timestamp + length / this->memSpec.dataRate);
-            }
+                this->handleInterfaceOverrides(length, true);
                 break;
             case CmdType::WR:
-            case CmdType::WRA: {
-                auto length = cmd.sz_bits / writeBus.get_width();
+            case CmdType::WRA:
+                length = cmd.sz_bits / writeBus.get_width();
                 this->writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-
                 writeDQS.start(cmd.timestamp);
                 writeDQS.stop(cmd.timestamp + length / this->memSpec.dataRate);
-            }
+                this->handleInterfaceOverrides(length, false);
                 break;
-        };
+        }
 
-    };
+        // Command bus
+        auto pattern = this->getCommandPattern(cmd);
+        length = this->getPattern(cmd.type).size() / commandBus.get_width();
+        this->commandBus.load(cmd.timestamp, pattern, length);
+    }
 
     void LPDDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         bank.counter.act++;

@@ -94,6 +94,7 @@ public:
 public:
 	uint64_t getInitEncoderPattern() override;
 	void handle_interface(const Command& cmd) override;
+	void handleInterfaceOverrides(size_t length, bool read);
 
     void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handlePre(Rank & rank, Bank & bank, timestamp_t timestamp);

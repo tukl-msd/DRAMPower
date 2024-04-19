@@ -19,6 +19,8 @@ using DRAMPower::SimulationStats;
 
 #define SZ_BITS(x) sizeof(x)*8
 
+using namespace DRAMPower;
+
 static constexpr uint8_t wr_data[] = {
     0, 0, 0, 0,  0, 0, 0, 255,  0, 0, 0, 0,  0, 0, 0, 0,
     0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 255,
@@ -32,37 +34,36 @@ static constexpr uint8_t rd_data[] = {
 class LPDDR5_WindowStats_Tests : public ::testing::Test {
    public:
     LPDDR5_WindowStats_Tests() {
+		// Timestamp,   Cmd,  { Bank, BG, Rank, Row, Co-lumn}
         test_patterns.push_back({
             {0, CmdType::ACT, {1, 0, 0, 2}},
-            {5, CmdType::WR, {1, 0, 0, 0, 4}, wr_data, SZ_BITS(wr_data)},
-            {10, CmdType::RD, {1, 0, 0, 0, 4}, rd_data, SZ_BITS(rd_data)},
-            {17, CmdType::PRE, {1, 0, 0, 2}},
+            {3, CmdType::WR, {1, 0, 0, 0, 8}, wr_data, SZ_BITS(wr_data)},
+            {12, CmdType::RD, {1, 0, 0, 0, 8}, rd_data, SZ_BITS(rd_data)},
+            {21, CmdType::PRE, {1, 0, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 
         test_patterns.push_back({
             {0, CmdType::ACT, {2, 0, 0, 372}},
-            {5, CmdType::PRE, {2, 0, 0, 372}},
-            {10, CmdType::WRA, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
-            {15, CmdType::SREFEN},
-            {25, CmdType::END_OF_SIMULATION}
+            {3, CmdType::WRA, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
+            {18, CmdType::SREFEN},
+            {45, CmdType::SREFEX},
+            {48, CmdType::END_OF_SIMULATION}
         });
 
         test_patterns.push_back({
             {0, CmdType::ACT, {2, 0, 0, 372}},
-            {5, CmdType::PRE, {2, 0, 0, 372}},
-            {10, CmdType::WRA, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
-            {15, CmdType::RD, {2, 0, 0, 372, 27}, rd_data, SZ_BITS(rd_data)},
-            {20, CmdType::SREFEN},
-            {30, CmdType::END_OF_SIMULATION}  // RD needs time to finish fully
+            {3, CmdType::WR, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
+            {12, CmdType::RDA, {2, 0, 0, 372, 27}, rd_data, SZ_BITS(rd_data)},
+            {24, CmdType::END_OF_SIMULATION}  // RD needs time to finish fully
         });
 
         // With BG != 0 for testing BG mode
         test_patterns.push_back({
             {0, CmdType::ACT, {1, 1, 0, 2}},
-            {5, CmdType::WR, {1, 1, 0, 0, 4}, wr_data, SZ_BITS(wr_data)},
-            {10, CmdType::RD, {1, 1, 0, 0, 4}, rd_data, SZ_BITS(rd_data)},
-            {17, CmdType::PRE, {1, 1, 0, 2}},
+            {3, CmdType::WR, {1, 1, 0, 0, 19}, wr_data, SZ_BITS(wr_data)},
+            {12, CmdType::RD, {1, 1, 0, 0, 19}, rd_data, SZ_BITS(rd_data)},
+            {21, CmdType::PRE, {1, 1, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 
@@ -100,8 +101,25 @@ class LPDDR5_WindowStats_Tests : public ::testing::Test {
 // Write and Read bus are trivial
 // Command bus needs to be calculated from command patterns
 TEST_F(LPDDR5_WindowStats_Tests, Pattern_0) {
-    runCommands(test_patterns[0]);
+    // auto test_pattern = test_patterns[0];
+    
+    // auto iterate_to_timestamp = [this, command = test_pattern.begin(), end = test_pattern.end()](timestamp_t timestamp) mutable {
+	// 	while (command != end && command->timestamp <= timestamp) {
+	// 		ddr->doCommand(*command);
+	// 		ddr->handleInterfaceCommand(*command);
+	// 		++command;
+	// 	}
 
+	// 	return this->ddr->getWindowStats(timestamp);
+	// };
+    // for(auto i = 0; i < 26; i++)
+    // {
+    //     SimulationStats window = iterate_to_timestamp(i);
+    //     std::cout << "Timestamp: " << i << std::endl;
+    // }
+
+    // iterate_to_timestamp(test_patterns[0].back().timestamp);
+    runCommands(test_patterns[0]);
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(stats.writeBus.ones, 16);
@@ -114,14 +132,10 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_0) {
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 
-    // Notes
-    // Pattern.h: first 4 bits of column (C0-C3) are set to 0 (for reads and writes)
-    //            "V" bits are 0
-    //            CID and Rank doesn't matter
-    EXPECT_EQ(stats.commandBus.ones, 18);  // taken by applying the parameters to the command patterns and counting
-    EXPECT_EQ(stats.commandBus.zeroes, 150);  // 7 (bus width) * 24 (time) - 18 (ones)
-    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 14);  // Since interval between commands is > 2 all commands are interleaved with idle states (all 0's)
-    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 14);  // so the only possibility of a bit going staying 1 (1->1) is if it stays 1 within the command pattern itself
+    EXPECT_EQ(stats.commandBus.ones, 19);
+    EXPECT_EQ(stats.commandBus.zeroes, 317);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 15);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 15);
 
     // For read the number of clock cycles the strobes stay on is
     // currently ("size in bits" / bus_size) / bus_rate
@@ -136,27 +150,45 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_0) {
     EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros);
     EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
     EXPECT_EQ(stats.readDQSStats.zeroes_to_ones, DQS_ones_to_zeros);
+
+    // TODO WCK
 }
 
 TEST_F(LPDDR5_WindowStats_Tests, Pattern_1) {
-    runCommands(test_patterns[1]);
+    // auto test_pattern = test_patterns[1];
+    // auto iterate_to_timestamp = [this, command = test_pattern.begin(), end = test_pattern.end()](timestamp_t timestamp) mutable {
+	// 	while (command != end && command->timestamp <= timestamp) {
+	// 		ddr->doCommand(*command);
+	// 		ddr->handleInterfaceCommand(*command);
+	// 		++command;
+	// 	}
 
+	// 	return this->ddr->getWindowStats(timestamp);
+	// };
+    // for(auto i = 0; i < 50; i++)
+    // {
+    //     SimulationStats window = iterate_to_timestamp(i);
+    //     std::cout << "Timestamp: " << i << std::endl;
+    // }
+
+    // iterate_to_timestamp(test_patterns[1].back().timestamp);
+    runCommands(test_patterns[1]);
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 784); // 2 (datarate) * 25 (time) * 16 (bus width) - 16 (ones)
+    EXPECT_EQ(stats.writeBus.zeroes, 1520); // 2 (datarate) * 48 (time) * 16 (bus width) - 16 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);
 
     EXPECT_EQ(stats.readBus.ones, 0);
-    EXPECT_EQ(stats.readBus.zeroes, 800); // 2 (datarate) * 25 (time) * 16 (bus width)
+    EXPECT_EQ(stats.readBus.zeroes, 1536); // 2 (datarate) * 48 (time) * 16 (bus width)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 0);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 0);
 
     EXPECT_EQ(stats.commandBus.ones, 24);
-    EXPECT_EQ(stats.commandBus.zeroes, 151);
-    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 20);
-    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 20);
+    EXPECT_EQ(stats.commandBus.zeroes, 648);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 19);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 19);
 
     EXPECT_EQ(stats.readDQSStats.ones, 0);
     EXPECT_EQ(stats.readDQSStats.zeroes, 0);
@@ -165,24 +197,42 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_1) {
 }
 
 TEST_F(LPDDR5_WindowStats_Tests, Pattern_2) {
+    // auto test_pattern = test_patterns[2];
+    
+    // auto iterate_to_timestamp = [this, command = test_pattern.begin(), end = test_pattern.end()](timestamp_t timestamp) mutable {
+	// 	while (command != end && command->timestamp <= timestamp) {
+	// 		ddr->doCommand(*command);
+	// 		ddr->handleInterfaceCommand(*command);
+	// 		++command;
+	// 	}
+
+	// 	return this->ddr->getWindowStats(timestamp);
+	// };
+    // for(auto i = 0; i < 30; i++)
+    // {
+    //     SimulationStats window = iterate_to_timestamp(i);
+    //     std::cout << "Timestamp: " << i << std::endl;
+    // }
+
+    // iterate_to_timestamp(test_patterns[2].back().timestamp);
     runCommands(test_patterns[2]);
 
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 944); // 2 (datarate) * 30 (time) * 16 (bus width) - 16 (ones)
+    EXPECT_EQ(stats.writeBus.zeroes, 752); // 2 (datarate) * 24 (time) * 16 (bus width) - 16 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);
 
     EXPECT_EQ(stats.readBus.ones, 1);
-    EXPECT_EQ(stats.readBus.zeroes, 959); // 2 (datarate) * 30 (time) * 16 (bus width) - 1 (ones)
+    EXPECT_EQ(stats.readBus.zeroes, 767); // 2 (datarate) * 24 (time) * 16 (bus width) - 1 (ones)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 
-    EXPECT_EQ(stats.commandBus.ones, 28);
-    EXPECT_EQ(stats.commandBus.zeroes, 182);
-    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 23);
-    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 23);
+    EXPECT_EQ(stats.commandBus.ones, 25);
+    EXPECT_EQ(stats.commandBus.zeroes, 311);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 19);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 19);
 }
 
 // Write clock tests
@@ -224,6 +274,24 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_3_BG_Mode) {
     spec.bank_arch = MemSpecLPDDR5::MBG;
     ddr = std::make_unique<LPDDR5>(spec);
 
+    // auto test_pattern = test_patterns[3];
+    
+    // auto iterate_to_timestamp = [this, command = test_pattern.begin(), end = test_pattern.end()](timestamp_t timestamp) mutable {
+	// 	while (command != end && command->timestamp <= timestamp) {
+	// 		ddr->doCommand(*command);
+	// 		ddr->handleInterfaceCommand(*command);
+	// 		++command;
+	// 	}
+
+	// 	return this->ddr->getWindowStats(timestamp);
+	// };
+    // for(auto i = 0; i < 30; i++)
+    // {
+    //     SimulationStats window = iterate_to_timestamp(i);
+    //     std::cout << "Timestamp: " << i << std::endl;
+    // }
+
+    // iterate_to_timestamp(test_patterns[2].back().timestamp);
     runCommands(test_patterns[3]);
 
     SimulationStats stats = ddr->getStats();
@@ -238,10 +306,10 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_3_BG_Mode) {
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 
-    EXPECT_EQ(stats.commandBus.ones, 22);
-    EXPECT_EQ(stats.commandBus.zeroes, 146);
-    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 16);
-    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 16);
+    EXPECT_EQ(stats.commandBus.ones, 27);
+    EXPECT_EQ(stats.commandBus.zeroes, 309);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 21);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 21);
 
     int number_of_cycles = (SZ_BITS(wr_data) / 16) / spec.dataRate;
 

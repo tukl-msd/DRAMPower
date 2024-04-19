@@ -125,10 +125,10 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_0) {
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 8);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 8);
 
-    EXPECT_EQ(stats.commandBus.ones, 588);
-    EXPECT_EQ(stats.commandBus.zeroes, 60);
-    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 60);
-    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 60);
+    EXPECT_EQ(stats.commandBus.ones, 591);
+    EXPECT_EQ(stats.commandBus.zeroes, 57);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 57);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 57);
 
     // DQs bus
     // For write and read the number of clock cycles the strobes stay on is
@@ -189,10 +189,10 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_1) {
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 0);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 0);
 
-    EXPECT_EQ(stats.commandBus.ones, 587);
-    EXPECT_EQ(stats.commandBus.zeroes, 61);
-    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 61);
-    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 61);
+    EXPECT_EQ(stats.commandBus.ones, 593);
+    EXPECT_EQ(stats.commandBus.zeroes, 55);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 55);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 55);
 
     // DQs bus
     // For write and read the number of clock cycles the strobes stay on is
@@ -304,10 +304,10 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_3) {
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 0);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 0);
 
-    EXPECT_EQ(stats.commandBus.ones, 587);
-    EXPECT_EQ(stats.commandBus.zeroes, 61);
-    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 61);
-    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 61);
+    EXPECT_EQ(stats.commandBus.ones, 593);
+    EXPECT_EQ(stats.commandBus.zeroes, 55);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 55);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 55);
 
     // DQs bus
     // For write and read the number of clock cycles the strobes stay on is

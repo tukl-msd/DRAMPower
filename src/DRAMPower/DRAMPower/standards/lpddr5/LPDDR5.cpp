@@ -11,7 +11,7 @@ namespace DRAMPower {
     LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
         : memSpec(memSpec),
         ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks }),
-        commandBus{7, 1,
+        commandBus{7, 2, // modelled with datarate 2
             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
         readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
@@ -19,12 +19,7 @@ namespace DRAMPower {
             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
         readDQS(memSpec.dataRate, true),
         wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
-        dram_base<CmdType>(PatternEncoderOverrides{
-            {pattern_descriptor::C0, PatternEncoderBitSpec::L},
-            {pattern_descriptor::C1, PatternEncoderBitSpec::L},
-            {pattern_descriptor::C2, PatternEncoderBitSpec::L},
-            {pattern_descriptor::C3, PatternEncoderBitSpec::L},
-        })
+        dram_base<CmdType>(PatternEncoderOverrides{})
     {
         this->registerPatterns();
 
@@ -60,10 +55,14 @@ namespace DRAMPower {
         // Here we consider ACT = ACT-1 + ACT-2, not considering interleaving
         commandPattern_t act_pattern = {
             // ACT-1
+            // R1
             H, H, H, R14, R15, R16, R17,
+            // F1
             BA0, BA1, BA2, BA3, R11, R12, R13,
             // ACT-2
+            // R2
             H, H, L, R7, R8, R9, R10,
+            // F2
             R0, R1, R2, R3, R4, R5, R6
         };
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
@@ -75,7 +74,9 @@ namespace DRAMPower {
         this->registerPattern<CmdType::ACT>(act_pattern);
 
         commandPattern_t pre_pattern = {
+            // R1
             L, L, L, H, H, H, H,
+            // F1
             BA0, BA1, BA2, BA3, V, V, L
         };
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
@@ -87,7 +88,9 @@ namespace DRAMPower {
         this->registerPattern<CmdType::PRE>(pre_pattern);
 
         commandPattern_t prea_pattern = {
+            // R1
             L, L, L, H, H, H, H,
+            // F1
             V, V, V, V, V, V, H
         };
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
@@ -101,7 +104,9 @@ namespace DRAMPower {
         // For refresh commands LPDDR5 has RFM (Refresh Management)
         // Considering RFM is disabled, CA3 is V
         commandPattern_t refb_pattern = {
+            // R1
             L, L, L, H, H, H, L,
+            // F1
             BA0, BA1, BA2, V, V, V, L
         };
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
@@ -110,7 +115,9 @@ namespace DRAMPower {
         this->registerPattern<CmdType::REFB>(refb_pattern);
 
         commandPattern_t refa_pattern = {
+            // R1
             L, L, L, H, H, H, L,
+            // F1
             V, V, V, V, V, V, H
         };
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
@@ -123,19 +130,23 @@ namespace DRAMPower {
         }
 
         commandPattern_t rd_pattern = {
-            H, H, L, C0, C3, C4, C5,
+            // R1
+            H, L, L, C0, C3, C4, C5,
+            // F1
             BA0, BA1, BA2, BA3, C1, C2, L
         };
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
             rd_pattern[9] = BG0;
             rd_pattern[10] = BG1;
         } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
-            rd_pattern[10] = L;
+            rd_pattern[10] = L; // B4
         }
         this->registerPattern<CmdType::RD>(rd_pattern);
 
         commandPattern_t rda_pattern = {
-            H, H, L, C0, C3, C4, C5,
+            // R1
+            H, L, L, C0, C3, C4, C5,
+            // F1
             BA0, BA1, BA2, BA3, C1, C2, H
         };
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
@@ -147,7 +158,9 @@ namespace DRAMPower {
         this->registerPattern<CmdType::RDA>(rda_pattern);
 
         commandPattern_t wr_pattern = {
+            // R1
             L, H, H, C0, C3, C4, C5,
+            // F1
             BA0, BA1, BA2, BA3, C1, C2, L
         };
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
@@ -159,7 +172,9 @@ namespace DRAMPower {
         this->registerPattern<CmdType::WR>(wr_pattern);
 
         commandPattern_t wra_pattern = {
+            // R1
             L, H, H, C0, C3, C4, C5,
+            // F1
             BA0, BA1, BA2, BA3, C1, C2, H
         };
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
@@ -171,43 +186,79 @@ namespace DRAMPower {
         this->registerPattern<CmdType::WRA>(wra_pattern);
 
         this->registerPattern<CmdType::SREFEN>({
+            // R1
             L, L, L, H, L, H, H,
+            // F1
             V, V, V, V, V, L, L
         });
         this->registerPattern<CmdType::SREFEX>({
+            // R1
             L, L, L, H, L, H, L,
+            // F1
             V, V, V, V, V, V, V
         });
         this->registerPattern<CmdType::PDEA>({
+            // R1
             L, L, L, H, L, H, H,
+            // F1
             V, V, V, V, V, L, H
         });
         this->registerPattern<CmdType::PDXA>({
+            // R1
             L, L, L, H, L, H, L,
+            // F1
             V, V, V, V, V, V, V
         });
         this->registerPattern<CmdType::PDEP>({
+            // R1
             L, L, L, H, L, H, H,
+            // F1
             V, V, V, V, V, L, H
         });
         this->registerPattern<CmdType::PDXP>({
+            // R1
             L, L, L, H, L, H, L,
+            // F1
             V, V, V, V, V, V, V
         });
         this->registerPattern<CmdType::DSMEN>({
+            // R1
             L, L, L, H, L, H, H,
+            // F1
             V, V, V, V, V, H, L
         });
         this->registerPattern<CmdType::DSMEX>({
+            // R1
             L, L, L, H, L, H, L,
+            // F1
             V, V, V, V, V, V, V
         });
     }
 
+    void LPDDR5::handleInterfaceOverrides(size_t length, bool read)
+    {
+        // Set command bus pattern overrides
+        bool def = false;
+        switch(length) {
+            case 32:
+                this->encoder.settings.updateSettings({
+                    {pattern_descriptor::C0, PatternEncoderBitSpec::L},
+                });
+                break;
+            default:
+                def = true;
+            case 16:
+                this->encoder.settings.removeSetting(pattern_descriptor::C0);
+                if(def)
+                {
+                    std::cout << ("[WARN] Invalid burst length") << std::endl;
+                    assert(false);
+                }
+                break;
+        }
+    }
+
     void LPDDR5::handle_interface(const Command &cmd) {
-        auto pattern = this->getCommandPattern(cmd);
-        auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        commandBus.load(cmd.timestamp, pattern, ca_length);
 
         size_t length = 0;
 
@@ -225,6 +276,7 @@ namespace DRAMPower {
                     wck.start(cmd.timestamp);
                     wck.stop(cmd.timestamp + length / this->memSpec.dataRate);
                 }
+                this->handleInterfaceOverrides(length, true);
 
                 break;
             case CmdType::WR:
@@ -236,8 +288,12 @@ namespace DRAMPower {
                     wck.start(cmd.timestamp);
                     wck.stop(cmd.timestamp + length / this->memSpec.dataRate);
                 }
+                this->handleInterfaceOverrides(length, true);
                 break;
-        };
+        }
+        auto pattern = this->getCommandPattern(cmd);
+        auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
+        commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
     void LPDDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {

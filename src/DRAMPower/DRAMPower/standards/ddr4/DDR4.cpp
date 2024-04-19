@@ -31,9 +31,8 @@ namespace DRAMPower {
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
         , dram_base<CmdType>({
-            // TODO column overrides
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
-            {pattern_descriptor::X, PatternEncoderBitSpec::H}
+            {pattern_descriptor::X, PatternEncoderBitSpec::H},
         })
 	{
         // In the first state all ranks are precharged
@@ -186,27 +185,79 @@ namespace DRAMPower {
         }
     }
 
+    void DDR4::handleInterfaceOverrides(size_t length, bool read)
+    {
+        // Set command bus pattern overrides
+        switch(length) {
+            case 4:
+                if(read)
+                {
+                    // Read
+                    this->encoder.settings.updateSettings({
+                        {pattern_descriptor::C2, PatternEncoderBitSpec::L},
+                        {pattern_descriptor::C1, PatternEncoderBitSpec::L},
+                        {pattern_descriptor::C0, PatternEncoderBitSpec::L},
+                    });
+                }
+                else
+                {
+                    // Write
+                    this->encoder.settings.updateSettings({
+                        {pattern_descriptor::C2, PatternEncoderBitSpec::L},
+                        {pattern_descriptor::C1, PatternEncoderBitSpec::H},
+                        {pattern_descriptor::C0, PatternEncoderBitSpec::H},
+                    });
+                }
+                break;
+            case 8:
+                if(read)
+                {
+                    // Read
+                    this->encoder.settings.updateSettings({
+                        {pattern_descriptor::C2, PatternEncoderBitSpec::L},
+                        {pattern_descriptor::C1, PatternEncoderBitSpec::L},
+                        {pattern_descriptor::C0, PatternEncoderBitSpec::L},
+                    });
+                }
+                else
+                {
+                    // Write
+                    this->encoder.settings.updateSettings({
+                        {pattern_descriptor::C2, PatternEncoderBitSpec::H},
+                        {pattern_descriptor::C1, PatternEncoderBitSpec::H},
+                        {pattern_descriptor::C0, PatternEncoderBitSpec::H},
+                    });
+                }
+                break;
+            default:
+                this->encoder.settings.updateSettings({
+                    {pattern_descriptor::C2, PatternEncoderBitSpec::L},
+                    {pattern_descriptor::C1, PatternEncoderBitSpec::L},
+                    {pattern_descriptor::C0, PatternEncoderBitSpec::L},
+                });
+                std::cout << ("[WARN] Invalid burst length") << std::endl;
+                assert(false);
+                break;
+        }
+    }
+
     void DDR4::handle_interface(const Command &cmd) {
-        // TODO add tests
-        if (cmd.type == CmdType::END_OF_SIMULATION) {
+        size_t length = 0;
+
+        if (cmd.type == CmdType::END_OF_SIMULATION)
+        {
             return;
         }
-        auto pattern = this->getCommandPattern(cmd);
-        // length needed for dual cycle SREFEX
-        auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
-        // Segfault for End of Simulation
-        this->commandBus.load(cmd.timestamp, pattern, ca_length);
-
+        
         // For PrePostamble
         assert(this->ranks.size()>cmd.targetCoordinate.rank);
         auto & rank = this->ranks[cmd.targetCoordinate.rank];
 
-            switch (cmd.type) {
+        switch (cmd.type) {
             case CmdType::RD:
             case CmdType::RDA: {
-                auto length = cmd.sz_bits / readBus.get_width();
-                // TODO assert
-                //assert(length == 0);
+                length = cmd.sz_bits / readBus.get_width();
+                assert(length != 0);
                 if (length == 0) {
                     std::cout << "[Error] invalid read length. Interface calculation skipped" << std::endl;
                     return;
@@ -217,14 +268,14 @@ namespace DRAMPower {
                 readDQS_.stop(cmd.timestamp + length / this->memSpec.dataRate);
 
                 this->handlePrePostamble(cmd.timestamp, length / this->memSpec.dataRate, rank, true);
+
+                this->handleInterfaceOverrides(length, true);
             }
                 break;
             case CmdType::WR:
             case CmdType::WRA: {
-                // TODO add multi device support
-                auto length = cmd.sz_bits / writeBus.get_width();
-                // TODO assert
-                //assert(length == 0);
+                length = cmd.sz_bits / writeBus.get_width();
+                assert(length != 0);
                 if (length == 0) {
                     std::cout << "[Error] invalid write length. Interface calculation skipped" << std::endl;
                     return;
@@ -235,9 +286,16 @@ namespace DRAMPower {
                 writeDQS_.stop(cmd.timestamp + length / this->memSpec.dataRate);
 
                 this->handlePrePostamble(cmd.timestamp, length / this->memSpec.dataRate, rank, false);
+
+                this->handleInterfaceOverrides(length, false);
             }
                 break;
         };
+
+        auto pattern = this->getCommandPattern(cmd);
+        length = this->getPattern(cmd.type).size() / commandBus.get_width();
+        this->commandBus.load(cmd.timestamp, pattern, length);
+
     }
 
     void DDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
