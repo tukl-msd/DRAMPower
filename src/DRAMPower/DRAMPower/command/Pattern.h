@@ -214,7 +214,7 @@ public:
                 bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[3]);
                 break;
             case C4:
-                bitset[n] = column_bits[4];
+                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[4]);
                 break;
             case C5:
                 bitset[n] = column_bits[5];

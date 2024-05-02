@@ -196,6 +196,7 @@ namespace DRAMPower {
                     {pattern_descriptor::C2, PatternEncoderBitSpec::H},
                 });
                 std::cout << ("[WARN] Invalid burst length") << std::endl;
+                assert(false);
                 break;
         }
     }
@@ -203,6 +204,10 @@ namespace DRAMPower {
     void DDR5::handle_interface(const Command &cmd) {
         size_t length = 0;
 
+        if (cmd.type == CmdType::END_OF_SIMULATION)
+        {
+            return;
+        }
         // Handle data bus and dqs lines
         switch (cmd.type) {
             case CmdType::RD:
@@ -211,7 +216,7 @@ namespace DRAMPower {
                 readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
                 readDQS.start(cmd.timestamp);
                 readDQS.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
-                handleInterfaceOverrides(length, true);
+                this->handleInterfaceOverrides(length, true);
                 break;
             case CmdType::WR:
             case CmdType::WRA:
@@ -219,14 +224,14 @@ namespace DRAMPower {
                 writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
                 writeDQS.start(cmd.timestamp);
                 writeDQS.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
-                handleInterfaceOverrides(length, false);
+                this->handleInterfaceOverrides(length, false);
                 break;
-        };
+        }
 
         // command bus
         auto pattern = getCommandPattern(cmd);
-        auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
-        commandBus.load(cmd.timestamp, pattern, ca_length);
+        length = getPattern(cmd.type).size() / commandBus.get_width();
+        commandBus.load(cmd.timestamp, pattern, length);
     }
 
     void DDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {

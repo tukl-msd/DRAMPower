@@ -16,13 +16,11 @@ using DRAMPower::SimulationStats;
 #define SZ_BITS(x) sizeof(x)*8
 
 static constexpr uint8_t wr_data[] = {
-    0, 0, 0, 0,  0, 0, 0, 255,  0, 0, 0, 0,  0, 0, 0, 0,
-    0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 255,
+    0, 0, 0, 0,  0, 0, 0, 255
 };
 
 static constexpr uint8_t rd_data[] = {
-    0, 0, 0, 0,  0, 0, 0, 1,  0, 0, 0, 0,  0, 0, 0, 0,
-    0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,
+    0, 0, 0, 0,  0, 0, 0, 1
 };
 
 class DDR4_MultirankTests : public ::testing::Test {
@@ -88,10 +86,10 @@ TEST_F(DDR4_MultirankTests, Pattern_2) {
     runCommands({
         {0, CmdType::ACT, {0, 0, 0}},
         {5, CmdType::ACT, {0, 0, 1}},  // r1
-        {15, CmdType::RDA, {0, 0, 0}},
+        {15, CmdType::RDA, {0, 0, 0}, rd_data, SZ_BITS(rd_data)},
         {20, CmdType::ACT, {3, 0, 1}},  // r1
-        {35, CmdType::RD, {3, 0, 1}},  // r1
-        {40, CmdType::RD, {0, 0, 0}},
+        {35, CmdType::RD, {3, 0, 1}, rd_data, SZ_BITS(rd_data)},  // r1
+        {40, CmdType::RD, {0, 0, 0}, rd_data, SZ_BITS(rd_data)},
         {50, CmdType::PREA, {0, 0, 0}},
         {55, CmdType::PREA, {0, 0, 1}},  // r1
         {65, CmdType::REFA, {0, 0, 0}},
