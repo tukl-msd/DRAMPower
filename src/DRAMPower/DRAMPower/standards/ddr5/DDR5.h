@@ -35,6 +35,12 @@ class DDR5 : public dram_base<CmdType> {
 
     timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
 
+    SimulationStats getStats() override;
+	energy_t calcEnergy(timestamp_t timestamp) override;
+    uint64_t getBankCount() override;
+    uint64_t getRankCount() override;
+    uint64_t getDeviceCount() override;
+
     void handle_interface(const Command& cmd) override;
     void handleInterfaceOverrides(size_t length, bool read);
 	uint64_t getInitEncoderPattern() override;
@@ -61,11 +67,9 @@ class DDR5 : public dram_base<CmdType> {
     void endOfSimulation(timestamp_t timestamp);
 
     // Calculations
-    energy_t calcEnergy(timestamp_t timestamp);
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp);
 
     SimulationStats getWindowStats(timestamp_t timestamp);
-    SimulationStats getStats();
 
    protected:
     template <dram_base::commandEnum_t Cmd, typename Func>

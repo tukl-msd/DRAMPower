@@ -26,6 +26,12 @@ class LPDDR5 : public dram_base<CmdType> {
 
     void handleInterfaceOverrides(size_t length, bool read);
 
+    SimulationStats getStats() override;
+	energy_t calcEnergy(timestamp_t timestamp) override;
+    uint64_t getBankCount() override;
+    uint64_t getRankCount() override;
+    uint64_t getDeviceCount() override;
+
     // Commands
     void handle_interface(const Command& cmd) override;
     void handleAct(Rank& rank, Bank& bank, timestamp_t timestamp);
@@ -51,10 +57,8 @@ class LPDDR5 : public dram_base<CmdType> {
     void endOfSimulation(timestamp_t timestamp);
 
     // Calculations
-    energy_t calcEnergy(timestamp_t timestamp);
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp);
     SimulationStats getWindowStats(timestamp_t timestamp);
-    SimulationStats getStats();
 
     MemSpecLPDDR5 memSpec;
     std::vector<Rank> ranks;

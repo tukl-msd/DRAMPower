@@ -62,6 +62,18 @@ namespace DRAMPower {
             [this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
 
+    uint64_t DDR5::getBankCount() {
+        return memSpec.numberOfBanks;
+    }
+
+    uint64_t DDR5::getRankCount() {
+        return memSpec.numberOfRanks;
+    }
+
+    uint64_t DDR5::getDeviceCount() {
+        return memSpec.numberOfDevices;
+    }
+
     uint64_t DDR5::getInitEncoderPattern()
     {
         return this->cmdBusInitPattern;
@@ -202,12 +214,12 @@ namespace DRAMPower {
     }
 
     void DDR5::handle_interface(const Command &cmd) {
-        size_t length = 0;
-
         if (cmd.type == CmdType::END_OF_SIMULATION)
         {
             return;
         }
+        size_t length = 0;
+
         // Handle data bus and dqs lines
         switch (cmd.type) {
             case CmdType::RD:

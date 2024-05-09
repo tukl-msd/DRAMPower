@@ -47,6 +47,18 @@ namespace DRAMPower {
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
 
+    uint64_t LPDDR5::getBankCount() {
+        return memSpec.numberOfBanks;
+    }
+
+    uint64_t LPDDR5::getRankCount() {
+        return memSpec.numberOfRanks;
+    }
+
+    uint64_t LPDDR5::getDeviceCount() {
+        return memSpec.numberOfDevices;
+    }
+
     void LPDDR5::registerPatterns() {
         using namespace pattern_descriptor;
         // LPDDR5 needs 2 commands for activation (ACT-1 and ACT-2)
@@ -259,7 +271,10 @@ namespace DRAMPower {
     }
 
     void LPDDR5::handle_interface(const Command &cmd) {
-
+        if ( cmd.type == CmdType::END_OF_SIMULATION)
+        {
+            return;
+        }
         size_t length = 0;
 
         switch (cmd.type) {

@@ -60,6 +60,18 @@ namespace DRAMPower {
 
     };
 
+    uint64_t DDR4::getBankCount() {
+        return memSpec.numberOfBanks;
+    }
+
+    uint64_t DDR4::getRankCount() {
+        return memSpec.numberOfRanks;
+    }
+
+    uint64_t DDR4::getDeviceCount() {
+        return memSpec.numberOfDevices;
+    }
+
     uint64_t DDR4::getInitEncoderPattern()
     {
         return this->cmdBusInitPattern;
@@ -242,12 +254,11 @@ namespace DRAMPower {
     }
 
     void DDR4::handle_interface(const Command &cmd) {
-        size_t length = 0;
-
         if (cmd.type == CmdType::END_OF_SIMULATION)
         {
             return;
         }
+        size_t length = 0;
         
         // For PrePostamble
         assert(this->ranks.size()>cmd.targetCoordinate.rank);
