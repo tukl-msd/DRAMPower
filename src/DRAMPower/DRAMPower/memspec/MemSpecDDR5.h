@@ -32,7 +32,7 @@ namespace DRAMPower {
         // Memspec Variables:
         struct MemTimingSpec
         {
-            double fCKMHz;
+            double fck;
             double tCK;
             uint64_t tRAS;
             uint64_t tRCD;
