@@ -90,11 +90,11 @@ TEST_F(DramPowerTest_DDR5_1, Energy) {
     auto total_energy = energy.total_energy();
 
 
-    ASSERT_EQ(std::round(total_energy.E_act), 179);
-    ASSERT_EQ(std::round(total_energy.E_pre), 208);
-    ASSERT_EQ(std::round(total_energy.E_RD), 436);
-    ASSERT_EQ(std::round(total_energy.E_bg_act), 1189);
-    ASSERT_EQ(std::round(energy.E_bg_act_shared), 1183);
-    ASSERT_EQ(std::round(total_energy.E_bg_pre), 0);
-    ASSERT_EQ(std::round(total_energy.total()), 2012);
+    ASSERT_EQ(std::round(total_energy.E_act*1e12), 179);
+    ASSERT_EQ(std::round(total_energy.E_pre*1e12), 208);
+    ASSERT_EQ(std::round(total_energy.E_RD*1e12), 436);
+    ASSERT_EQ(std::round(total_energy.E_bg_act*1e12), 1189);
+    ASSERT_EQ(std::round(energy.E_bg_act_shared*1e12), 1183);
+    ASSERT_EQ(std::round(total_energy.E_bg_pre*1e12), 0);
+    ASSERT_EQ(std::round(total_energy.total()*1e12), 2012);
 }
