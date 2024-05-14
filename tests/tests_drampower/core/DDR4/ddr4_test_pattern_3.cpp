@@ -110,11 +110,11 @@ TEST_F(DramPowerTest_DDR4_3, Energy) {
     auto energy = ddr->calcEnergy(testPattern.back().timestamp);
     auto total_energy = energy.total_energy();
 
-    ASSERT_EQ(std::round(total_energy.E_act), 359);
-    ASSERT_EQ(std::round(total_energy.E_pre), 415);
-    ASSERT_EQ(std::round(total_energy.E_RD), 436);
-    ASSERT_EQ(std::round(total_energy.E_bg_act), 1531);
-    ASSERT_EQ(std::round(energy.E_bg_act_shared), 1521);
-    ASSERT_EQ(std::round(total_energy.E_bg_pre), 156);
-    ASSERT_EQ(std::round(total_energy.total()), 2897);
+    ASSERT_EQ(std::round(total_energy.E_act*1e12), 359);
+    ASSERT_EQ(std::round(total_energy.E_pre*1e12), 415);
+    ASSERT_EQ(std::round(total_energy.E_RD*1e12), 436);
+    ASSERT_EQ(std::round(total_energy.E_bg_act*1e12), 1531);
+    ASSERT_EQ(std::round(energy.E_bg_act_shared*1e12), 1521);
+    ASSERT_EQ(std::round(total_energy.E_bg_pre*1e12), 156);
+    ASSERT_EQ(std::round(total_energy.total()*1e12), 2897);
 }

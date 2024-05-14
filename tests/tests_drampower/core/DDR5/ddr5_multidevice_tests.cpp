@@ -151,11 +151,11 @@ TEST_F(DramPowerTest_DDR5_MultiDevice, Energy) {
         }
     }
 
-    ASSERT_EQ(std::round(total_energy.E_act), 1795);
-    ASSERT_EQ(std::round(total_energy.E_pre), 2077);
-    ASSERT_EQ(std::round(total_energy.E_RD), 6535);
-    ASSERT_EQ(std::round(total_energy.E_bg_act), 8518);
-    ASSERT_EQ(std::round(energy.E_bg_act_shared), 8452);
-    ASSERT_EQ(std::round(total_energy.E_bg_pre), 3115);
-    ASSERT_EQ(std::round(total_energy.total()), 22041);
+    ASSERT_EQ(std::round(total_energy.E_act*1e12), 1795);
+    ASSERT_EQ(std::round(total_energy.E_pre*1e12), 2077);
+    ASSERT_EQ(std::round(total_energy.E_RD*1e12), 6535);
+    ASSERT_EQ(std::round(total_energy.E_bg_act*1e12), 8518);
+    ASSERT_EQ(std::round(energy.E_bg_act_shared*1e12), 8452);
+    ASSERT_EQ(std::round(total_energy.E_bg_pre*1e12), 3115);
+    ASSERT_EQ(std::round(total_energy.total()*1e12), 22041);
 }

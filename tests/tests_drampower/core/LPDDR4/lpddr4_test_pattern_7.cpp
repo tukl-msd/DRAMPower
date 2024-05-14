@@ -81,12 +81,12 @@ TEST_F(DramPowerTest_LPDDR4_7, Energy) {
     auto energy = ddr->calcEnergy(testPattern.back().timestamp);
     auto total_energy = energy.total_energy();
 
-    ASSERT_EQ(std::round(total_energy.E_act), 0);
-    ASSERT_EQ(std::round(total_energy.E_pre), 0);
-    ASSERT_EQ(std::round(total_energy.E_ref_AB), 1699);
-    ASSERT_EQ(std::round(energy.E_sref), 280);
-    ASSERT_EQ(std::round(total_energy.E_bg_act), 1024);
-    ASSERT_EQ(std::round(energy.E_bg_act_shared), 793);
-    ASSERT_EQ(std::round(total_energy.E_bg_pre), 1869);
-    ASSERT_EQ(std::round(total_energy.total() + energy.E_sref), 4873);
+    ASSERT_EQ(std::round(total_energy.E_act*1e12), 0);
+    ASSERT_EQ(std::round(total_energy.E_pre*1e12), 0);
+    ASSERT_EQ(std::round(total_energy.E_ref_AB*1e12), 1699);
+    ASSERT_EQ(std::round(energy.E_sref*1e12), 280);
+    ASSERT_EQ(std::round(total_energy.E_bg_act*1e12), 1024);
+    ASSERT_EQ(std::round(energy.E_bg_act_shared*1e12), 793);
+    ASSERT_EQ(std::round(total_energy.E_bg_pre*1e12), 1869);
+    ASSERT_EQ(std::round((total_energy.total() + energy.E_sref)*1e12), 4873);
 }
