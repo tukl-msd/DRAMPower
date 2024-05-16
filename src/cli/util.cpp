@@ -1,55 +1,34 @@
 #include "util.hpp"
 
 
-inline bool CLIutil::hexCharToInt(char hexChar, uint8_t &result)
+std::unique_ptr<uint8_t[]> CLIutil::hexStringToUint8Array(const csv::string_view data, size_t &size)
 {
-	if( hexChar >= '0' && hexChar <= '9' ) 
+	// Check if the string has valid length
+	if ( ( data.length() % 2 ) != 0)
 	{
-		result = hexChar - '0';
-		return true;
+		throw std::invalid_argument("Invalid hex string length");
 	}
-	else if ( hexChar >= 'A' && hexChar <= 'F' )
+
+	// String conversion
+	std::string hexString;
+	size = data.length() / 2;
+	
+	// Remove 0x or 0X prefix if present
+	if (data.substr(0, 2) == "0x" || data.substr(0, 2) == "0X")
 	{
-		result = hexChar - 'A' + 10;
-		return true;
-	}
-	else if ( hexChar >= 'a' && hexChar <= 'f' )
-	{
-		result = hexChar - 'a' + 10;
-		return true;
+		size--;
+		hexString = data.substr(2);
 	}
 	else
 	{
-		return false;	
+		hexString = data;
 	}
-}
-
-bool CLIutil::hexStringToUint8Array(const csv::string_view data, std::unique_ptr<uint8_t[]> &arr, std::size_t &arraySize)
-{
-	if ( ( data.length() % 2 ) != 0)
+	
+	// Allocate memory for the array and fill it
+	auto content = std::make_unique<uint8_t[]>(size);
+	for (size_t i = 0; i < size; i++)
 	{
-		return false;
+		content.get()[i] = static_cast<uint8_t>(std::stoi(hexString.substr(i * 2, 2), nullptr, 16));
 	}
-
-	arraySize = data.length() / 2;
-	arr = std::make_unique<uint8_t[]>(arraySize);
-
-	for( std::size_t i = 0; i < data.length(); i += 2 )
-	{
-		uint8_t byte_upper;
-		uint8_t byte_lower;
-		if ( !hexCharToInt(data.at(i), byte_upper) )
-		{
-			return false;
-		}
-		byte_upper <<= 4;
-		if ( !hexCharToInt(data.at(i), byte_lower) )
-		{
-			return false;
-		}
-		arr[i / 2] = byte_upper | byte_lower;
-
-	}
-
-	return true;
+	return content;
 }

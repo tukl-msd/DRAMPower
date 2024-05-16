@@ -110,9 +110,8 @@ std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(s
 		// Read csv row
 		if ( row.size() < 7 )
 		{
-			std::cout << "Invalid command structure. Row " << rowcounter << std::endl;
-			++rowcounter;
-			continue;
+			std::cerr << "Invalid command structure. Row " << rowcounter << std::endl;
+			exit(1);
 		}
 			
 		timestamp = row[rowidx++].get<timestamp_t>();
@@ -130,21 +129,23 @@ std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(s
 		if ( DRAMPower::CmdTypeUtil::needs_data(cmd) )
 		{
 			if ( row.size() < 8 ){
-				std::cout << "Invalid command structure. Row " << rowcounter << std::endl;
-				++rowcounter;
-				continue;
+				std::cerr << "Invalid command structure. Row " << rowcounter << std::endl;
+				exit(1);
 			}
 			uint64_t length = 0;
+			csv::string_view data = row[rowidx++].get_sv();
 			std::unique_ptr<uint8_t[]> arr;
-			if ( !CLIutil::hexStringToUint8Array(row[rowidx++].get_sv(), arr, length) )
+			try
 			{
-				std::cout << "Invalid data field in row " << rowcounter << std::endl;
-				arr.reset();
-				++rowcounter;
-				continue;
+				arr = CLIutil::hexStringToUint8Array(data, size);
 			}
-			
-			commandList.push_back({{ timestamp, cmd, { bank_id, bank_group_id, rank_id, row_id, column_id}, arr.get(), length*8}, std::move(arr) });
+			catch (std::exception &e)
+			{
+				std::cerr << e.what() << std::endl;
+				std::cerr << "Invalid data field in row " << rowcounter << std::endl;
+				exit(1);
+			}
+			commandList.push_back({{ timestamp, cmd, { bank_id, bank_group_id, rank_id, row_id, column_id}, arr.get(), size * 8}, std::move(arr) });
 		}
 		else
 		{
@@ -224,6 +225,7 @@ int main(int argc, char *argv[])
 		auto rankcount = ddr.get()->getRankCount();
 		auto devicecount = ddr.get()->getDeviceCount();
 		size_t energy_offset = 0;
+		// TODO assumed this order in interface calculation
 		std::cout << "Rank,Device,Bank -> bank_energy" << std::endl;
 		for ( std::size_t r = 0; r < rankcount; r++ ) {
 			for ( std::size_t d = 0; d < devicecount; d++ ) {
