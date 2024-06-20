@@ -13,7 +13,14 @@ using namespace DRAMPower;
 class test_ddr : public dram_base<CmdType>
 {
 public:
+	// Overrides
 	void handle_interface(const Command& cmd) override {};
+	energy_t calcEnergy(timestamp_t timestamp) override { return energy_t(1); };
+	uint64_t getBankCount() override { return 1; };
+	uint64_t getRankCount() override { return 1; };
+	uint64_t getDeviceCount() override { return 1; };
+	SimulationStats getStats() override { return SimulationStats(); };
+
 	std::vector<timestamp_t> execution_order;
 
 	test_ddr() : dram_base<CmdType>(PatternEncoderOverrides{})

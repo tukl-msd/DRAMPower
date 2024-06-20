@@ -45,6 +45,18 @@ namespace DRAMPower {
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
 
+    uint64_t LPDDR4::getBankCount() {
+        return memSpec.numberOfBanks;
+    }
+
+    uint64_t LPDDR4::getRankCount() {
+        return memSpec.numberOfRanks;
+    }
+
+    uint64_t LPDDR4::getDeviceCount() {
+        return memSpec.numberOfDevices;
+    }
+
     void LPDDR4::registerPatterns() {
         using namespace pattern_descriptor;
 
@@ -138,6 +150,10 @@ namespace DRAMPower {
     }
 
     void LPDDR4::handle_interface(const Command &cmd) {
+        if ( cmd.type == CmdType::END_OF_SIMULATION)
+        {
+            return;
+        }
         size_t length = 0;
 
         // Handle data bus and dqs lines

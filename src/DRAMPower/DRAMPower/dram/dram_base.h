@@ -4,6 +4,9 @@
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/command/Pattern.h>
 
+#include <DRAMPower/data/energy.h>
+#include <DRAMPower/data/stats.h>
+
 #include <algorithm>
 #include <cassert>
 #include <deque>
@@ -54,14 +57,21 @@ private:
         this->lastPattern = getInitEncoderPattern();
     };
 
+public:
+    virtual ~dram_base() = 0;
 protected:
-    virtual ~dram_base() = default;
     virtual void handle_interface(const Command& cmd) = 0;
     virtual uint64_t getInitEncoderPattern()
     {
         // Default encoder init pattern
         return 0;
     };
+public:
+    virtual energy_t calcEnergy(timestamp_t timestamp) = 0;
+    virtual SimulationStats getStats() = 0;
+    virtual uint64_t getBankCount() = 0;
+    virtual uint64_t getRankCount() = 0;
+    virtual uint64_t getDeviceCount() = 0;
 
 public:
     uint64_t getCommandPattern(const Command& cmd)
@@ -146,6 +156,16 @@ public:
             this->handle_interface(command);
     };
 
+    energy_t calcEnergyBase(timestamp_t timestamp)
+    {
+        return this->calcEnergy(timestamp);
+    };
+
+    SimulationStats getStatsBase()
+    {
+        return this->getStats();
+    };
+
     auto getCommandCount(CommandEnum cmd) const
     {
         assert(commandCount.size() > static_cast<std::size_t>(cmd));
@@ -155,6 +175,9 @@ public:
 
     timestamp_t getLastCommandTime() const { return this->last_command_time; };
 };
+
+template <typename CommandEnum>
+dram_base<CommandEnum>::~dram_base() = default;
 
 }
 

@@ -84,6 +84,12 @@ public:
         return entryTime;
     };
 public:
+    SimulationStats getStats() override;
+	energy_t calcEnergy(timestamp_t timestamp) override;
+    uint64_t getBankCount() override;
+    uint64_t getRankCount() override;
+    uint64_t getDeviceCount() override;
+
 	void handle_interface(const Command& cmd) override;
     void handleInterfaceOverrides(size_t length, bool read);
 
@@ -106,11 +112,9 @@ public:
 
 	void endOfSimulation(timestamp_t timestamp);
 public:
-	energy_t calcEnergy(timestamp_t timestamp);
 	interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp);
 public:
 	SimulationStats getWindowStats(timestamp_t timestamp);
-	SimulationStats getStats();
 };
 
 };

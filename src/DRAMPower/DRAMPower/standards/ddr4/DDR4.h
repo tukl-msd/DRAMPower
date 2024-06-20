@@ -92,7 +92,12 @@ public:
         return entryTime;
 	};
 public:
+	SimulationStats getStats() override;
+	energy_t calcEnergy(timestamp_t timestamp) override;
 	uint64_t getInitEncoderPattern() override;
+    uint64_t getBankCount() override;
+    uint64_t getRankCount() override;
+    uint64_t getDeviceCount() override;
 	void handle_interface(const Command& cmd) override;
 	void handleInterfaceOverrides(size_t length, bool read);
 
@@ -121,11 +126,9 @@ private:
     );
 
 public:
-	energy_t calcEnergy(timestamp_t timestamp);
 	interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp);
 public:
 	SimulationStats getWindowStats(timestamp_t timestamp);
-	SimulationStats getStats();
 
 private:
 	util::Clock clock;
