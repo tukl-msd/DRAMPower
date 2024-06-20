@@ -28,7 +28,7 @@ std::unique_ptr<uint8_t[]> CLIutil::hexStringToUint8Array(const csv::string_view
 	auto content = std::make_unique<uint8_t[]>(size);
 	for (size_t i = 0; i < size; i++)
 	{
-		content.get()[i] = static_cast<uint8_t>(std::stoi(hexString.substr(i * 2, 2), nullptr, 16));
+		content[i] = static_cast<uint8_t>(std::stoi(hexString.substr(i * 2, 2), nullptr, 16));
 	}
 	return content;
 }

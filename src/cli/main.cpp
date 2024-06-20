@@ -26,44 +26,42 @@
 using namespace DRAMPower;
 
 
-bool getMemory(const json data, std::unique_ptr<dram_base<CmdType>> &ddr)
+std::unique_ptr<dram_base<CmdType>> getMemory(const json& data)
 {
 	if ( !data.contains("memspec") )
 	{
-		return false;
+		return nullptr;
 	}
 	auto memspec = data["memspec"];
 	if ( !memspec.contains("memoryId") )
 	{
-		return false;
+		return nullptr;
 	}
-	auto memoryId = memspec["memoryId"].get<std::string>();
+
+	const std::string& memoryId = memspec["memoryId"];
 
 	if ( memoryId == "ddr4" )
 	{
 		MemSpecDDR4 ddr4(memspec);
-		ddr = std::make_unique<DDR4>(ddr4);
-		return true;
+		return std::make_unique<DDR4>(ddr4);
 	}
 	else if ( memoryId == "ddr5" )
 	{
 		MemSpecDDR5 ddr5(memspec);
-		ddr = std::make_unique<DDR5>(ddr5);
-		return true;
+		return std::make_unique<DDR5>(ddr5);
 	}
 	else if ( memoryId == "lpddr4" )
 	{
 		MemSpecLPDDR4 lpddr4(memspec);
-		ddr = std::make_unique<LPDDR4>(lpddr4);
-		return true;
+		return std::make_unique<LPDDR4>(lpddr4);
 	}
 	else if ( memoryId == "lpddr5" )
 	{
 		MemSpecLPDDR5 lpddr5(memspec);
-		ddr = std::make_unique<LPDDR5>(lpddr5);
-		return true;
+		return std::make_unique<LPDDR5>(lpddr5);
 	}
-	return false;
+
+	return nullptr;
 }
 
 std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(std::string_view csv_file)
@@ -145,11 +143,11 @@ std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(s
 				std::cerr << "Invalid data field in row " << rowcounter << std::endl;
 				exit(1);
 			}
-			commandList.push_back({{ timestamp, cmd, { bank_id, bank_group_id, rank_id, row_id, column_id}, arr.get(), size * 8}, std::move(arr) });
+			commandList.emplace_back(Command{ timestamp, cmd, { bank_id, bank_group_id, rank_id, row_id, column_id}, arr.get(), size * 8}, std::move(arr));
 		}
 		else
 		{
-			commandList.push_back({{ timestamp, cmd, { bank_id, bank_group_id, rank_id, row_id, column_id} }, nullptr });
+			commandList.emplace_back(Command{ timestamp, cmd, { bank_id, bank_group_id, rank_id, row_id, column_id} }, nullptr);
 		}
 		// Increment row counter
 		++rowcounter;
@@ -182,8 +180,8 @@ int main(int argc, char *argv[])
 	// Parse json
 	json data = json::parse(f);
 	// Create memory object
-	std::unique_ptr<dram_base<CmdType>> ddr;
-	if ( !getMemory(data, ddr) )
+	std::unique_ptr<dram_base<CmdType>> ddr = getMemory(data);
+	if (!ddr)
 	{
 		std::cerr << "Invalid memory specification" << std::endl;
 		exit(1);
@@ -240,6 +238,8 @@ int main(int argc, char *argv[])
 		std::cout << "\n";
 		// All banks summed up and bg act shared added
 		std::cout << "Cumulated bank energy with bg_act_shared -> " << energy.total_energy() << "\n";
+
+
 		// Background energy of all ranks
 		std::cout << "Shared energy -> " << energy << "\n";
 		// Total energy

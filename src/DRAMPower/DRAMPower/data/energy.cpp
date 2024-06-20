@@ -92,7 +92,7 @@ void DRAMPower::energy_t::to_json(nlohmann::json &j) const
     };
     // Bank energy
     auto energy_arr = nlohmann::json::array();
-    for (energy_info_t energy : bank_energy)
+    for (const energy_info_t& energy : bank_energy)
     {
         nlohmann::json bank_energy_json;
         energy.to_json(bank_energy_json);

@@ -56,8 +56,9 @@ private:
     {
         this->lastPattern = getInitEncoderPattern();
     };
+
 public:
-    virtual ~dram_base() = default; // TODO
+    virtual ~dram_base() = 0;
 protected:
     virtual void handle_interface(const Command& cmd) = 0;
     virtual uint64_t getInitEncoderPattern()
@@ -174,6 +175,9 @@ public:
 
     timestamp_t getLastCommandTime() const { return this->last_command_time; };
 };
+
+template <typename CommandEnum>
+dram_base<CommandEnum>::~dram_base() = default;
 
 }
 
