@@ -58,14 +58,14 @@ protected:
 		memSpec.bitWidth = 16;
 		memSpec.numberOfDevices = 1;
 
-		memSpec.memTimingSpec.tCK = 1;
+		memSpec.memTimingSpec.tCK = 1e-9;
 
 		memSpec.memPowerSpec.resize(8);
 		memSpec.memPowerSpec[0].vDDX = 1;
-		memSpec.memPowerSpec[0].iDD0X = 64;
-		memSpec.memPowerSpec[0].iDD3NX = 32;
-		memSpec.memPowerSpec[0].iDD4RX = 72;
-		memSpec.memPowerSpec[0].iDD4WX = 96;
+		memSpec.memPowerSpec[0].iDD0X = 64e-3;
+		memSpec.memPowerSpec[0].iDD3NX = 32e-3;
+		memSpec.memPowerSpec[0].iDD4RX = 72e-3;
+		memSpec.memPowerSpec[0].iDD4WX = 96e-3;
         memSpec.memPowerSpec[0].iBeta = memSpec.memPowerSpec[0].iDD0X;
         memSpec.bwParams.bwPowerFactRho = 1;
 
@@ -128,23 +128,23 @@ TEST_F(DramPowerTest_LPDDR4_12, CalcEnergy)
 	auto energy = ddr->calcEnergy(125);
 	auto total_energy = energy.total_energy();
 
-	ASSERT_EQ((int)total_energy.E_RD, 4160);
-	ASSERT_EQ((int)energy.bank_energy[0].E_RD, 1280);
-	ASSERT_EQ((int)energy.bank_energy[1].E_RD, 320);
-	ASSERT_EQ((int)energy.bank_energy[2].E_RD, 320);
-	ASSERT_EQ((int)energy.bank_energy[3].E_RD, 320);
-	ASSERT_EQ((int)energy.bank_energy[4].E_RD, 320);
-	ASSERT_EQ((int)energy.bank_energy[5].E_RD, 320);
-	ASSERT_EQ((int)energy.bank_energy[6].E_RD, 320);
-	ASSERT_EQ((int)energy.bank_energy[7].E_RD, 960);
+	ASSERT_EQ(std::round(total_energy.E_RD*1e12), 4160);
+	ASSERT_EQ(std::round(energy.bank_energy[0].E_RD*1e12), 1280);
+	ASSERT_EQ(std::round(energy.bank_energy[1].E_RD*1e12), 320);
+	ASSERT_EQ(std::round(energy.bank_energy[2].E_RD*1e12), 320);
+	ASSERT_EQ(std::round(energy.bank_energy[3].E_RD*1e12), 320);
+	ASSERT_EQ(std::round(energy.bank_energy[4].E_RD*1e12), 320);
+	ASSERT_EQ(std::round(energy.bank_energy[5].E_RD*1e12), 320);
+	ASSERT_EQ(std::round(energy.bank_energy[6].E_RD*1e12), 320);
+	ASSERT_EQ(std::round(energy.bank_energy[7].E_RD*1e12), 960);
 
-	ASSERT_EQ((int)total_energy.E_WR, 4608);
-	ASSERT_EQ((int)energy.bank_energy[0].E_WR, 1024);
-	ASSERT_EQ((int)energy.bank_energy[1].E_WR, 512);
-	ASSERT_EQ((int)energy.bank_energy[2].E_WR, 512);
-	ASSERT_EQ((int)energy.bank_energy[3].E_WR, 512);
-	ASSERT_EQ((int)energy.bank_energy[4].E_WR, 512);
-	ASSERT_EQ((int)energy.bank_energy[5].E_WR, 512);
-	ASSERT_EQ((int)energy.bank_energy[6].E_WR, 512);
-	ASSERT_EQ((int)energy.bank_energy[7].E_WR, 512);
+	ASSERT_EQ(std::round(total_energy.E_WR*1e12), 4608);
+	ASSERT_EQ(std::round(energy.bank_energy[0].E_WR*1e12), 1024);
+	ASSERT_EQ(std::round(energy.bank_energy[1].E_WR*1e12), 512);
+	ASSERT_EQ(std::round(energy.bank_energy[2].E_WR*1e12), 512);
+	ASSERT_EQ(std::round(energy.bank_energy[3].E_WR*1e12), 512);
+	ASSERT_EQ(std::round(energy.bank_energy[4].E_WR*1e12), 512);
+	ASSERT_EQ(std::round(energy.bank_energy[5].E_WR*1e12), 512);
+	ASSERT_EQ(std::round(energy.bank_energy[6].E_WR*1e12), 512);
+	ASSERT_EQ(std::round(energy.bank_energy[7].E_WR*1e12), 512);
 }

@@ -14,17 +14,17 @@
     "memoryId": "lpddr5",
     "memoryType": "LPDDR5",
     "mempowerspec": {
-      "idd0": 56.25,
-      "idd2n": 33.75,
-      "idd3n": 35,
-      "idd4r": 157.5,
-      "idd4w": 135.0,
-      "idd5": 118.0,
-      "idd5pb": 74.0,
-      "idd6": 20.25,
-      "idd6ds": 13.25,
-      "idd2p": 17.0,
-      "idd3p": 22.5,
+      "idd0": 56.25e-3,
+      "idd2n": 33.75e-3,
+      "idd3n": 35e-3,
+      "idd4r": 157.5e-3,
+      "idd4w": 135.0e-3,
+      "idd5": 118.0e-3,
+      "idd5pb": 74.0e-3,
+      "idd6": 20.25e-3,
+      "idd6ds": 13.25e-3,
+      "idd2p": 17.0e-3,
+      "idd3p": 22.5e-3,
       "vdd": 1.2,
       "vddq": 0.5
     },
@@ -40,7 +40,7 @@
       "REFI": 20,
       "RBTP": 3,
       "WCKtoCK": 2,
-      "clkMhz": 1300
+      "clk": 1300e6
     },
     "bankwisespec":{
       "factRho":0.5

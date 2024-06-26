@@ -10,8 +10,8 @@ MemSpecLPDDR4::MemSpecLPDDR4(nlohmann::json &memspec)
     banksPerGroup = numberOfBanks / numberOfBankGroups;
     numberOfRanks          = parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
 
-    memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
-    memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in mili seconds
+    memTimingSpec.fck   = (parseUdouble(memspec["memtimingspec"]["clk"], "clk"));
+    memTimingSpec.tCK      = (1.0 / memTimingSpec.fck); //clock period in seconds
     memTimingSpec.tRAS     = (parseUint(memspec["memtimingspec"]["RAS"], "RAS"));
     memTimingSpec.tRCD     = (parseUint(memspec["memtimingspec"]["RCD"], "RCD"));
     memTimingSpec.tRL      = (parseUint(memspec["memtimingspec"]["RL"], "RL"));

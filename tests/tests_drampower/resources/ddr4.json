@@ -14,15 +14,15 @@
     "memoryId": "ddr4",
     "memoryType": "DDR4",
     "mempowerspec": {
-      "idd0": 56.25,
-      "idd2n": 33.75,
-      "idd2p": 17.0,
-      "idd3n": 39.5,
-      "idd3p": 22.5,
-      "idd4r": 157.5,
-      "idd4w": 135.0,
-      "idd5B": 118.0,
-      "idd6n": 20.25,
+      "idd0": 56.25e-3,
+      "idd2n": 33.75e-3,
+      "idd2p": 17.0e-3,
+      "idd3n": 39.5e-3,
+      "idd3p": 22.5e-3,
+      "idd4r": 157.5e-3,
+      "idd4w": 135.0e-3,
+      "idd5B": 118.0e-3,
+      "idd6n": 20.25e-3,
       "vdd": 1.2
     },
     "memtimingspec": {
@@ -35,7 +35,7 @@
       "RCD": 13,
       "WL": 5,
       "WR": 5,
-      "clkMhz": 1300
+      "clk": 1300e6
     },
     "bankwisespec":{
       "factRho":0.5

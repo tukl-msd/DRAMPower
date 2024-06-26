@@ -38,7 +38,7 @@
 #include "MemSpecDDR4.h"
 using namespace DRAMPower;
 using json = nlohmann::json;
-
+    
 
 MemSpecDDR4::MemSpecDDR4(nlohmann::json &memspec)
     : MemSpec(memspec)
@@ -48,8 +48,8 @@ MemSpecDDR4::MemSpecDDR4(nlohmann::json &memspec)
     numberOfRanks          = parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
 
     refreshMode            = parseUintWithDefaut(memspec["RefreshMode"],"RefreshMode",1);
-    memTimingSpec.fCKMHz   = (parseUdouble(memspec["memtimingspec"]["clkMhz"], "clkMhz"));
-    memTimingSpec.tCK      = (1000.0 / memTimingSpec.fCKMHz); //clock period in mili seconds
+    memTimingSpec.fck   = (parseUdouble(memspec["memtimingspec"]["clk"], "clk"));
+    memTimingSpec.tCK      = (1.0 / memTimingSpec.fck); //clock period in seconds
     memTimingSpec.tRAS     = (parseUint(memspec["memtimingspec"]["RAS"], "RAS"));
     memTimingSpec.tRCD     = (parseUint(memspec["memtimingspec"]["RCD"], "RCD"));
     memTimingSpec.tRTP     = (parseUint(memspec["memtimingspec"]["RTP"], "RTP"));
