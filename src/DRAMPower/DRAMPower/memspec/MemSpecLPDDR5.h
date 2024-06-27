@@ -2,14 +2,16 @@
 #define DRAMPOWER_MEMSPEC_MEMSPECLPDDR5_H
 
 #include "MemSpec.h"
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
 
 namespace DRAMPower {
 
-    class MemSpecLPDDR5 final : public MemSpec {
+    class MemSpecLPDDR5 final : public MemSpec<DRAMUtils::Config::MemSpecLPDDR5> {
     public:
         enum VoltageDomain {
-            VDD = 0,
-            VDDQ = 1
+            VDD1 = 0,
+            VDD2H,
+            VDD2L,
         };
 
         enum BankArchitectureMode {
@@ -21,7 +23,10 @@ namespace DRAMPower {
     public:
         MemSpecLPDDR5() = default;
 
-        MemSpecLPDDR5(nlohmann::json &memspec);
+        MemSpecLPDDR5(const DRAMUtils::Config::MemSpecLPDDR5 &memspec);
+	
+        MemSpecLPDDR5(json &data) = delete;
+        MemSpecLPDDR5(const json &data) = delete;
 
         ~MemSpecLPDDR5() = default;
 
@@ -34,6 +39,8 @@ namespace DRAMPower {
         std::size_t perTwoBankOffset = 8;
         BankArchitectureMode bank_arch;
         bool wckAlwaysOnMode;
+
+        double vddq;
 
         // Memspec Variables:
         struct MemTimingSpec
@@ -101,7 +108,7 @@ namespace DRAMPower {
         BankWiseParams bwParams;
 
        private:
-        void parseImpedanceSpec(nlohmann::json &memspec);
+        void parseImpedanceSpec(const DRAMUtils::Config::MemSpecLPDDR5 &memspec);
     };
 
 }  // namespace DRAMPower

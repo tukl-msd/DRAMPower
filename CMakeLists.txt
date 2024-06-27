@@ -116,6 +116,20 @@ if(DRAMPOWER_BUILD_TESTS)
     set_target_properties(gtest_main PROPERTIES FOLDER lib)
 endif()
 
+### DRAMUtils ###
+# Fetch DRAMUtils from path ../DRAMUtils
+if(DRAMSYS_NEW_MEMSPEC)
+    if(NOT TARGET DRAMUtils) # TODO necessary?
+    set(DRAMUtils_SOURCE_DIR_FETCH ${CMAKE_CURRENT_SOURCE_DIR}/../DRAMUtils)
+    FetchContent_Declare(
+        DRAMUtils
+        SOURCE_DIR ${DRAMUtils_SOURCE_DIR_FETCH})
+    FetchContent_MakeAvailable(DRAMUtils)
+
+    set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
+    endif()
+endif()
+
 ###############################################
 ###           Source Directory              ###
 ###############################################

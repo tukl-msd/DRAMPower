@@ -7,6 +7,10 @@
 #include "DRAMPower/standards/ddr4/DDR4.h"
 #include "DRAMPower/memspec/MemSpecDDR4.h"
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+#include <variant>
+
 using DRAMPower::CmdType;
 using DRAMPower::Command;
 using DRAMPower::DDR4;
@@ -38,9 +42,9 @@ class DDR4_MultirankTests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-
         json data = json::parse(f);
-        spec = MemSpecDDR4{data["memspec"]};
+        DRAMPower::MemSpecContainer memspeccontainer = data;
+        spec = MemSpecDDR4(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
         spec.numberOfRanks = 2;
     }
 

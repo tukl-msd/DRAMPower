@@ -3,6 +3,10 @@
 #include <fstream>
 #include <memory>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
+#include <variant>
+
 #include "DRAMPower/command/Command.h"
 #include "DRAMPower/standards/ddr5/DDR5.h"
 #include "DRAMPower/memspec/MemSpecDDR5.h"
@@ -27,8 +31,8 @@ static constexpr uint8_t rd_data[] = {
 
 class DDR5_MultirankTests : public ::testing::Test {
   public:
-    DDR5_MultirankTests() {
-
+    void SetUp()
+    {
         initSpec();
         ddr = std::make_unique<DDR5>(spec);
     }
@@ -40,9 +44,9 @@ class DDR5_MultirankTests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-
         json data = json::parse(f);
-        spec = MemSpecDDR5{data["memspec"]};
+        DRAMPower::MemSpecContainer memspeccontainer = data;
+        spec = MemSpecDDR5(std::get<DRAMUtils::Config::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
         spec.numberOfRanks = 2;
     }
 

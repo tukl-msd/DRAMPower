@@ -40,23 +40,22 @@ using namespace DRAMPower;
 using json = nlohmann::json;
     
 
-MemSpecDDR4::MemSpecDDR4(nlohmann::json &memspec)
+MemSpecDDR4::MemSpecDDR4(const DRAMUtils::Config::MemSpecDDR4 &memspec)
     : MemSpec(memspec)
 {
 
-    numberOfBankGroups     = parseUint(memspec["memarchitecturespec"]["nbrOfBankGroups"],"nbrOfBankGroups");
-    numberOfRanks          = parseUint(memspec["memarchitecturespec"]["nbrOfRanks"],"nbrOfRanks");
+    numberOfBankGroups     = memspec.memarchitecturespec.nbrOfBankGroups;
+    numberOfRanks          = memspec.memarchitecturespec.nbrOfRanks;
 
-    refreshMode            = parseUintWithDefaut(memspec["RefreshMode"],"RefreshMode",1);
-    memTimingSpec.fck   = (parseUdouble(memspec["memtimingspec"]["clk"], "clk"));
-    memTimingSpec.tCK      = (1.0 / memTimingSpec.fck); //clock period in seconds
-    memTimingSpec.tRAS     = (parseUint(memspec["memtimingspec"]["RAS"], "RAS"));
-    memTimingSpec.tRCD     = (parseUint(memspec["memtimingspec"]["RCD"], "RCD"));
-    memTimingSpec.tRTP     = (parseUint(memspec["memtimingspec"]["RTP"], "RTP"));
-    memTimingSpec.tWL      = (parseUint(memspec["memtimingspec"]["WL"], "WL"));
-    memTimingSpec.tWR      = (parseUint(memspec["memtimingspec"]["WR"], "WR"));
-    memTimingSpec.tRP      = (parseUint(memspec["memtimingspec"]["RP"], "RP"));
-    memTimingSpec.tAL      = (parseUint(memspec["memtimingspec"]["AL"], "AL"));
+    refreshMode            = memspec.RefreshMode;
+    memTimingSpec.tCK      = 1000/1300.0;//memspec.memtimingspec.tCK;
+    memTimingSpec.tRAS     = memspec.memtimingspec.RAS;
+    memTimingSpec.tRCD     = memspec.memtimingspec.RCD;
+    memTimingSpec.tRTP     = memspec.memtimingspec.RTP;
+    memTimingSpec.tWL      = memspec.memtimingspec.WL;
+    memTimingSpec.tWR      = memspec.memtimingspec.WR;
+    memTimingSpec.tRP      = memspec.memtimingspec.RP;
+    memTimingSpec.tAL      = memspec.memtimingspec.AL;
 
 
     auto VDD = VoltageDomain::VDD;
@@ -64,61 +63,53 @@ MemSpecDDR4::MemSpecDDR4(nlohmann::json &memspec)
 
     memPowerSpec.push_back(MemPowerSpec());
 
-    memPowerSpec[VDD].iXX0      = (parseUdouble(memspec["mempowerspec"]["idd0"], "idd0"));
-    memPowerSpec[VDD].iXX2N     = (parseUdouble(memspec["mempowerspec"]["idd2n"], "idd2n"));
-    memPowerSpec[VDD].iXX3N     = (parseUdouble(memspec["mempowerspec"]["idd3n"], "idd3n"));
-    memPowerSpec[VDD].iXX4R     = (parseUdouble(memspec["mempowerspec"]["idd4r"], "idd4r"));
-    memPowerSpec[VDD].iXX4W     = (parseUdouble(memspec["mempowerspec"]["idd4w"], "idd4w"));
-    memPowerSpec[VDD].iXX6N      = (parseUdouble(memspec["mempowerspec"]["idd6n"], "idd6n"));
-    memPowerSpec[VDD].vXX       = (parseUdouble(memspec["mempowerspec"]["vdd"], "vdd"));
-    memPowerSpec[VDD].iXX2P     = (parseUdouble(memspec["mempowerspec"]["idd2p"], "idd2p"));
-    memPowerSpec[VDD].iXX3P     = (parseUdouble(memspec["mempowerspec"]["idd3p"], "idd3p"));
+    memPowerSpec[VDD].vXX       = memspec.mempowerspec.vdd;
+    memPowerSpec[VDD].iXX0      = memspec.mempowerspec.idd0;
+    memPowerSpec[VDD].iXX2N     = memspec.mempowerspec.idd2n;
+    memPowerSpec[VDD].iXX3N     = memspec.mempowerspec.idd3n;
+    memPowerSpec[VDD].iXX4R     = memspec.mempowerspec.idd4r;
+    memPowerSpec[VDD].iXX4W     = memspec.mempowerspec.idd4w;
+    memPowerSpec[VDD].iXX6N     = memspec.mempowerspec.idd6n;
+    memPowerSpec[VDD].iXX2P     = memspec.mempowerspec.idd2p;
+    memPowerSpec[VDD].iXX3P     = memspec.mempowerspec.idd3p;
 
     memPowerSpec.push_back(MemPowerSpec());
 
-    memPowerSpec[VPP].iXX0      = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp0"], "ipp0"));
-    memPowerSpec[VPP].iXX2N     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp2n"], "ipp2n"));
-    memPowerSpec[VPP].iXX3N     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp3n"], "ipp3n"));
-    memPowerSpec[VPP].iXX4R     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp4r"], "ipp4r"));
-    memPowerSpec[VPP].iXX4W     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp4w"], "ipp4w"));
-    memPowerSpec[VPP].iXX6N     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp6"], "ipp6"));
-    memPowerSpec[VPP].vXX       = (parseUdoubleWithDefault(memspec["mempowerspec"]["vpp"], "vpp"));
-    memPowerSpec[VPP].iXX2P     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp2p"], "ipp2p"));
-    memPowerSpec[VPP].iXX3P     = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp3p"], "ipp3p"));
+    memPowerSpec[VPP].vXX       = memspec.mempowerspec.vpp;
+    memPowerSpec[VPP].iXX0      = memspec.mempowerspec.ipp0;
+    memPowerSpec[VPP].iXX2N     = memspec.mempowerspec.ipp2n;
+    memPowerSpec[VPP].iXX3N     = memspec.mempowerspec.ipp3n;
+    memPowerSpec[VPP].iXX4R     = memspec.mempowerspec.ipp4r;
+    memPowerSpec[VPP].iXX4W     = memspec.mempowerspec.ipp4w;
+    memPowerSpec[VPP].iXX6N     = memspec.mempowerspec.ipp6n;
+    memPowerSpec[VPP].iXX2P     = memspec.mempowerspec.ipp2p;
+    memPowerSpec[VPP].iXX3P     = memspec.mempowerspec.ipp3p;
 
+    vddq = memspec.mempowerspec.vddq;
 
     if (refreshMode==1) {
-        memPowerSpec[VDD].iXX5X      = (parseUdouble(memspec["mempowerspec"]["idd5B"], "idd5B"));
-        memPowerSpec[VPP].iXX5X      = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp5B"], "ipp5B"));
-        memTimingSpec.tRFC = (parseUint(memspec["memtimingspec"]["RFC1"], "RFC1"));
+        memPowerSpec[VDD].iXX5X      = memspec.mempowerspec.idd5B;
+        memPowerSpec[VPP].iXX5X      = memspec.mempowerspec.ipp5B;
+        memTimingSpec.tRFC = memspec.memtimingspec.RFC1;
     }
     else if (refreshMode==2) {
-        memPowerSpec[VDD].iXX5X      = (parseUdouble(memspec["mempowerspec"]["idd5F2"], "idd5F2"));
-        memPowerSpec[VPP].iXX5X      = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp5F2"], "ipp5F2"));
-        memTimingSpec.tRFC = (parseUint(memspec["memtimingspec"]["RFC2"], "RFC2"));
-    }else {
-        memPowerSpec[VDD].iXX5X      = (parseUdouble(memspec["mempowerspec"]["idd5F4"], "idd5F4"));
-        memPowerSpec[VPP].iXX5X      = (parseUdoubleWithDefault(memspec["mempowerspec"]["ipp5F4"], "ipp5F4"));
-        memTimingSpec.tRFC = (parseUint(memspec["memtimingspec"]["RFC4"], "RFC4"));
+        memPowerSpec[VDD].iXX5X      = memspec.mempowerspec.idd5F2;
+        memPowerSpec[VPP].iXX5X      = memspec.mempowerspec.ipp5F2;
+        memTimingSpec.tRFC = memspec.memtimingspec.RFC2;
+    } else {
+        memPowerSpec[VDD].iXX5X      = memspec.mempowerspec.idd5F4;
+        memPowerSpec[VPP].iXX5X      = memspec.mempowerspec.ipp5F4;
+        memTimingSpec.tRFC = memspec.memtimingspec.RFC4;
     }
+    memPowerSpec[VDD].iBeta = memspec.mempowerspec.iBeta_vdd.value_or(memspec.mempowerspec.idd0);
+    memPowerSpec[VPP].iBeta = memspec.mempowerspec.iBeta_vpp.value_or(memspec.mempowerspec.ipp0);
 
-    if(memspec["mempowerspec"].contains("iBeta")){
-        memPowerSpec[VDD].iBeta = parseUdouble( memspec["mempowerspec"]["iBeta"],"iBeta");
-        memPowerSpec[VPP].iBeta = parseUdouble( memspec["mempowerspec"]["iBeta"],"iBeta");
+    if(memspec.bankwisespec.has_value())
+    {
+        bwParams.bwPowerFactRho = memspec.bankwisespec.value().factRho.value_or(1);
     }
-    else{
-        memPowerSpec[VDD].iBeta = memPowerSpec[VDD].iXX0;
-        memPowerSpec[VPP].iBeta = memPowerSpec[VPP].iXX0;
-    }
-
-
-    if (memspec.contains("bankwisespec")) {
-        if (memspec["bankwisespec"].contains("factRho"))
-            bwParams.bwPowerFactRho = parseUdouble(memspec["bankwisespec"]["factRho"],"factRho");
-        else
-            bwParams.bwPowerFactRho = 1;
-    }
-    else {
+    else
+    {
         bwParams.bwPowerFactRho = 1;
     }
 
@@ -130,49 +121,32 @@ MemSpecDDR4::MemSpecDDR4(nlohmann::json &memspec)
     parsePrePostamble(memspec);
 }
 
-void MemSpecDDR4::parseImpedanceSpec(nlohmann::json &memspec) {
-    if (!memspec.contains("memimpedancespec")) {
-        // Leaving it to default-initialize to 0 would break static power (div by 0)
-        memImpedanceSpec = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-        return;
-    }
+void MemSpecDDR4::parseImpedanceSpec(const DRAMUtils::Config::MemSpecDDR4 &memspec) {
+    memImpedanceSpec.C_total_cb = memspec.memimpedancespec.C_total_cb;
+    memImpedanceSpec.C_total_ck = memspec.memimpedancespec.C_total_ck;
+    memImpedanceSpec.C_total_dqs = memspec.memimpedancespec.C_total_dqs;
+    memImpedanceSpec.C_total_rb = memspec.memimpedancespec.C_total_rb;
+    memImpedanceSpec.C_total_wb = memspec.memimpedancespec.C_total_wb;
 
-    memImpedanceSpec.C_total_cb =
-        parseUdouble(memspec["memimpedancespec"]["C_total_cb"], "C_total_cb");
-    memImpedanceSpec.C_total_ck =
-        parseUdouble(memspec["memimpedancespec"]["C_total_ck"], "C_total_ck");
-    memImpedanceSpec.C_total_dqs =
-        parseUdouble(memspec["memimpedancespec"]["C_total_dqs"], "C_total_dqs");
-    memImpedanceSpec.C_total_rb =
-        parseUdouble(memspec["memimpedancespec"]["C_total_rb"], "C_total_rb");
-    memImpedanceSpec.C_total_wb =
-        parseUdouble(memspec["memimpedancespec"]["C_total_wb"], "C_total_wb");
-
-    memImpedanceSpec.R_eq_cb = parseUdouble(memspec["memimpedancespec"]["R_eq_cb"], "R_eq_cb");
-    memImpedanceSpec.R_eq_ck = parseUdouble(memspec["memimpedancespec"]["R_eq_ck"], "R_eq_ck");
-    memImpedanceSpec.R_eq_dqs = parseUdouble(memspec["memimpedancespec"]["R_eq_dqs"], "R_eq_dqs");
-    memImpedanceSpec.R_eq_rb = parseUdouble(memspec["memimpedancespec"]["R_eq_rb"], "R_eq_rb");
-    memImpedanceSpec.R_eq_wb = parseUdouble(memspec["memimpedancespec"]["R_eq_wb"], "R_eq_wb");
+    memImpedanceSpec.R_eq_cb = memspec.memimpedancespec.R_eq_cb;
+    memImpedanceSpec.R_eq_ck = memspec.memimpedancespec.R_eq_ck;
+    memImpedanceSpec.R_eq_dqs = memspec.memimpedancespec.R_eq_dqs;
+    memImpedanceSpec.R_eq_rb = memspec.memimpedancespec.R_eq_rb;
+    memImpedanceSpec.R_eq_wb = memspec.memimpedancespec.R_eq_wb;
 }
 
-void MemSpecDDR4::parsePrePostamble(nlohmann::json &memspec)
+void MemSpecDDR4::parsePrePostamble(const DRAMUtils::Config::MemSpecDDR4 &memspec)
 {
-    if(!memspec.contains("prepostamble"))
-    {
-        prePostamble = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        return;
-    }
-
-    prePostamble.read_zeroes = parseUdouble(memspec["prepostamble"]["read_zeroes"], "read_zeroes");
-    prePostamble.write_zeroes = parseUdouble(memspec["prepostamble"]["write_zeroes"], "write_zeroes");
-    prePostamble.read_ones = parseUdouble(memspec["prepostamble"]["read_ones"], "read_ones");
-    prePostamble.write_ones = parseUdouble(memspec["prepostamble"]["write_ones"], "write_ones");
-    prePostamble.read_zeroes_to_ones = parseUint(memspec["prepostamble"]["read_zeroes_to_ones"], "read_zeroes_to_ones");
-    prePostamble.write_zeroes_to_ones = parseUint(memspec["prepostamble"]["write_zeroes_to_ones"], "write_zeroes_to_ones");
-    prePostamble.write_ones_to_zeroes = parseUint(memspec["prepostamble"]["write_ones_to_zeroes"], "write_ones_to_zeroes");
-    prePostamble.read_ones_to_zeroes = parseUint(memspec["prepostamble"]["read_ones_to_zeroes"], "read_ones_to_zeroes");
-    prePostamble.readMinTccd = parseUint(memspec["prepostamble"]["readMinTccd"], "readMinTccd");
-    prePostamble.writeMinTccd = parseUint(memspec["prepostamble"]["writeMinTccd"], "writeMinTccd");
+    prePostamble.read_zeroes = memspec.prepostamble.read_zeroes;
+    prePostamble.write_zeroes = memspec.prepostamble.write_zeroes;
+    prePostamble.read_ones = memspec.prepostamble.read_ones;
+    prePostamble.write_ones = memspec.prepostamble.write_ones;
+    prePostamble.read_zeroes_to_ones = memspec.prepostamble.read_zeroes_to_ones;
+    prePostamble.write_zeroes_to_ones = memspec.prepostamble.write_zeroes_to_ones;
+    prePostamble.write_ones_to_zeroes = memspec.prepostamble.write_ones_to_zeroes;
+    prePostamble.read_ones_to_zeroes = memspec.prepostamble.read_ones_to_zeroes;
+    prePostamble.readMinTccd = memspec.prepostamble.readMinTccd;
+    prePostamble.writeMinTccd = memspec.prepostamble.writeMinTccd;;
 }
 
 // TODO: is this being used?

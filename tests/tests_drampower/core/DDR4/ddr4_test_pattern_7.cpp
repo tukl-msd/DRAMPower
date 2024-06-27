@@ -6,6 +6,10 @@
 
 #include <memory>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+#include <variant>
+
 #include <fstream>
 
 
@@ -33,7 +37,8 @@ protected:
             exit(1);
         }
         json data = json::parse(f);
-        MemSpecDDR4 memSpec(data["memspec"]);
+        MemSpecContainer memspeccontainer = data;
+        MemSpecDDR4 memSpec(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
 
         ddr = std::make_unique<DDR4>(memSpec);
     }

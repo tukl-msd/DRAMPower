@@ -133,6 +133,8 @@ protected:
     }
 
 public:
+    
+    // TODO rename handleCoreCommand
     void doCommand(const Command& command)
     {
         assert(commandCount.size() > static_cast<std::size_t>(command.type));
@@ -156,10 +158,19 @@ public:
             this->handle_interface(command);
     };
 
-    energy_t calcEnergyBase(timestamp_t timestamp)
+    void handleCommand(const Command& command)
     {
-        return this->calcEnergy(timestamp);
+        doCommand(command); // TODO handleCoreCommand
+        handleInterfaceCommand(command);
+    }
+
+
+    energy_t calcEnergyCore(timestamp_t timestamp)
+    {
+        return this->calcEnergy(timestamp); // calcEnergyCore // TODO refactor
     };
+
+    // TODO calcEnergyInterface (virtual function = 0)
 
     SimulationStats getStatsBase()
     {

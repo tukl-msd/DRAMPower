@@ -39,25 +39,28 @@
 #define DRAMPOWER_MEMSPEC_MEMSPECDDR4_H
 
 #include "MemSpec.h"
+#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+#include <nlohmann/json.hpp>
 
-
-
+using json = nlohmann::json;
 namespace DRAMPower {
 
-class MemSpecDDR4 final : public MemSpec
+class MemSpecDDR4 final : public MemSpec<DRAMUtils::Config::MemSpecDDR4>
 {
 public:
 
     enum VoltageDomain {
         VDD = 0,
         VPP = 1,
-        VDDQ = 2
     };
 
 public:
-	MemSpecDDR4() = default;
+    MemSpecDDR4() = default;
+    
+	MemSpecDDR4(const DRAMUtils::Config::MemSpecDDR4 &memspec);
 
-    MemSpecDDR4(nlohmann::json &memspec);
+	MemSpecDDR4(json &data) = delete;
+	MemSpecDDR4(const json &data) = delete;
 
 	~MemSpecDDR4() = default;
 
@@ -65,6 +68,8 @@ public:
 
 	unsigned numberOfBankGroups;
 	unsigned numberOfRanks;
+
+	double vddq;
 
 	// Memspec Variables:
 	struct MemTimingSpec 
@@ -151,8 +156,8 @@ public:
 	PrePostamble prePostamble;
 	BankWiseParams bwParams;
 private:
-	void parseImpedanceSpec(nlohmann::json &memspec);
-	void parsePrePostamble(nlohmann::json &memspec);
+	void parseImpedanceSpec(const DRAMUtils::Config::MemSpecDDR4 &memspec);
+	void parsePrePostamble(const DRAMUtils::Config::MemSpecDDR4 &memspec);
 };
 
 }

@@ -2,23 +2,26 @@
 #define DRAMPOWER_MEMSPEC_MEMSPECDDR5_H
 
 #include "MemSpec.h"
+#include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
 
 
 namespace DRAMPower {
 
-    class MemSpecDDR5 final : public MemSpec {
+    class MemSpecDDR5 final : public MemSpec<DRAMUtils::Config::MemSpecDDR5> {
     public:
 
         enum VoltageDomain {
             VDD = 0,
             VPP = 1,
-            VDDQ = 2
         };
 
     public:
         MemSpecDDR5() = default;
 
-        MemSpecDDR5(nlohmann::json &memspec);
+        MemSpecDDR5(const DRAMUtils::Config::MemSpecDDR5 &memspec);
+
+        MemSpecDDR5(json &data) = delete;
+        MemSpecDDR5(const json &data) = delete;
 
         ~MemSpecDDR5() = default;
 
@@ -28,6 +31,8 @@ namespace DRAMPower {
         unsigned numberOfBankGroups;
         unsigned banksPerGroup;
         unsigned numberOfRanks;
+
+        double vddq;
 
         // Memspec Variables:
         struct MemTimingSpec
@@ -98,8 +103,8 @@ namespace DRAMPower {
         BankWiseParams bwParams;
 
     private:
-        void parseImpedanceSpec(nlohmann::json &memspec);
-        void parseDataRateSpec(nlohmann::json &memspec);
+        void parseImpedanceSpec(const DRAMUtils::Config::MemSpecDDR5 &memspec);
+        void parseDataRateSpec(const DRAMUtils::Config::MemSpecDDR5 &memspec);
     };
 
 }

@@ -6,6 +6,10 @@
 
 #include <memory>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
+#include <variant>
+
 #include <fstream>
 
 
@@ -37,7 +41,8 @@ protected:
             exit(1);
         }
         json data = json::parse(f);
-        MemSpecDDR5 memSpec(data["memspec"]);
+        MemSpecContainer memspeccontainer = data;
+        MemSpecDDR5 memSpec(std::get<DRAMUtils::Config::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
 
         ddr = std::make_unique<DDR5>(memSpec);
     }

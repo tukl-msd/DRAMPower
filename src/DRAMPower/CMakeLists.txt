@@ -11,6 +11,7 @@ add_library(DRAMPower ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(DRAMPower PUBLIC ${PROJECT_SOURCE_DIR})
 target_link_libraries(DRAMPower PUBLIC 
 	nlohmann_json::nlohmann_json
+	DRAMUtils
 )
 
 add_library(DRAMSys::DRAMPower ALIAS DRAMPower)
