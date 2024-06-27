@@ -3,6 +3,10 @@
 #include <memory>
 #include <fstream>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
+#include <variant>
+
 #include "DRAMPower/data/energy.h"
 #include "DRAMPower/data/stats.h"
 #include "DRAMPower/memspec/MemSpecDDR5.h"
@@ -67,9 +71,9 @@ class DDR5_WindowStats_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-
         json data = json::parse(f);
-        spec = MemSpecDDR5{data["memspec"]};
+        DRAMPower::MemSpecContainer memspeccontainer = data;
+        spec = MemSpecDDR5(std::get<DRAMUtils::Config::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
         spec.bitWidth = 16;
     }
 
@@ -184,12 +188,12 @@ class DDR5_Energy_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-
         json data = json::parse(f);
-        spec = MemSpecDDR5{data["memspec"]};
+        DRAMPower::MemSpecContainer memspeccontainer = data;
+        spec = MemSpecDDR5(std::get<DRAMUtils::Config::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
 
         t_CK = spec.memTimingSpec.tCK;
-        voltage = spec.memPowerSpec[MemSpecDDR5::VoltageDomain::VDDQ].vXX;
+        voltage = spec.vddq;
 
         // Change impedances to different values from each other
         spec.memImpedanceSpec.R_eq_cb = 2;

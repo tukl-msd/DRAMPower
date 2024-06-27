@@ -8,6 +8,10 @@
 #include <memory>
 #include <stdint.h>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
+#include <variant>
+
 using namespace DRAMPower;
 
 class DramPowerTest_Interface_LPDDR4 : public ::testing::Test {

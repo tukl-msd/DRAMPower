@@ -13,7 +13,7 @@ static double calc_dynamic_power(uint64_t transitions, double C_total, double vo
 InterfaceCalculation_DDR5::InterfaceCalculation_DDR5(const MemSpecDDR5 &memspec)
     : memspec_(memspec), impedances_(memspec_.memImpedanceSpec) {
     t_CK_ = memspec_.memTimingSpec.tCK;
-    VDDQ_ = memspec_.memPowerSpec[MemSpecDDR5::VoltageDomain::VDDQ].vXX;
+    VDDQ_ = memspec_.vddq;
 }
 
 interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(const SimulationStats &stats) {

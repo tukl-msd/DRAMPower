@@ -3,6 +3,10 @@
 #include <memory>
 #include <fstream>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
+#include <variant>
+
 #include "DRAMPower/data/energy.h"
 #include "DRAMPower/data/stats.h"
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
@@ -78,9 +82,10 @@ class LPDDR5_WindowStats_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-
         json data = json::parse(f);
-        spec = MemSpecLPDDR5{data["memspec"]};
+        MemSpecContainer memspeccontainer = data;
+        spec = MemSpecLPDDR5(std::get<DRAMUtils::Config::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
+
         spec.numberOfDevices = 1;
         spec.bitWidth = 16;
     }
@@ -334,13 +339,13 @@ class LPDDR5_Energy_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-
         json data = json::parse(f);
-        spec = MemSpecLPDDR5{data["memspec"]};
+        MemSpecContainer memspeccontainer = data;
+        spec = MemSpecLPDDR5(std::get<DRAMUtils::Config::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
 
         t_CK = spec.memTimingSpec.tCK;
         t_WCK = spec.memTimingSpec.tWCK;
-        voltage = spec.memPowerSpec[MemSpecLPDDR5::VoltageDomain::VDDQ].vDDX;
+        voltage = spec.vddq;
 
         // Change impedances to different values from each other
         spec.memImpedanceSpec.R_eq_cb = 2;

@@ -3,6 +3,10 @@
 #include <fstream>
 #include <memory>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
+#include <variant>
+
 #include "DRAMPower/command/Command.h"
 #include "DRAMPower/standards/lpddr5/LPDDR5.h"
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
@@ -40,9 +44,9 @@ class LPDDR5_MultirankTests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-
         json data = json::parse(f);
-        spec = MemSpecLPDDR5{data["memspec"]};
+        DRAMPower::MemSpecContainer memspeccontainer = data;
+        MemSpecLPDDR5 memSpec(std::get<DRAMUtils::Config::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
         spec.numberOfRanks = 2;
     }
 

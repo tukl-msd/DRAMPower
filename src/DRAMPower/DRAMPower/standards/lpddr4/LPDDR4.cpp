@@ -387,8 +387,14 @@ namespace DRAMPower {
         processImplicitCommandQueue(timestamp);
 
         SimulationStats stats;
+        try {
         stats.bank.resize(memSpec.numberOfBanks * memSpec.numberOfRanks);
         stats.rank_total.resize(memSpec.numberOfRanks);
+        }
+        catch (const std::bad_alloc& e)
+        {
+            std::cout << "Memory allocation failed " << e.what() << '\n';
+        }
 
         auto simulation_duration = timestamp;
         for (size_t i = 0; i < memSpec.numberOfRanks; ++i) {

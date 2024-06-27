@@ -20,7 +20,7 @@ InterfaceCalculation_DDR4::InterfaceCalculation_DDR4(const MemSpecDDR4 &memspec)
     impedances_(memspec_.memImpedanceSpec) 
 {
     t_CK_ = memspec_.memTimingSpec.tCK;
-    VDD_ = memspec_.memPowerSpec[MemSpecDDR4::VoltageDomain::VDD].vXX;
+    VDD_ = memspec_.vddq;
 }
 
 interface_energy_info_t InterfaceCalculation_DDR4::calculateEnergy(const SimulationStats &stats) {

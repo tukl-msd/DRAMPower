@@ -2,22 +2,27 @@
 #define DRAMPOWER_MEMSPEC_MEMSPECLPDDR4_H
 
 #include "MemSpec.h"
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
 
 
 namespace DRAMPower {
 
-class MemSpecLPDDR4 final : public MemSpec
+class MemSpecLPDDR4 final : public MemSpec<DRAMUtils::Config::MemSpecLPDDR4>
 {
 public:
 
     enum VoltageDomain {
-        VDD = 0,
-        VDDQ = 1
+        VDD1 = 0,
+        VDD2 = 1,
     };
 
 public:
 	MemSpecLPDDR4() = default;
-	MemSpecLPDDR4(nlohmann::json &memspec);
+	
+	MemSpecLPDDR4(const DRAMUtils::Config::MemSpecLPDDR4 &memspec);
+	
+	MemSpecLPDDR4(json &data) = delete;
+	MemSpecLPDDR4(const json &data) = delete;
 
 	~MemSpecLPDDR4() = default;
 	uint64_t timeToCompletion(CmdType type) override;
@@ -25,6 +30,8 @@ public:
     unsigned numberOfBankGroups;
     unsigned banksPerGroup;
     unsigned numberOfRanks;
+
+	double vddq;
 
 	struct MemTimingSpec
 	{
@@ -109,7 +116,7 @@ public:
 	BankWiseParams bwParams;
 
 private:
-    void parseImpedanceSpec(nlohmann::json &memspec);
+    void parseImpedanceSpec(const DRAMUtils::Config::MemSpecLPDDR4 &memspec);
 };
 
 }

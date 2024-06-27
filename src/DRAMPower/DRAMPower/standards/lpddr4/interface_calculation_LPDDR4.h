@@ -39,7 +39,7 @@ public:
 	InterfacePowerCalculation_LPPDR4(const MemSpecLPDDR4 & memspec)
 	: memspec_(memspec)
 	{
-		VDDQ = memspec.memPowerSpec[MemSpecLPDDR4::VoltageDomain::VDDQ].vDDX;
+		VDDQ = memspec.vddq;
 		t_CK = memspec.memTimingSpec.tCK;
 		impedanceSpec = memspec.memImpedanceSpec;
 	};

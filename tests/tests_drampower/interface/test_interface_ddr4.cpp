@@ -3,6 +3,10 @@
 #include <memory>
 #include <fstream>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+#include <variant>
+
 #include "DRAMPower/data/energy.h"
 #include "DRAMPower/data/stats.h"
 #include "DRAMPower/memspec/MemSpecDDR4.h"
@@ -83,9 +87,9 @@ class DDR4_WindowStats_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-
         json data = json::parse(f);
-        spec = MemSpecDDR4{data["memspec"]};
+        DRAMPower::MemSpecContainer memspeccontainer = data;
+        spec = MemSpecDDR4(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
     }
 
     void runCommands(const std::vector<Command> &commands) {
@@ -408,9 +412,9 @@ class DDR4_Energy_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-
         json data = json::parse(f);
-        spec = MemSpecDDR4{data["memspec"]};
+        DRAMPower::MemSpecContainer memspeccontainer = data;
+        spec = MemSpecDDR4(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
 
         t_CK = spec.memTimingSpec.tCK;
         voltage = spec.memPowerSpec[MemSpecDDR4::VoltageDomain::VDD].vXX;

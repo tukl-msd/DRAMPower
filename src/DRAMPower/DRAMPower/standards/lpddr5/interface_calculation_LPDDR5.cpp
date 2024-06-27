@@ -14,7 +14,7 @@ InterfaceCalculation_LPDDR5::InterfaceCalculation_LPDDR5(const MemSpecLPDDR5 &me
     : memspec_(memspec), impedances_(memspec_.memImpedanceSpec) {
     t_CK_ = memspec_.memTimingSpec.tCK;
     t_WCK_ = memspec_.memTimingSpec.tWCK;
-    VDDQ_ = memspec_.memPowerSpec[MemSpecLPDDR5::VoltageDomain::VDDQ].vDDX;
+    VDDQ_ = memspec_.vddq;
 }
 
 interface_energy_info_t InterfaceCalculation_LPDDR5::calculateEnergy(const SimulationStats &stats) {

@@ -26,6 +26,10 @@ Total * 5:				22040.913461538462
 
 #include <DRAMPower/standards/ddr4/DDR4.h>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+#include <variant>
+
 #include <memory>
 
 #include <fstream>
@@ -60,7 +64,8 @@ protected:
             exit(1);
         }
         json data = json::parse(f);
-        MemSpecDDR4 memSpec(data["memspec"]);
+        MemSpecContainer memspeccontainer = data;
+        MemSpecDDR4 memSpec(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
         memSpec.numberOfDevices = 5;
 
         numberOfDevices = memSpec.numberOfDevices;
