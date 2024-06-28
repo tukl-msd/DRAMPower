@@ -26,6 +26,7 @@ MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::Config::MemSpecLPDDR4 &memspec)
     auto VDD2 = VoltageDomain::VDD2;
 
     memPowerSpec.push_back(MemPowerSpec());
+    memPowerSpec.push_back(MemPowerSpec());
 
     memPowerSpec[VDD1].vDDX       = memspec.mempowerspec.vdd1;
     memPowerSpec[VDD1].iDD0X      = memspec.mempowerspec.idd01;
@@ -217,8 +218,6 @@ uint64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::CmdType type)
 } // MemSpecLPDDR4::timeToCompletion
 
 void MemSpecLPDDR4::parseImpedanceSpec(const DRAMUtils::Config::MemSpecLPDDR4 &memspec) {
-    memspec.memimpedancespec.C_total_cb;
-
     memImpedanceSpec.C_total_cb = memspec.memimpedancespec.C_total_cb;
     memImpedanceSpec.C_total_ck = memspec.memimpedancespec.C_total_ck;
     memImpedanceSpec.C_total_dqs = memspec.memimpedancespec.C_total_dqs;
