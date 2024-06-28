@@ -10,7 +10,7 @@ MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::Config::MemSpecLPDDR5 &memspec)
     numberOfRanks           = memspec.memarchitecturespec.nbrOfRanks;
     banksPerGroup           = numberOfBanks / numberOfBankGroups;
 
-    memTimingSpec.tCK       = 1000/1300.0;//memspec.memtimingspec.tCK;
+    memTimingSpec.tCK       = memspec.memtimingspec.tCK;
     memTimingSpec.WCKtoCK   = memspec.memtimingspec.WCKtoCK;
     memTimingSpec.tWCK      = memTimingSpec.tCK / memTimingSpec.WCKtoCK;
     memTimingSpec.tRAS      = memspec.memtimingspec.RAS;

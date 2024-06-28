@@ -10,7 +10,7 @@ MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::Config::MemSpecLPDDR4 &memspec)
     numberOfRanks          = memspec.memarchitecturespec.nbrOfRanks;
     banksPerGroup = numberOfBanks / numberOfBankGroups;
 
-    memTimingSpec.tCK      = 1000/1300.0;//memspec.memtimingspec.tCK;
+    memTimingSpec.tCK      = memspec.memtimingspec.tCK;
     memTimingSpec.tRAS     = memspec.memtimingspec.RAS;
     memTimingSpec.tRCD     = memspec.memtimingspec.RCD;
     memTimingSpec.tRL      = memspec.memtimingspec.RL;
