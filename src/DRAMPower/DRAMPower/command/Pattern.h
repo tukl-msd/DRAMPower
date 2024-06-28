@@ -6,6 +6,7 @@
 #include <bitset>
 #include <cassert>
 #include <unordered_map>
+#include <vector>
 
 namespace DRAMPower {
 namespace pattern_descriptor {
@@ -59,7 +60,7 @@ public:
         // Update settings if descriptor is already present
         for (const auto &setting : _settings)
         {
-            this->settings.emplace(setting.descriptor, setting.bitSpec);
+            this->settings[setting.descriptor] = setting.bitSpec;
         }
     };
 
