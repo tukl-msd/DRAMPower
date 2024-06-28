@@ -62,7 +62,7 @@ namespace DRAMPower {
 
         energy_t energy(dram.memSpec.numberOfBanks * dram.memSpec.numberOfRanks * dram.memSpec.numberOfDevices);
 
-        for (auto vd : {MemSpecDDR5::VoltageDomain::VDD}) {
+        for (auto vd : {MemSpecDDR5::VoltageDomain::VDD, MemSpecDDR5::VoltageDomain::VPP}) {
             auto VXX = dram.memSpec.memPowerSpec[vd].vXX;
             auto IXX_0 = dram.memSpec.memPowerSpec[vd].iXX0;
             auto IXX2N = dram.memSpec.memPowerSpec[vd].iXX2N;
