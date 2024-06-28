@@ -34,7 +34,7 @@ class DDR5_MultirankTests : public ::testing::Test {
     void SetUp()
     {
         initSpec();
-        ddr = std::make_unique<DDR5>(spec);
+        ddr = std::make_unique<DDR5>(*spec);
     }
 
     void initSpec() {
@@ -46,8 +46,9 @@ class DDR5_MultirankTests : public ::testing::Test {
         }
         json data = json::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = MemSpecDDR5(std::get<DRAMUtils::Config::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
-        spec.numberOfRanks = 2;
+        
+        spec = std::make_unique<MemSpecDDR5>(std::get<DRAMUtils::Config::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
+        spec->numberOfRanks = 2;
     }
 
     void runCommands(const std::vector<Command> &commands) {
@@ -58,10 +59,10 @@ class DDR5_MultirankTests : public ::testing::Test {
     }
 
     inline size_t bankIndex(int bank, int rank) {
-        return rank * spec.numberOfBanks + bank;
+        return rank * spec->numberOfBanks + bank;
     }
 
-    MemSpecDDR5 spec;
+    std::unique_ptr<MemSpecDDR5> spec;
     std::unique_ptr<DDR5> ddr;
 };
 
@@ -77,7 +78,7 @@ TEST_F(DDR5_MultirankTests, Pattern_1) {
     });
 
     SimulationStats stats = ddr->getStats();
-    EXPECT_EQ(stats.bank.size(), spec.numberOfBanks * spec.numberOfRanks);
+    EXPECT_EQ(stats.bank.size(), spec->numberOfBanks * spec->numberOfRanks);
     EXPECT_EQ(stats.bank[bankIndex(1, 0)].cycles.act, 15);
     EXPECT_EQ(stats.bank[bankIndex(1, 1)].cycles.act, 8);
     EXPECT_EQ(stats.bank[bankIndex(1, 0)].cycles.pre, 5);
@@ -103,7 +104,7 @@ TEST_F(DDR5_MultirankTests, Pattern_2) {
     });
 
     SimulationStats stats = ddr->getStats();
-    EXPECT_EQ(stats.bank.size(), spec.numberOfBanks * spec.numberOfRanks);
+    EXPECT_EQ(stats.bank.size(), spec->numberOfBanks * spec->numberOfRanks);
     EXPECT_EQ(stats.bank[bankIndex(0, 0)].cycles.act, 45);
     EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.act, 75);
     EXPECT_EQ(stats.bank[bankIndex(3, 1)].cycles.act, 60);

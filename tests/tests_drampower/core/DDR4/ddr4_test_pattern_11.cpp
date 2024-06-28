@@ -5,6 +5,8 @@
 #include <DRAMPower/standards/ddr4/DDR4.h>
 
 #include <memory>
+#include <fstream>
+#include <string>
 
 using namespace DRAMPower;
 
@@ -50,7 +52,15 @@ protected:
 
     virtual void SetUp()
     {
-        MemSpecDDR4 memSpec;
+		std::ifstream f(std::string(TEST_RESOURCE_DIR) + "ddr4.json");
+
+        if(!f.is_open()){
+            std::cout << "Error: Could not open memory specification" << std::endl;
+            exit(1);
+        }
+        json data = json::parse(f);
+        MemSpecContainer memspeccontainer = data;
+        MemSpecDDR4 memSpec(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
 		memSpec.numberOfRanks = 1;
 		memSpec.numberOfDevices = 1;
         memSpec.numberOfBanks = 8;

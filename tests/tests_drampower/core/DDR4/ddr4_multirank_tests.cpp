@@ -29,13 +29,7 @@ static constexpr uint8_t rd_data[] = {
 
 class DDR4_MultirankTests : public ::testing::Test {
   public:
-    DDR4_MultirankTests() {
-
-        initSpec();
-        ddr = std::make_unique<DDR4>(spec);
-    }
-
-    void initSpec() {
+    virtual void SetUp() {
         std::ifstream f(std::string(TEST_RESOURCE_DIR) + "ddr4.json");
 
         if(!f.is_open()){
@@ -44,8 +38,9 @@ class DDR4_MultirankTests : public ::testing::Test {
         }
         json data = json::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = MemSpecDDR4(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
-        spec.numberOfRanks = 2;
+        spec = std::make_unique<MemSpecDDR4>(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
+        spec->numberOfRanks = 2;
+        ddr = std::make_unique<DDR4>(*spec);
     }
 
     void runCommands(const std::vector<Command> &commands) {
@@ -56,10 +51,10 @@ class DDR4_MultirankTests : public ::testing::Test {
     }
 
     inline size_t bankIndex(int bank, int rank) {
-        return rank * spec.numberOfBanks + bank;
+        return rank * spec->numberOfBanks + bank;
     }
 
-    MemSpecDDR4 spec;
+    std::unique_ptr<MemSpecDDR4> spec;
     std::unique_ptr<DDR4> ddr;
 };
 
@@ -75,7 +70,7 @@ TEST_F(DDR4_MultirankTests, Pattern_1) {
     });
 
     SimulationStats stats = ddr->getStats();
-    EXPECT_EQ(stats.bank.size(), spec.numberOfBanks * spec.numberOfRanks);
+    EXPECT_EQ(stats.bank.size(), spec->numberOfBanks * spec->numberOfRanks);
     EXPECT_EQ(stats.bank[bankIndex(1, 0)].cycles.act, 15);
     EXPECT_EQ(stats.bank[bankIndex(1, 1)].cycles.act, 8);
     EXPECT_EQ(stats.bank[bankIndex(1, 0)].cycles.pre, 5);
@@ -102,7 +97,7 @@ TEST_F(DDR4_MultirankTests, Pattern_2) {
     });
 
     SimulationStats stats = ddr->getStats();
-    EXPECT_EQ(stats.bank.size(), spec.numberOfBanks * spec.numberOfRanks);
+    EXPECT_EQ(stats.bank.size(), spec->numberOfBanks * spec->numberOfRanks);
     EXPECT_EQ(stats.bank[bankIndex(0, 0)].cycles.act, 45);
     EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.act, 75);
     EXPECT_EQ(stats.bank[bankIndex(3, 1)].cycles.act, 60);

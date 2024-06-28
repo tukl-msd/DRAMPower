@@ -55,7 +55,7 @@ public:
     };
 
 public:
-    MemSpecDDR4() = default;
+    MemSpecDDR4() = delete;
     
 	MemSpecDDR4(const DRAMUtils::Config::MemSpecDDR4 &memspec);
 

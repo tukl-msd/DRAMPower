@@ -5,6 +5,8 @@
 #include <DRAMPower/standards/ddr5/DDR5.h>
 
 #include <memory>
+#include <fstream>
+#include <string>
 
 using namespace DRAMPower;
 
@@ -29,7 +31,15 @@ protected:
 
     virtual void SetUp()
     {
-        MemSpecDDR5 memSpec;
+		std::ifstream f(std::string(TEST_RESOURCE_DIR) + "ddr5.json");
+
+        if(!f.is_open()){
+            std::cout << "Error: Could not open memory specification" << std::endl;
+            exit(1);
+        }
+        json data = json::parse(f);
+        MemSpecContainer memspeccontainer = data;
+        MemSpecDDR5 memSpec(std::get<DRAMUtils::Config::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
 		memSpec.bitWidth = 16;
 		memSpec.numberOfDevices = 1;
 		memSpec.numberOfRanks = 1;
