@@ -5,6 +5,8 @@
 #include <DRAMPower/standards/lpddr4/LPDDR4.h>
 
 #include <memory>
+#include <fstream>
+#include <string>
 
 using namespace DRAMPower;
 
@@ -30,7 +32,15 @@ protected:
 
     virtual void SetUp()
     {
-        MemSpecLPDDR4 memSpec;
+		std::ifstream f(std::string(TEST_RESOURCE_DIR) + "lpddr4.json");
+
+        if(!f.is_open()){
+            std::cout << "Error: Could not open memory specification" << std::endl;
+            exit(1);
+        }
+        json data = json::parse(f);
+        MemSpecContainer memspeccontainer = data;
+        MemSpecLPDDR4 memSpec(std::get<DRAMUtils::Config::MemSpecLPDDR4>(memspeccontainer.memspec.getVariant()));
 		memSpec.numberOfRanks = 1;
         memSpec.numberOfBanks = 8;
         memSpec.banksPerGroup = 8;

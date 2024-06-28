@@ -7,6 +7,8 @@
 #include <memory>
 
 #include <iostream>
+#include <fstream>
+#include <string>
 
 using namespace DRAMPower;
 
@@ -37,7 +39,15 @@ protected:
 
     virtual void SetUp()
     {
-        MemSpecDDR4 memSpec;
+		std::ifstream f(std::string(TEST_RESOURCE_DIR) + "ddr4.json");
+
+        if(!f.is_open()){
+            std::cout << "Error: Could not open memory specification" << std::endl;
+            exit(1);
+        }
+        json data = json::parse(f);
+        MemSpecContainer memspeccontainer = data;
+        MemSpecDDR4 memSpec(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
         memSpec.numberOfRanks = 1;
 		memSpec.numberOfDevices = 1;
         memSpec.numberOfBanks = 8;
@@ -52,8 +62,14 @@ protected:
 		memSpec.memPowerSpec.resize(4);
 		memSpec.memPowerSpec[0].vXX = 1;
 		memSpec.memPowerSpec[0].iXX0 = 64;
-		memSpec.memPowerSpec[0].iXX3N = 32;
 		memSpec.memPowerSpec[0].iXX2N = 8;
+		memSpec.memPowerSpec[0].iXX3N = 32;
+		memSpec.memPowerSpec[0].iXX4R = 0;
+		memSpec.memPowerSpec[0].iXX4W = 0;
+		memSpec.memPowerSpec[0].iXX5X = 0;
+		memSpec.memPowerSpec[0].iXX6N = 0;
+		memSpec.memPowerSpec[0].iXX2P = 0;
+		memSpec.memPowerSpec[0].iXX3P = 0;
         memSpec.memPowerSpec[0].iBeta = memSpec.memPowerSpec[0].iXX0;
 		memSpec.bwParams.bwPowerFactRho = 0.333333333;
 

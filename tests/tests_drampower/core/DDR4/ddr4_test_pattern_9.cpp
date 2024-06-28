@@ -11,6 +11,7 @@
 #include <memory>
 
 #include <fstream>
+#include <string>
 
 
 using namespace DRAMPower;

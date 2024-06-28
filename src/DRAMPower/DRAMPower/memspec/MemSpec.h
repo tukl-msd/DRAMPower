@@ -87,7 +87,7 @@ public:
 
     uint64_t prechargeOffsetRD;
     uint64_t prechargeOffsetWR;
-    MemSpec() = default;
+    MemSpec() = delete;
     virtual ~MemSpec() = default;
     virtual uint64_t timeToCompletion(DRAMPower::CmdType type) = 0;
 

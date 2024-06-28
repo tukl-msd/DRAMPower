@@ -16,7 +16,7 @@ namespace DRAMPower {
         };
 
     public:
-        MemSpecDDR5() = default;
+        MemSpecDDR5() = delete;
 
         MemSpecDDR5(const DRAMUtils::Config::MemSpecDDR5 &memspec);
 

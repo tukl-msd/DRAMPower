@@ -34,7 +34,7 @@ class LPDDR5_MultirankTests : public ::testing::Test {
     LPDDR5_MultirankTests() {
 
         initSpec();
-        ddr = std::make_unique<LPDDR5>(spec);
+        ddr = std::make_unique<LPDDR5>(*spec);
     }
 
     void initSpec() {
@@ -46,8 +46,8 @@ class LPDDR5_MultirankTests : public ::testing::Test {
         }
         json data = json::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
-        MemSpecLPDDR5 memSpec(std::get<DRAMUtils::Config::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
-        spec.numberOfRanks = 2;
+        spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::Config::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
+        spec->numberOfRanks = 2;
     }
 
     void runCommands(const std::vector<Command> &commands) {
@@ -58,10 +58,10 @@ class LPDDR5_MultirankTests : public ::testing::Test {
     }
 
     inline size_t bankIndex(int bank, int rank) {
-        return rank * spec.numberOfBanks + bank;
+        return rank * spec->numberOfBanks + bank;
     }
 
-    MemSpecLPDDR5 spec;
+    std::unique_ptr<MemSpecLPDDR5> spec;
     std::unique_ptr<LPDDR5> ddr;
 };
 
@@ -77,7 +77,7 @@ TEST_F(LPDDR5_MultirankTests, Pattern_1) {
     });
 
     SimulationStats stats = ddr->getStats();
-    EXPECT_EQ(stats.bank.size(), spec.numberOfBanks * spec.numberOfRanks);
+    EXPECT_EQ(stats.bank.size(), spec->numberOfBanks * spec->numberOfRanks);
     EXPECT_EQ(stats.bank[bankIndex(1, 0)].cycles.act, 15);
     EXPECT_EQ(stats.bank[bankIndex(1, 1)].cycles.act, 8);
     EXPECT_EQ(stats.bank[bankIndex(1, 0)].cycles.pre, 5);
@@ -102,7 +102,7 @@ TEST_F(LPDDR5_MultirankTests, Pattern_2) {
     });
 
     SimulationStats stats = ddr->getStats();
-    EXPECT_EQ(stats.bank.size(), spec.numberOfBanks * spec.numberOfRanks);
+    EXPECT_EQ(stats.bank.size(), spec->numberOfBanks * spec->numberOfRanks);
     EXPECT_EQ(stats.bank[bankIndex(0, 0)].cycles.act, 75);
     EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.act, 75);
     EXPECT_EQ(stats.bank[bankIndex(3, 1)].cycles.act, 60);
