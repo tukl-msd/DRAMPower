@@ -50,7 +50,6 @@ protected:
 
 
         memSpec.memTimingSpec.tRAS = 10;
-		memSpec.memTimingSpec.tRTP = 10;
 		memSpec.memTimingSpec.tRCD = 20;
 		memSpec.memTimingSpec.tRFC = 25;
 		memSpec.memTimingSpec.tRFCPB = 25;

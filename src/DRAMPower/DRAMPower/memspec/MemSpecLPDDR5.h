@@ -52,7 +52,6 @@ namespace DRAMPower {
             uint64_t tRAS;
             uint64_t tRCD;
             uint64_t tRL;
-            uint64_t tRTP;
             uint64_t tWL;
             uint64_t tWR;
             uint64_t tRFC;
