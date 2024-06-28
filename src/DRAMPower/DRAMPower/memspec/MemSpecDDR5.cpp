@@ -12,7 +12,7 @@ MemSpecDDR5::MemSpecDDR5(const DRAMUtils::Config::MemSpecDDR5 &memspec)
 
     refreshMode             = memspec.RefreshMode;
 
-    memTimingSpec.tCK       = 1000/1300.0;//memspec.memtimingspec.tCK;
+    memTimingSpec.tCK       = memspec.memtimingspec.tCK;
     memTimingSpec.tRAS      = memspec.memtimingspec.RAS;
     memTimingSpec.tRCD      = memspec.memtimingspec.RCD;
     memTimingSpec.tRTP      = memspec.memtimingspec.RTP;

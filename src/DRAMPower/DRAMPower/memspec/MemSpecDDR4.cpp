@@ -48,7 +48,7 @@ MemSpecDDR4::MemSpecDDR4(const DRAMUtils::Config::MemSpecDDR4 &memspec)
     numberOfRanks          = memspec.memarchitecturespec.nbrOfRanks;
 
     refreshMode            = memspec.RefreshMode;
-    memTimingSpec.tCK      = 1000/1300.0;//memspec.memtimingspec.tCK;
+    memTimingSpec.tCK      = memspec.memtimingspec.tCK;
     memTimingSpec.tRAS     = memspec.memtimingspec.RAS;
     memTimingSpec.tRCD     = memspec.memtimingspec.RCD;
     memTimingSpec.tRTP     = memspec.memtimingspec.RTP;
