@@ -22,7 +22,6 @@
             "inherits": "cmake-pedantic",
             "cacheVariables": {
                 "DRAMPOWER_BUILD_TESTS": "ON",
-                "DRAMPOWER_LOCAL_DRAMUTILS": "ON",
                 "DRAMPOWER_BUILD_CLI": "ON"
             }
         },
