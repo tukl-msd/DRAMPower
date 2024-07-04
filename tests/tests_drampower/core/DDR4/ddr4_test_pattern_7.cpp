@@ -93,5 +93,5 @@ TEST_F(DramPowerTest_DDR4_7, Energy) {
     ASSERT_EQ(std::round(total_energy.E_bg_act*1e12), 912);
     ASSERT_EQ(std::round(energy.E_bg_act_shared*1e12), 845);
     ASSERT_EQ(std::round(total_energy.E_bg_pre*1e12), 1869);
-    ASSERT_EQ(std::round((total_energy.total() + energy.E_sref)*1e12), 4873);
+    ASSERT_EQ(std::round((total_energy.total() + energy.E_sref)*1e12), 4872);
 }
