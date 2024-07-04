@@ -75,6 +75,7 @@ set(DRAMPOWER_TEST_DIR    "${CMAKE_CURRENT_SOURCE_DIR}/tests")
 option(DRAMPOWER_BUILD_TESTS "Build DRAMPower unit tests" OFF)
 option(DRAMPOWER_VERBOSE_CMAKE_OUTPUT "Show detailed CMake output" OFF)
 option(DRAMPOWER_BUILD_CLI "Build DRAMPower Command Line Tool" OFF)
+option(DRAMPOWER_LOCAL_DRAMUTILS "Use a local DRAMUtils installation." OFF)
 
 ### Compiler settings ###
 set(CMAKE_CXX_STANDARD 17)
@@ -117,9 +118,16 @@ if(DRAMPOWER_BUILD_TESTS)
 endif()
 
 ### DRAMUtils ###
-# Fetch DRAMUtils from path ../DRAMUtils
-if(DRAMSYS_NEW_MEMSPEC)
-    if(NOT TARGET DRAMUtils) # TODO necessary?
+if (NOT DRAMPOWER_LOCAL_DRAMUTILS)
+    # Fetch DRAMUtils from github
+    FetchContent_Declare(
+        DRAMUtils
+        GIT_REPOSITORY https://github.com/tukl-msd/DRAMUtils)
+
+    FetchContent_MakeAvailable(DRAMUtils)
+    set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
+elseif(DRAMPOWER_LOCAL_DRAMUTILS)
+    # Fetch DRAMUtils from path ../DRAMUtils
     set(DRAMUtils_SOURCE_DIR_FETCH ${CMAKE_CURRENT_SOURCE_DIR}/../DRAMUtils)
     FetchContent_Declare(
         DRAMUtils
@@ -127,7 +135,6 @@ if(DRAMSYS_NEW_MEMSPEC)
     FetchContent_MakeAvailable(DRAMUtils)
 
     set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
-    endif()
 endif()
 
 ###############################################
