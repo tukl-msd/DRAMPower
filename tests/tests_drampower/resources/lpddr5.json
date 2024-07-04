@@ -55,12 +55,12 @@
       "idd2p2l": 0,
       "idd3p2l": 0,
       "vddq": 0.5,
-      "iBeta_vdd1": 56.25,
+      "iBeta_vdd1": 56.25e-3,
       "iBeta_vdd2h": 0,
       "iBeta_vdd2l": 0
     },
     "memtimingspec": {
-      "tCK": 0.76923076923076923076923076923077,
+      "tCK": 0.76923076923076923076923076923077e-9,
       "REFI": 20,
       "REFIpb": 0,
       "RFCab": 25,

@@ -2,7 +2,6 @@
   "memspec": {
     "memoryId": "ddr4",
     "memoryType": "DDR4",
-    "RefreshMode": 1,
     "memarchitecturespec": {
       "nbrOfChannels": 0,
       "nbrOfColumns": 1024,
@@ -14,7 +13,8 @@
       "nbrOfBankGroups": 2,
       "nbrOfBanks": 16,
       "nbrOfRanks": 1,
-      "nbrOfDevices": 1
+      "nbrOfDevices": 1,
+      "RefMode": 1
     },
     "mempowerspec": {
       "vdd": 1.2,
@@ -42,11 +42,11 @@
       "ipp5F2": 0,
       "ipp5F4": 0,
       "vddq": 1.2,
-      "iBeta_vdd": 56.25,
+      "iBeta_vdd": 56.25e-3,
       "iBeta_vpp": 0
     },
     "memtimingspec": {
-      "tCK": 0.76923076923076923076923076923077e-12,
+      "tCK": 0.76923076923076923076923076923077e-9,
       "CKE": 0,
       "CKESR": 0,
       "RAS": 10,
@@ -56,6 +56,7 @@
       "RPRE": 0,
       "RTP": 5,
       "WL": 5,
+      "WPRE": 0,
       "WR": 5,
       "XP": 0,
       "XS": 0,

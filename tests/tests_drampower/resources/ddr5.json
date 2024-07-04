@@ -2,7 +2,6 @@
   "memspec": {
     "memoryId": "ddr5",
     "memoryType": "DDR5",
-    "RefreshMode": 1,
     "memarchitecturespec": {
       "nbrOfChannels": 0,
       "nbrOfColumns": 1024,
@@ -19,7 +18,7 @@
       "nbrOfPhysicalRanks": 0,
       "nbrOfLogicalRanks": 0,
       "cmdMode": 0,
-      "refMode": 0,
+      "RefMode": 1,
       "RAAIMT": 0,
       "RAAMMT": 0,
       "RAADEC": 0
@@ -50,11 +49,11 @@
       "ipp2p": 0,
       "ipp3p": 0,
       "vddq": 1.1,
-      "iBeta_vdd": 56.25,
+      "iBeta_vdd": 56.25e-3,
       "iBeta_vpp": 0
     },
     "memtimingspec": {
-      "tCK": 0.76923076923076923076923076923077,
+      "tCK": 0.76923076923076923076923076923077e-9,
       "RAS": 10,
       "RCD": 13,
       "RTP": 5,
@@ -89,13 +88,13 @@
       "WTR_L": 0,
       "WTR_M": 0,
       "WTR_S": 0,
-      "RFC1_slr": 0,
-      "RFC2_slr": 0,
+      "RFC1_slr": 25,
+      "RFC2_slr": 30,
       "RFC1_dlr": 0,
       "RFC2_dlr": 0,
       "RFC1_dpr": 0,
       "RFC2_dpr": 0,
-      "RFCsb_slr": 0,
+      "RFCsb_slr": 20,
       "RFCsb_dlr": 0,
       "REFI1": 0,
       "REFI2": 0,
