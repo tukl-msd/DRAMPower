@@ -29,6 +29,7 @@ target_link_libraries(drampower_cli
 	PRIVATE 
 		DRAMSys::DRAMPower
 		# spdlog::spdlog
+        DRAMUtils
 )
 
 build_source_group()

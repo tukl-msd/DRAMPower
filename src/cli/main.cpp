@@ -22,46 +22,54 @@
 #include <vector>
 #include <filesystem>
 #include <string_view>
+// #include <spdlog>
+#include <DRAMUtils/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
+#include <variant>
+#include <type_traits>
 
 using namespace DRAMPower;
 
 
-std::unique_ptr<dram_base<CmdType>> getMemory(const json& data)
+std::unique_ptr<dram_base<CmdType>> getMemory(const json &data)
 {
-	if ( !data.contains("memspec") )
+	try
 	{
+		DRAMPower::MemSpecContainer memspec = data; // Can throw an excption
+		std::unique_ptr<dram_base<CmdType>> result = nullptr;
+		std::visit( [&result] (auto&& arg) {
+			using T = std::decay_t<decltype(arg)>;
+			if constexpr (std::is_same_v<T, DRAMUtils::Config::MemSpecDDR4>)
+			{
+				MemSpecDDR4 ddr (static_cast<DRAMUtils::Config::MemSpecDDR4>(arg));
+				result = std::make_unique<DDR4>(ddr);
+			}
+			else if constexpr (std::is_same_v<T, DRAMUtils::Config::MemSpecDDR5>)
+			{
+				MemSpecDDR5 ddr (static_cast<DRAMUtils::Config::MemSpecDDR5>(arg));
+				result = std::make_unique<DDR5>(ddr);
+			}
+			else if constexpr (std::is_same_v<T, DRAMUtils::Config::MemSpecLPDDR4>)
+			{
+				MemSpecLPDDR4 ddr (static_cast<DRAMUtils::Config::MemSpecLPDDR4>(arg));
+				result = std::make_unique<LPDDR4>(ddr);
+			}
+			else if constexpr (std::is_same_v<T, DRAMUtils::Config::MemSpecLPDDR5>)
+			{
+				MemSpecLPDDR5 ddr (static_cast<DRAMUtils::Config::MemSpecLPDDR5>(arg));
+				result = std::make_unique<LPDDR5>(ddr);
+			}
+		}, memspec.memspec.getVariant());
+		return result;
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
 		return nullptr;
 	}
-	auto memspec = data["memspec"];
-	if ( !memspec.contains("memoryId") )
-	{
-		return nullptr;
-	}
-
-	const std::string& memoryId = memspec["memoryId"];
-
-	if ( memoryId == "ddr4" )
-	{
-		MemSpecDDR4 ddr4(memspec);
-		return std::make_unique<DDR4>(ddr4);
-	}
-	else if ( memoryId == "ddr5" )
-	{
-		MemSpecDDR5 ddr5(memspec);
-		return std::make_unique<DDR5>(ddr5);
-	}
-	else if ( memoryId == "lpddr4" )
-	{
-		MemSpecLPDDR4 lpddr4(memspec);
-		return std::make_unique<LPDDR4>(lpddr4);
-	}
-	else if ( memoryId == "lpddr5" )
-	{
-		MemSpecLPDDR5 lpddr5(memspec);
-		return std::make_unique<LPDDR5>(lpddr5);
-	}
-
-	return nullptr;
 }
 
 std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(std::string_view csv_file)
@@ -210,7 +218,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Calculate energy and stats
-	auto energy = ddr.get()->calcEnergyBase(commandList.back().first.timestamp);
+	auto energy = ddr.get()->calcEnergyCore(commandList.back().first.timestamp);
 	auto stats = ddr.get()->getStatsBase();
 
 	if(to_json == false)
