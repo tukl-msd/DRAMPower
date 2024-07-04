@@ -47,7 +47,6 @@ MemSpecDDR4::MemSpecDDR4(const DRAMUtils::Config::MemSpecDDR4 &memspec)
     numberOfBankGroups     = memspec.memarchitecturespec.nbrOfBankGroups;
     numberOfRanks          = memspec.memarchitecturespec.nbrOfRanks;
 
-    refreshMode            = memspec.RefreshMode;
     memTimingSpec.tCK      = memspec.memtimingspec.tCK;
     memTimingSpec.tRAS     = memspec.memtimingspec.RAS;
     memTimingSpec.tRCD     = memspec.memtimingspec.RCD;
@@ -87,12 +86,12 @@ MemSpecDDR4::MemSpecDDR4(const DRAMUtils::Config::MemSpecDDR4 &memspec)
 
     vddq = memspec.mempowerspec.vddq;
 
-    if (refreshMode==1) {
+    if (memspec.memarchitecturespec.RefMode==1) {
         memPowerSpec[VDD].iXX5X      = memspec.mempowerspec.idd5B;
         memPowerSpec[VPP].iXX5X      = memspec.mempowerspec.ipp5B;
         memTimingSpec.tRFC = memspec.memtimingspec.RFC1;
     }
-    else if (refreshMode==2) {
+    else if (memspec.memarchitecturespec.RefMode==2) {
         memPowerSpec[VDD].iXX5X      = memspec.mempowerspec.idd5F2;
         memPowerSpec[VPP].iXX5X      = memspec.mempowerspec.ipp5F2;
         memTimingSpec.tRFC = memspec.memtimingspec.RFC2;

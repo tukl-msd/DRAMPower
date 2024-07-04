@@ -95,7 +95,6 @@ namespace DRAMPower {
             double bwPowerFactRho;
         };
 
-        uint64_t refreshMode;
         MemTimingSpec memTimingSpec;
         MemImpedanceSpec memImpedanceSpec;
         DataRateSpec dataRateSpec;

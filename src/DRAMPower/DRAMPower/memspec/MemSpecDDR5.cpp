@@ -10,8 +10,6 @@ MemSpecDDR5::MemSpecDDR5(const DRAMUtils::Config::MemSpecDDR5 &memspec)
     numberOfRanks           = memspec.memarchitecturespec.nbrOfRanks;
     banksPerGroup           = numberOfBanks / numberOfBankGroups;
 
-    refreshMode             = memspec.RefreshMode;
-
     memTimingSpec.tCK       = memspec.memtimingspec.tCK;
     memTimingSpec.tRAS      = memspec.memtimingspec.RAS;
     memTimingSpec.tRCD      = memspec.memtimingspec.RCD;
@@ -19,7 +17,7 @@ MemSpecDDR5::MemSpecDDR5(const DRAMUtils::Config::MemSpecDDR5 &memspec)
     memTimingSpec.tWL       = memspec.memtimingspec.WL;
     memTimingSpec.tWR       = memspec.memtimingspec.WR;
     memTimingSpec.tRP       = memspec.memtimingspec.RP;
-    memTimingSpec.tRFCsb    = memspec.memtimingspec.RFCsb;
+    memTimingSpec.tRFCsb    = memspec.memtimingspec.RFCsb_slr;
 
     auto VDD = VoltageDomain::VDD;
     auto VPP = VoltageDomain::VPP;
@@ -52,14 +50,14 @@ MemSpecDDR5::MemSpecDDR5(const DRAMUtils::Config::MemSpecDDR5 &memspec)
     vddq = memspec.mempowerspec.vddq;
 
 
-    if (refreshMode == 1) {
+    if (memspec.memarchitecturespec.RefMode == 1) {
         memPowerSpec[VDD].iXX5X = memspec.mempowerspec.idd5b;
         memPowerSpec[VPP].iXX5X = memspec.mempowerspec.ipp5b;
-        memTimingSpec.tRFC = memspec.memtimingspec.RFC1;
+        memTimingSpec.tRFC = memspec.memtimingspec.RFC1_slr;
     } else {
         memPowerSpec[VDD].iXX5X = memspec.mempowerspec.idd5f;
         memPowerSpec[VPP].iXX5X = memspec.mempowerspec.ipp5f;
-        memTimingSpec.tRFC = memspec.memtimingspec.RFC2;
+        memTimingSpec.tRFC = memspec.memtimingspec.RFC2_slr;
     }
 
     memPowerSpec[VDD].iBeta = memspec.mempowerspec.iBeta_vdd.value_or(memspec.mempowerspec.idd0);
