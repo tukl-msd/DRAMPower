@@ -156,12 +156,14 @@ public:
 
         if (command.type != CmdType::END_OF_SIMULATION)
             this->handle_interface(command);
+        this->last_command_time = command.timestamp;
     };
 
     void handleCommand(const Command& command)
     {
         doCommand(command); // TODO handleCoreCommand
         handleInterfaceCommand(command);
+        this->last_command_time = command.timestamp;
     }
 
 
