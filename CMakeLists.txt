@@ -75,7 +75,8 @@ set(DRAMPOWER_TEST_DIR    "${CMAKE_CURRENT_SOURCE_DIR}/tests")
 option(DRAMPOWER_BUILD_TESTS "Build DRAMPower unit tests" OFF)
 option(DRAMPOWER_VERBOSE_CMAKE_OUTPUT "Show detailed CMake output" OFF)
 option(DRAMPOWER_BUILD_CLI "Build DRAMPower Command Line Tool" OFF)
-option(DRAMPOWER_LOCAL_DRAMUTILS "Use a local DRAMUtils installation." OFF)
+
+set(DRAMPOWER_LOCAL_DRAMUTILS_FOLDER "" CACHE PATH "Local DRAMUtils installation path (optional)")
 
 ### Compiler settings ###
 set(CMAKE_CXX_STANDARD 17)
@@ -118,7 +119,7 @@ if(DRAMPOWER_BUILD_TESTS)
 endif()
 
 ### DRAMUtils ###
-if (NOT DRAMPOWER_LOCAL_DRAMUTILS)
+if (NOT DRAMPOWER_LOCAL_DRAMUTILS_FOLDER)
     # Fetch DRAMUtils from github
     FetchContent_Declare(
         DRAMUtils
@@ -126,12 +127,11 @@ if (NOT DRAMPOWER_LOCAL_DRAMUTILS)
 
     FetchContent_MakeAvailable(DRAMUtils)
     set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
-elseif(DRAMPOWER_LOCAL_DRAMUTILS)
+elseif(DRAMPOWER_LOCAL_DRAMUTILS_FOLDER)
     # Fetch DRAMUtils from path ../DRAMUtils
-    set(DRAMUtils_SOURCE_DIR_FETCH ${CMAKE_CURRENT_SOURCE_DIR}/../DRAMUtils)
     FetchContent_Declare(
         DRAMUtils
-        SOURCE_DIR ${DRAMUtils_SOURCE_DIR_FETCH})
+        SOURCE_DIR ${DRAMPOWER_LOCAL_DRAMUTILS_FOLDER})
     FetchContent_MakeAvailable(DRAMUtils)
 
     set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
