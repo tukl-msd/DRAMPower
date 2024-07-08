@@ -52,8 +52,8 @@ class LPDDR5_MultirankTests : public ::testing::Test {
 
     void runCommands(const std::vector<Command> &commands) {
         for (const Command &command : commands) {
-            ddr->doCommand(command);
-            ddr->handleInterfaceCommand(command);
+            ddr->doCoreCommand(command);
+            ddr->doInterfaceCommand(command);
         }
     }
 

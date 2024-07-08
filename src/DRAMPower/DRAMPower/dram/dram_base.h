@@ -59,7 +59,7 @@ private:
 
 public:
     virtual ~dram_base() = 0;
-protected:
+private:
     virtual void handle_interface(const Command& cmd) = 0;
     virtual uint64_t getInitEncoderPattern()
     {
@@ -67,11 +67,17 @@ protected:
         return 0;
     };
 public:
-    virtual energy_t calcEnergy(timestamp_t timestamp) = 0;
+    virtual energy_t calcCoreEnergy(timestamp_t timestamp) = 0;
+    virtual interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) = 0;
     virtual SimulationStats getStats() = 0;
     virtual uint64_t getBankCount() = 0;
     virtual uint64_t getRankCount() = 0;
     virtual uint64_t getDeviceCount() = 0;
+
+    double getTotalEnergy(timestamp_t timestamp)
+    {
+        return calcCoreEnergy(timestamp).total() + calcInterfaceEnergy(timestamp).total();
+    };
 
 public:
     uint64_t getCommandPattern(const Command& cmd)
@@ -134,8 +140,7 @@ protected:
 
 public:
     
-    // TODO rename handleCoreCommand
-    void doCommand(const Command& command)
+    void doCoreCommand(const Command& command)
     {
         assert(commandCount.size() > static_cast<std::size_t>(command.type));
         assert(commandRouter.size() > static_cast<std::size_t>(command.type));
@@ -149,7 +154,7 @@ public:
         this->last_command_time = command.timestamp;
     };
 
-    void handleInterfaceCommand(const Command& command)
+    void doInterfaceCommand(const Command& command)
     {
         assert(commandCount.size() > static_cast<std::size_t>(command.type));
         assert(commandRouter.size() > static_cast<std::size_t>(command.type));
@@ -159,25 +164,12 @@ public:
         this->last_command_time = command.timestamp;
     };
 
-    void handleCommand(const Command& command)
+    void doCoreInterfaceCommand(const Command& command)
     {
-        doCommand(command); // TODO handleCoreCommand
-        handleInterfaceCommand(command);
+        doCoreCommand(command); // TODO handleCoreCommand
+        doInterfaceCommand(command);
         this->last_command_time = command.timestamp;
     }
-
-
-    energy_t calcEnergyCore(timestamp_t timestamp)
-    {
-        return this->calcEnergy(timestamp); // calcEnergyCore // TODO refactor
-    };
-
-    // TODO calcEnergyInterface (virtual function = 0)
-
-    SimulationStats getStatsBase()
-    {
-        return this->getStats();
-    };
 
     auto getCommandCount(CommandEnum cmd) const
     {

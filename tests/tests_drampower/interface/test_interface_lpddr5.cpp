@@ -92,8 +92,8 @@ class LPDDR5_WindowStats_Tests : public ::testing::Test {
 
     void runCommands(const std::vector<Command> &commands) {
         for (const Command &command : commands) {
-            ddr->doCommand(command);
-            ddr->handleInterfaceCommand(command);
+            ddr->doCoreCommand(command);
+            ddr->doInterfaceCommand(command);
         }
     }
 
@@ -392,8 +392,8 @@ TEST_F(LPDDR5_Energy_Tests, Clock_Energy) {
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
     // Clock is provided by the controller not the device
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, 0.0);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, 0.0);
 
     // Clock is differential so there is always going to be one signal that consumes power
     // Calculation is done considering number of ones but could also be zeroes, since clock is
@@ -404,10 +404,10 @@ TEST_F(LPDDR5_Energy_Tests, Clock_Energy) {
     double expected_dynamic = stats.clockStats.zeroes_to_ones * spec->memImpedanceSpec.C_total_ck * voltage * voltage;
     expected_dynamic += stats.wClockStats.zeroes_to_ones * spec->memImpedanceSpec.C_total_wck * voltage * voltage;
 
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static);  // value itself doesn't matter, only that it matches the formula
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic);
-    EXPECT_TRUE(result.controller.staticPower > 0.0);
-    EXPECT_TRUE(result.controller.dynamicPower > 0.0);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static);  // value itself doesn't matter, only that it matches the formula
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic);
+    EXPECT_TRUE(result.controller.staticEnergy > 0.0);
+    EXPECT_TRUE(result.controller.dynamicEnergy > 0.0);
 }
 
 TEST_F(LPDDR5_Energy_Tests, DQS_Energy) {
@@ -436,13 +436,13 @@ TEST_F(LPDDR5_Energy_Tests, DQS_Energy) {
                                    spec->memImpedanceSpec.C_total_dqs / 2.0 * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static_controller);
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic_controller);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, expected_static_dram);
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, expected_dynamic_dram);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, expected_static_dram);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, expected_dynamic_dram);
 
-    EXPECT_TRUE(result.dram.staticPower > 0.0);
-    EXPECT_TRUE(result.dram.dynamicPower > 0.0);
+    EXPECT_TRUE(result.dram.staticEnergy > 0.0);
+    EXPECT_TRUE(result.dram.dynamicEnergy > 0.0);
 }
 
 TEST_F(LPDDR5_Energy_Tests, DQ_Energy) {
@@ -472,15 +472,15 @@ TEST_F(LPDDR5_Energy_Tests, DQ_Energy) {
         stats.readBus.zeroes_to_ones * spec->memImpedanceSpec.C_total_rb / 2.0 * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static_controller);
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic_controller);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, expected_static_dram);
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, expected_dynamic_dram);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, expected_static_dram);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, expected_dynamic_dram);
 
-    EXPECT_TRUE(result.controller.staticPower > 0.0);
-    EXPECT_TRUE(result.controller.dynamicPower > 0.0);
-    EXPECT_TRUE(result.dram.staticPower > 0.0);
-    EXPECT_TRUE(result.dram.dynamicPower > 0.0);
+    EXPECT_TRUE(result.controller.staticEnergy > 0.0);
+    EXPECT_TRUE(result.controller.dynamicEnergy > 0.0);
+    EXPECT_TRUE(result.dram.staticEnergy > 0.0);
+    EXPECT_TRUE(result.dram.dynamicEnergy > 0.0);
 }
 
 TEST_F(LPDDR5_Energy_Tests, CA_Energy) {
@@ -496,12 +496,12 @@ TEST_F(LPDDR5_Energy_Tests, CA_Energy) {
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
 
     // CA bus power is provided by the controller
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, 0.0);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, 0.0);
 
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static_controller);
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic_controller);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
 
-    EXPECT_TRUE(result.controller.staticPower > 0.0);
-    EXPECT_TRUE(result.controller.dynamicPower > 0.0);
+    EXPECT_TRUE(result.controller.staticEnergy > 0.0);
+    EXPECT_TRUE(result.controller.dynamicEnergy > 0.0);
 }

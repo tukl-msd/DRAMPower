@@ -80,6 +80,15 @@ double DRAMPower::energy_t::total() const
     return total;
 }
 
+void DRAMPower::interface_energy_info_t::to_json(nlohmann::json &j) const
+{
+    j = nlohmann::json{};
+    j["controller"]["dynamicEnergy"] = controller.dynamicEnergy;
+    j["controller"]["staticEnergy"] = controller.staticEnergy;
+    j["dram"]["dynamicEnergy"] = dram.dynamicEnergy;
+    j["dram"]["staticEnergy"] = dram.staticEnergy;
+}
+
 void DRAMPower::energy_t::to_json(nlohmann::json &j) const
 {
     j = nlohmann::json{

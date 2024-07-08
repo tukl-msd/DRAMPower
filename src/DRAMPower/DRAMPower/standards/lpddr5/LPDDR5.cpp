@@ -258,56 +258,64 @@ namespace DRAMPower {
                 });
                 break;
             default:
-                def = true;
+                // Pull down
+                // No interface power needed for PatternEncoderBitSpec::L
+                // Defaults to burst length 16
             case 16:
                 this->encoder.settings.removeSetting(pattern_descriptor::C0);
-                if(def)
-                {
-                    std::cout << ("[WARN] Invalid burst length") << std::endl;
-                    assert(false);
-                }
                 break;
         }
     }
 
     void LPDDR5::handle_interface(const Command &cmd) {
-        if ( cmd.type == CmdType::END_OF_SIMULATION)
-        {
-            return;
-        }
         size_t length = 0;
 
         switch (cmd.type) {
             case CmdType::RD:
             case CmdType::RDA:
                 length = cmd.sz_bits / readBus.get_width();
-                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-
+                if ( length != 0 )
+                {
+                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+                else
+                {
+                    length = memSpec.burstLength; // Use default burst length
+                    // Cannot load readBus with data. TODO toggling rate
+                }
                 readDQS.start(cmd.timestamp);
-                readDQS.stop(cmd.timestamp + length / this->memSpec.dataRate);
+                readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
 
                 // WCK also during reads
                 if (!memSpec.wckAlwaysOnMode) {
                     wck.start(cmd.timestamp);
-                    wck.stop(cmd.timestamp + length / this->memSpec.dataRate);
+                    wck.stop(cmd.timestamp + length / memSpec.dataRate);
                 }
-                this->handleInterfaceOverrides(length, true);
+                handleInterfaceOverrides(length, true);
 
                 break;
             case CmdType::WR:
             case CmdType::WRA:
                 length = cmd.sz_bits / writeBus.get_width();
-                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                if ( length != 0 )
+                {
+                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+                else
+                {
+                    length = memSpec.burstLength; // Use default burst length
+                    // Cannot load writeBus with data. TODO toggling rate
+                }
 
                 if (!memSpec.wckAlwaysOnMode) {
                     wck.start(cmd.timestamp);
-                    wck.stop(cmd.timestamp + length / this->memSpec.dataRate);
+                    wck.stop(cmd.timestamp + length / memSpec.dataRate);
                 }
-                this->handleInterfaceOverrides(length, true);
+                handleInterfaceOverrides(length, true);
                 break;
         }
-        auto pattern = this->getCommandPattern(cmd);
-        auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
+        auto pattern = getCommandPattern(cmd);
+        auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
         commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
@@ -516,7 +524,7 @@ namespace DRAMPower {
 			std::cout << ("[WARN] End of simulation but still implicit commands left!") << std::endl;
 	}
 
-    energy_t LPDDR5::calcEnergy(timestamp_t timestamp) {
+    energy_t LPDDR5::calcCoreEnergy(timestamp_t timestamp) {
         Calculation_LPDDR5 calculation;
         return calculation.calcEnergy(timestamp, *this);
     }

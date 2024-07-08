@@ -221,6 +221,10 @@ namespace DRAMPower {
                     });
                 }
                 break;
+            default:
+                // Pull up
+                // No interface power needed for PatternEncoderBitSpec::H
+                // Defaults to burst length 8
             case 8:
                 if(read)
                 {
@@ -241,23 +245,10 @@ namespace DRAMPower {
                     });
                 }
                 break;
-            default:
-                this->encoder.settings.updateSettings({
-                    {pattern_descriptor::C2, PatternEncoderBitSpec::L},
-                    {pattern_descriptor::C1, PatternEncoderBitSpec::L},
-                    {pattern_descriptor::C0, PatternEncoderBitSpec::L},
-                });
-                std::cout << ("[WARN] Invalid burst length") << std::endl;
-                assert(false);
-                break;
         }
     }
 
     void DDR4::handle_interface(const Command &cmd) {
-        if (cmd.type == CmdType::END_OF_SIMULATION)
-        {
-            return;
-        }
         size_t length = 0;
         
         // For PrePostamble
@@ -266,47 +257,44 @@ namespace DRAMPower {
 
         switch (cmd.type) {
             case CmdType::RD:
-            case CmdType::RDA: {
+            case CmdType::RDA:
                 length = cmd.sz_bits / readBus.get_width();
-                assert(length != 0);
-                if (length == 0) {
-                    std::cout << "[Error] invalid read length. Interface calculation skipped" << std::endl;
-                    return;
+                if ( length != 0 )
+                {
+                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
                 }
-                this->readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-
+                else
+                {
+                    length = memSpec.burstLength; // Use default burst length
+                    // Cannot load readBus with data. TODO toggling rate
+                }
                 readDQS_.start(cmd.timestamp);
-                readDQS_.stop(cmd.timestamp + length / this->memSpec.dataRate);
-
-                this->handlePrePostamble(cmd.timestamp, length / this->memSpec.dataRate, rank, true);
-
-                this->handleInterfaceOverrides(length, true);
-            }
+                readDQS_.stop(cmd.timestamp + length / memSpec.dataRate);
+                handlePrePostamble(cmd.timestamp, length / memSpec.dataRate, rank, true);
+                handleInterfaceOverrides(length, true);
                 break;
             case CmdType::WR:
-            case CmdType::WRA: {
+            case CmdType::WRA:
                 length = cmd.sz_bits / writeBus.get_width();
-                assert(length != 0);
-                if (length == 0) {
-                    std::cout << "[Error] invalid write length. Interface calculation skipped" << std::endl;
-                    return;
+                if ( length != 0 )
+                {
+                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
                 }
-                this->writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-
+                else
+                {
+                    length = memSpec.burstLength; // Use default burst length
+                    // Cannot load writeBus with data. TODO toggling rate
+                }
                 writeDQS_.start(cmd.timestamp);
-                writeDQS_.stop(cmd.timestamp + length / this->memSpec.dataRate);
-
-                this->handlePrePostamble(cmd.timestamp, length / this->memSpec.dataRate, rank, false);
-
-                this->handleInterfaceOverrides(length, false);
-            }
+                writeDQS_.stop(cmd.timestamp + length / memSpec.dataRate);
+                handlePrePostamble(cmd.timestamp, length / memSpec.dataRate, rank, false);
+                handleInterfaceOverrides(length, false);
                 break;
         };
 
         auto pattern = this->getCommandPattern(cmd);
         length = this->getPattern(cmd.type).size() / commandBus.get_width();
         this->commandBus.load(cmd.timestamp, pattern, length);
-
     }
 
     void DDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -509,7 +497,7 @@ namespace DRAMPower {
         assert(this->implicitCommandCount() == 0);
 	}
 
-    energy_t DDR4::calcEnergy(timestamp_t timestamp) {
+    energy_t DDR4::calcCoreEnergy(timestamp_t timestamp) {
         Calculation_DDR4 calculation;
         return calculation.calcEnergy(timestamp, *this);
     }

@@ -12,10 +12,12 @@ using namespace DRAMPower;
 
 class test_ddr : public dram_base<CmdType>
 {
-public:
 	// Overrides
+private:
 	void handle_interface(const Command& cmd) override {};
-	energy_t calcEnergy(timestamp_t timestamp) override { return energy_t(1); };
+public:
+	energy_t calcCoreEnergy(timestamp_t timestamp) override { return energy_t(1); };
+    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override { return interface_energy_info_t(); };
 	uint64_t getBankCount() override { return 1; };
 	uint64_t getRankCount() override { return 1; };
 	uint64_t getDeviceCount() override { return 1; };
@@ -65,7 +67,7 @@ protected:
 TEST_F(DDR_Base_Test, DoCommand)
 {
     ASSERT_EQ(ddr->getCommandCount(CmdType::ACT), 0);
-    this->ddr->doCommand({ 10, CmdType::ACT, { 1, 0, 0 } });
+    this->ddr->doCoreCommand({ 10, CmdType::ACT, { 1, 0, 0 } });
     ASSERT_EQ(ddr->getCommandCount(CmdType::ACT), 1);
 
 	ASSERT_EQ(ddr->execution_order.size(), 1);
@@ -74,9 +76,9 @@ TEST_F(DDR_Base_Test, DoCommand)
 
 TEST_F(DDR_Base_Test, ImplicitCommand)
 {
-	this->ddr->doCommand({ 10, CmdType::PRE, { 1, 0, 0 } });
-	this->ddr->doCommand({ 15, CmdType::PREA, { 1, 0, 0 } });
-	this->ddr->doCommand({ 50, CmdType::ACT, { 1, 0, 0 } });
+	this->ddr->doCoreCommand({ 10, CmdType::PRE, { 1, 0, 0 } });
+	this->ddr->doCoreCommand({ 15, CmdType::PREA, { 1, 0, 0 } });
+	this->ddr->doCoreCommand({ 50, CmdType::ACT, { 1, 0, 0 } });
 
 	ASSERT_EQ(ddr->execution_order.size(), 5);
 	ASSERT_EQ(ddr->execution_order[0], 10);

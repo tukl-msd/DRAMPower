@@ -88,18 +88,18 @@ struct energy_t
 	double total() const;
 };
 
-struct interface_power_t
+struct interface_energy_t
 {
-	double dynamicPower = 0.0;
-	double staticPower = 0.0;
+	double dynamicEnergy = 0.0;
+	double staticEnergy = 0.0;
 
-	interface_power_t &operator+=(const interface_power_t &rhs) {
-		dynamicPower += rhs.dynamicPower;
-		staticPower += rhs.staticPower;
+	interface_energy_t &operator+=(const interface_energy_t &rhs) {
+		dynamicEnergy += rhs.dynamicEnergy;
+		staticEnergy += rhs.staticEnergy;
 		return *this;
 	}
 
-	friend interface_power_t operator+(interface_power_t lhs, const interface_power_t &rhs) {
+	friend interface_energy_t operator+(interface_energy_t lhs, const interface_energy_t &rhs) {
 		lhs += rhs;
 		return lhs;
 	}
@@ -109,8 +109,12 @@ struct interface_power_t
 
 struct interface_energy_info_t
 {
-	interface_power_t controller;
-	interface_power_t dram;
+	interface_energy_t controller;
+	interface_energy_t dram;
+
+    double total() const {
+        return controller.dynamicEnergy + controller.staticEnergy + dram.dynamicEnergy + dram.staticEnergy;
+    }
 
     interface_energy_info_t &operator+=(const interface_energy_info_t &rhs) {
         controller += rhs.controller;
@@ -123,6 +127,17 @@ struct interface_energy_info_t
         lhs += rhs;
         return lhs;
     }
+
+    friend std::ostream & operator<<(std::ostream & os, const interface_energy_info_t & e)
+	{
+		os << "Controller: dynamicEnergy: " << e.controller.dynamicEnergy << " ";
+        os << "staticEnergy: " << e.controller.staticEnergy << std::endl;
+        os << "DRAM: dynamicEnergy: " << e.dram.dynamicEnergy << " ";
+        os << "staticEnergy: " << e.dram.staticEnergy << std::endl;
+        os << "Total: " << e.total() << std::endl;
+    	return os;
+	}
+	void to_json(nlohmann::json &j) const;
 };
 
 };

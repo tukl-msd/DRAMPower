@@ -59,7 +59,7 @@ protected:
 
 TEST_F(DramPowerTest_DDR4_9, Counters_and_Cycles){
     for (const auto& command : testPattern) {
-        ddr->doCommand(command);
+        ddr->doCoreCommand(command);
     }
 
     auto stats = ddr->getStats();
@@ -106,10 +106,10 @@ TEST_F(DramPowerTest_DDR4_9, Counters_and_Cycles){
 
 TEST_F(DramPowerTest_DDR4_9, Energy) {
     for (const auto& command : testPattern) {
-        ddr->doCommand(command);
+        ddr->doCoreCommand(command);
     }
 
-    auto energy = ddr->calcEnergy(testPattern.back().timestamp);
+    auto energy = ddr->calcCoreEnergy(testPattern.back().timestamp);
     auto total_energy = energy.total_energy();
 
 

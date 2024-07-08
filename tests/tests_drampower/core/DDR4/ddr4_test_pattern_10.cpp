@@ -85,7 +85,7 @@ protected:
 TEST_F(DramPowerTest_DDR4_10, Pattern1)
 {
     for (const auto& command : testPattern) {
-        ddr->doCommand(command);
+        ddr->doCoreCommand(command);
     };
 
 	// Inspect first rank
@@ -155,14 +155,14 @@ TEST_F(DramPowerTest_DDR4_10, CalcEnergy)
 {
 	auto iterate_to_timestamp = [this](auto & command, const auto & container, timestamp_t timestamp) {
 		while (command != container.end() && command->timestamp <= timestamp) {
-			ddr->doCommand(*command);
+			ddr->doCoreCommand(*command);
 			++command;
 		}
 	};
 
 	auto command = testPattern.begin();
 	iterate_to_timestamp(command, testPattern, 125);
-    auto energy = ddr->calcEnergy(125);
+    auto energy = ddr->calcCoreEnergy(125);
 	auto total_energy = energy.total_energy();
 
     ASSERT_EQ((int)total_energy.E_act, 3220);

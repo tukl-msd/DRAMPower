@@ -79,8 +79,8 @@ class DDR5_WindowStats_Tests : public ::testing::Test {
 
     void runCommands(const std::vector<Command> &commands) {
         for (const Command &command : commands) {
-            ddr->doCommand(command);
-            ddr->handleInterfaceCommand(command);
+            ddr->doCoreCommand(command);
+            ddr->doInterfaceCommand(command);
         }
     }
 
@@ -233,16 +233,16 @@ TEST_F(DDR5_Energy_Tests, Clock_Energy) {
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
     // Clock is provided by the controller not the device
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, 0.0);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, 0.0);
 
     // DDR5 clock power consumed on 1's
     double expected_static = stats.clockStats.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_ck;
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic = stats.clockStats.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_ck * voltage * voltage;
 
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static);  // value itself doesn't matter, only that it matches the formula
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static);  // value itself doesn't matter, only that it matches the formula
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic);
 }
 
 TEST_F(DDR5_Energy_Tests, DQS_Energy) {
@@ -273,10 +273,10 @@ TEST_F(DDR5_Energy_Tests, DQS_Energy) {
                                    spec->memImpedanceSpec.C_total_dqs / 2.0 * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static_controller);
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic_controller);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, expected_static_dram);
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, expected_dynamic_dram);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, expected_static_dram);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, expected_dynamic_dram);
 }
 
 TEST_F(DDR5_Energy_Tests, DQ_Energy) {
@@ -306,10 +306,10 @@ TEST_F(DDR5_Energy_Tests, DQ_Energy) {
         stats.readBus.zeroes_to_ones * spec->memImpedanceSpec.C_total_rb / 2.0 * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static_controller);
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic_controller);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, expected_static_dram);
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, expected_dynamic_dram);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, expected_static_dram);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, expected_dynamic_dram);
 }
 
 TEST_F(DDR5_Energy_Tests, CA_Energy) {
@@ -325,9 +325,9 @@ TEST_F(DDR5_Energy_Tests, CA_Energy) {
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
 
     // CA bus power is provided by the controller
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, 0.0);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, 0.0);
 
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static_controller);
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic_controller);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
 }

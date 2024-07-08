@@ -146,8 +146,8 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestStats)
 	Rank & rank_1 = ddr->ranks[0];
 
 	for (const auto& command : testPattern) {
-		ddr->doCommand(command);
-		ddr->handleInterfaceCommand(command);
+		ddr->doCoreCommand(command);
+		ddr->doInterfaceCommand(command);
 	};
 
 	auto stats = ddr->getStats();
@@ -177,8 +177,8 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestPower)
 	Rank& rank_1 = ddr->ranks[0];
 
 	for (const auto& command : testPattern) {
-		ddr->doCommand(command);
-		ddr->handleInterfaceCommand(command);
+		ddr->doCoreCommand(command);
+		ddr->doInterfaceCommand(command);
 	};
 
 	auto stats = ddr->getStats();
@@ -198,8 +198,8 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestDQS)
 	for (const auto& command : testPattern_2) {
 		auto stats = ddr->getWindowStats(command.timestamp);
 
-		ddr->doCommand(command);
-		ddr->handleInterfaceCommand(command);
+		ddr->doCoreCommand(command);
+		ddr->doInterfaceCommand(command);
 	};
 
 	auto stats = ddr->getStats();
@@ -218,8 +218,8 @@ TEST_F(DramPowerTest_Interface_LPDDR4, Test_Detailed)
 
 	auto iterate_to_timestamp = [this, command = testPattern.begin()](timestamp_t timestamp) mutable {
 		while (command != this->testPattern.end() && command->timestamp <= timestamp) {
-			ddr->doCommand(*command);
-			ddr->handleInterfaceCommand(*command);
+			ddr->doCoreCommand(*command);
+			ddr->doInterfaceCommand(*command);
 			++command;
 		}
 

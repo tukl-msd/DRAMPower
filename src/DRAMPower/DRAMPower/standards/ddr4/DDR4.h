@@ -22,8 +22,8 @@ namespace DRAMPower {
 
 class DDR4 : public dram_base<CmdType>{
 public:
-	DDR4(const MemSpecDDR4& memSpec);
-	virtual ~DDR4() = default;
+    DDR4(const MemSpecDDR4& memSpec);
+    virtual ~DDR4() = default;
 public:
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
@@ -33,52 +33,52 @@ public:
 // cmdBusWidth must be initialized before cmdBusInitPattern
 // See order of execution in initializer list
 private:
-	std::size_t cmdBusWidth;
-	uint64_t cmdBusInitPattern;
+    std::size_t cmdBusWidth;
+    uint64_t cmdBusInitPattern;
 public:
-	util::Bus commandBus;
-	util::Bus readBus;
-	util::Bus writeBus;
+    util::Bus commandBus;
+    util::Bus readBus;
+    util::Bus writeBus;
 
-	uint64_t prepostambleReadMinTccd;
-	uint64_t prepostambleWriteMinTccd;
+    uint64_t prepostambleReadMinTccd;
+    uint64_t prepostambleWriteMinTccd;
 
 protected:
-	template<dram_base::commandEnum_t Cmd, typename Func>
-	void registerBankHandler(Func && member_func) {
-		this->routeCommand<Cmd>([this, member_func](const Command & command) {
-			assert(this->ranks.size()>command.targetCoordinate.rank);
-			auto & rank = this->ranks[command.targetCoordinate.rank];
+    template<dram_base::commandEnum_t Cmd, typename Func>
+    void registerBankHandler(Func && member_func) {
+        this->routeCommand<Cmd>([this, member_func](const Command & command) {
+            assert(this->ranks.size()>command.targetCoordinate.rank);
+            auto & rank = this->ranks[command.targetCoordinate.rank];
 
-			assert(rank.banks.size()>command.targetCoordinate.bank);
-			auto & bank = rank.banks[command.targetCoordinate.bank];
+            assert(rank.banks.size()>command.targetCoordinate.bank);
+            auto & bank = rank.banks[command.targetCoordinate.bank];
 
-			rank.commandCounter.inc(command.type);
-			(this->*member_func)(rank, bank, command.timestamp);
-		});
-	};
+            rank.commandCounter.inc(command.type);
+            (this->*member_func)(rank, bank, command.timestamp);
+        });
+    };
 
-	template<dram_base::commandEnum_t Cmd, typename Func>
-	void registerRankHandler(Func && member_func) {
-		this->routeCommand<Cmd>([this, member_func](const Command & command) {
-			assert(this->ranks.size()>command.targetCoordinate.rank);
-			auto & rank = this->ranks[command.targetCoordinate.rank];
+    template<dram_base::commandEnum_t Cmd, typename Func>
+    void registerRankHandler(Func && member_func) {
+        this->routeCommand<Cmd>([this, member_func](const Command & command) {
+            assert(this->ranks.size()>command.targetCoordinate.rank);
+            auto & rank = this->ranks[command.targetCoordinate.rank];
 
-			rank.commandCounter.inc(command.type);
-			(this->*member_func)(rank, command.timestamp);
-		});
-	};
+            rank.commandCounter.inc(command.type);
+            (this->*member_func)(rank, command.timestamp);
+        });
+    };
 
-	template<dram_base::commandEnum_t Cmd, typename Func>
-	void registerHandler(Func && member_func) {
-		this->routeCommand<Cmd>([this, member_func](const Command & command) {
-			(this->*member_func)(command.timestamp);
-		});
-	};
+    template<dram_base::commandEnum_t Cmd, typename Func>
+    void registerHandler(Func && member_func) {
+        this->routeCommand<Cmd>([this, member_func](const Command & command) {
+            (this->*member_func)(command.timestamp);
+        });
+    };
 
-	void registerPatterns();
+    void registerPatterns();
 public:
-	timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) {
+    timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) {
         timestamp_t entryTime = 0;
 
         for (const auto & bank : rank.banks) {
@@ -90,16 +90,18 @@ public:
         }
 
         return entryTime;
-	};
+    };
+private:
+    void handle_interface(const Command& cmd) override;
+    void handleInterfaceOverrides(size_t length, bool read);
+    uint64_t getInitEncoderPattern() override;
 public:
-	SimulationStats getStats() override;
-	energy_t calcEnergy(timestamp_t timestamp) override;
-	uint64_t getInitEncoderPattern() override;
+    energy_t calcCoreEnergy(timestamp_t timestamp) override;
+    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
+    SimulationStats getStats() override;
     uint64_t getBankCount() override;
     uint64_t getRankCount() override;
     uint64_t getDeviceCount() override;
-	void handle_interface(const Command& cmd) override;
-	void handleInterfaceOverrides(size_t length, bool read);
 
     void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handlePre(Rank & rank, Bank & bank, timestamp_t timestamp);
@@ -107,18 +109,18 @@ public:
     void handleRefAll(Rank & rank, timestamp_t timestamp);
     void handleSelfRefreshEntry(Rank & rank, timestamp_t timestamp);
     void handleSelfRefreshExit(Rank & rank, timestamp_t timestamp);
-	void handleRead(Rank & rank, Bank & bank, timestamp_t timestamp);
-	void handleWrite(Rank & rank, Bank & bank, timestamp_t timestamp);
-	void handleReadAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
-	void handleWriteAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
+    void handleRead(Rank & rank, Bank & bank, timestamp_t timestamp);
+    void handleWrite(Rank & rank, Bank & bank, timestamp_t timestamp);
+    void handleReadAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
+    void handleWriteAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handlePowerDownActEntry(Rank & rank, timestamp_t timestamp);
     void handlePowerDownActExit(Rank & rank, timestamp_t timestamp);
     void handlePowerDownPreEntry(Rank & rank, timestamp_t timestamp);
-	void handlePowerDownPreExit(Rank & rank, timestamp_t timestamp);
-	void endOfSimulation(timestamp_t timestamp);
+    void handlePowerDownPreExit(Rank & rank, timestamp_t timestamp);
+    void endOfSimulation(timestamp_t timestamp);
 
 private:
-	void handlePrePostamble(
+    void handlePrePostamble(
         const timestamp_t   timestamp,
         const uint64_t      length,
         Rank &              rank,
@@ -126,12 +128,10 @@ private:
     );
 
 public:
-	interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp);
-public:
-	SimulationStats getWindowStats(timestamp_t timestamp);
+    SimulationStats getWindowStats(timestamp_t timestamp);
 
 private:
-	util::Clock clock;
+    util::Clock clock;
     util::Clock readDQS_;
     util::Clock writeDQS_;
 };

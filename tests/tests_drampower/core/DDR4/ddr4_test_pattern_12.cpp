@@ -93,7 +93,7 @@ protected:
 TEST_F(DramPowerTest_DDR4_12, Test)
 {
 	for (const auto& command : testPattern) {
-        ddr->doCommand(command);
+        ddr->doCoreCommand(command);
     };
 
 	Rank & rank_1 = ddr->ranks[0];
@@ -164,14 +164,14 @@ TEST_F(DramPowerTest_DDR4_12, CalcEnergy)
 {
 	auto iterate_to_timestamp = [this](auto & command, const auto & container, timestamp_t timestamp) {
 		while (command != container.end() && command->timestamp <= timestamp) {
-			ddr->doCommand(*command);
+			ddr->doCoreCommand(*command);
 			++command;
 		}
 	};
 
 	auto command = testPattern.begin();
 	iterate_to_timestamp(command, testPattern, 125);
-	auto energy = ddr->calcEnergy(125);
+	auto energy = ddr->calcCoreEnergy(125);
 	auto total_energy = energy.total_energy();
 
 	ASSERT_EQ(std::round(total_energy.E_bg_act), 1970);

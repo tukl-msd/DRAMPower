@@ -1,4 +1,5 @@
 #include <DRAMPower/command/Command.h>
+#include <DRAMPower/data/energy.h>
 
 #include <DRAMPower/standards/ddr4/DDR4.h>
 #include <DRAMPower/memspec/MemSpecDDR4.h>
@@ -213,13 +214,13 @@ int main(int argc, char *argv[])
 
 	// Execute commands
 	for ( auto &command : commandList ) {
-		ddr.get()->doCommand(command.first);
-		ddr.get()->handleInterfaceCommand(command.first);
+		ddr->doCoreInterfaceCommand(command.first);
 	}
 
 	// Calculate energy and stats
-	auto energy = ddr.get()->calcEnergyCore(commandList.back().first.timestamp);
-	auto stats = ddr.get()->getStatsBase();
+	energy_t core_energy = ddr->calcCoreEnergy(commandList.back().first.timestamp);
+    interface_energy_info_t interface_energy = ddr->calcInterfaceEnergy(commandList.back().first.timestamp);
+	auto stats = ddr->getStats();
 
 	if(to_json == false)
 	{
@@ -227,9 +228,9 @@ int main(int argc, char *argv[])
 		std::cout << std::fixed;
 
 		// Print stats
-		auto bankcount = ddr.get()->getBankCount();
-		auto rankcount = ddr.get()->getRankCount();
-		auto devicecount = ddr.get()->getDeviceCount();
+		auto bankcount = ddr->getBankCount();
+		auto rankcount = ddr->getRankCount();
+		auto devicecount = ddr->getDeviceCount();
 		size_t energy_offset = 0;
 		// TODO assumed this order in interface calculation
 		std::cout << "Rank,Device,Bank -> bank_energy" << std::endl;
@@ -239,19 +240,24 @@ int main(int argc, char *argv[])
 				for ( std::size_t b = 0; b < bankcount; b++ ) {
 					// Rank,Device,Bank -> bank_energy
 					std::cout << r << "," << d << "," << b << " -> ";
-					std::cout << energy.bank_energy[energy_offset + b] << "\n";
+					std::cout << core_energy.bank_energy[energy_offset + b] << "\n";
 				}
 			}
 		}
 		std::cout << "\n";
 		// All banks summed up and bg act shared added
-		std::cout << "Cumulated bank energy with bg_act_shared -> " << energy.total_energy() << "\n";
+		std::cout << "Cumulated bank energy with bg_act_shared -> " << core_energy.total_energy() << "\n";
 
 
 		// Background energy of all ranks
-		std::cout << "Shared energy -> " << energy << "\n";
+		std::cout << "Shared energy -> " << core_energy << "\n";
+
+        // Interface energy
+        std::cout << "Interface Energy -> " << std::endl;
+        std::cout << interface_energy << std::endl;
+
 		// Total energy
-		std::cout << "Total Energy -> " << energy.total();
+		std::cout << "Total Energy -> " << core_energy.total() + interface_energy.total();
 		// \n and flush
 		std::cout << std::endl;
 	}
@@ -260,20 +266,21 @@ int main(int argc, char *argv[])
 		// Assume out is valid
 		json j;
 		size_t energy_offset = 0;
-		auto bankcount = ddr.get()->getBankCount();
-		auto rankcount = ddr.get()->getRankCount();
-		auto devicecount = ddr.get()->getDeviceCount();
+		auto bankcount = ddr->getBankCount();
+		auto rankcount = ddr->getRankCount();
+		auto devicecount = ddr->getDeviceCount();
 
-		j["RankCount"] = ddr.get()->getRankCount();
-		j["DeviceCount"] = ddr.get()->getDeviceCount();
-		j["BankCount"] = ddr.get()->getBankCount();
-		j["TotalEnergy"] = energy.total();
+		j["RankCount"] = ddr->getRankCount();
+		j["DeviceCount"] = ddr->getDeviceCount();
+		j["BankCount"] = ddr->getBankCount();
+		j["TotalEnergy"] = core_energy.total() + interface_energy.total();
 
 		// Energy object to json
-		energy.to_json(j["Energy"]);
+		core_energy.to_json(j["CoreEnergy"]);
+        interface_energy.to_json(j["InterfaceEnergy"]);
 
 		// Validate array length
-		if ( !j["Energy"][energy.get_Bank_energy_keyword()].is_array() || j["Energy"][energy.get_Bank_energy_keyword()].size() != rankcount * bankcount * devicecount )
+		if ( !j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].is_array() || j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].size() != rankcount * bankcount * devicecount )
 		{
 			assert(false); // (should not happen)
 			std::cerr << "Invalid energy array length" << std::endl;
@@ -286,9 +293,9 @@ int main(int argc, char *argv[])
 				energy_offset = r * bankcount * devicecount + d * bankcount;
 				for ( std::size_t b = 0; b < bankcount; b++ ) {
 					// Rank,Device,Bank -> bank_energy
-					j["Energy"][energy.get_Bank_energy_keyword()].at(energy_offset + b)["Rank"] = r;
-					j["Energy"][energy.get_Bank_energy_keyword()].at(energy_offset + b)["Device"] = d;
-					j["Energy"][energy.get_Bank_energy_keyword()].at(energy_offset + b)["Bank"] = b;
+					j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].at(energy_offset + b)["Rank"] = r;
+					j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].at(energy_offset + b)["Device"] = d;
+					j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].at(energy_offset + b)["Bank"] = b;
 				}
 			}
 		}

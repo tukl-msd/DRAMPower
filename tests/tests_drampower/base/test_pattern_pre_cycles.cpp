@@ -87,7 +87,7 @@ TEST_F(DramPowerTest_Pre_Cycles, Test)
 	Rank & rank_1 = ddr->ranks[0];
 
 	for (const auto& command : testPattern) {
-		ddr->doCommand(command);
+		ddr->doCoreCommand(command);
 	};
 
 	auto stats = ddr->getStats();
@@ -111,7 +111,7 @@ TEST_F(DramPowerTest_Pre_Cycles, Test_Detailed)
 
 	auto iterate_to_timestamp = [this, command = testPattern.begin()](timestamp_t timestamp) mutable {
 		while (command != this->testPattern.end() && command->timestamp <= timestamp) {
-			ddr->doCommand(*command);
+			ddr->doCoreCommand(*command);
 			++command;
 		}
 
