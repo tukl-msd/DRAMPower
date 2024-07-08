@@ -91,11 +91,11 @@
         "C_total_rb": 1.0e-12,
         "C_total_wb": 1.0e-12,
         "C_total_dqs": 1.0e-12,
-        "R_eq_ck": 1.0e-6,
-        "R_eq_cb": 1.0e-6,
-        "R_eq_rb": 1.0e-6,
-        "R_eq_wb": 1.0e-6,
-        "R_eq_dqs": 1.0e-6
+        "R_eq_ck": 1.0e6,
+        "R_eq_cb": 1.0e6,
+        "R_eq_rb": 1.0e6,
+        "R_eq_wb": 1.0e6,
+        "R_eq_dqs": 1.0e6
     },
     "prepostamble":{
       "read_zeroes": 2.5,
