@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 	if(to_json == false)
 	{
 		// Setup output format
-		std::cout << std::fixed;
+		std::cout << std::defaultfloat << std::setprecision(3);
 
 		// Print stats
 		auto bankcount = ddr->getBankCount();
@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
 		auto devicecount = ddr->getDeviceCount();
 		size_t energy_offset = 0;
 		// TODO assumed this order in interface calculation
-		std::cout << "Rank,Device,Bank -> bank_energy" << std::endl;
+		std::cout << "Rank,Device,Bank -> bank_energy:" << std::endl;
 		for ( std::size_t r = 0; r < rankcount; r++ ) {
 			for ( std::size_t d = 0; d < devicecount; d++ ) {
 				energy_offset = r * bankcount * devicecount + d * bankcount;
@@ -250,10 +250,10 @@ int main(int argc, char *argv[])
 
 
 		// Background energy of all ranks
-		std::cout << "Shared energy -> " << core_energy << "\n";
+		std::cout << "Shared energy -> " << core_energy << "\n\n";
 
         // Interface energy
-        std::cout << "Interface Energy -> " << std::endl;
+        std::cout << "Interface Energy: " << "\n";
         std::cout << interface_energy << std::endl;
 
 		// Total energy
