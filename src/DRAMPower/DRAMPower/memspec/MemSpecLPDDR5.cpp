@@ -14,7 +14,7 @@ MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec)
     memTimingSpec.WCKtoCK   = memspec.memtimingspec.WCKtoCK;
     memTimingSpec.tWCK      = memTimingSpec.tCK / memTimingSpec.WCKtoCK;
     memTimingSpec.tRAS      = memspec.memtimingspec.RAS;
-    memTimingSpec.tRCD      = memspec.memtimingspec.RCD;
+    memTimingSpec.tRCD      = memspec.memtimingspec.RCD_S;
     memTimingSpec.tRBTP     = memspec.memtimingspec.RBTP;
     memTimingSpec.tWL       = memspec.memtimingspec.WL;
     memTimingSpec.tWR       = memspec.memtimingspec.WR;
