@@ -3,7 +3,7 @@
 using namespace DRAMPower;
 using json = nlohmann::json;
 
-MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::Config::MemSpecLPDDR5 &memspec)
+MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec)
         : MemSpec(memspec)
 {
     numberOfBankGroups      = memspec.memarchitecturespec.nbrOfBankGroups;
@@ -147,7 +147,7 @@ uint64_t MemSpecLPDDR5::timeToCompletion(DRAMPower::CmdType type)
     return offset;
 }
 
-void MemSpecLPDDR5::parseImpedanceSpec(const DRAMUtils::Config::MemSpecLPDDR5 &memspec) {
+void MemSpecLPDDR5::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec) {
 
     memImpedanceSpec.C_total_cb = memspec.memimpedancespec.C_total_cb;
     memImpedanceSpec.C_total_ck = memspec.memimpedancespec.C_total_ck;

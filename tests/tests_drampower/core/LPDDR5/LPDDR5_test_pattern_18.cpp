@@ -38,7 +38,7 @@ protected:
         }
         json data = json::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
-        MemSpecLPDDR5 memSpec(std::get<DRAMUtils::Config::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
+        MemSpecLPDDR5 memSpec(std::get<DRAMUtils::MemSpec::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
 		memSpec.numberOfRanks = 1;
         memSpec.numberOfBanks = 8;
         memSpec.numberOfBankGroups = 2;

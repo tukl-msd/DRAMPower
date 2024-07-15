@@ -38,7 +38,7 @@ protected:
         }
         json data = json::parse(f);
         MemSpecContainer memspeccontainer = data;
-        MemSpecDDR5 memSpec(std::get<DRAMUtils::Config::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
+        MemSpecDDR5 memSpec(std::get<DRAMUtils::MemSpec::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
 
         ddr = std::make_unique<DDR5>(memSpec);
     }

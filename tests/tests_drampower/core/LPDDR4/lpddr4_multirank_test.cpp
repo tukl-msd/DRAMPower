@@ -46,7 +46,7 @@ class LPDDR4_MultirankTests : public ::testing::Test {
         }
         json data = json::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecLPDDR4>(std::get<DRAMUtils::Config::MemSpecLPDDR4>(memspeccontainer.memspec.getVariant()));
+        spec = std::make_unique<MemSpecLPDDR4>(std::get<DRAMUtils::MemSpec::MemSpecLPDDR4>(memspeccontainer.memspec.getVariant()));
         spec->numberOfRanks = 2;
     }
 

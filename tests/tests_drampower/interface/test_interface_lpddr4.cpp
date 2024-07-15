@@ -78,7 +78,7 @@ protected:
         }
         json data = json::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
-        MemSpecLPDDR4 memSpec(std::get<DRAMUtils::Config::MemSpecLPDDR4>(memspeccontainer.memspec.getVariant()));
+        MemSpecLPDDR4 memSpec(std::get<DRAMUtils::MemSpec::MemSpecLPDDR4>(memspeccontainer.memspec.getVariant()));
 		memSpec.numberOfRanks = 1;
 		memSpec.numberOfBanks = 2;
 		memSpec.bitWidth = 16;

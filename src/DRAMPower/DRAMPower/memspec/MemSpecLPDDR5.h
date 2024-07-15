@@ -6,7 +6,7 @@
 
 namespace DRAMPower {
 
-    class MemSpecLPDDR5 final : public MemSpec<DRAMUtils::Config::MemSpecLPDDR5> {
+    class MemSpecLPDDR5 final : public MemSpec<DRAMUtils::MemSpec::MemSpecLPDDR5> {
     public:
         enum VoltageDomain {
             VDD1 = 0,
@@ -23,7 +23,7 @@ namespace DRAMPower {
     public:
         MemSpecLPDDR5() = delete;
 
-        MemSpecLPDDR5(const DRAMUtils::Config::MemSpecLPDDR5 &memspec);
+        MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec);
 	
         MemSpecLPDDR5(json &data) = delete;
         MemSpecLPDDR5(const json &data) = delete;
@@ -107,7 +107,7 @@ namespace DRAMPower {
         BankWiseParams bwParams;
 
        private:
-        void parseImpedanceSpec(const DRAMUtils::Config::MemSpecLPDDR5 &memspec);
+        void parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec);
     };
 
 }  // namespace DRAMPower

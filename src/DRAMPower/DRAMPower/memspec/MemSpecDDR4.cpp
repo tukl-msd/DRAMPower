@@ -40,7 +40,7 @@ using namespace DRAMPower;
 using json = nlohmann::json;
     
 
-MemSpecDDR4::MemSpecDDR4(const DRAMUtils::Config::MemSpecDDR4 &memspec)
+MemSpecDDR4::MemSpecDDR4(const DRAMUtils::MemSpec::MemSpecDDR4 &memspec)
     : MemSpec(memspec)
 {
 
@@ -120,7 +120,7 @@ MemSpecDDR4::MemSpecDDR4(const DRAMUtils::Config::MemSpecDDR4 &memspec)
     parsePrePostamble(memspec);
 }
 
-void MemSpecDDR4::parseImpedanceSpec(const DRAMUtils::Config::MemSpecDDR4 &memspec) {
+void MemSpecDDR4::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecDDR4 &memspec) {
     memImpedanceSpec.C_total_cb = memspec.memimpedancespec.C_total_cb;
     memImpedanceSpec.C_total_ck = memspec.memimpedancespec.C_total_ck;
     memImpedanceSpec.C_total_dqs = memspec.memimpedancespec.C_total_dqs;
@@ -134,7 +134,7 @@ void MemSpecDDR4::parseImpedanceSpec(const DRAMUtils::Config::MemSpecDDR4 &memsp
     memImpedanceSpec.R_eq_wb = memspec.memimpedancespec.R_eq_wb;
 }
 
-void MemSpecDDR4::parsePrePostamble(const DRAMUtils::Config::MemSpecDDR4 &memspec)
+void MemSpecDDR4::parsePrePostamble(const DRAMUtils::MemSpec::MemSpecDDR4 &memspec)
 {
     prePostamble.read_zeroes = memspec.prepostamble.read_zeroes;
     prePostamble.write_zeroes = memspec.prepostamble.write_zeroes;

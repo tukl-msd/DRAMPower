@@ -89,7 +89,7 @@ class DDR4_WindowStats_Tests : public ::testing::Test {
         }
         json data = json::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecDDR4>(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
+        spec = std::make_unique<MemSpecDDR4>(std::get<DRAMUtils::MemSpec::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
     }
 
     void runCommands(const std::vector<Command> &commands) {
@@ -414,7 +414,7 @@ class DDR4_Energy_Tests : public ::testing::Test {
         }
         json data = json::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecDDR4>(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
+        spec = std::make_unique<MemSpecDDR4>(std::get<DRAMUtils::MemSpec::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
 
         t_CK = spec->memTimingSpec.tCK;
         voltage = spec->memPowerSpec[MemSpecDDR4::VoltageDomain::VDD].vXX;

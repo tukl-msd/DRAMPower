@@ -7,7 +7,7 @@
 
 namespace DRAMPower {
 
-class MemSpecLPDDR4 final : public MemSpec<DRAMUtils::Config::MemSpecLPDDR4>
+class MemSpecLPDDR4 final : public MemSpec<DRAMUtils::MemSpec::MemSpecLPDDR4>
 {
 public:
 
@@ -19,7 +19,7 @@ public:
 public:
 	MemSpecLPDDR4() = delete;
 	
-	MemSpecLPDDR4(const DRAMUtils::Config::MemSpecLPDDR4 &memspec);
+	MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec);
 	
 	MemSpecLPDDR4(json &data) = delete;
 	MemSpecLPDDR4(const json &data) = delete;
@@ -116,7 +116,7 @@ public:
 	BankWiseParams bwParams;
 
 private:
-    void parseImpedanceSpec(const DRAMUtils::Config::MemSpecLPDDR4 &memspec);
+    void parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec);
 };
 
 }

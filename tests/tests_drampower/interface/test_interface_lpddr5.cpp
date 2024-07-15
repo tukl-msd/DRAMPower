@@ -84,7 +84,7 @@ class LPDDR5_WindowStats_Tests : public ::testing::Test {
         }
         json data = json::parse(f);
         MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::Config::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
+        spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::MemSpec::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
 
         spec->numberOfDevices = 1;
         spec->bitWidth = 16;
@@ -341,7 +341,7 @@ class LPDDR5_Energy_Tests : public ::testing::Test {
         }
         json data = json::parse(f);
         MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::Config::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
+        spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::MemSpec::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
 
         t_CK = spec->memTimingSpec.tCK;
         t_WCK = spec->memTimingSpec.tWCK;

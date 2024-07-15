@@ -45,7 +45,7 @@
 using json = nlohmann::json;
 namespace DRAMPower {
 
-class MemSpecDDR4 final : public MemSpec<DRAMUtils::Config::MemSpecDDR4>
+class MemSpecDDR4 final : public MemSpec<DRAMUtils::MemSpec::MemSpecDDR4>
 {
 public:
 
@@ -57,7 +57,7 @@ public:
 public:
     MemSpecDDR4() = delete;
     
-	MemSpecDDR4(const DRAMUtils::Config::MemSpecDDR4 &memspec);
+	MemSpecDDR4(const DRAMUtils::MemSpec::MemSpecDDR4 &memspec);
 
 	MemSpecDDR4(json &data) = delete;
 	MemSpecDDR4(const json &data) = delete;
@@ -156,8 +156,8 @@ public:
 	PrePostamble prePostamble;
 	BankWiseParams bwParams;
 private:
-	void parseImpedanceSpec(const DRAMUtils::Config::MemSpecDDR4 &memspec);
-	void parsePrePostamble(const DRAMUtils::Config::MemSpecDDR4 &memspec);
+	void parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecDDR4 &memspec);
+	void parsePrePostamble(const DRAMUtils::MemSpec::MemSpecDDR4 &memspec);
 };
 
 }

@@ -73,7 +73,7 @@ class DDR5_WindowStats_Tests : public ::testing::Test {
         }
         json data = json::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecDDR5>(std::get<DRAMUtils::Config::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
+        spec = std::make_unique<MemSpecDDR5>(std::get<DRAMUtils::MemSpec::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
         spec->bitWidth = 16;
     }
 
@@ -190,7 +190,7 @@ class DDR5_Energy_Tests : public ::testing::Test {
         }
         json data = json::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecDDR5>(std::get<DRAMUtils::Config::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
+        spec = std::make_unique<MemSpecDDR5>(std::get<DRAMUtils::MemSpec::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
 
         t_CK = spec->memTimingSpec.tCK;
         voltage = spec->vddq;

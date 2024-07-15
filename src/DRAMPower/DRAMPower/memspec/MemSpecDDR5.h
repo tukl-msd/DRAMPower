@@ -7,7 +7,7 @@
 
 namespace DRAMPower {
 
-    class MemSpecDDR5 final : public MemSpec<DRAMUtils::Config::MemSpecDDR5> {
+    class MemSpecDDR5 final : public MemSpec<DRAMUtils::MemSpec::MemSpecDDR5> {
     public:
 
         enum VoltageDomain {
@@ -18,7 +18,7 @@ namespace DRAMPower {
     public:
         MemSpecDDR5() = delete;
 
-        MemSpecDDR5(const DRAMUtils::Config::MemSpecDDR5 &memspec);
+        MemSpecDDR5(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec);
 
         MemSpecDDR5(json &data) = delete;
         MemSpecDDR5(const json &data) = delete;
@@ -102,8 +102,8 @@ namespace DRAMPower {
         BankWiseParams bwParams;
 
     private:
-        void parseImpedanceSpec(const DRAMUtils::Config::MemSpecDDR5 &memspec);
-        void parseDataRateSpec(const DRAMUtils::Config::MemSpecDDR5 &memspec);
+        void parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec);
+        void parseDataRateSpec(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec);
     };
 
 }

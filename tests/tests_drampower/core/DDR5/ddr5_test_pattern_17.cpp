@@ -38,7 +38,7 @@ protected:
         }
         json data = json::parse(f);
         MemSpecContainer memspeccontainer = data;
-        MemSpecDDR5 memSpec(std::get<DRAMUtils::Config::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
+        MemSpecDDR5 memSpec(std::get<DRAMUtils::MemSpec::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
 		memSpec.bitWidth = 16;
 		memSpec.numberOfDevices = 1;
 		memSpec.numberOfRanks = 1;

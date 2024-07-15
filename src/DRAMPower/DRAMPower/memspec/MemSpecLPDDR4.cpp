@@ -3,7 +3,7 @@ using namespace DRAMPower;
 using json = nlohmann::json;
 
 
-MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::Config::MemSpecLPDDR4 &memspec)
+MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec)
     : MemSpec(memspec), memImpedanceSpec{}
 {
     numberOfBankGroups     = memspec.memarchitecturespec.nbrOfBankGroups;
@@ -65,7 +65,7 @@ MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::Config::MemSpecLPDDR4 &memspec)
         bwParams.flgPASR = memspec.bankwisespec.value().hasPASR.value_or(false);
         if (memspec.bankwisespec.value().pasrMode.has_value())
         {
-           if(memspec.bankwisespec.value().pasrMode.value() == DRAMUtils::Config::pasrModesType::Invalid)
+           if(memspec.bankwisespec.value().pasrMode.value() == DRAMUtils::MemSpec::pasrModesType::Invalid)
            {
                 // pasrMode invalid
                 bwParams.pasrMode = 0;
@@ -217,7 +217,7 @@ uint64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::CmdType type)
     return offset;
 } // MemSpecLPDDR4::timeToCompletion
 
-void MemSpecLPDDR4::parseImpedanceSpec(const DRAMUtils::Config::MemSpecLPDDR4 &memspec) {
+void MemSpecLPDDR4::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec) {
     memImpedanceSpec.C_total_cb = memspec.memimpedancespec.C_total_cb;
     memImpedanceSpec.C_total_ck = memspec.memimpedancespec.C_total_ck;
     memImpedanceSpec.C_total_dqs = memspec.memimpedancespec.C_total_dqs;

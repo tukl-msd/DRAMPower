@@ -43,24 +43,24 @@ std::unique_ptr<dram_base<CmdType>> getMemory(const json &data)
 		std::unique_ptr<dram_base<CmdType>> result = nullptr;
 		std::visit( [&result] (auto&& arg) {
 			using T = std::decay_t<decltype(arg)>;
-			if constexpr (std::is_same_v<T, DRAMUtils::Config::MemSpecDDR4>)
+			if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecDDR4>)
 			{
-				MemSpecDDR4 ddr (static_cast<DRAMUtils::Config::MemSpecDDR4>(arg));
+				MemSpecDDR4 ddr (static_cast<DRAMUtils::MemSpec::MemSpecDDR4>(arg));
 				result = std::make_unique<DDR4>(ddr);
 			}
-			else if constexpr (std::is_same_v<T, DRAMUtils::Config::MemSpecDDR5>)
+			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecDDR5>)
 			{
-				MemSpecDDR5 ddr (static_cast<DRAMUtils::Config::MemSpecDDR5>(arg));
+				MemSpecDDR5 ddr (static_cast<DRAMUtils::MemSpec::MemSpecDDR5>(arg));
 				result = std::make_unique<DDR5>(ddr);
 			}
-			else if constexpr (std::is_same_v<T, DRAMUtils::Config::MemSpecLPDDR4>)
+			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecLPDDR4>)
 			{
-				MemSpecLPDDR4 ddr (static_cast<DRAMUtils::Config::MemSpecLPDDR4>(arg));
+				MemSpecLPDDR4 ddr (static_cast<DRAMUtils::MemSpec::MemSpecLPDDR4>(arg));
 				result = std::make_unique<LPDDR4>(ddr);
 			}
-			else if constexpr (std::is_same_v<T, DRAMUtils::Config::MemSpecLPDDR5>)
+			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecLPDDR5>)
 			{
-				MemSpecLPDDR5 ddr (static_cast<DRAMUtils::Config::MemSpecLPDDR5>(arg));
+				MemSpecLPDDR5 ddr (static_cast<DRAMUtils::MemSpec::MemSpecLPDDR5>(arg));
 				result = std::make_unique<LPDDR5>(ddr);
 			}
 		}, memspec.memspec.getVariant());

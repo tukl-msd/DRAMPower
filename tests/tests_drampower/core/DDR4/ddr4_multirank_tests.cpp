@@ -38,7 +38,7 @@ class DDR4_MultirankTests : public ::testing::Test {
         }
         json data = json::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecDDR4>(std::get<DRAMUtils::Config::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
+        spec = std::make_unique<MemSpecDDR4>(std::get<DRAMUtils::MemSpec::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
         spec->numberOfRanks = 2;
         ddr = std::make_unique<DDR4>(*spec);
     }

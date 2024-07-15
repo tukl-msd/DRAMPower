@@ -3,7 +3,7 @@ using namespace DRAMPower;
 using json = nlohmann::json;
 
 
-MemSpecDDR5::MemSpecDDR5(const DRAMUtils::Config::MemSpecDDR5 &memspec)
+MemSpecDDR5::MemSpecDDR5(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec)
         : MemSpec(memspec)
 {
     numberOfBankGroups      = memspec.memarchitecturespec.nbrOfBankGroups;
@@ -99,7 +99,7 @@ uint64_t MemSpecDDR5::timeToCompletion(DRAMPower::CmdType type)
     return offset;
 }
 
-void MemSpecDDR5::parseImpedanceSpec(const DRAMUtils::Config::MemSpecDDR5 &memspec) {
+void MemSpecDDR5::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec) {
     memImpedanceSpec.C_total_cb = memspec.memimpedancespec.C_total_cb;
     memImpedanceSpec.C_total_ck = memspec.memimpedancespec.C_total_ck;
     memImpedanceSpec.C_total_dqs = memspec.memimpedancespec.C_total_dqs;
@@ -113,7 +113,7 @@ void MemSpecDDR5::parseImpedanceSpec(const DRAMUtils::Config::MemSpecDDR5 &memsp
     memImpedanceSpec.R_eq_wb = memspec.memimpedancespec.R_eq_wb;
 }
 
-void MemSpecDDR5::parseDataRateSpec(const DRAMUtils::Config::MemSpecDDR5 &memspec) {
+void MemSpecDDR5::parseDataRateSpec(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec) {
     if (!memspec.dataratespec.has_value()) {
         dataRateSpec = {2, 2, 2};
         return;
