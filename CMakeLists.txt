@@ -80,6 +80,8 @@ set(DRAMPOWER_LOCAL_DRAMUTILS_FOLDER "" CACHE PATH "Local DRAMUtils installation
 
 ### Compiler settings ###
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ###############################################
 ###           Library Settings              ###
@@ -88,54 +90,40 @@ set(CMAKE_CXX_STANDARD 17)
 ### Detect OS threading library ###
 find_package(Threads)
 
-add_subdirectory(${DRAMPOWER_LIBRARY_DIR}/nlohmann_json)
-
-### nlohmann_json ###
-#FetchContent_Declare(
-#        json
-#        GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
-#        GIT_TAG v3.9.1)
-#
-#FetchContent_GetProperties(json)
-#if(NOT json_POPULATED)
-#    FetchContent_Populate(json)
-#    add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
-#endif()
-
 ### GoogleTest ###
 if(DRAMPOWER_BUILD_TESTS)
-    FetchContent_Declare(
-	    googletest
-	    GIT_REPOSITORY https://github.com/google/googletest
-		GIT_TAG release-1.12.1)
+	FetchContent_Declare(
+		googletest
+		GIT_REPOSITORY https://github.com/google/googletest
+		GIT_TAG release-1.12.1
+	)
 
-    # For Windows: Prevent overriding the parent project's compiler/linker settings
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
-    set_target_properties(gmock PROPERTIES FOLDER lib)
-    set_target_properties(gmock_main PROPERTIES FOLDER lib)
-    set_target_properties(gtest PROPERTIES FOLDER lib)
-    set_target_properties(gtest_main PROPERTIES FOLDER lib)
+	# For Windows: Prevent overriding the parent project's compiler/linker settings
+	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+	FetchContent_MakeAvailable(googletest)
+	set_target_properties(gmock PROPERTIES FOLDER lib)
+	set_target_properties(gmock_main PROPERTIES FOLDER lib)
+	set_target_properties(gtest PROPERTIES FOLDER lib)
+	set_target_properties(gtest_main PROPERTIES FOLDER lib)
 endif()
 
 ### DRAMUtils ###
-if (NOT DRAMPOWER_LOCAL_DRAMUTILS_FOLDER)
-    # Fetch DRAMUtils from github
-    FetchContent_Declare(
-        DRAMUtils
-        GIT_REPOSITORY https://github.com/tukl-msd/DRAMUtils)
-
-    FetchContent_MakeAvailable(DRAMUtils)
-    set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
-elseif(DRAMPOWER_LOCAL_DRAMUTILS_FOLDER)
-    # Fetch DRAMUtils from path ../DRAMUtils
-    FetchContent_Declare(
-        DRAMUtils
-        SOURCE_DIR ${DRAMPOWER_LOCAL_DRAMUTILS_FOLDER})
-    FetchContent_MakeAvailable(DRAMUtils)
-
-    set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
+if (DRAMPOWER_LOCAL_DRAMUTILS_FOLDER) # Fetch DRAMUtils from supplied local path
+	FetchContent_Declare(
+		DRAMUtils
+		SOURCE_DIR ${DRAMPOWER_LOCAL_DRAMUTILS_FOLDER}
+	)
+else() # Fetch DRAMUtils from github
+	FetchContent_Declare(
+		DRAMUtils
+		GIT_REPOSITORY https://github.com/tukl-msd/DRAMUtils
+		GIT_TAG v1.0
+	)
 endif()
+
+FetchContent_MakeAvailable(DRAMUtils)
+set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
+
 
 ###############################################
 ###           Source Directory              ###
@@ -152,9 +140,9 @@ endif()
 ###############################################
 
 if(DRAMPOWER_BUILD_TESTS)
-    include( GoogleTest )
-    include( CTest )
-    add_subdirectory(tests)
+	include( GoogleTest )
+	include( CTest )
+	add_subdirectory(tests)
 endif()
 
 ###############################################
@@ -162,7 +150,7 @@ endif()
 ###############################################
 
 if(${DRAMPOWER_UTILITY_PROJECTS})
-    enable_clang_format()
-    enable_clang_tidy()
-    enable_cppcheck()
+	enable_clang_format()
+	enable_clang_tidy()
+	enable_cppcheck()
 endif()
