@@ -13,7 +13,7 @@
 - [Contact Information](#contact-information)
 
 ## Releases
-The last official release can be found here: https://github.com/ravenrd/DRAMPower/releases/tag/5.0
+The last official release can be found here: https://github.com/tukl-msd/DRAMPower/releases/tag/5.0
 
 The master branch of the repository should be regarded as the bleeding-edge version, which has all the latest features, but also all the latest bugs. Use at your own discretion.
 
