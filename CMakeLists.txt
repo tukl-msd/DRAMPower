@@ -76,7 +76,7 @@ option(DRAMPOWER_BUILD_TESTS "Build DRAMPower unit tests" OFF)
 option(DRAMPOWER_VERBOSE_CMAKE_OUTPUT "Show detailed CMake output" OFF)
 option(DRAMPOWER_BUILD_CLI "Build DRAMPower Command Line Tool" OFF)
 
-set(DRAMPOWER_LOCAL_DRAMUTILS_FOLDER "" CACHE PATH "Local DRAMUtils installation path (optional)")
+set(DRAMUTILS_DIR "" CACHE PATH "Local DRAMUtils installation path (optional)")
 
 ### Compiler settings ###
 set(CMAKE_CXX_STANDARD 17)
@@ -91,16 +91,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Threads)
 
 ### DRAMUtils ###
-if (DRAMPOWER_LOCAL_DRAMUTILS_FOLDER) # Fetch DRAMUtils from supplied local path
+if (DRAMUTILS_DIR) # Fetch DRAMUtils from supplied local path
 	FetchContent_Declare(
 		DRAMUtils
-		SOURCE_DIR ${DRAMPOWER_LOCAL_DRAMUTILS_FOLDER}
+		SOURCE_DIR ${DRAMUTILS_DIR}
 	)
 else() # Fetch DRAMUtils from github
 	FetchContent_Declare(
 		DRAMUtils
 		GIT_REPOSITORY https://github.com/tukl-msd/DRAMUtils
-		GIT_TAG "fix/release_fixes"
+		GIT_TAG "v1.0"
 	)
 endif()
 
