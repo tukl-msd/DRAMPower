@@ -64,7 +64,6 @@ protected:
         memSpec.memTimingSpec.tWCK = 1e-9;
         memSpec.memTimingSpec.WCKtoCK = 2;
 
-		memSpec.memPowerSpec.resize(4);
 		memSpec.memPowerSpec[0].vDDX = 1;
 		memSpec.memPowerSpec[0].iDD0X = 64e-3;
 		memSpec.memPowerSpec[0].iDD3NX = 32e-3;

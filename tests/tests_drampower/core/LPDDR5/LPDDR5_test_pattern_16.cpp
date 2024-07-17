@@ -64,7 +64,6 @@ protected:
         memSpec.memTimingSpec.tRBTP = 2;
 
 
-        memSpec.memPowerSpec.resize(8);
 		memSpec.memPowerSpec[0].vDDX = 1;
 		memSpec.memPowerSpec[0].iDD0X = 64e-3;
 		memSpec.memPowerSpec[0].iDD2NX = 8e-3;

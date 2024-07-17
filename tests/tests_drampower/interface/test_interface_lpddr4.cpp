@@ -100,7 +100,6 @@ protected:
 		memSpec.memTimingSpec.tREFI = 1;
 
 		// Voltage domains
-		memSpec.memPowerSpec.resize(8);
 		memSpec.memPowerSpec[0].vDDX = 1;
 		memSpec.memPowerSpec[0].iDD0X = 64;
 		memSpec.memPowerSpec[0].iDD2NX = 8;

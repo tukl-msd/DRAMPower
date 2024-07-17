@@ -54,7 +54,6 @@ protected:
 		memSpec.memTimingSpec.tWL = 0;
 		memSpec.memTimingSpec.tCK = 1;
 
-		memSpec.memPowerSpec.resize(8);
 		memSpec.memPowerSpec[0].vXX = 1;
 		memSpec.memPowerSpec[0].iXX0 = 64;
 		memSpec.memPowerSpec[0].iXX2N = 8;
