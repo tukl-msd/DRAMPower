@@ -18,10 +18,10 @@ MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec)
     memTimingSpec.tRBTP     = memspec.memtimingspec.RBTP;
     memTimingSpec.tWL       = memspec.memtimingspec.WL;
     memTimingSpec.tWR       = memspec.memtimingspec.WR;
-    memTimingSpec.tRP       = memspec.memtimingspec.RPpb; // TODO
+    memTimingSpec.tRP       = memspec.memtimingspec.RPpb;
     memTimingSpec.tRFCPB    = memspec.memtimingspec.RFCpb;
     memTimingSpec.tRFC      = memspec.memtimingspec.RFCab;
-    memTimingSpec.tREFI     = memspec.memtimingspec.REFI; // TODO REFIpb??
+    memTimingSpec.tREFI     = memspec.memtimingspec.REFI;
 
     auto VDD1 = VoltageDomain::VDD1;
     auto VDD2H = VoltageDomain::VDD2H;
