@@ -109,14 +109,14 @@ protected:
 		memSpec.memPowerSpec[0].iDD4RX = 72;
 		memSpec.memPowerSpec[0].iDD4WX = 72;
 
-		memSpec.memPowerSpec[2].vDDX = 1;
-		memSpec.memPowerSpec[2].iDD0X = 64;
-		memSpec.memPowerSpec[2].iDD2NX = 8;
-		memSpec.memPowerSpec[2].iDD2PX = 6;
-		memSpec.memPowerSpec[2].iDD3NX = 32;
-		memSpec.memPowerSpec[2].iDD3PX = 20;
-		memSpec.memPowerSpec[2].iDD4RX = 72;
-		memSpec.memPowerSpec[2].iDD4WX = 72;
+		memSpec.memPowerSpec[1].vDDX = 1;
+		memSpec.memPowerSpec[1].iDD0X = 64;
+		memSpec.memPowerSpec[1].iDD2NX = 8;
+		memSpec.memPowerSpec[1].iDD2PX = 6;
+		memSpec.memPowerSpec[1].iDD3NX = 32;
+		memSpec.memPowerSpec[1].iDD3PX = 20;
+		memSpec.memPowerSpec[1].iDD4RX = 72;
+		memSpec.memPowerSpec[1].iDD4WX = 72;
 
 
 		// Impedance specs
