@@ -21,7 +21,7 @@
 			"hidden": true,
 			"inherits": "cmake-pedantic",
 			"cacheVariables": {
-				"DRAMUTILS_BUILD_TESTS": "ON",
+				"DRAMPOWER_BUILD_TESTS": "ON",
 				"CMAKE_BUILD_PARALLEL_LEVEL": ""
 			}
 		},
@@ -49,7 +49,7 @@
 				"ci-common"
 			],
 			"cacheVariables": {
-				"CMAKE_CXX_FLAGS": "/MP"
+				"CMAKE_CXX_FLAGS": "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MP"
 			}
 		},
 		{
@@ -68,7 +68,10 @@
 			"generator": "Visual Studio 17 2022",
 			"inherits": [
 				"dev-mode"
-			]
+			],
+			"cacheVariables": {
+				"CMAKE_CXX_FLAGS": "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MP"
+			}
 		}
 	]
 }

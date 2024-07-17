@@ -90,6 +90,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ### Detect OS threading library ###
 find_package(Threads)
 
+### DRAMUtils ###
+if (DRAMPOWER_LOCAL_DRAMUTILS_FOLDER) # Fetch DRAMUtils from supplied local path
+	FetchContent_Declare(
+		DRAMUtils
+		SOURCE_DIR ${DRAMPOWER_LOCAL_DRAMUTILS_FOLDER}
+	)
+else() # Fetch DRAMUtils from github
+	FetchContent_Declare(
+		DRAMUtils
+		GIT_REPOSITORY https://github.com/tukl-msd/DRAMUtils
+		GIT_TAG "fix/release_fixes"
+	)
+endif()
+
+FetchContent_MakeAvailable(DRAMUtils)
+set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
+
 ### GoogleTest ###
 if(DRAMPOWER_BUILD_TESTS)
 	FetchContent_Declare(
@@ -106,24 +123,6 @@ if(DRAMPOWER_BUILD_TESTS)
 	set_target_properties(gtest PROPERTIES FOLDER lib)
 	set_target_properties(gtest_main PROPERTIES FOLDER lib)
 endif()
-
-### DRAMUtils ###
-if (DRAMPOWER_LOCAL_DRAMUTILS_FOLDER) # Fetch DRAMUtils from supplied local path
-	FetchContent_Declare(
-		DRAMUtils
-		SOURCE_DIR ${DRAMPOWER_LOCAL_DRAMUTILS_FOLDER}
-	)
-else() # Fetch DRAMUtils from github
-	FetchContent_Declare(
-		DRAMUtils
-		GIT_REPOSITORY https://github.com/tukl-msd/DRAMUtils
-		GIT_TAG v1.0
-	)
-endif()
-
-FetchContent_MakeAvailable(DRAMUtils)
-set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
-
 
 ###############################################
 ###           Source Directory              ###
