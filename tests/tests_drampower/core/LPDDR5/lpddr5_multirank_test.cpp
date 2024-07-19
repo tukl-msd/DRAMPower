@@ -38,15 +38,8 @@ class LPDDR5_MultirankTests : public ::testing::Test {
     }
 
     void initSpec() {
-        std::ifstream f(std::string(TEST_RESOURCE_DIR) + "lpddr5.json");
-
-        if(!f.is_open()){
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-        json data = json::parse(f);
-        DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::MemSpec::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr5.json");
+        spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::MemSpec::MemSpecLPDDR5>(data->getVariant()));
         spec->numberOfRanks = 2;
     }
 

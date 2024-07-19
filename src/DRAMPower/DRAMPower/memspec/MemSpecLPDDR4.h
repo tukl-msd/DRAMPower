@@ -2,6 +2,7 @@
 #define DRAMPOWER_MEMSPEC_MEMSPECLPDDR4_H
 
 #include "MemSpec.h"
+
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
 
 
@@ -21,8 +22,8 @@ public:
 	
 	MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec);
 	
-	MemSpecLPDDR4(json &data) = delete;
-	MemSpecLPDDR4(const json &data) = delete;
+	MemSpecLPDDR4(json_t &data) = delete;
+	MemSpecLPDDR4(const json_t &data) = delete;
 
 	~MemSpecLPDDR4() = default;
 	uint64_t timeToCompletion(CmdType type) override;

@@ -2,6 +2,7 @@
 #define DRAMPOWER_MEMSPEC_MEMSPECDDR5_H
 
 #include "MemSpec.h"
+
 #include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
 
 
@@ -20,8 +21,8 @@ namespace DRAMPower {
 
         MemSpecDDR5(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec);
 
-        MemSpecDDR5(json &data) = delete;
-        MemSpecDDR5(const json &data) = delete;
+        MemSpecDDR5(json_t &data) = delete;
+        MemSpecDDR5(const json_t &data) = delete;
 
         ~MemSpecDDR5() = default;
 

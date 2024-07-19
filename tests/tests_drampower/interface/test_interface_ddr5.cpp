@@ -71,7 +71,7 @@ class DDR5_WindowStats_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-        json data = json::parse(f);
+        json_t data = json_t::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
         spec = std::make_unique<MemSpecDDR5>(std::get<DRAMUtils::MemSpec::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
         spec->bitWidth = 16;
@@ -188,7 +188,7 @@ class DDR5_Energy_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-        json data = json::parse(f);
+        json_t data = json_t::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
         spec = std::make_unique<MemSpecDDR5>(std::get<DRAMUtils::MemSpec::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
 

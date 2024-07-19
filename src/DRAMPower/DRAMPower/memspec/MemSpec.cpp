@@ -38,6 +38,6 @@
 
 
 using namespace DRAMPower;
-using json = nlohmann::json;
+using json_t = nlohmann::json;
 
 

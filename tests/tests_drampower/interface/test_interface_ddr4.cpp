@@ -87,7 +87,7 @@ class DDR4_WindowStats_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-        json data = json::parse(f);
+        json_t data = json_t::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
         spec = std::make_unique<MemSpecDDR4>(std::get<DRAMUtils::MemSpec::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
     }
@@ -412,7 +412,7 @@ class DDR4_Energy_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-        json data = json::parse(f);
+        json_t data = json_t::parse(f);
         DRAMPower::MemSpecContainer memspeccontainer = data;
         spec = std::make_unique<MemSpecDDR4>(std::get<DRAMUtils::MemSpec::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
 

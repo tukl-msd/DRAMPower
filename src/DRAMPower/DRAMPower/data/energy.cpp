@@ -24,7 +24,7 @@ double energy_info_t::total() const
     return total;
 };
 
-void energy_info_t::to_json(nlohmann::json &j) const
+void energy_info_t::to_json(json_t &j) const
 {
     j = nlohmann::json{
         {"ACT", E_act},
@@ -80,7 +80,7 @@ double DRAMPower::energy_t::total() const
     return total;
 }
 
-void DRAMPower::interface_energy_info_t::to_json(nlohmann::json &j) const
+void DRAMPower::interface_energy_info_t::to_json(json_t &j) const
 {
     j = nlohmann::json{};
     j["controller"]["dynamicEnergy"] = controller.dynamicEnergy;
@@ -89,7 +89,7 @@ void DRAMPower::interface_energy_info_t::to_json(nlohmann::json &j) const
     j["dram"]["staticEnergy"] = dram.staticEnergy;
 }
 
-void DRAMPower::energy_t::to_json(nlohmann::json &j) const
+void DRAMPower::energy_t::to_json(json_t &j) const
 {
     j = nlohmann::json{
         {"E_bg_act_shared", E_bg_act_shared},
@@ -103,7 +103,7 @@ void DRAMPower::energy_t::to_json(nlohmann::json &j) const
     auto energy_arr = nlohmann::json::array();
     for (const energy_info_t& energy : bank_energy)
     {
-        nlohmann::json bank_energy_json;
+        json_t bank_energy_json;
         energy.to_json(bank_energy_json);
         energy_arr.push_back(bank_energy_json);
     }

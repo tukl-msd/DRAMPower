@@ -45,7 +45,7 @@ protected:
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-        json data = json::parse(f);
+        json_t data = json_t::parse(f);
         MemSpecContainer memspeccontainer = data;
         MemSpecDDR4 memSpec(std::get<DRAMUtils::MemSpec::MemSpecDDR4>(memspeccontainer.memspec.getVariant()));
         memSpec.numberOfRanks = 1;

@@ -25,8 +25,8 @@ namespace DRAMPower {
 
         MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec);
 	
-        MemSpecLPDDR5(json &data) = delete;
-        MemSpecLPDDR5(const json &data) = delete;
+        MemSpecLPDDR5(json_t &data) = delete;
+        MemSpecLPDDR5(const json_t &data) = delete;
 
         ~MemSpecLPDDR5() = default;
 
@@ -108,6 +108,9 @@ namespace DRAMPower {
 
        private:
         void parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec);
+
+       public:
+        static MemSpecLPDDR5 from_memspec(const DRAMUtils::MemSpec::MemSpecVariant&);
     };
 
 }  // namespace DRAMPower

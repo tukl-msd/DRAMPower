@@ -39,10 +39,12 @@
 #define DRAMPOWER_MEMSPEC_MEMSPECDDR4_H
 
 #include "MemSpec.h"
-#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
-#include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
+#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+
+#include <DRAMUtils/util/json.h>
+
+
 namespace DRAMPower {
 
 class MemSpecDDR4 final : public MemSpec<DRAMUtils::MemSpec::MemSpecDDR4>
@@ -59,8 +61,8 @@ public:
     
 	MemSpecDDR4(const DRAMUtils::MemSpec::MemSpecDDR4 &memspec);
 
-	MemSpecDDR4(json &data) = delete;
-	MemSpecDDR4(const json &data) = delete;
+	MemSpecDDR4(json_t &data) = delete;
+	MemSpecDDR4(const json_t &data) = delete;
 
 	~MemSpecDDR4() = default;
 

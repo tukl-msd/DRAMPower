@@ -1,7 +1,7 @@
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
 
 using namespace DRAMPower;
-using json = nlohmann::json;
+using json_t = nlohmann::json;
 
 MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec)
         : MemSpec(memspec)
@@ -162,4 +162,9 @@ void MemSpecLPDDR5::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR5 &
     memImpedanceSpec.R_eq_dqs = memspec.memimpedancespec.R_eq_dqs;
     memImpedanceSpec.R_eq_rb = memspec.memimpedancespec.R_eq_rb;
     memImpedanceSpec.R_eq_wb = memspec.memimpedancespec.R_eq_wb;
+}
+
+MemSpecLPDDR5 MemSpecLPDDR5::from_memspec(const DRAMUtils::MemSpec::MemSpecVariant& memSpec)
+{
+    return std::get<DRAMUtils::MemSpec::MemSpecLPDDR5>(memSpec.getVariant());
 }

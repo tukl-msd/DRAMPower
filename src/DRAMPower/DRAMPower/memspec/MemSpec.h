@@ -42,14 +42,13 @@
 
 #include <DRAMPower/command/CmdType.h>
 
-#include <nlohmann/json.hpp>
+#include <DRAMUtils/util/json.h>
 #include <DRAMUtils/memspec/MemSpec.h>
 
 #include <vector>
 #include <algorithm>
 
 
-using json = nlohmann::json;
 namespace DRAMPower {
 
 struct MemSpecContainer

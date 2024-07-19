@@ -5,7 +5,8 @@
 
 #include <vector>
 #include <iostream>
-#include <nlohmann/json.hpp>
+
+#include <DRAMUtils/util/json.h>
 
 namespace DRAMPower {
 
@@ -29,7 +30,7 @@ struct energy_info_t
 	double E_ref_2B = 0.0;
 
 	double total() const;
-	void to_json(nlohmann::json &j) const;
+	void to_json(json_t &j) const;
 	energy_info_t& operator+=(const energy_info_t & other);
 	// Operator << for std::cout
 	friend std::ostream & operator<<(std::ostream & os, const energy_info_t & ei)
@@ -57,7 +58,7 @@ struct energy_t
 {
 	std::vector<energy_info_t> bank_energy;
 	energy_info_t total_energy(); // TODO rename
-	void to_json(nlohmann::json &j) const;
+	void to_json(json_t &j) const;
 	constexpr inline const char * const get_Bank_energy_keyword() const
 	{
 		return "BankEnergy";
@@ -137,7 +138,7 @@ struct interface_energy_info_t
         os << "Total: " << e.total() << std::endl;
     	return os;
 	}
-	void to_json(nlohmann::json &j) const;
+	void to_json(json_t &j) const;
 };
 
 };

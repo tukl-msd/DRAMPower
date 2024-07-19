@@ -82,7 +82,7 @@ class LPDDR5_WindowStats_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-        json data = json::parse(f);
+        json_t data = json_t::parse(f);
         MemSpecContainer memspeccontainer = data;
         spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::MemSpec::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
 
@@ -339,7 +339,7 @@ class LPDDR5_Energy_Tests : public ::testing::Test {
             std::cout << "Error: Could not open memory specification" << std::endl;
             exit(1);
         }
-        json data = json::parse(f);
+        json_t data = json_t::parse(f);
         MemSpecContainer memspeccontainer = data;
         spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::MemSpec::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
 
