@@ -10,7 +10,6 @@ file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS *.h;*.hpp)
 add_library(DRAMPower ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(DRAMPower PUBLIC ${PROJECT_SOURCE_DIR})
 target_link_libraries(DRAMPower PUBLIC 
-	nlohmann_json::nlohmann_json
 	DRAMUtils
 )
 
