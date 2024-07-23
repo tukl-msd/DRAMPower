@@ -167,9 +167,8 @@ uint64_t MemSpecDDR4::timeToCompletion(DRAMPower::CmdType type)
     return offset;
 }
 
-
-
-
-
-
+MemSpecDDR4 MemSpecDDR4::from_memspec(const DRAMUtils::MemSpec::MemSpecVariant& memSpec)
+{
+    return std::get<DRAMUtils::MemSpec::MemSpecDDR4>(memSpec.getVariant());
+}
 

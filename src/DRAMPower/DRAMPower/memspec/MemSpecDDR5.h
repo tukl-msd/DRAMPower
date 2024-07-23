@@ -24,6 +24,15 @@ namespace DRAMPower {
         MemSpecDDR5(json_t &data) = delete;
         MemSpecDDR5(const json_t &data) = delete;
 
+        // Copy constructor
+        MemSpecDDR5(const MemSpecDDR5&) = default;
+
+        // Move constructor
+        MemSpecDDR5(MemSpecDDR5&&) = default;
+
+        // Move assignment operator
+        MemSpecDDR5& operator=(MemSpecDDR5&&) = default;
+
         ~MemSpecDDR5() = default;
 
         uint64_t timeToCompletion(CmdType type) override;
@@ -105,6 +114,8 @@ namespace DRAMPower {
     private:
         void parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec);
         void parseDataRateSpec(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec);
+    public:
+        static MemSpecDDR5 from_memspec(const DRAMUtils::MemSpec::MemSpecVariant&);
     };
 
 }

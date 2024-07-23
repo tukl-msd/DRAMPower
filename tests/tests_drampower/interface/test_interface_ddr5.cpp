@@ -65,15 +65,9 @@ class DDR5_WindowStats_Tests : public ::testing::Test {
     }
 
     void initSpec() {
-        std::ifstream f(std::string(TEST_RESOURCE_DIR) + "ddr5.json");
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr5.json");
+        spec = std::make_unique<DRAMPower::MemSpecDDR5>(DRAMPower::MemSpecDDR5::from_memspec(*data));
 
-        if(!f.is_open()){
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-        json_t data = json_t::parse(f);
-        DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecDDR5>(std::get<DRAMUtils::MemSpec::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
         spec->bitWidth = 16;
     }
 
@@ -182,15 +176,8 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_2) {
 class DDR5_Energy_Tests : public ::testing::Test {
    public:
     DDR5_Energy_Tests() {
-        std::ifstream f(std::string(TEST_RESOURCE_DIR) + "ddr5.json");
-
-        if (!f.is_open()) {
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-        json_t data = json_t::parse(f);
-        DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecDDR5>(std::get<DRAMUtils::MemSpec::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr5.json");
+        spec = std::make_unique<DRAMPower::MemSpecDDR5>(DRAMPower::MemSpecDDR5::from_memspec(*data));
 
         t_CK = spec->memTimingSpec.tCK;
         voltage = spec->vddq;

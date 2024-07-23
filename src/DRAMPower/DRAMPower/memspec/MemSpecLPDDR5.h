@@ -28,7 +28,16 @@ namespace DRAMPower {
         MemSpecLPDDR5(json_t &data) = delete;
         MemSpecLPDDR5(const json_t &data) = delete;
 
-        ~MemSpecLPDDR5() = default;
+        // Copy constructor
+        MemSpecLPDDR5(const MemSpecLPDDR5&) = default;
+
+        // Move constructor
+        MemSpecLPDDR5(MemSpecLPDDR5&&) = default;
+
+        // Move assignment operator
+        MemSpecLPDDR5& operator=(MemSpecLPDDR5&&) = default;
+
+	    ~MemSpecLPDDR5() = default;
 
         uint64_t timeToCompletion(CmdType type) override;
 

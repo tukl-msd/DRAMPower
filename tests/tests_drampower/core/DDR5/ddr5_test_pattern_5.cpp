@@ -35,15 +35,8 @@ protected:
 
     virtual void SetUp()
     {
-        std::ifstream f(std::string(TEST_RESOURCE_DIR) + "ddr5.json");
-
-        if(!f.is_open()){
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-        json_t data = json_t::parse(f);
-        MemSpecContainer memspeccontainer = data;
-        MemSpecDDR5 memSpec(std::get<DRAMUtils::MemSpec::MemSpecDDR5>(memspeccontainer.memspec.getVariant()));
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr5.json");
+        auto memSpec = DRAMPower::MemSpecDDR5::from_memspec(*data);
 
         ddr = std::make_unique<DDR5>(memSpec);
     }

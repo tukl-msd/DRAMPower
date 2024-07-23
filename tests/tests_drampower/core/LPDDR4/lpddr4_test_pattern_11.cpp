@@ -37,15 +37,9 @@ protected:
 
     virtual void SetUp()
     {
-		std::ifstream f(std::string(TEST_RESOURCE_DIR) + "lpddr4.json");
+		auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr4.json");
+        auto memSpec = DRAMPower::MemSpecLPDDR4::from_memspec(*data);
 
-        if(!f.is_open()){
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-        json_t data = json_t::parse(f);
-        MemSpecContainer memspeccontainer = data;
-        MemSpecLPDDR4 memSpec(std::get<DRAMUtils::MemSpec::MemSpecLPDDR4>(memspeccontainer.memspec.getVariant()));
         memSpec.numberOfRanks = 1;
         memSpec.numberOfBanks = 8;
         memSpec.banksPerGroup = 8;

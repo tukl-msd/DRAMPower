@@ -39,7 +39,7 @@ class LPDDR5_MultirankTests : public ::testing::Test {
 
     void initSpec() {
         auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr5.json");
-        spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::MemSpec::MemSpecLPDDR5>(data->getVariant()));
+        spec = std::make_unique<DRAMPower::MemSpecLPDDR5>(DRAMPower::MemSpecLPDDR5::from_memspec(*data));
         spec->numberOfRanks = 2;
     }
 

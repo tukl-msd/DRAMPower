@@ -123,3 +123,8 @@ void MemSpecDDR5::parseDataRateSpec(const DRAMUtils::MemSpec::MemSpecDDR5 &memsp
     dataRateSpec.dataBusRate =  memspec.dataratespec.value().dq_bus_rate;
     dataRateSpec.dqsBusRate = memspec.dataratespec.value().dqs_bus_rate;
 }
+
+MemSpecDDR5 MemSpecDDR5::from_memspec(const DRAMUtils::MemSpec::MemSpecVariant& memSpec)
+{
+    return std::get<DRAMUtils::MemSpec::MemSpecDDR5>(memSpec.getVariant());
+}

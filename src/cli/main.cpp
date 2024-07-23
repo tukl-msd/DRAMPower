@@ -1,46 +1,46 @@
-#include <DRAMPower/command/Command.h>
-#include <DRAMPower/data/energy.h>
 
-#include <DRAMPower/standards/ddr4/DDR4.h>
-#include <DRAMPower/memspec/MemSpecDDR4.h>
-#include <DRAMPower/standards/ddr5/DDR5.h>
-#include <DRAMPower/memspec/MemSpecDDR5.h>
-#include <DRAMPower/standards/lpddr4/LPDDR4.h>
-#include <DRAMPower/memspec/MemSpecLPDDR4.h>
-#include <DRAMPower/standards/lpddr5/LPDDR5.h>
-#include <DRAMPower/memspec/MemSpecLPDDR5.h>
-
-#include <DRAMPower/util/json.h>
-#include "csv.hpp"
-#include "util.hpp"
 #include <stdint.h>
 #include <unordered_map>
 #include <array>
 #include <utility>
-
 #include <iostream>
-
+#include <variant>
 #include <vector>
 #include <filesystem>
 #include <string_view>
-// #include <spdlog>
+#include <type_traits>
+
+#include <DRAMPower/util/json.h>
+#include <DRAMPower/data/energy.h>
+#include <DRAMPower/command/Command.h>
+#include <DRAMPower/standards/ddr4/DDR4.h>
+#include <DRAMPower/memspec/MemSpecDDR4.h>
+#include <DRAMPower/standards/ddr5/DDR5.h>
+#include <DRAMPower/memspec/MemSpecDDR5.h>
+#include <DRAMPower/memspec/MemSpecLPDDR4.h>
+#include <DRAMPower/memspec/MemSpecLPDDR5.h>
+#include <DRAMPower/standards/lpddr4/LPDDR4.h>
+#include <DRAMPower/standards/lpddr5/LPDDR5.h>
 #include <DRAMUtils/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
-#include <variant>
-#include <type_traits>
+
+#include "csv.hpp"
+#include "util.hpp"
 
 using namespace DRAMPower;
 
 
-std::unique_ptr<dram_base<CmdType>> getMemory(const json &data)
+std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data)
 {
 	try
 	{
-		DRAMPower::MemSpecContainer memspec = data; // Can throw an excption
 		std::unique_ptr<dram_base<CmdType>> result = nullptr;
+        auto memspec = DRAMUtils::parse_memspec_from_file(std::filesystem::path(data));
+        if (!memspec)
+            return result;
 		std::visit( [&result] (auto&& arg) {
 			using T = std::decay_t<decltype(arg)>;
 			if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecDDR4>)
@@ -63,7 +63,7 @@ std::unique_ptr<dram_base<CmdType>> getMemory(const json &data)
 				MemSpecLPDDR5 ddr (static_cast<DRAMUtils::MemSpec::MemSpecLPDDR5>(arg));
 				result = std::make_unique<LPDDR5>(ddr);
 			}
-		}, memspec.memspec.getVariant());
+		}, memspec->getVariant());
 		return result;
 	}
 	catch(const std::exception& e)
@@ -180,16 +180,8 @@ int main(int argc, char *argv[])
 	auto commandList = parse_command_list(argv[1]);
 
 	// Initialize memory
-	// Read memory spec
-	std::ifstream f((std::string(argv[2])));
-	if ( !f.is_open() ) {
-		std::cerr << "Could not open file " << argv[2] << std::endl;
-		exit(1);
-	}
-	// Parse json
-	json data = json::parse(f);
 	// Create memory object
-	std::unique_ptr<dram_base<CmdType>> ddr = getMemory(data);
+	std::unique_ptr<dram_base<CmdType>> ddr = getMemory(std::string_view(argv[2]));
 	if (!ddr)
 	{
 		std::cerr << "Invalid memory specification" << std::endl;
@@ -264,7 +256,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		// Assume out is valid
-		json j;
+		json_t j;
 		size_t energy_offset = 0;
 		auto bankcount = ddr->getBankCount();
 		auto rankcount = ddr->getRankCount();

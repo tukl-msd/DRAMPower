@@ -76,15 +76,8 @@ class LPDDR5_WindowStats_Tests : public ::testing::Test {
     }
 
     void initSpec() {
-        std::ifstream f(std::string(TEST_RESOURCE_DIR) + "lpddr5.json");
-
-        if(!f.is_open()){
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-        json_t data = json_t::parse(f);
-        MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::MemSpec::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr5.json");
+        spec = std::make_unique<DRAMPower::MemSpecLPDDR5>(DRAMPower::MemSpecLPDDR5::from_memspec(*data));
 
         spec->numberOfDevices = 1;
         spec->bitWidth = 16;
@@ -333,15 +326,8 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_3_BG_Mode) {
 class LPDDR5_Energy_Tests : public ::testing::Test {
    public:
     LPDDR5_Energy_Tests() {
-        std::ifstream f(std::string(TEST_RESOURCE_DIR) + "lpddr5.json");
-
-        if (!f.is_open()) {
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-        json_t data = json_t::parse(f);
-        MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecLPDDR5>(std::get<DRAMUtils::MemSpec::MemSpecLPDDR5>(memspeccontainer.memspec.getVariant()));
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr5.json");
+        spec = std::make_unique<DRAMPower::MemSpecLPDDR5>(DRAMPower::MemSpecLPDDR5::from_memspec(*data));
 
         t_CK = spec->memTimingSpec.tCK;
         t_WCK = spec->memTimingSpec.tWCK;

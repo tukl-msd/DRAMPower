@@ -38,15 +38,9 @@ class LPDDR4_MultirankTests : public ::testing::Test {
     }
 
     void initSpec() {
-        std::ifstream f(std::string(TEST_RESOURCE_DIR) + "lpddr4.json");
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr4.json");
+        spec = std::make_unique<DRAMPower::MemSpecLPDDR4>(DRAMPower::MemSpecLPDDR4::from_memspec(*data));
 
-        if(!f.is_open()){
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-        json_t data = json_t::parse(f);
-        DRAMPower::MemSpecContainer memspeccontainer = data;
-        spec = std::make_unique<MemSpecLPDDR4>(std::get<DRAMUtils::MemSpec::MemSpecLPDDR4>(memspeccontainer.memspec.getVariant()));
         spec->numberOfRanks = 2;
     }
 

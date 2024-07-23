@@ -230,3 +230,8 @@ void MemSpecLPDDR4::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR4 &
     memImpedanceSpec.R_eq_rb = memspec.memimpedancespec.R_eq_rb;
     memImpedanceSpec.R_eq_wb = memspec.memimpedancespec.R_eq_wb;
 }
+
+MemSpecLPDDR4 MemSpecLPDDR4::from_memspec(const DRAMUtils::MemSpec::MemSpecVariant& memSpec)
+{
+    return std::get<DRAMUtils::MemSpec::MemSpecLPDDR4>(memSpec.getVariant());
+}

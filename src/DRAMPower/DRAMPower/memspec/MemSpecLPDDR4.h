@@ -25,6 +25,15 @@ public:
 	MemSpecLPDDR4(json_t &data) = delete;
 	MemSpecLPDDR4(const json_t &data) = delete;
 
+    // Copy constructor
+    MemSpecLPDDR4(const MemSpecLPDDR4&) = default;
+
+    // Move constructor
+    MemSpecLPDDR4(MemSpecLPDDR4&&) = default;
+
+    // Move assignment operator
+    MemSpecLPDDR4& operator=(MemSpecLPDDR4&&) = default;
+
 	~MemSpecLPDDR4() = default;
 	uint64_t timeToCompletion(CmdType type) override;
 
@@ -118,6 +127,9 @@ public:
 
 private:
     void parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec);
+
+public:
+    static MemSpecLPDDR4 from_memspec(const DRAMUtils::MemSpec::MemSpecVariant&);
 };
 
 }

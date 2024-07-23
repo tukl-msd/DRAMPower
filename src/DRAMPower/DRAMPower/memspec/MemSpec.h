@@ -51,12 +51,6 @@
 
 namespace DRAMPower {
 
-struct MemSpecContainer
-{
-    DRAMUtils::MemSpec::MemSpecVariant memspec;
-};
-NLOHMANN_JSONIFY_ALL_THINGS(MemSpecContainer, memspec)
-
 template <typename T>
 class MemSpec
 {
