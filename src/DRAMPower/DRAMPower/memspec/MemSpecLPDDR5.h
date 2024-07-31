@@ -8,11 +8,6 @@ namespace DRAMPower {
 
     class MemSpecLPDDR5 final : public MemSpec<DRAMUtils::MemSpec::MemSpecLPDDR5> {
     public:
-        enum VoltageDomain {
-            VDD1 = 0,
-            VDD2H,
-            VDD2L,
-        };
 
         enum BankArchitectureMode {
             MBG,   // 4 banks, 4 bank groups
@@ -112,7 +107,15 @@ namespace DRAMPower {
 
         MemTimingSpec memTimingSpec;
         MemImpedanceSpec memImpedanceSpec;
-        std::vector<MemPowerSpec> memPowerSpec;
+
+class VoltageDomains {
+public:
+    using VDD1 = ContainerIndex<0>;
+    using VDD2H = ContainerIndex<1>;
+    using VDD2L = ContainerIndex<2>;
+};
+        IndexedContainer<MemPowerSpec, DRAMUtils::util::type_sequence<VoltageDomains::VDD1, VoltageDomains::VDD2H, VoltageDomains::VDD2L>> memPowerSpec;
+        
         BankWiseParams bwParams;
 
        private:

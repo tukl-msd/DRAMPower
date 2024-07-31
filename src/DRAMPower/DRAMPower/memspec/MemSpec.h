@@ -48,9 +48,105 @@
 
 #include <vector>
 #include <algorithm>
+#include <type_traits>
+#include <unordered_map>
 
 
 namespace DRAMPower {
+
+// Helper struct to check if all values are unique
+// forward declaration
+template <typename Seq, typename = void>
+struct values_unique : std::false_type {};
+// specialization
+template <typename T, typename... Ts>
+struct values_unique<DRAMUtils::util::type_sequence<T, Ts...>, std::void_t<decltype(T::value), decltype(Ts::value)...>>
+{
+    static constexpr bool value = ((T::value != Ts::value) && ...) && values_unique<DRAMUtils::util::type_sequence<Ts...>>::value;
+};
+// specialization empty case
+template <>
+struct values_unique<DRAMUtils::util::type_sequence<>>
+{
+    static constexpr bool value = true;
+};
+
+template <size_t index>
+class ContainerIndex {
+
+public:
+    constexpr ContainerIndex() = default;
+    virtual ~ContainerIndex() = default;
+
+    ContainerIndex(const ContainerIndex&) = default;
+    ContainerIndex(ContainerIndex&&) = default;
+    ContainerIndex& operator=(const ContainerIndex&) = default;
+    ContainerIndex& operator=(ContainerIndex&&) = default;
+
+public:
+    inline static constexpr size_t value = index;
+    constexpr size_t getIndex() const {
+        return value;
+    }
+
+private:
+};
+
+template <typename ArrayItem, typename Seq, typename Enable = void>
+class IndexedContainer {
+    static_assert(std::is_same_v<ArrayItem, void>, "Cannot instantiate IndexedContainer. "
+        "Indexes must be unique.");
+};
+
+template <typename ArrayItem, size_t... indexes>
+class IndexedContainer<ArrayItem, DRAMUtils::util::type_sequence<ContainerIndex<indexes>...>, std::void_t<std::enable_if<
+    values_unique<DRAMUtils::util::type_sequence<ContainerIndex<indexes>...>>::value // Unique values
+>>>
+{
+public:
+    IndexedContainer () = default; // Default constructor
+
+    IndexedContainer (const IndexedContainer&) = default; // Copy constructor
+    IndexedContainer (IndexedContainer&&) = default; // Move constructor
+    IndexedContainer& operator=(const IndexedContainer&) = default; // Copy assignment operator
+    IndexedContainer& operator=(IndexedContainer&&) = default; // Move assignment operator
+
+    ~IndexedContainer() = default; // Default Destructor
+
+    decltype(auto) begin() {
+        return map.begin();
+    }
+    decltype(auto) begin() const {
+        return map.begin();
+    }
+    decltype(auto) end() {
+        return map.end();
+    }
+    decltype(auto) end() const {
+        return map.end();
+    }
+
+private:
+    // Initialize the map at compile time
+    std::unordered_map<size_t, ArrayItem> map = {
+        { ContainerIndex<indexes>().value, ArrayItem() }...
+    };
+
+public:
+    template<size_t index>
+    constexpr ArrayItem& operator[](const ContainerIndex<index>& idx) {
+        static_assert(DRAMUtils::util::is_one_of<ContainerIndex<index>, DRAMUtils::util::type_sequence<ContainerIndex<indexes>...>>::value,
+            "Index out of bounds");
+        return map.at(idx.value);
+    }
+
+    template<size_t index>
+    constexpr const ArrayItem& operator[](const ContainerIndex<index>& idx) const {
+        static_assert(DRAMUtils::util::is_one_of<ContainerIndex<index>, DRAMUtils::util::type_sequence<ContainerIndex<indexes>...>>::value,
+            "Index out of bounds");
+        return map.at(idx.value);
+    }
+};
 
 template <typename T>
 class MemSpec

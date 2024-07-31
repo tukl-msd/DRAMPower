@@ -62,20 +62,20 @@ namespace DRAMPower {
 
         energy_t energy(dram.memSpec.numberOfBanks * dram.memSpec.numberOfRanks * dram.memSpec.numberOfDevices);
 
-        for (auto vd : {MemSpecLPDDR5::VoltageDomain::VDD1, MemSpecLPDDR5::VoltageDomain::VDD2H, MemSpecLPDDR5::VoltageDomain::VDD2L}) {
-            auto VDD = dram.memSpec.memPowerSpec[vd].vDDX;
-            auto IDD_0 = dram.memSpec.memPowerSpec[vd].iDD0X;
-            auto IDD2N = dram.memSpec.memPowerSpec[vd].iDD2NX;
-            auto IDD3N = dram.memSpec.memPowerSpec[vd].iDD3NX;
-            auto IDD2P = dram.memSpec.memPowerSpec[vd].iDD2PX;
-            auto IDD3P = dram.memSpec.memPowerSpec[vd].iDD3PX;
-            auto IDD4R = dram.memSpec.memPowerSpec[vd].iDD4RX;
-            auto IDD4W = dram.memSpec.memPowerSpec[vd].iDD4WX;
-            auto IDD5 = dram.memSpec.memPowerSpec[vd].iDD5X;
-            auto IDD5PB = dram.memSpec.memPowerSpec[vd].iDD5PBX;
-            auto IDD6 = dram.memSpec.memPowerSpec[vd].iDD6X;
-            auto IDD6DS = dram.memSpec.memPowerSpec[vd].iDD6DSX;
-            auto IBeta = dram.memSpec.memPowerSpec[vd].iBeta;
+        for (const auto& [idx, vd] : dram.memSpec.memPowerSpec) {
+            auto VDD = vd.vDDX;
+            auto IDD_0 = vd.iDD0X;
+            auto IDD2N = vd.iDD2NX;
+            auto IDD3N = vd.iDD3NX;
+            auto IDD2P = vd.iDD2PX;
+            auto IDD3P = vd.iDD3PX;
+            auto IDD4R = vd.iDD4RX;
+            auto IDD4W = vd.iDD4WX;
+            auto IDD5 = vd.iDD5X;
+            auto IDD5PB = vd.iDD5PBX;
+            auto IDD6 = vd.iDD6X;
+            auto IDD6DS = vd.iDD6DSX;
+            auto IBeta = vd.iBeta;
 
             auto I_rho = rho * (IDD3N - IDD2N) + IDD2N;
             auto I_2 = IDD3N + (IDD3N - I_rho);

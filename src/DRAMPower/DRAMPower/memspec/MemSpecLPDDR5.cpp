@@ -23,13 +23,9 @@ MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec)
     memTimingSpec.tRFC      = memspec.memtimingspec.RFCab;
     memTimingSpec.tREFI     = memspec.memtimingspec.REFI;
 
-    auto VDD1 = VoltageDomain::VDD1;
-    auto VDD2H = VoltageDomain::VDD2H;
-    auto VDD2L = VoltageDomain::VDD2L;
-
-    memPowerSpec.push_back(MemPowerSpec()); // VDD1
-    memPowerSpec.push_back(MemPowerSpec()); // VDD2H
-    memPowerSpec.push_back(MemPowerSpec()); // VDD2L
+    auto VDD1 = VoltageDomains::VDD1();
+    auto VDD2H = VoltageDomains::VDD2H();
+    auto VDD2L = VoltageDomains::VDD2L();
 
     memPowerSpec[VDD1].vDDX       = memspec.mempowerspec.vdd1;
     memPowerSpec[VDD1].iDD0X      = memspec.mempowerspec.idd01;
@@ -74,7 +70,7 @@ MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec)
 
     memPowerSpec[VDD1].iBeta = memspec.mempowerspec.iBeta_vdd1.value_or(memspec.mempowerspec.idd01);
     memPowerSpec[VDD2H].iBeta = memspec.mempowerspec.iBeta_vdd2h.value_or(memspec.mempowerspec.idd02h);
-    memPowerSpec[VDD2L].iBeta = memspec.mempowerspec.iBeta_vdd2l.value_or(memspec.mempowerspec.idd02l);
+    // memPowerSpec[VDD2L].iBeta = memspec.mempowerspec.iBeta_vdd2l.value_or(memspec.mempowerspec.idd02l);
 
     if (memspec.bankwisespec.has_value()) {
         bwParams.bwPowerFactRho = memspec.bankwisespec.value().factRho.value_or(1);

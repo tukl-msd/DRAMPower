@@ -403,7 +403,7 @@ class DDR4_Energy_Tests : public ::testing::Test {
         spec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
 
         t_CK = spec->memTimingSpec.tCK;
-        voltage = spec->memPowerSpec[MemSpecDDR4::VoltageDomain::VDD].vXX;
+        voltage = spec->memPowerSpec[MemSpecDDR4::VoltageDomains::VDD()].vXX;
 
         // Change impedances to different values from each other
         spec->memImpedanceSpec.R_eq_cb = 2;

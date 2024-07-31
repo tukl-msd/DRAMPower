@@ -53,19 +53,22 @@ protected:
         memSpec.memTimingSpec.tRAS = 10;
 		memSpec.memTimingSpec.tRP = 10;
 
-		memSpec.memPowerSpec[0].vXX = 1;
-		memSpec.memPowerSpec[0].iXX0 = 64;
-		memSpec.memPowerSpec[0].iXX2N = 8;
-		memSpec.memPowerSpec[0].iXX3N = 32;
-		memSpec.memPowerSpec[0].iXX4R = 0;
-		memSpec.memPowerSpec[0].iXX4W = 0;
-		memSpec.memPowerSpec[0].iXX5X = 0;
-		memSpec.memPowerSpec[0].iXX6N = 0;
-		memSpec.memPowerSpec[0].iXX2P = 0;
-		memSpec.memPowerSpec[0].iXX3P = 0;
-        memSpec.memPowerSpec[0].iBeta = memSpec.memPowerSpec[0].iXX0;
-		memSpec.bwParams.bwPowerFactRho = 0.333333333;
+        auto VDD = DRAMPower::MemSpecDDR4::VoltageDomains::VDD();
+        auto VPP = DRAMPower::MemSpecDDR4::VoltageDomains::VPP();
+        auto VTest = ContainerIndex<10>();
 
+		memSpec.memPowerSpec[VTest].vXX = 1;
+		memSpec.memPowerSpec[VDD].iXX0 = 64;
+		memSpec.memPowerSpec[VDD].iXX2N = 8;
+		memSpec.memPowerSpec[VDD].iXX3N = 32;
+		memSpec.memPowerSpec[VDD].iXX4R = 0;
+		memSpec.memPowerSpec[VDD].iXX4W = 0;
+		memSpec.memPowerSpec[VDD].iXX5X = 0;
+		memSpec.memPowerSpec[VDD].iXX6N = 0;
+		memSpec.memPowerSpec[VDD].iXX2P = 0;
+		memSpec.memPowerSpec[VDD].iXX3P = 0;
+        memSpec.memPowerSpec[VDD].iBeta = memSpec.memPowerSpec[VDD].iXX0;
+		memSpec.bwParams.bwPowerFactRho = 0.333333333;
 
         ddr = std::make_unique<DDR4>(memSpec);
     }

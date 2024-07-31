@@ -11,13 +11,6 @@ namespace DRAMPower {
 class MemSpecLPDDR4 final : public MemSpec<DRAMUtils::MemSpec::MemSpecLPDDR4>
 {
 public:
-
-    enum VoltageDomain {
-        VDD1 = 0,
-        VDD2 = 1,
-    };
-
-public:
 	MemSpecLPDDR4() = delete;
 	
 	MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec);
@@ -122,8 +115,15 @@ public:
 
 	MemTimingSpec memTimingSpec;
 	MemImpedanceSpec memImpedanceSpec;
-	std::vector<MemPowerSpec> memPowerSpec;
-	BankWiseParams bwParams;
+
+class VoltageDomains {
+public:
+    using VDD1 = ContainerIndex<0>;
+    using VDD2 = ContainerIndex<1>;
+};
+    IndexedContainer<MemPowerSpec, DRAMUtils::util::type_sequence<VoltageDomains::VDD1, VoltageDomains::VDD2>> memPowerSpec;
+	
+    BankWiseParams bwParams;
 
 private:
     void parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec);

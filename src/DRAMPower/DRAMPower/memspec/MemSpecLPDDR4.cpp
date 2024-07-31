@@ -22,11 +22,8 @@ MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec)
     memTimingSpec.tRFC     = memspec.memtimingspec.RFCab;
     memTimingSpec.tREFI    = memspec.memtimingspec.REFI;
 
-    auto VDD1 = VoltageDomain::VDD1;
-    auto VDD2 = VoltageDomain::VDD2;
-
-    memPowerSpec.push_back(MemPowerSpec());
-    memPowerSpec.push_back(MemPowerSpec());
+    auto VDD1 = VoltageDomains::VDD1();
+    auto VDD2 = VoltageDomains::VDD2();
 
     memPowerSpec[VDD1].vDDX       = memspec.mempowerspec.vdd1;
     memPowerSpec[VDD1].iDD0X      = memspec.mempowerspec.idd01;

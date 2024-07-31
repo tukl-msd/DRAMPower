@@ -93,24 +93,27 @@ protected:
 		memSpec.memTimingSpec.tCK = 1;
 		memSpec.memTimingSpec.tREFI = 1;
 
-		// Voltage domains
-		memSpec.memPowerSpec[0].vDDX = 1;
-		memSpec.memPowerSpec[0].iDD0X = 64;
-		memSpec.memPowerSpec[0].iDD2NX = 8;
-		memSpec.memPowerSpec[0].iDD2PX = 6;
-		memSpec.memPowerSpec[0].iDD3NX = 32;
-		memSpec.memPowerSpec[0].iDD3PX = 20;
-		memSpec.memPowerSpec[0].iDD4RX = 72;
-		memSpec.memPowerSpec[0].iDD4WX = 72;
+        auto vdd1 = MemSpecLPDDR4::VoltageDomains::VDD1();
+        auto vdd2 = MemSpecLPDDR4::VoltageDomains::VDD2();
 
-		memSpec.memPowerSpec[1].vDDX = 1;
-		memSpec.memPowerSpec[1].iDD0X = 64;
-		memSpec.memPowerSpec[1].iDD2NX = 8;
-		memSpec.memPowerSpec[1].iDD2PX = 6;
-		memSpec.memPowerSpec[1].iDD3NX = 32;
-		memSpec.memPowerSpec[1].iDD3PX = 20;
-		memSpec.memPowerSpec[1].iDD4RX = 72;
-		memSpec.memPowerSpec[1].iDD4WX = 72;
+		// Voltage domains
+		memSpec.memPowerSpec[vdd1].vDDX = 1;
+		memSpec.memPowerSpec[vdd1].iDD0X = 64;
+		memSpec.memPowerSpec[vdd1].iDD2NX = 8;
+		memSpec.memPowerSpec[vdd1].iDD2PX = 6;
+		memSpec.memPowerSpec[vdd1].iDD3NX = 32;
+		memSpec.memPowerSpec[vdd1].iDD3PX = 20;
+		memSpec.memPowerSpec[vdd1].iDD4RX = 72;
+		memSpec.memPowerSpec[vdd1].iDD4WX = 72;
+
+		memSpec.memPowerSpec[vdd2].vDDX = 1;
+		memSpec.memPowerSpec[vdd2].iDD0X = 64;
+		memSpec.memPowerSpec[vdd2].iDD2NX = 8;
+		memSpec.memPowerSpec[vdd2].iDD2PX = 6;
+		memSpec.memPowerSpec[vdd2].iDD3NX = 32;
+		memSpec.memPowerSpec[vdd2].iDD3PX = 20;
+		memSpec.memPowerSpec[vdd2].iDD4RX = 72;
+		memSpec.memPowerSpec[vdd2].iDD4WX = 72;
 
 
 		// Impedance specs

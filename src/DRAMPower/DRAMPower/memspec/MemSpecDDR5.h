@@ -10,13 +10,6 @@ namespace DRAMPower {
 
     class MemSpecDDR5 final : public MemSpec<DRAMUtils::MemSpec::MemSpecDDR5> {
     public:
-
-        enum VoltageDomain {
-            VDD = 0,
-            VPP = 1,
-        };
-
-    public:
         MemSpecDDR5() = delete;
 
         MemSpecDDR5(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec);
@@ -108,7 +101,13 @@ namespace DRAMPower {
         MemTimingSpec memTimingSpec;
         MemImpedanceSpec memImpedanceSpec;
         DataRateSpec dataRateSpec;
-        std::vector<MemPowerSpec> memPowerSpec;
+
+class VoltageDomains {
+public:
+    using VDD = ContainerIndex<0>;
+    using VPP = ContainerIndex<1>;
+};
+        IndexedContainer<MemPowerSpec, DRAMUtils::util::type_sequence<VoltageDomains::VDD, VoltageDomains::VPP>> memPowerSpec;
         BankWiseParams bwParams;
 
     private:

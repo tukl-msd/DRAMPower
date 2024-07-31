@@ -55,17 +55,19 @@ protected:
         memSpec.memTimingSpec.tREFI = 1;
         memSpec.memTimingSpec.WCKtoCK = 2;
 
-        memSpec.memPowerSpec[0].vDDX = 1;
-        memSpec.memPowerSpec[0].iDD0X = 64e-3;
-        memSpec.memPowerSpec[0].iDD2NX = 8e-3;
-        memSpec.memPowerSpec[0].iDD2PX = 6e-3;
-        memSpec.memPowerSpec[0].iDD3NX = 32e-3;
-        memSpec.memPowerSpec[0].iDD3PX = 20e-3;
-        memSpec.memPowerSpec[0].iDD4RX = 72e-3;
-        memSpec.memPowerSpec[0].iDD4WX = 72e-3;
-        memSpec.memPowerSpec[0].iDD5PBX = 30e-3;
-        memSpec.memPowerSpec[0].iBeta = memSpec.memPowerSpec[0].iDD0X;
-        memSpec.memPowerSpec[0].iDD6X = 5e-3;
+        auto VDD1 = MemSpecLPDDR5::VoltageDomains::VDD1();
+
+        memSpec.memPowerSpec[VDD1].vDDX = 1;
+        memSpec.memPowerSpec[VDD1].iDD0X = 64e-3;
+        memSpec.memPowerSpec[VDD1].iDD2NX = 8e-3;
+        memSpec.memPowerSpec[VDD1].iDD2PX = 6e-3;
+        memSpec.memPowerSpec[VDD1].iDD3NX = 32e-3;
+        memSpec.memPowerSpec[VDD1].iDD3PX = 20e-3;
+        memSpec.memPowerSpec[VDD1].iDD4RX = 72e-3;
+        memSpec.memPowerSpec[VDD1].iDD4WX = 72e-3;
+        memSpec.memPowerSpec[VDD1].iDD5PBX = 30e-3;
+        memSpec.memPowerSpec[VDD1].iBeta = memSpec.memPowerSpec[VDD1].iDD0X;
+        memSpec.memPowerSpec[VDD1].iDD6X = 5e-3;
 
         memSpec.bwParams.bwPowerFactRho = 0.333333333;
 

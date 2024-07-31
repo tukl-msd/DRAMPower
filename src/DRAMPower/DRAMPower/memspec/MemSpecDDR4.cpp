@@ -57,10 +57,8 @@ MemSpecDDR4::MemSpecDDR4(const DRAMUtils::MemSpec::MemSpecDDR4 &memspec)
     memTimingSpec.tAL      = memspec.memtimingspec.AL;
 
 
-    auto VDD = VoltageDomain::VDD;
-    auto VPP = VoltageDomain::VPP;
-
-    memPowerSpec.push_back(MemPowerSpec());
+    auto VDD = VoltageDomains::VDD();
+    auto VPP = VoltageDomains::VPP();
 
     memPowerSpec[VDD].vXX       = memspec.mempowerspec.vdd;
     memPowerSpec[VDD].iXX0      = memspec.mempowerspec.idd0;
@@ -71,8 +69,6 @@ MemSpecDDR4::MemSpecDDR4(const DRAMUtils::MemSpec::MemSpecDDR4 &memspec)
     memPowerSpec[VDD].iXX6N     = memspec.mempowerspec.idd6n;
     memPowerSpec[VDD].iXX2P     = memspec.mempowerspec.idd2p;
     memPowerSpec[VDD].iXX3P     = memspec.mempowerspec.idd3p;
-
-    memPowerSpec.push_back(MemPowerSpec());
 
     memPowerSpec[VPP].vXX       = memspec.mempowerspec.vpp;
     memPowerSpec[VPP].iXX0      = memspec.mempowerspec.ipp0;

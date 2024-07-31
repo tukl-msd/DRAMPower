@@ -42,20 +42,13 @@
 
 #include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
 
-#include <DRAMUtils/util/json.h>
+#include <DRAMUtils/util/json_utils.h>
 
 
 namespace DRAMPower {
 
 class MemSpecDDR4 final : public MemSpec<DRAMUtils::MemSpec::MemSpecDDR4>
 {
-public:
-
-    enum VoltageDomain {
-        VDD = 0,
-        VPP = 1,
-    };
-
 public:
     MemSpecDDR4() = delete;
     
@@ -162,7 +155,14 @@ public:
 
     uint64_t refreshMode;
 	MemTimingSpec memTimingSpec;
-	std::vector<MemPowerSpec> memPowerSpec;
+
+class VoltageDomains {
+public:
+    using VDD = ContainerIndex<0>;
+    using VPP = ContainerIndex<1>;
+};
+    IndexedContainer<MemPowerSpec, DRAMUtils::util::type_sequence<VoltageDomains::VDD, VoltageDomains::VPP>> memPowerSpec;
+    
 	MemImpedanceSpec memImpedanceSpec;
 	PrePostamble prePostamble;
 	BankWiseParams bwParams;

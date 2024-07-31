@@ -56,13 +56,15 @@ protected:
 		memSpec.memTimingSpec.tCK = 1;
 		memSpec.memTimingSpec.tRP = 10;
 
-		memSpec.memPowerSpec[0].vXX = 1;
-		memSpec.memPowerSpec[0].iXX0 = 64;
-		memSpec.memPowerSpec[0].iXX2N = 8;
-		memSpec.memPowerSpec[0].iXX3N = 32;
-		memSpec.memPowerSpec[0].iXX4R = 72;
-		memSpec.memPowerSpec[0].iXX4W = 96;
-        memSpec.memPowerSpec[0].iBeta = memSpec.memPowerSpec[0].iXX0;
+        auto VDD = MemSpecDDR4::VoltageDomains::VDD();
+
+		memSpec.memPowerSpec[VDD].vXX = 1;
+		memSpec.memPowerSpec[VDD].iXX0 = 64;
+		memSpec.memPowerSpec[VDD].iXX2N = 8;
+		memSpec.memPowerSpec[VDD].iXX3N = 32;
+		memSpec.memPowerSpec[VDD].iXX4R = 72;
+		memSpec.memPowerSpec[VDD].iXX4W = 96;
+        memSpec.memPowerSpec[VDD].iBeta = memSpec.memPowerSpec[VDD].iXX0;
 		memSpec.bwParams.bwPowerFactRho = 0.333333333;
 
 		memSpec.burstLength = 16;
