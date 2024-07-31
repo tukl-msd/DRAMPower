@@ -10,7 +10,6 @@
 #include <string_view>
 #include <type_traits>
 
-#include <DRAMPower/util/json.h>
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/standards/ddr4/DDR4.h>
@@ -21,6 +20,7 @@
 #include <DRAMPower/memspec/MemSpecLPDDR5.h>
 #include <DRAMPower/standards/lpddr4/LPDDR4.h>
 #include <DRAMPower/standards/lpddr5/LPDDR5.h>
+#include <DRAMUtils/util/json_utils.h>
 #include <DRAMUtils/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR5.h>

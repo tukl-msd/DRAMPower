@@ -42,7 +42,8 @@
 
 #include <DRAMPower/command/CmdType.h>
 
-#include <DRAMUtils/util/json.h>
+#include <DRAMUtils/util/json_utils.h>
+#include <DRAMUtils/util/types.h>
 #include <DRAMUtils/memspec/MemSpec.h>
 
 #include <vector>

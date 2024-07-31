@@ -6,7 +6,7 @@
 #include <vector>
 #include <iostream>
 
-#include <DRAMUtils/util/json.h>
+#include <DRAMUtils/util/json_utils.h>
 
 namespace DRAMPower {
 
