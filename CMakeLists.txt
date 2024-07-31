@@ -92,16 +92,18 @@ find_package(Threads)
 
 ### DRAMUtils ###
 if (DRAMUTILS_DIR) # Fetch DRAMUtils from supplied local path
-	FetchContent_Declare(
-		DRAMUtils
-		SOURCE_DIR ${DRAMUTILS_DIR}
-	)
+    message(STATUS "Using local DRAMUtils installation from ${DRAMUTILS_DIR}")
+    FetchContent_Declare(
+        DRAMUtils
+        SOURCE_DIR ${DRAMUTILS_DIR}
+    )
 else() # Fetch DRAMUtils from github
-	FetchContent_Declare(
-		DRAMUtils
-		GIT_REPOSITORY https://github.com/tukl-msd/DRAMUtils
-		GIT_TAG "v1.0"
-	)
+    message(STATUS "Fetching DRAMUtils from github")
+    FetchContent_Declare(
+        DRAMUtils
+        GIT_REPOSITORY https://github.com/tukl-msd/DRAMUtils
+        GIT_TAG "v1.0"
+    )
 endif()
 
 FetchContent_MakeAvailable(DRAMUtils)
@@ -109,19 +111,19 @@ set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
 
 ### GoogleTest ###
 if(DRAMPOWER_BUILD_TESTS)
-	FetchContent_Declare(
-		googletest
-		GIT_REPOSITORY https://github.com/google/googletest
-		GIT_TAG release-1.12.1
-	)
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest
+        GIT_TAG release-1.12.1
+    )
 
-	# For Windows: Prevent overriding the parent project's compiler/linker settings
-	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-	FetchContent_MakeAvailable(googletest)
-	set_target_properties(gmock PROPERTIES FOLDER lib)
-	set_target_properties(gmock_main PROPERTIES FOLDER lib)
-	set_target_properties(gtest PROPERTIES FOLDER lib)
-	set_target_properties(gtest_main PROPERTIES FOLDER lib)
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+    set_target_properties(gmock PROPERTIES FOLDER lib)
+    set_target_properties(gmock_main PROPERTIES FOLDER lib)
+    set_target_properties(gtest PROPERTIES FOLDER lib)
+    set_target_properties(gtest_main PROPERTIES FOLDER lib)
 endif()
 
 ###############################################
@@ -131,7 +133,7 @@ endif()
 add_subdirectory(src/DRAMPower)
 
 if(DRAMPOWER_BUILD_CLI)
-	add_subdirectory(src/cli)
+    add_subdirectory(src/cli)
 endif()
 
 ###############################################
@@ -139,9 +141,9 @@ endif()
 ###############################################
 
 if(DRAMPOWER_BUILD_TESTS)
-	include( GoogleTest )
-	include( CTest )
-	add_subdirectory(tests)
+    include( GoogleTest )
+    include( CTest )
+    add_subdirectory(tests)
 endif()
 
 ###############################################
@@ -149,7 +151,7 @@ endif()
 ###############################################
 
 if(${DRAMPOWER_UTILITY_PROJECTS})
-	enable_clang_format()
-	enable_clang_tidy()
-	enable_cppcheck()
+    enable_clang_format()
+    enable_clang_tidy()
+    enable_cppcheck()
 endif()
