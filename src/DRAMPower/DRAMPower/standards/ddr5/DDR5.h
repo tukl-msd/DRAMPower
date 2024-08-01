@@ -20,10 +20,10 @@ namespace DRAMPower {
 
 class DDR5 : public dram_base<CmdType> {
 
-   private:
-	std::size_t cmdBusWidth;
-	uint64_t cmdBusInitPattern;
-   public:
+private:
+    std::size_t cmdBusWidth;
+    uint64_t cmdBusInitPattern;
+public:
     MemSpecDDR5 memSpec;
     std::vector<Rank> ranks;
     util::Bus commandBus;
@@ -36,14 +36,18 @@ class DDR5 : public dram_base<CmdType> {
     timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
 
     SimulationStats getStats() override;
-	energy_t calcEnergy(timestamp_t timestamp) override;
     uint64_t getBankCount() override;
     uint64_t getRankCount() override;
     uint64_t getDeviceCount() override;
 
+
+private:
     void handle_interface(const Command& cmd) override;
     void handleInterfaceOverrides(size_t length, bool read);
-	uint64_t getInitEncoderPattern() override;
+    uint64_t getInitEncoderPattern() override;
+public:
+    energy_t calcCoreEnergy(timestamp_t timestamp) override;
+    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
 
     // Commands
     void handleAct(Rank& rank, Bank& bank, timestamp_t timestamp);
@@ -66,12 +70,9 @@ class DDR5 : public dram_base<CmdType> {
     void handlePowerDownPreExit(Rank& rank, timestamp_t timestamp);
     void endOfSimulation(timestamp_t timestamp);
 
-    // Calculations
-    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp);
-
     SimulationStats getWindowStats(timestamp_t timestamp);
 
-   protected:
+protected:
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {
@@ -111,7 +112,7 @@ class DDR5 : public dram_base<CmdType> {
 
     void registerPatterns();
 
-   private:
+private:
     util::Clock clock;
     util::Clock readDQS;
     util::Clock writeDQS;

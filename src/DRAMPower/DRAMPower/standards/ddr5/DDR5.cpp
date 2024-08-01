@@ -162,6 +162,10 @@ namespace DRAMPower {
                     });
                 }
                 break;
+            default:
+                // Pull down
+                // No interface power needed for PatternEncoderBitSpec::L
+                // Defaults to burst length 16
             case 16:
                 this->encoder.settings.removeSetting(pattern_descriptor::C10);
                 if(read)
@@ -201,23 +205,10 @@ namespace DRAMPower {
                     });
                 }
                 break;
-            default:
-                this->encoder.settings.removeSetting(pattern_descriptor::C10);
-                this->encoder.settings.updateSettings({
-                    {pattern_descriptor::C3, PatternEncoderBitSpec::H},
-                    {pattern_descriptor::C2, PatternEncoderBitSpec::H},
-                });
-                std::cout << ("[WARN] Invalid burst length") << std::endl;
-                assert(false);
-                break;
         }
     }
 
     void DDR5::handle_interface(const Command &cmd) {
-        if (cmd.type == CmdType::END_OF_SIMULATION)
-        {
-            return;
-        }
         size_t length = 0;
 
         // Handle data bus and dqs lines
@@ -225,17 +216,33 @@ namespace DRAMPower {
             case CmdType::RD:
             case CmdType::RDA:
                 length = cmd.sz_bits / readBus.get_width();
-                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                if ( length != 0 )
+                {
+                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+                else
+                {
+                    length = memSpec.burstLength; // Default default burst length
+                    // Cannot load readBus with data. TODO toggling rate
+                }
                 readDQS.start(cmd.timestamp);
-                readDQS.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                readDQS.stop(cmd.timestamp + length / memSpec.dataRateSpec.dqsBusRate);
                 this->handleInterfaceOverrides(length, true);
                 break;
             case CmdType::WR:
             case CmdType::WRA:
                 length = cmd.sz_bits / writeBus.get_width();
-                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                if ( length != 0 )
+                {
+                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+                else
+                {
+                    length = memSpec.burstLength; // Default default burst length
+                    // Cannot load writeBus with data. TODO toggling rate
+                }
                 writeDQS.start(cmd.timestamp);
-                writeDQS.stop(cmd.timestamp + length / this->memSpec.dataRateSpec.dqsBusRate);
+                writeDQS.stop(cmd.timestamp + length / memSpec.dataRateSpec.dqsBusRate);
                 this->handleInterfaceOverrides(length, false);
                 break;
         }
@@ -451,7 +458,7 @@ namespace DRAMPower {
             std::cout << ("[WARN] End of simulation but still implicit commands left!") << std::endl;
     }
 
-    energy_t DDR5::calcEnergy(timestamp_t timestamp) {
+    energy_t DDR5::calcCoreEnergy(timestamp_t timestamp) {
         Calculation_DDR5 calculation;
 
         return calculation.calcEnergy(timestamp, *this);

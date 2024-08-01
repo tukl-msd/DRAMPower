@@ -76,8 +76,12 @@ option(DRAMPOWER_BUILD_TESTS "Build DRAMPower unit tests" OFF)
 option(DRAMPOWER_VERBOSE_CMAKE_OUTPUT "Show detailed CMake output" OFF)
 option(DRAMPOWER_BUILD_CLI "Build DRAMPower Command Line Tool" OFF)
 
+set(DRAMUTILS_DIR "" CACHE PATH "Local DRAMUtils installation path (optional)")
+
 ### Compiler settings ###
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ###############################################
 ###           Library Settings              ###
@@ -86,26 +90,32 @@ set(CMAKE_CXX_STANDARD 17)
 ### Detect OS threading library ###
 find_package(Threads)
 
-add_subdirectory(${DRAMPOWER_LIBRARY_DIR}/nlohmann_json)
+### DRAMUtils ###
+if (DRAMUTILS_DIR) # Fetch DRAMUtils from supplied local path
+    message(STATUS "Using local DRAMUtils installation from ${DRAMUTILS_DIR}")
+    FetchContent_Declare(
+        DRAMUtils
+        SOURCE_DIR ${DRAMUTILS_DIR}
+    )
+else() # Fetch DRAMUtils from github
+    message(STATUS "Fetching DRAMUtils from github")
+    FetchContent_Declare(
+        DRAMUtils
+        GIT_REPOSITORY https://github.com/tukl-msd/DRAMUtils
+        GIT_TAG "v1.0"
+    )
+endif()
 
-### nlohmann_json ###
-#FetchContent_Declare(
-#        json
-#        GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
-#        GIT_TAG v3.9.1)
-#
-#FetchContent_GetProperties(json)
-#if(NOT json_POPULATED)
-#    FetchContent_Populate(json)
-#    add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
-#endif()
+FetchContent_MakeAvailable(DRAMUtils)
+set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
 
 ### GoogleTest ###
 if(DRAMPOWER_BUILD_TESTS)
     FetchContent_Declare(
-	    googletest
-	    GIT_REPOSITORY https://github.com/google/googletest
-		GIT_TAG release-1.12.1)
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest
+        GIT_TAG release-1.12.1
+    )
 
     # For Windows: Prevent overriding the parent project's compiler/linker settings
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -123,7 +133,7 @@ endif()
 add_subdirectory(src/DRAMPower)
 
 if(DRAMPOWER_BUILD_CLI)
-	add_subdirectory(src/cli)
+    add_subdirectory(src/cli)
 endif()
 
 ###############################################

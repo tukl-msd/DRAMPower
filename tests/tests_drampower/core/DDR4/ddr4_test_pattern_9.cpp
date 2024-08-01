@@ -4,9 +4,14 @@
 
 #include <DRAMPower/standards/ddr4/DDR4.h>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+#include <variant>
+
 #include <memory>
 
 #include <fstream>
+#include <string>
 
 
 using namespace DRAMPower;
@@ -34,14 +39,8 @@ protected:
 
     virtual void SetUp()
     {
-        std::ifstream f(std::string(TEST_RESOURCE_DIR) + "ddr4.json");
-
-        if(!f.is_open()){
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-        json data = json::parse(f);
-        MemSpecDDR4 memSpec(data["memspec"]);
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
+        auto memSpec = DRAMPower::MemSpecDDR4::from_memspec(*data);
 
         ddr = std::make_unique<DDR4>(memSpec);
     }
@@ -53,7 +52,7 @@ protected:
 
 TEST_F(DramPowerTest_DDR4_9, Counters_and_Cycles){
     for (const auto& command : testPattern) {
-        ddr->doCommand(command);
+        ddr->doCoreCommand(command);
     }
 
     auto stats = ddr->getStats();
@@ -100,10 +99,10 @@ TEST_F(DramPowerTest_DDR4_9, Counters_and_Cycles){
 
 TEST_F(DramPowerTest_DDR4_9, Energy) {
     for (const auto& command : testPattern) {
-        ddr->doCommand(command);
+        ddr->doCoreCommand(command);
     }
 
-    auto energy = ddr->calcEnergy(testPattern.back().timestamp);
+    auto energy = ddr->calcCoreEnergy(testPattern.back().timestamp);
     auto total_energy = energy.total_energy();
 
 

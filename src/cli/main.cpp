@@ -1,67 +1,76 @@
-#include <DRAMPower/command/Command.h>
 
-#include <DRAMPower/standards/ddr4/DDR4.h>
-#include <DRAMPower/memspec/MemSpecDDR4.h>
-#include <DRAMPower/standards/ddr5/DDR5.h>
-#include <DRAMPower/memspec/MemSpecDDR5.h>
-#include <DRAMPower/standards/lpddr4/LPDDR4.h>
-#include <DRAMPower/memspec/MemSpecLPDDR4.h>
-#include <DRAMPower/standards/lpddr5/LPDDR5.h>
-#include <DRAMPower/memspec/MemSpecLPDDR5.h>
-
-#include <DRAMPower/util/json.h>
-#include "csv.hpp"
-#include "util.hpp"
 #include <stdint.h>
 #include <unordered_map>
 #include <array>
 #include <utility>
-
 #include <iostream>
-
+#include <variant>
 #include <vector>
 #include <filesystem>
 #include <string_view>
+#include <type_traits>
+
+#include <DRAMPower/data/energy.h>
+#include <DRAMPower/command/Command.h>
+#include <DRAMPower/standards/ddr4/DDR4.h>
+#include <DRAMPower/memspec/MemSpecDDR4.h>
+#include <DRAMPower/standards/ddr5/DDR5.h>
+#include <DRAMPower/memspec/MemSpecDDR5.h>
+#include <DRAMPower/memspec/MemSpecLPDDR4.h>
+#include <DRAMPower/memspec/MemSpecLPDDR5.h>
+#include <DRAMPower/standards/lpddr4/LPDDR4.h>
+#include <DRAMPower/standards/lpddr5/LPDDR5.h>
+#include <DRAMUtils/util/json_utils.h>
+#include <DRAMUtils/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
+
+#include "csv.hpp"
+#include "util.hpp"
 
 using namespace DRAMPower;
 
 
-std::unique_ptr<dram_base<CmdType>> getMemory(const json& data)
+std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data)
 {
-	if ( !data.contains("memspec") )
+	try
 	{
+		std::unique_ptr<dram_base<CmdType>> result = nullptr;
+        auto memspec = DRAMUtils::parse_memspec_from_file(std::filesystem::path(data));
+        if (!memspec)
+            return result;
+		std::visit( [&result] (auto&& arg) {
+			using T = std::decay_t<decltype(arg)>;
+			if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecDDR4>)
+			{
+				MemSpecDDR4 ddr (static_cast<DRAMUtils::MemSpec::MemSpecDDR4>(arg));
+				result = std::make_unique<DDR4>(ddr);
+			}
+			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecDDR5>)
+			{
+				MemSpecDDR5 ddr (static_cast<DRAMUtils::MemSpec::MemSpecDDR5>(arg));
+				result = std::make_unique<DDR5>(ddr);
+			}
+			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecLPDDR4>)
+			{
+				MemSpecLPDDR4 ddr (static_cast<DRAMUtils::MemSpec::MemSpecLPDDR4>(arg));
+				result = std::make_unique<LPDDR4>(ddr);
+			}
+			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecLPDDR5>)
+			{
+				MemSpecLPDDR5 ddr (static_cast<DRAMUtils::MemSpec::MemSpecLPDDR5>(arg));
+				result = std::make_unique<LPDDR5>(ddr);
+			}
+		}, memspec->getVariant());
+		return result;
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
 		return nullptr;
 	}
-	auto memspec = data["memspec"];
-	if ( !memspec.contains("memoryId") )
-	{
-		return nullptr;
-	}
-
-	const std::string& memoryId = memspec["memoryId"];
-
-	if ( memoryId == "ddr4" )
-	{
-		MemSpecDDR4 ddr4(memspec);
-		return std::make_unique<DDR4>(ddr4);
-	}
-	else if ( memoryId == "ddr5" )
-	{
-		MemSpecDDR5 ddr5(memspec);
-		return std::make_unique<DDR5>(ddr5);
-	}
-	else if ( memoryId == "lpddr4" )
-	{
-		MemSpecLPDDR4 lpddr4(memspec);
-		return std::make_unique<LPDDR4>(lpddr4);
-	}
-	else if ( memoryId == "lpddr5" )
-	{
-		MemSpecLPDDR5 lpddr5(memspec);
-		return std::make_unique<LPDDR5>(lpddr5);
-	}
-
-	return nullptr;
 }
 
 std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(std::string_view csv_file)
@@ -171,16 +180,8 @@ int main(int argc, char *argv[])
 	auto commandList = parse_command_list(argv[1]);
 
 	// Initialize memory
-	// Read memory spec
-	std::ifstream f((std::string(argv[2])));
-	if ( !f.is_open() ) {
-		std::cerr << "Could not open file " << argv[2] << std::endl;
-		exit(1);
-	}
-	// Parse json
-	json data = json::parse(f);
 	// Create memory object
-	std::unique_ptr<dram_base<CmdType>> ddr = getMemory(data);
+	std::unique_ptr<dram_base<CmdType>> ddr = getMemory(std::string_view(argv[2]));
 	if (!ddr)
 	{
 		std::cerr << "Invalid memory specification" << std::endl;
@@ -205,67 +206,73 @@ int main(int argc, char *argv[])
 
 	// Execute commands
 	for ( auto &command : commandList ) {
-		ddr.get()->doCommand(command.first);
-		ddr.get()->handleInterfaceCommand(command.first);
+		ddr->doCoreInterfaceCommand(command.first);
 	}
 
 	// Calculate energy and stats
-	auto energy = ddr.get()->calcEnergyBase(commandList.back().first.timestamp);
-	auto stats = ddr.get()->getStatsBase();
+	energy_t core_energy = ddr->calcCoreEnergy(commandList.back().first.timestamp);
+    interface_energy_info_t interface_energy = ddr->calcInterfaceEnergy(commandList.back().first.timestamp);
+	auto stats = ddr->getStats();
 
 	if(to_json == false)
 	{
 		// Setup output format
-		std::cout << std::fixed;
+		std::cout << std::defaultfloat << std::setprecision(3);
 
 		// Print stats
-		auto bankcount = ddr.get()->getBankCount();
-		auto rankcount = ddr.get()->getRankCount();
-		auto devicecount = ddr.get()->getDeviceCount();
+		auto bankcount = ddr->getBankCount();
+		auto rankcount = ddr->getRankCount();
+		auto devicecount = ddr->getDeviceCount();
 		size_t energy_offset = 0;
 		// TODO assumed this order in interface calculation
-		std::cout << "Rank,Device,Bank -> bank_energy" << std::endl;
+		std::cout << "Rank,Device,Bank -> bank_energy:" << std::endl;
 		for ( std::size_t r = 0; r < rankcount; r++ ) {
 			for ( std::size_t d = 0; d < devicecount; d++ ) {
 				energy_offset = r * bankcount * devicecount + d * bankcount;
 				for ( std::size_t b = 0; b < bankcount; b++ ) {
 					// Rank,Device,Bank -> bank_energy
 					std::cout << r << "," << d << "," << b << " -> ";
-					std::cout << energy.bank_energy[energy_offset + b] << "\n";
+					std::cout << core_energy.bank_energy[energy_offset + b] << "\n";
 				}
 			}
 		}
 		std::cout << "\n";
 		// All banks summed up and bg act shared added
-		std::cout << "Cumulated bank energy with bg_act_shared -> " << energy.total_energy() << "\n";
+		std::cout << "Cumulated bank energy with bg_act_shared -> " << core_energy.total_energy() << "\n";
 
 
 		// Background energy of all ranks
-		std::cout << "Shared energy -> " << energy << "\n";
+		std::cout << "Shared energy -> " << core_energy << "\n\n";
+
+        // Interface energy
+        std::cout << "Interface Energy: " << "\n";
+        std::cout << interface_energy << std::endl;
+
 		// Total energy
-		std::cout << "Total Energy -> " << energy.total();
+		std::cout << "Total Energy -> " << core_energy.total() + interface_energy.total();
 		// \n and flush
 		std::cout << std::endl;
 	}
 	else
 	{
 		// Assume out is valid
-		json j;
+		json_t j;
 		size_t energy_offset = 0;
-		auto bankcount = ddr.get()->getBankCount();
-		auto rankcount = ddr.get()->getRankCount();
-		auto devicecount = ddr.get()->getDeviceCount();
+		auto bankcount = ddr->getBankCount();
+		auto rankcount = ddr->getRankCount();
+		auto devicecount = ddr->getDeviceCount();
 
-		j["RankCount"] = ddr.get()->getRankCount();
-		j["DeviceCount"] = ddr.get()->getDeviceCount();
-		j["BankCount"] = ddr.get()->getBankCount();
-		j["TotalEnergy"] = energy.total();
+		j["RankCount"] = ddr->getRankCount();
+		j["DeviceCount"] = ddr->getDeviceCount();
+		j["BankCount"] = ddr->getBankCount();
+		j["TotalEnergy"] = core_energy.total() + interface_energy.total();
 
 		// Energy object to json
-		energy.to_json(j["Energy"]);
+		core_energy.to_json(j["CoreEnergy"]);
+        interface_energy.to_json(j["InterfaceEnergy"]);
 
 		// Validate array length
-		if ( !j["Energy"][energy.get_Bank_energy_keyword()].is_array() || j["Energy"][energy.get_Bank_energy_keyword()].size() != rankcount * bankcount * devicecount )
+		if ( !j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].is_array() || j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].size() != rankcount * bankcount * devicecount )
 		{
 			assert(false); // (should not happen)
 			std::cerr << "Invalid energy array length" << std::endl;
@@ -278,9 +285,9 @@ int main(int argc, char *argv[])
 				energy_offset = r * bankcount * devicecount + d * bankcount;
 				for ( std::size_t b = 0; b < bankcount; b++ ) {
 					// Rank,Device,Bank -> bank_energy
-					j["Energy"][energy.get_Bank_energy_keyword()].at(energy_offset + b)["Rank"] = r;
-					j["Energy"][energy.get_Bank_energy_keyword()].at(energy_offset + b)["Device"] = d;
-					j["Energy"][energy.get_Bank_energy_keyword()].at(energy_offset + b)["Bank"] = b;
+					j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].at(energy_offset + b)["Rank"] = r;
+					j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].at(energy_offset + b)["Device"] = d;
+					j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].at(energy_offset + b)["Bank"] = b;
 				}
 			}
 		}

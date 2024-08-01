@@ -6,7 +6,13 @@
 #include <DRAMPower/standards/lpddr4/interface_calculation_LPDDR4.h>
 
 #include <memory>
+#include <fstream>
+#include <string>
 #include <stdint.h>
+
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
+#include <variant>
 
 using namespace DRAMPower;
 
@@ -64,7 +70,9 @@ protected:
 
 	virtual void SetUp()
 	{
-		MemSpecLPDDR4 memSpec;
+		auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr4.json");
+        auto memSpec = DRAMPower::MemSpecLPDDR4::from_memspec(*data);
+
 		memSpec.numberOfRanks = 1;
 		memSpec.numberOfBanks = 2;
 		memSpec.bitWidth = 16;
@@ -86,7 +94,6 @@ protected:
 		memSpec.memTimingSpec.tREFI = 1;
 
 		// Voltage domains
-		memSpec.memPowerSpec.resize(8);
 		memSpec.memPowerSpec[0].vDDX = 1;
 		memSpec.memPowerSpec[0].iDD0X = 64;
 		memSpec.memPowerSpec[0].iDD2NX = 8;
@@ -96,14 +103,14 @@ protected:
 		memSpec.memPowerSpec[0].iDD4RX = 72;
 		memSpec.memPowerSpec[0].iDD4WX = 72;
 
-		memSpec.memPowerSpec[2].vDDX = 1;
-		memSpec.memPowerSpec[2].iDD0X = 64;
-		memSpec.memPowerSpec[2].iDD2NX = 8;
-		memSpec.memPowerSpec[2].iDD2PX = 6;
-		memSpec.memPowerSpec[2].iDD3NX = 32;
-		memSpec.memPowerSpec[2].iDD3PX = 20;
-		memSpec.memPowerSpec[2].iDD4RX = 72;
-		memSpec.memPowerSpec[2].iDD4WX = 72;
+		memSpec.memPowerSpec[1].vDDX = 1;
+		memSpec.memPowerSpec[1].iDD0X = 64;
+		memSpec.memPowerSpec[1].iDD2NX = 8;
+		memSpec.memPowerSpec[1].iDD2PX = 6;
+		memSpec.memPowerSpec[1].iDD3NX = 32;
+		memSpec.memPowerSpec[1].iDD3PX = 20;
+		memSpec.memPowerSpec[1].iDD4RX = 72;
+		memSpec.memPowerSpec[1].iDD4WX = 72;
 
 
 		// Impedance specs
@@ -132,8 +139,8 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestStats)
 	Rank & rank_1 = ddr->ranks[0];
 
 	for (const auto& command : testPattern) {
-		ddr->doCommand(command);
-		ddr->handleInterfaceCommand(command);
+		ddr->doCoreCommand(command);
+		ddr->doInterfaceCommand(command);
 	};
 
 	auto stats = ddr->getStats();
@@ -163,8 +170,8 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestPower)
 	Rank& rank_1 = ddr->ranks[0];
 
 	for (const auto& command : testPattern) {
-		ddr->doCommand(command);
-		ddr->handleInterfaceCommand(command);
+		ddr->doCoreCommand(command);
+		ddr->doInterfaceCommand(command);
 	};
 
 	auto stats = ddr->getStats();
@@ -184,8 +191,8 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestDQS)
 	for (const auto& command : testPattern_2) {
 		auto stats = ddr->getWindowStats(command.timestamp);
 
-		ddr->doCommand(command);
-		ddr->handleInterfaceCommand(command);
+		ddr->doCoreCommand(command);
+		ddr->doInterfaceCommand(command);
 	};
 
 	auto stats = ddr->getStats();
@@ -204,8 +211,8 @@ TEST_F(DramPowerTest_Interface_LPDDR4, Test_Detailed)
 
 	auto iterate_to_timestamp = [this, command = testPattern.begin()](timestamp_t timestamp) mutable {
 		while (command != this->testPattern.end() && command->timestamp <= timestamp) {
-			ddr->doCommand(*command);
-			ddr->handleInterfaceCommand(*command);
+			ddr->doCoreCommand(*command);
+			ddr->doInterfaceCommand(*command);
 			++command;
 		}
 

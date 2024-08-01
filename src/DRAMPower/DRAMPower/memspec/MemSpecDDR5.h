@@ -3,22 +3,35 @@
 
 #include "MemSpec.h"
 
+#include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
+
 
 namespace DRAMPower {
 
-    class MemSpecDDR5 final : public MemSpec {
+    class MemSpecDDR5 final : public MemSpec<DRAMUtils::MemSpec::MemSpecDDR5> {
     public:
 
         enum VoltageDomain {
             VDD = 0,
             VPP = 1,
-            VDDQ = 2
         };
 
     public:
-        MemSpecDDR5() = default;
+        MemSpecDDR5() = delete;
 
-        MemSpecDDR5(nlohmann::json &memspec);
+        MemSpecDDR5(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec);
+
+        MemSpecDDR5(json_t &data) = delete;
+        MemSpecDDR5(const json_t &data) = delete;
+
+        // Copy constructor
+        MemSpecDDR5(const MemSpecDDR5&) = default;
+
+        // Move constructor
+        MemSpecDDR5(MemSpecDDR5&&) = default;
+
+        // Move assignment operator
+        MemSpecDDR5& operator=(MemSpecDDR5&&) = default;
 
         ~MemSpecDDR5() = default;
 
@@ -28,6 +41,8 @@ namespace DRAMPower {
         unsigned numberOfBankGroups;
         unsigned banksPerGroup;
         unsigned numberOfRanks;
+
+        double vddq;
 
         // Memspec Variables:
         struct MemTimingSpec
@@ -90,7 +105,6 @@ namespace DRAMPower {
             double bwPowerFactRho;
         };
 
-        uint64_t refreshMode;
         MemTimingSpec memTimingSpec;
         MemImpedanceSpec memImpedanceSpec;
         DataRateSpec dataRateSpec;
@@ -98,8 +112,10 @@ namespace DRAMPower {
         BankWiseParams bwParams;
 
     private:
-        void parseImpedanceSpec(nlohmann::json &memspec);
-        void parseDataRateSpec(nlohmann::json &memspec);
+        void parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec);
+        void parseDataRateSpec(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec);
+    public:
+        static MemSpecDDR5 from_memspec(const DRAMUtils::MemSpec::MemSpecVariant&);
     };
 
 }

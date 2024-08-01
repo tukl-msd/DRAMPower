@@ -2,14 +2,16 @@
 #define DRAMPOWER_MEMSPEC_MEMSPECLPDDR5_H
 
 #include "MemSpec.h"
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
 
 namespace DRAMPower {
 
-    class MemSpecLPDDR5 final : public MemSpec {
+    class MemSpecLPDDR5 final : public MemSpec<DRAMUtils::MemSpec::MemSpecLPDDR5> {
     public:
         enum VoltageDomain {
-            VDD = 0,
-            VDDQ = 1
+            VDD1 = 0,
+            VDD2H,
+            VDD2L,
         };
 
         enum BankArchitectureMode {
@@ -19,11 +21,23 @@ namespace DRAMPower {
         };
 
     public:
-        MemSpecLPDDR5() = default;
+        MemSpecLPDDR5() = delete;
 
-        MemSpecLPDDR5(nlohmann::json &memspec);
+        MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec);
+	
+        MemSpecLPDDR5(json_t &data) = delete;
+        MemSpecLPDDR5(const json_t &data) = delete;
 
-        ~MemSpecLPDDR5() = default;
+        // Copy constructor
+        MemSpecLPDDR5(const MemSpecLPDDR5&) = default;
+
+        // Move constructor
+        MemSpecLPDDR5(MemSpecLPDDR5&&) = default;
+
+        // Move assignment operator
+        MemSpecLPDDR5& operator=(MemSpecLPDDR5&&) = default;
+
+	    ~MemSpecLPDDR5() = default;
 
         uint64_t timeToCompletion(CmdType type) override;
 
@@ -35,6 +49,8 @@ namespace DRAMPower {
         BankArchitectureMode bank_arch;
         bool wckAlwaysOnMode;
 
+        double vddq;
+
         // Memspec Variables:
         struct MemTimingSpec
         {
@@ -45,7 +61,6 @@ namespace DRAMPower {
             uint64_t tRAS;
             uint64_t tRCD;
             uint64_t tRL;
-            uint64_t tRTP;
             uint64_t tWL;
             uint64_t tWR;
             uint64_t tRFC;
@@ -101,7 +116,10 @@ namespace DRAMPower {
         BankWiseParams bwParams;
 
        private:
-        void parseImpedanceSpec(nlohmann::json &memspec);
+        void parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec);
+
+       public:
+        static MemSpecLPDDR5 from_memspec(const DRAMUtils::MemSpec::MemSpecVariant&);
     };
 
 }  // namespace DRAMPower

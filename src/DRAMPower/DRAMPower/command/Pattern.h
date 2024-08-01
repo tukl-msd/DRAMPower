@@ -6,6 +6,7 @@
 #include <bitset>
 #include <cassert>
 #include <unordered_map>
+#include <vector>
 
 namespace DRAMPower {
 namespace pattern_descriptor {
@@ -26,7 +27,8 @@ enum class PatternEncoderBitSpec
 {
     L = 0,
     H = 1,
-    LAST_BIT = 2
+    LAST_BIT = 2,
+    INVALID = -1
 };
 
 // struct for initializer list in PatternEncoderSettings
@@ -43,20 +45,20 @@ private:
     std::unordered_map<pattern_descriptor::t, PatternEncoderBitSpec> settings;
 public:
     // Constructor with initializer list for settings
-    PatternEncoderOverrides(std::initializer_list<PatternEncoderSettingsEntry> settings)
+    PatternEncoderOverrides(std::initializer_list<PatternEncoderSettingsEntry> _settings)
     {
-        for (const auto &setting : settings)
+        for (const auto &setting : _settings)
         {
-            this->settings[setting.descriptor] = setting.bitSpec;
+            this->settings.emplace(setting.descriptor, setting.bitSpec);
         }
     };
     PatternEncoderOverrides() = default;
 
 public:
-    void updateSettings(std::initializer_list<PatternEncoderSettingsEntry> settings)
+    void updateSettings(std::initializer_list<PatternEncoderSettingsEntry> _settings)
     {
         // Update settings if descriptor is already present
-        for (const auto &setting : settings)
+        for (const auto &setting : _settings)
         {
             this->settings[setting.descriptor] = setting.bitSpec;
         }
@@ -69,7 +71,11 @@ public:
 
     PatternEncoderBitSpec getSetting(pattern_descriptor::t descriptor)
     {
-        return this->settings[descriptor];
+        if (this->settings.find(descriptor) != this->settings.end())
+        {
+            return this->settings.at(descriptor);
+        }
+        return PatternEncoderBitSpec::INVALID;
     };
 
     bool hasSetting(pattern_descriptor::t descriptor)
@@ -98,12 +104,8 @@ inline bool applyBitSpec(
     bool default_bit
 )
 {
-    if(!spec.hasSetting(descriptor))
-    {
-        return default_bit;
-    }
-
-    switch (spec.getSetting(descriptor))
+    auto setting = spec.getSetting(descriptor);
+    switch (setting)
     {
     case PatternEncoderBitSpec::L:
         return false;
@@ -111,6 +113,8 @@ inline bool applyBitSpec(
         return true;
     case PatternEncoderBitSpec::LAST_BIT:
         return LAST_BIT;
+    case PatternEncoderBitSpec::INVALID:
+        return default_bit;
     default:
         assert(false);
         break;

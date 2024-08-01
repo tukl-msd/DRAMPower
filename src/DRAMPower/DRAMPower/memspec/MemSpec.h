@@ -42,16 +42,20 @@
 
 #include <DRAMPower/command/CmdType.h>
 
-#include <nlohmann/json.hpp>
+#include <DRAMUtils/util/json_utils.h>
+#include <DRAMUtils/util/types.h>
+#include <DRAMUtils/memspec/MemSpec.h>
 
 #include <vector>
 #include <algorithm>
 
 
-using json = nlohmann::json;
 namespace DRAMPower {
+
+template <typename T>
 class MemSpec
 {
+    T rawmemspec;
 public:
     uint64_t numberOfBanks;
 	uint64_t numberOfRows;
@@ -77,26 +81,30 @@ public:
 
     uint64_t prechargeOffsetRD;
     uint64_t prechargeOffsetWR;
-
+    MemSpec() = delete;
     virtual ~MemSpec() = default;
     virtual uint64_t timeToCompletion(DRAMPower::CmdType type) = 0;
 
-	MemSpec() = default;
-    MemSpec(nlohmann::json &memspec);
+	// MemSpec() = default;
+    MemSpec(const T &memspec) : rawmemspec(memspec)
+    {
+        numberOfBanks = memspec.memarchitecturespec.nbrOfBanks;
+        numberOfRows = memspec.memarchitecturespec.nbrOfRows;
+        numberOfColumns = memspec.memarchitecturespec.nbrOfColumns;
+        numberOfDevices = memspec.memarchitecturespec.nbrOfDevices;
+        if (numberOfDevices < 1)
+        {
+            numberOfDevices = 1;
+        }
+        burstLength = memspec.memarchitecturespec.burstLength;
+        dataRate = memspec.memarchitecturespec.dataRate;
+        bitWidth = memspec.memarchitecturespec.width;
+        memoryId = memspec.memoryId;
+        memoryType = memspec.id;
+    }
 
-    bool parseBool(nlohmann::json &obj, const std::string & name);
-    bool parseBoolWithDefault(nlohmann::json &obj, const std::string & name, bool def = false);
-
-	uint64_t parseUint(nlohmann::json &obj, const std::string & name);
-    uint64_t parseUintWithDefaut(json &obj, const std::string & name, uint64_t default_value=0);
-
-	double parseUdouble(nlohmann::json &obj, const std::string & name);
-    double parseUdoubleWithDefault(nlohmann::json &obj, const std::string & name);
-
-	std::string parseString(nlohmann::json &obj, const std::string & name);
-    std::string parseStringWithDefault(json &obj, const std::string & name, const std::string & defaultString);
 };
 
-}
+} // namespace DRAMPower
 
 #endif /* DRAMPOWER_MEMSPEC_MEMSPEC_H */

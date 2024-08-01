@@ -1,0 +1,77 @@
+{
+	"version": 3,
+	"cmakeMinimumRequired": {
+		"major": 3,
+		"minor": 14,
+		"patch": 0
+	},
+	"configurePresets": [
+		{
+			"name": "cmake-pedantic",
+			"hidden": true,
+			"warnings": {
+				"dev": true,
+				"deprecated": true,
+				"unusedCli": true,
+				"systemVars": false
+			}
+		},
+		{
+			"name": "dev-mode",
+			"hidden": true,
+			"inherits": "cmake-pedantic",
+			"cacheVariables": {
+				"DRAMPOWER_BUILD_TESTS": "ON",
+				"CMAKE_BUILD_PARALLEL_LEVEL": ""
+			}
+		},
+		{
+			"name": "ci-common",
+			"binaryDir": "${sourceDir}/build",
+			"inherits": [
+				"dev-mode"
+			],
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release"
+			}
+		},
+		{
+			"name": "ci-unix",
+			"generator": "Unix Makefiles",
+			"inherits": [
+				"ci-common"
+			]
+		},
+		{
+			"name": "ci-msvc",
+			"generator": "Visual Studio 17 2022",
+			"inherits": [
+				"ci-common"
+			],
+			"cacheVariables": {
+				"CMAKE_CXX_FLAGS": "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MP"
+			}
+		},
+		{
+			"name": "dev-unix",
+			"generator": "Unix Makefiles",
+			"inherits": [
+				"dev-mode"
+			],
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_CXX_FLAGS": "-Wall -Wextra -Wpedantic"
+			}
+		},
+		{
+			"name": "dev-msvc",
+			"generator": "Visual Studio 17 2022",
+			"inherits": [
+				"dev-mode"
+			],
+			"cacheVariables": {
+				"CMAKE_CXX_FLAGS": "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MP"
+			}
+		}
+	]
+}

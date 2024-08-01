@@ -24,16 +24,13 @@ class LPDDR5 : public dram_base<CmdType> {
     LPDDR5(const MemSpecLPDDR5& memSpec);
     virtual ~LPDDR5() = default;
 
-    void handleInterfaceOverrides(size_t length, bool read);
 
     SimulationStats getStats() override;
-	energy_t calcEnergy(timestamp_t timestamp) override;
     uint64_t getBankCount() override;
     uint64_t getRankCount() override;
     uint64_t getDeviceCount() override;
 
     // Commands
-    void handle_interface(const Command& cmd) override;
     void handleAct(Rank& rank, Bank& bank, timestamp_t timestamp);
     void handlePre(Rank& rank, Bank& bank, timestamp_t timestamp);
     void handlePreAll(Rank& rank, timestamp_t timestamp);
@@ -55,18 +52,22 @@ class LPDDR5 : public dram_base<CmdType> {
     void handleDSMEntry(Rank& rank, timestamp_t timestamp);
     void handleDSMExit(Rank& rank, timestamp_t timestamp);
     void endOfSimulation(timestamp_t timestamp);
-
-    // Calculations
-    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp);
     SimulationStats getWindowStats(timestamp_t timestamp);
-
+    energy_t calcCoreEnergy(timestamp_t timestamp) override;
+    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
+    
     MemSpecLPDDR5 memSpec;
     std::vector<Rank> ranks;
+private:
+    // Calculations
+    void handle_interface(const Command& cmd) override;
+    void handleInterfaceOverrides(size_t length, bool read);
+
     util::Bus commandBus;
     util::Bus readBus;
     util::Bus writeBus;
 
-   private:
+private:
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {

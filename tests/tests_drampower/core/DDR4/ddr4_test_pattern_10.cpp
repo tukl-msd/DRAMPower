@@ -7,6 +7,8 @@
 #include <memory>
 
 #include <iostream>
+#include <fstream>
+#include <string>
 
 using namespace DRAMPower;
 
@@ -37,7 +39,9 @@ protected:
 
     virtual void SetUp()
     {
-        MemSpecDDR4 memSpec;
+		auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
+        auto memSpec = DRAMPower::MemSpecDDR4::from_memspec(*data);
+
         memSpec.numberOfRanks = 1;
 		memSpec.numberOfDevices = 1;
         memSpec.numberOfBanks = 8;
@@ -49,11 +53,16 @@ protected:
         memSpec.memTimingSpec.tRAS = 10;
 		memSpec.memTimingSpec.tRP = 10;
 
-		memSpec.memPowerSpec.resize(4);
 		memSpec.memPowerSpec[0].vXX = 1;
 		memSpec.memPowerSpec[0].iXX0 = 64;
-		memSpec.memPowerSpec[0].iXX3N = 32;
 		memSpec.memPowerSpec[0].iXX2N = 8;
+		memSpec.memPowerSpec[0].iXX3N = 32;
+		memSpec.memPowerSpec[0].iXX4R = 0;
+		memSpec.memPowerSpec[0].iXX4W = 0;
+		memSpec.memPowerSpec[0].iXX5X = 0;
+		memSpec.memPowerSpec[0].iXX6N = 0;
+		memSpec.memPowerSpec[0].iXX2P = 0;
+		memSpec.memPowerSpec[0].iXX3P = 0;
         memSpec.memPowerSpec[0].iBeta = memSpec.memPowerSpec[0].iXX0;
 		memSpec.bwParams.bwPowerFactRho = 0.333333333;
 
@@ -69,7 +78,7 @@ protected:
 TEST_F(DramPowerTest_DDR4_10, Pattern1)
 {
     for (const auto& command : testPattern) {
-        ddr->doCommand(command);
+        ddr->doCoreCommand(command);
     };
 
 	// Inspect first rank
@@ -139,14 +148,14 @@ TEST_F(DramPowerTest_DDR4_10, CalcEnergy)
 {
 	auto iterate_to_timestamp = [this](auto & command, const auto & container, timestamp_t timestamp) {
 		while (command != container.end() && command->timestamp <= timestamp) {
-			ddr->doCommand(*command);
+			ddr->doCoreCommand(*command);
 			++command;
 		}
 	};
 
 	auto command = testPattern.begin();
 	iterate_to_timestamp(command, testPattern, 125);
-    auto energy = ddr->calcEnergy(125);
+    auto energy = ddr->calcCoreEnergy(125);
 	auto total_energy = energy.total_energy();
 
     ASSERT_EQ((int)total_energy.E_act, 3220);

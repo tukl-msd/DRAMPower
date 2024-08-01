@@ -3,6 +3,10 @@
 #include <memory>
 #include <fstream>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+#include <variant>
+
 #include "DRAMPower/data/energy.h"
 #include "DRAMPower/data/stats.h"
 #include "DRAMPower/memspec/MemSpecDDR4.h"
@@ -73,30 +77,23 @@ class DDR4_WindowStats_Tests : public ::testing::Test {
         });
 
         initSpec();
-        ddr = std::make_unique<DDR4>(spec);
+        ddr = std::make_unique<DDR4>(*spec);
     }
 
     void initSpec() {
-        std::ifstream f(std::string(TEST_RESOURCE_DIR) + "ddr4.json");
-
-        if(!f.is_open()){
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-
-        json data = json::parse(f);
-        spec = MemSpecDDR4{data["memspec"]};
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
+        spec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
     }
 
     void runCommands(const std::vector<Command> &commands) {
         for (const Command &command : commands) {
-            ddr->doCommand(command);
-            ddr->handleInterfaceCommand(command);
+            ddr->doCoreCommand(command);
+            ddr->doInterfaceCommand(command);
         }
     }
 
     std::vector<std::vector<Command>> test_patterns;
-    MemSpecDDR4 spec;
+    std::unique_ptr<MemSpecDDR4> spec;
     std::unique_ptr<DDR4> ddr;
 };
 
@@ -106,7 +103,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_0) {
 
     SimulationStats stats = ddr->getStats();
 
-    EXPECT_EQ(spec.dataRate, 2);
+    EXPECT_EQ(spec->dataRate, 2);
 
     // Clock
     EXPECT_EQ(stats.clockStats.ones, 48);
@@ -135,11 +132,11 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_0) {
     // ("size in bits" / bus_size) / bus_rate
     // read and write have the same length
     // number of cycles per write/read
-    int number_of_cycles = (SZ_BITS(wr_data) / 8) / spec.dataRate;
+    int number_of_cycles = (SZ_BITS(wr_data) / 8) / spec->dataRate;
 
     // In this example read data and write data are the same size, so stats should be the same
     // DQs modelled as single line
-    int DQS_ones = number_of_cycles * spec.dataRate;
+    int DQS_ones = number_of_cycles * spec->dataRate;
     int DQS_zeros = DQS_ones;
     int DQS_zeros_to_ones = DQS_ones;
     int DQS_ones_to_zeros = DQS_zeros;
@@ -170,7 +167,7 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_1) {
 
     SimulationStats stats = ddr->getStats();
 
-    EXPECT_EQ(spec.dataRate, 2);
+    EXPECT_EQ(spec->dataRate, 2);
 
     // Clock
     EXPECT_EQ(stats.clockStats.ones, 48);
@@ -197,9 +194,9 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_1) {
     // DQs bus
     // For write and read the number of clock cycles the strobes stay on is
     // (("number of writes/reads" * "size in bits") / bus_size) / bus_rate
-    int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec.dataRate;
+    int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
 
-    int DQS_ones = number_of_cycles * spec.dataRate;
+    int DQS_ones = number_of_cycles * spec->dataRate;
     int DQS_zeros = DQS_ones;
     int DQS_zeros_to_ones = DQS_ones;
     int DQS_ones_to_zeros = DQS_zeros;
@@ -254,10 +251,10 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_2) {
     // DQs bus
     // For write and read the number of clock cycles the strobes stay on is
     // (("number of reads/writes" * "size in bits") / bus_size) / bus_rate
-    int number_of_cycles = ((2 * SZ_BITS(rd_data)) / 8) / spec.dataRate;
+    int number_of_cycles = ((2 * SZ_BITS(rd_data)) / 8) / spec->dataRate;
 
     // Only read
-    int DQS_ones = number_of_cycles * spec.dataRate;
+    int DQS_ones = number_of_cycles * spec->dataRate;
     int DQS_zeros = DQS_ones;
     int DQS_zeros_to_ones = DQS_ones;
     int DQS_ones_to_zeros = DQS_zeros;
@@ -312,10 +309,10 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_3) {
     // DQs bus
     // For write and read the number of clock cycles the strobes stay on is
     // (("number of writes/reads" * "size in bits") / bus_size) / bus_rate
-    int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec.dataRate;
+    int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
 
     // Only writes
-    int DQS_ones = number_of_cycles * spec.dataRate;
+    int DQS_ones = number_of_cycles * spec->dataRate;
     int DQS_zeros = DQS_ones;
     int DQS_zeros_to_ones = DQS_ones;
     int DQS_ones_to_zeros = DQS_zeros;
@@ -370,10 +367,10 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_4) {
     // DQs bus
     // For write and read the number of clock cycles the strobes stay on is
     // (("number of writes/reads" * "size in bits") / bus_size) / bus_rate
-    int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec.dataRate;
+    int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
 
     // Only reads
-    int DQS_ones = number_of_cycles * spec.dataRate;
+    int DQS_ones = number_of_cycles * spec->dataRate;
     int DQS_zeros = DQS_ones;
     int DQS_zeros_to_ones = DQS_ones;
     int DQS_ones_to_zeros = DQS_zeros;
@@ -402,52 +399,45 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_4) {
 class DDR4_Energy_Tests : public ::testing::Test {
    public:
     DDR4_Energy_Tests() {
-        std::ifstream f(std::string(TEST_RESOURCE_DIR) + "ddr4.json");
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
+        spec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
 
-        if (!f.is_open()) {
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-
-        json data = json::parse(f);
-        spec = MemSpecDDR4{data["memspec"]};
-
-        t_CK = spec.memTimingSpec.tCK;
-        voltage = spec.memPowerSpec[MemSpecDDR4::VoltageDomain::VDD].vXX;
+        t_CK = spec->memTimingSpec.tCK;
+        voltage = spec->memPowerSpec[MemSpecDDR4::VoltageDomain::VDD].vXX;
 
         // Change impedances to different values from each other
-        spec.memImpedanceSpec.R_eq_cb = 2;
-        spec.memImpedanceSpec.R_eq_ck = 3;
-        spec.memImpedanceSpec.R_eq_dqs = 4;
-        spec.memImpedanceSpec.R_eq_rb = 5;
-        spec.memImpedanceSpec.R_eq_wb = 6;
+        spec->memImpedanceSpec.R_eq_cb = 2;
+        spec->memImpedanceSpec.R_eq_ck = 3;
+        spec->memImpedanceSpec.R_eq_dqs = 4;
+        spec->memImpedanceSpec.R_eq_rb = 5;
+        spec->memImpedanceSpec.R_eq_wb = 6;
 
-        spec.memImpedanceSpec.C_total_cb = 2;
-        spec.memImpedanceSpec.C_total_ck = 3;
-        spec.memImpedanceSpec.C_total_dqs = 4;
-        spec.memImpedanceSpec.C_total_rb = 5;
-        spec.memImpedanceSpec.C_total_wb = 6;
+        spec->memImpedanceSpec.C_total_cb = 2;
+        spec->memImpedanceSpec.C_total_ck = 3;
+        spec->memImpedanceSpec.C_total_dqs = 4;
+        spec->memImpedanceSpec.C_total_rb = 5;
+        spec->memImpedanceSpec.C_total_wb = 6;
 
         // PrePostamble is a possible DDR4 pattern
         // Preamble 2tCK, Postamble 0.5tCK
-        spec.prePostamble.read_ones = 2.5;
-        spec.prePostamble.read_zeroes = 2.5;
-        spec.prePostamble.read_zeroes_to_ones = 2;
-        spec.prePostamble.read_ones_to_zeroes = 2;
+        spec->prePostamble.read_ones = 2.5;
+        spec->prePostamble.read_zeroes = 2.5;
+        spec->prePostamble.read_zeroes_to_ones = 2;
+        spec->prePostamble.read_ones_to_zeroes = 2;
 
         // Preamble 1tCK, Postamble 0.5tCK
-        spec.prePostamble.write_ones = 1.5;
-        spec.prePostamble.write_zeroes = 1.5;
-        spec.prePostamble.write_zeroes_to_ones = 2;
-        spec.prePostamble.write_ones_to_zeroes = 2;
+        spec->prePostamble.write_ones = 1.5;
+        spec->prePostamble.write_zeroes = 1.5;
+        spec->prePostamble.write_zeroes_to_ones = 2;
+        spec->prePostamble.write_ones_to_zeroes = 2;
 
-        spec.prePostamble.readMinTccd = 3;
-        spec.prePostamble.writeMinTccd = 2;
+        spec->prePostamble.readMinTccd = 3;
+        spec->prePostamble.writeMinTccd = 2;
 
-        io_calc = std::make_unique<InterfaceCalculation_DDR4>(spec);
+        io_calc = std::make_unique<InterfaceCalculation_DDR4>(*spec);
     }
 
-    MemSpecDDR4 spec;
+    std::unique_ptr<MemSpecDDR4> spec;
     double t_CK;
     double voltage;
     std::unique_ptr<InterfaceCalculation_DDR4> io_calc;
@@ -469,19 +459,19 @@ TEST_F(DDR4_Energy_Tests, Clock_Energy) {
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
     // Clock is provided by the controller not the device
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, 0.0);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, 0.0);
 
     // Note
     // The clock stats include both lines of the differential pair
 
     // DDR4 clock power consumed on 0's
-    double expected_static = stats.clockStats.zeroes * voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_ck;
+    double expected_static = stats.clockStats.zeroes * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_ck;
     // Dynamic power is consumed on 0 -> 1 transition
-    double expected_dynamic = stats.clockStats.zeroes_to_ones * 0.5 * spec.memImpedanceSpec.C_total_ck * voltage * voltage;
+    double expected_dynamic = stats.clockStats.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_ck * voltage * voltage;
 
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static);  // value itself doesn't matter, only that it matches the formula
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static);  // value itself doesn't matter, only that it matches the formula
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic);
 }
 
 TEST_F(DDR4_Energy_Tests, DQS_Energy) {
@@ -503,21 +493,21 @@ TEST_F(DDR4_Energy_Tests, DQS_Energy) {
     // Dram -> read power
     // Note dqs is modeled as clock. The clock class incorporates the data rate
     double expected_static_controller = stats.writeDQSStats.zeroes *
-                        voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_dqs;
+                        voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_dqs;
     double expected_static_dram = stats.readDQSStats.zeroes *
-                        voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_dqs;
+                        voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_dqs;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = stats.writeDQSStats.zeroes_to_ones *
-                                         0.5 * spec.memImpedanceSpec.C_total_dqs * voltage * voltage;
+                                         0.5 * spec->memImpedanceSpec.C_total_dqs * voltage * voltage;
     double expected_dynamic_dram = stats.readDQSStats.zeroes_to_ones *
-                                   0.5 * spec.memImpedanceSpec.C_total_dqs * voltage * voltage;
+                                   0.5 * spec->memImpedanceSpec.C_total_dqs * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static_controller);
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic_controller);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, expected_static_dram);
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, expected_dynamic_dram);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, expected_static_dram);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, expected_dynamic_dram);
 }
 
 TEST_F(DDR4_Energy_Tests, DQ_Energy) {
@@ -537,21 +527,21 @@ TEST_F(DDR4_Energy_Tests, DQ_Energy) {
     // zeroes and ones of the data bus are the zeroes and ones per pattern (data rate is not modeled in the bus)
     // data rate data bus is 2 -> t_per_bit = 0.5 * t_CK
     double expected_static_controller =
-        stats.writeBus.zeroes * voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_wb;
+        stats.writeBus.zeroes * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_wb;
     double expected_static_dram =
-        stats.readBus.zeroes * voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_rb;
+        stats.readBus.zeroes * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_rb;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = stats.writeBus.zeroes_to_ones *
-                            0.5 * spec.memImpedanceSpec.C_total_wb * voltage * voltage;
+                            0.5 * spec->memImpedanceSpec.C_total_wb * voltage * voltage;
     double expected_dynamic_dram = stats.readBus.zeroes_to_ones *
-                            0.5 * spec.memImpedanceSpec.C_total_rb * voltage * voltage;
+                            0.5 * spec->memImpedanceSpec.C_total_rb * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static_controller);
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic_controller);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, expected_static_dram);
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, expected_dynamic_dram);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, expected_static_dram);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, expected_dynamic_dram);
 }
 
 TEST_F(DDR4_Energy_Tests, CA_Energy) {
@@ -562,18 +552,18 @@ TEST_F(DDR4_Energy_Tests, CA_Energy) {
     stats.commandBus.ones_to_zeroes = 49;
 
     double expected_static_controller = stats.commandBus.zeroes * 
-                            voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_cb;
+                            voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_cb;
     double expected_dynamic_controller = stats.commandBus.zeroes_to_ones *
-                            0.5 * spec.memImpedanceSpec.C_total_cb * voltage * voltage;
+                            0.5 * spec->memImpedanceSpec.C_total_cb * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
 
     // CA bus power is provided by the controller
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, 0.0);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, 0.0);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, 0.0);
 
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static_controller);
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic_controller);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
 }
 
 TEST_F(DDR4_Energy_Tests, PrePostamble_Energy) {
@@ -609,37 +599,37 @@ TEST_F(DDR4_Energy_Tests, PrePostamble_Energy) {
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = stats.writeDQSStats.zeroes_to_ones *
-                                         0.5 * spec.memImpedanceSpec.C_total_dqs * voltage * voltage;
+                                         0.5 * spec->memImpedanceSpec.C_total_dqs * voltage * voltage;
     double expected_dynamic_dram = stats.readDQSStats.zeroes_to_ones *
-                                   0.5 * spec.memImpedanceSpec.C_total_dqs * voltage * voltage;
+                                   0.5 * spec->memImpedanceSpec.C_total_dqs * voltage * voltage;
        
     // Controller -> write power
     // Dram -> read power
     // Note dqs is modeled as clock. The clock class incorporates the data rate
     double expected_static_controller = stats.writeDQSStats.zeroes *
-                        voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_dqs;
+                        voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_dqs;
     double expected_static_dram = stats.readDQSStats.zeroes *
-                        voltage * voltage * (0.5 * t_CK) / spec.memImpedanceSpec.R_eq_dqs;
+                        voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_dqs;
 
     // Note DQS already tested in DDR4_Energy_Tests.DQS_Energy
 
     // Add seamless preambles and postambles power
     // Note read_zeroes incorporates the data rate
     // Note write_zeroes incorporates the data rate
-    expected_static_controller += spec.prePostamble.write_zeroes * (writecount - stats.rank_total[0].prepos.writeSeamless) *
-                            voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_dqs;
-    expected_static_dram += spec.prePostamble.read_zeroes * (readcount - stats.rank_total[0].prepos.readSeamless) *
-                          voltage * voltage * t_CK / spec.memImpedanceSpec.R_eq_dqs;
+    expected_static_controller += spec->prePostamble.write_zeroes * (writecount - stats.rank_total[0].prepos.writeSeamless) *
+                            voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_dqs;
+    expected_static_dram += spec->prePostamble.read_zeroes * (readcount - stats.rank_total[0].prepos.readSeamless) *
+                          voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_dqs;
 
-    expected_dynamic_controller += spec.prePostamble.write_zeroes_to_ones * (writecount - stats.rank_total[0].prepos.writeSeamless) *
-                            0.5 * spec.memImpedanceSpec.C_total_dqs * voltage * voltage;
-    expected_dynamic_dram += spec.prePostamble.read_zeroes_to_ones * (readcount - stats.rank_total[0].prepos.readSeamless) *
-                            0.5 * spec.memImpedanceSpec.C_total_dqs * voltage * voltage;
+    expected_dynamic_controller += spec->prePostamble.write_zeroes_to_ones * (writecount - stats.rank_total[0].prepos.writeSeamless) *
+                            0.5 * spec->memImpedanceSpec.C_total_dqs * voltage * voltage;
+    expected_dynamic_dram += spec->prePostamble.read_zeroes_to_ones * (readcount - stats.rank_total[0].prepos.readSeamless) *
+                            0.5 * spec->memImpedanceSpec.C_total_dqs * voltage * voltage;
 
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
-    EXPECT_DOUBLE_EQ(result.controller.staticPower, expected_static_controller);
-    EXPECT_DOUBLE_EQ(result.controller.dynamicPower, expected_dynamic_controller);
-    EXPECT_DOUBLE_EQ(result.dram.staticPower, expected_static_dram);
-    EXPECT_DOUBLE_EQ(result.dram.dynamicPower, expected_dynamic_dram);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, expected_static_dram);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, expected_dynamic_dram);
 }

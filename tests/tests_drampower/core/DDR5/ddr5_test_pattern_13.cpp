@@ -5,6 +5,8 @@
 #include <DRAMPower/standards/ddr5/DDR5.h>
 
 #include <memory>
+#include <fstream>
+#include <string>
 
 using namespace DRAMPower;
 
@@ -50,7 +52,9 @@ protected:
 
     virtual void SetUp()
     {
-        MemSpecDDR5 memSpec;
+		auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr5.json");
+        auto memSpec = DRAMPower::MemSpecDDR5::from_memspec(*data);
+
 		memSpec.bitWidth = 16;
 		memSpec.numberOfDevices = 1;
 		memSpec.numberOfRanks = 1;
@@ -60,7 +64,6 @@ protected:
 
 		memSpec.memTimingSpec.tCK = 1;
 
-		memSpec.memPowerSpec.resize(8);
 		memSpec.memPowerSpec[0].vXX = 1;
 		memSpec.memPowerSpec[0].iXX0 = 64;
 		memSpec.memPowerSpec[0].iXX3N = 32;
@@ -83,7 +86,7 @@ protected:
 TEST_F(DramPowerTest_DDR5_13, Pattern_2)
 {
     for (const auto& command : testPattern) {
-        ddr->doCommand(command);
+        ddr->doCoreCommand(command);
     };
 
 	// Inspect first rank
@@ -118,14 +121,14 @@ TEST_F(DramPowerTest_DDR5_13, CalcEnergy)
 {
     auto iterate_to_timestamp = [this](auto & command, const auto & container, timestamp_t timestamp) {
 		while (command != container.end() && command->timestamp <= timestamp) {
-			ddr->doCommand(*command);
+			ddr->doCoreCommand(*command);
 			++command;
 		}
 	};
 
 	auto command = testPattern.begin();
 	iterate_to_timestamp(command, testPattern, 125);
-	auto energy = ddr->calcEnergy(125);
+	auto energy = ddr->calcCoreEnergy(125);
 	auto total_energy = energy.total_energy();
 
 	ASSERT_EQ((int)total_energy.E_RD, 4160);

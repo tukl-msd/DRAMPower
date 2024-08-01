@@ -5,6 +5,8 @@
 #include <DRAMPower/standards/ddr4/DDR4.h>
 
 #include <memory>
+#include <fstream>
+#include <string>
 
 using namespace DRAMPower;
 
@@ -28,7 +30,9 @@ protected:
 
 	virtual void SetUp()
 	{
-		MemSpecDDR4 memSpec;
+		auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
+        auto memSpec = DRAMPower::MemSpecDDR4::from_memspec(*data);
+
 		memSpec.numberOfRanks = 1;
 		memSpec.numberOfBanks = 2;
 		memSpec.numberOfBankGroups = 2;
@@ -47,7 +51,6 @@ protected:
 		memSpec.memTimingSpec.tCK = 1;
 		//memSpec.memTimingSpec.tREFI = 1;
 
-		memSpec.memPowerSpec.resize(8);
 		memSpec.memPowerSpec[0].vXX = 1;
 		memSpec.memPowerSpec[0].iXX0 = 64;
 		memSpec.memPowerSpec[0].iXX2N = 8;
@@ -77,7 +80,7 @@ TEST_F(DramPowerTest_Pre_Cycles, Test)
 	Rank & rank_1 = ddr->ranks[0];
 
 	for (const auto& command : testPattern) {
-		ddr->doCommand(command);
+		ddr->doCoreCommand(command);
 	};
 
 	auto stats = ddr->getStats();
@@ -101,7 +104,7 @@ TEST_F(DramPowerTest_Pre_Cycles, Test_Detailed)
 
 	auto iterate_to_timestamp = [this, command = testPattern.begin()](timestamp_t timestamp) mutable {
 		while (command != this->testPattern.end() && command->timestamp <= timestamp) {
-			ddr->doCommand(*command);
+			ddr->doCoreCommand(*command);
 			++command;
 		}
 

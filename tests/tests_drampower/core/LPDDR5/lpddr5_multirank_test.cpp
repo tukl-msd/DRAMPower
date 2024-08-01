@@ -3,6 +3,10 @@
 #include <fstream>
 #include <memory>
 
+#include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
+#include <variant>
+
 #include "DRAMPower/command/Command.h"
 #include "DRAMPower/standards/lpddr5/LPDDR5.h"
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
@@ -30,34 +34,27 @@ class LPDDR5_MultirankTests : public ::testing::Test {
     LPDDR5_MultirankTests() {
 
         initSpec();
-        ddr = std::make_unique<LPDDR5>(spec);
+        ddr = std::make_unique<LPDDR5>(*spec);
     }
 
     void initSpec() {
-        std::ifstream f(std::string(TEST_RESOURCE_DIR) + "lpddr5.json");
-
-        if(!f.is_open()){
-            std::cout << "Error: Could not open memory specification" << std::endl;
-            exit(1);
-        }
-
-        json data = json::parse(f);
-        spec = MemSpecLPDDR5{data["memspec"]};
-        spec.numberOfRanks = 2;
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr5.json");
+        spec = std::make_unique<DRAMPower::MemSpecLPDDR5>(DRAMPower::MemSpecLPDDR5::from_memspec(*data));
+        spec->numberOfRanks = 2;
     }
 
     void runCommands(const std::vector<Command> &commands) {
         for (const Command &command : commands) {
-            ddr->doCommand(command);
-            ddr->handleInterfaceCommand(command);
+            ddr->doCoreCommand(command);
+            ddr->doInterfaceCommand(command);
         }
     }
 
     inline size_t bankIndex(int bank, int rank) {
-        return rank * spec.numberOfBanks + bank;
+        return rank * spec->numberOfBanks + bank;
     }
 
-    MemSpecLPDDR5 spec;
+    std::unique_ptr<MemSpecLPDDR5> spec;
     std::unique_ptr<LPDDR5> ddr;
 };
 
@@ -73,7 +70,7 @@ TEST_F(LPDDR5_MultirankTests, Pattern_1) {
     });
 
     SimulationStats stats = ddr->getStats();
-    EXPECT_EQ(stats.bank.size(), spec.numberOfBanks * spec.numberOfRanks);
+    EXPECT_EQ(stats.bank.size(), spec->numberOfBanks * spec->numberOfRanks);
     EXPECT_EQ(stats.bank[bankIndex(1, 0)].cycles.act, 15);
     EXPECT_EQ(stats.bank[bankIndex(1, 1)].cycles.act, 8);
     EXPECT_EQ(stats.bank[bankIndex(1, 0)].cycles.pre, 5);
@@ -98,7 +95,7 @@ TEST_F(LPDDR5_MultirankTests, Pattern_2) {
     });
 
     SimulationStats stats = ddr->getStats();
-    EXPECT_EQ(stats.bank.size(), spec.numberOfBanks * spec.numberOfRanks);
+    EXPECT_EQ(stats.bank.size(), spec->numberOfBanks * spec->numberOfRanks);
     EXPECT_EQ(stats.bank[bankIndex(0, 0)].cycles.act, 75);
     EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.act, 75);
     EXPECT_EQ(stats.bank[bankIndex(3, 1)].cycles.act, 60);

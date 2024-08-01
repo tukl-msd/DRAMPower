@@ -23,25 +23,25 @@ namespace DRAMPower {
 
 class LPDDR4 : public dram_base<CmdType>{
 public:
-	LPDDR4(const MemSpecLPDDR4& memSpec);
-	virtual ~LPDDR4() = default;
+    LPDDR4(const MemSpecLPDDR4& memSpec);
+    virtual ~LPDDR4() = default;
 public:
     MemSpecLPDDR4 memSpec;
     std::vector<Rank> ranks;
 
-	util::Clock clock;
+    util::Clock clock;
 
-	util::Bus commandBus;
-	util::Bus readBus;
-	util::Bus writeBus;
+    util::Bus commandBus;
+    util::Bus readBus;
+    util::Bus writeBus;
 
-	util::Clock readDQS;
+    util::Clock readDQS;
 
-	util::Clock writeDQS;
+    util::Clock writeDQS;
 
-	//util::Bus dataBus;
+    //util::Bus dataBus;
 protected:
-	template<dram_base::commandEnum_t Cmd, typename Func>
+    template<dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func && member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command & command) {
             auto & rank = this->ranks[command.targetCoordinate.rank];
@@ -61,14 +61,14 @@ protected:
         });
     };
 
-	template<dram_base::commandEnum_t Cmd, typename Func>
-	void registerHandler(Func && member_func) {
-		this->routeCommand<Cmd>([this, member_func](const Command & command) {
-			(this->*member_func)(command.timestamp);
-		});
-	};
+    template<dram_base::commandEnum_t Cmd, typename Func>
+    void registerHandler(Func && member_func) {
+        this->routeCommand<Cmd>([this, member_func](const Command & command) {
+            (this->*member_func)(command.timestamp);
+        });
+    };
 
-	void registerPatterns();
+    void registerPatterns();
 public:
     timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) {
         timestamp_t entryTime = 0;
@@ -85,13 +85,10 @@ public:
     };
 public:
     SimulationStats getStats() override;
-	energy_t calcEnergy(timestamp_t timestamp) override;
     uint64_t getBankCount() override;
     uint64_t getRankCount() override;
     uint64_t getDeviceCount() override;
 
-	void handle_interface(const Command& cmd) override;
-    void handleInterfaceOverrides(size_t length, bool read);
 
     void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handlePre(Rank & rank, Bank & bank, timestamp_t timestamp);
@@ -110,11 +107,14 @@ public:
     void handlePowerDownPreEntry(Rank & rank, timestamp_t timestamp);
     void handlePowerDownPreExit(Rank & rank, timestamp_t timestamp);
 
-	void endOfSimulation(timestamp_t timestamp);
+    void endOfSimulation(timestamp_t timestamp);
+private:
+    void handle_interface(const Command& cmd) override;
+    void handleInterfaceOverrides(size_t length, bool read);
 public:
-	interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp);
-public:
-	SimulationStats getWindowStats(timestamp_t timestamp);
+    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
+    energy_t calcCoreEnergy(timestamp_t timestamp) override;
+    SimulationStats getWindowStats(timestamp_t timestamp);
 };
 
 };

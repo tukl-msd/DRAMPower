@@ -132,7 +132,9 @@ namespace DRAMPower {
                 });
                 break;
             default:
-                def = true;
+                // Pull down
+                // No interface power needed for PatternEncoderBitSpec::L
+                // Defaults to burst length 16
             case 16:
                 this->encoder.settings.removeSetting(pattern_descriptor::C4);
                 this->encoder.settings.updateSettings({
@@ -140,20 +142,11 @@ namespace DRAMPower {
                     {pattern_descriptor::C2, PatternEncoderBitSpec::L},
                     {pattern_descriptor::BL, PatternEncoderBitSpec::L},
                 });
-                if(def)
-                {
-                    std::cout << ("[WARN] Invalid burst length") << std::endl;
-                    assert(false);
-                }
                 break;
         }
     }
 
     void LPDDR4::handle_interface(const Command &cmd) {
-        if ( cmd.type == CmdType::END_OF_SIMULATION)
-        {
-            return;
-        }
         size_t length = 0;
 
         // Handle data bus and dqs lines
@@ -161,25 +154,41 @@ namespace DRAMPower {
             case CmdType::RD:
             case CmdType::RDA:
                 length = cmd.sz_bits / readBus.get_width();
-                this->readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                if ( length != 0 )
+                {
+                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+                else
+                {
+                    length = memSpec.burstLength; // Use default burst length
+                    // Cannot load readBus with data. TODO toggling rate
+                }
                 readDQS.start(cmd.timestamp);
-                readDQS.stop(cmd.timestamp + length / this->memSpec.dataRate);
-                this->handleInterfaceOverrides(length, true);
+                readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
+                handleInterfaceOverrides(length, true);
                 break;
             case CmdType::WR:
             case CmdType::WRA:
                 length = cmd.sz_bits / writeBus.get_width();
-                this->writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                if ( length != 0 )
+                {
+                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+                else
+                {
+                    length = memSpec.burstLength; // Use default burst length
+                    // Cannot load writeBus with data. TODO toggling rate
+                }
                 writeDQS.start(cmd.timestamp);
-                writeDQS.stop(cmd.timestamp + length / this->memSpec.dataRate);
-                this->handleInterfaceOverrides(length, false);
+                writeDQS.stop(cmd.timestamp + length / memSpec.dataRate);
+                handleInterfaceOverrides(length, false);
                 break;
         }
 
         // Command bus
-        auto pattern = this->getCommandPattern(cmd);
-        length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        this->commandBus.load(cmd.timestamp, pattern, length);
+        auto pattern = getCommandPattern(cmd);
+        length = getPattern(cmd.type).size() / commandBus.get_width();
+        commandBus.load(cmd.timestamp, pattern, length);
     }
 
     void LPDDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -371,7 +380,7 @@ namespace DRAMPower {
 			std::cout << ("[WARN] End of simulation but still implicit commands left!") << std::endl;
 	}
 
-    energy_t LPDDR4::calcEnergy(timestamp_t timestamp) {
+    energy_t LPDDR4::calcCoreEnergy(timestamp_t timestamp) {
         Calculation_LPDDR4 calculation;
 
         return calculation.calcEnergy(timestamp, *this);
@@ -387,8 +396,14 @@ namespace DRAMPower {
         processImplicitCommandQueue(timestamp);
 
         SimulationStats stats;
+        try {
         stats.bank.resize(memSpec.numberOfBanks * memSpec.numberOfRanks);
         stats.rank_total.resize(memSpec.numberOfRanks);
+        }
+        catch (const std::bad_alloc& e)
+        {
+            std::cout << "Memory allocation failed " << e.what() << '\n';
+        }
 
         auto simulation_duration = timestamp;
         for (size_t i = 0; i < memSpec.numberOfRanks; ++i) {
