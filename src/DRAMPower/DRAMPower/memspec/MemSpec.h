@@ -79,9 +79,9 @@ public:
     virtual ~ContainerIndex() = default;
 
     ContainerIndex(const ContainerIndex&) = default;
-    ContainerIndex(ContainerIndex&&) = default;
+    ContainerIndex(ContainerIndex&&) noexcept = default;
     ContainerIndex& operator=(const ContainerIndex&) = default;
-    ContainerIndex& operator=(ContainerIndex&&) = default;
+    ContainerIndex& operator=(ContainerIndex&&) noexcept = default;
 
 public:
     inline static constexpr size_t value = index;
@@ -107,9 +107,9 @@ public:
     IndexedContainer () = default; // Default constructor
 
     IndexedContainer (const IndexedContainer&) = default; // Copy constructor
-    IndexedContainer (IndexedContainer&&) = default; // Move constructor
+    IndexedContainer (IndexedContainer&&) noexcept = default; // Move constructor
     IndexedContainer& operator=(const IndexedContainer&) = default; // Copy assignment operator
-    IndexedContainer& operator=(IndexedContainer&&) = default; // Move assignment operator
+    IndexedContainer& operator=(IndexedContainer&&) noexcept = default; // Move assignment operator
 
     ~IndexedContainer() = default; // Default Destructor
 
