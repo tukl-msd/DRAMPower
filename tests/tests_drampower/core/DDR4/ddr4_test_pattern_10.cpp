@@ -55,9 +55,8 @@ protected:
 
         auto VDD = DRAMPower::MemSpecDDR4::VoltageDomains::VDD();
         auto VPP = DRAMPower::MemSpecDDR4::VoltageDomains::VPP();
-        auto VTest = ContainerIndex<10>();
 
-		memSpec.memPowerSpec[VTest].vXX = 1;
+		memSpec.memPowerSpec[VDD].vXX = 1;
 		memSpec.memPowerSpec[VDD].iXX0 = 64;
 		memSpec.memPowerSpec[VDD].iXX2N = 8;
 		memSpec.memPowerSpec[VDD].iXX3N = 32;
