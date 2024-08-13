@@ -72,8 +72,6 @@ protected:
         memSpec.prechargeOffsetRD    =  memSpec.memTimingSpec.tAL + memSpec.memTimingSpec.tRTP;
         memSpec.prechargeOffsetWR    =  memSpec.memTimingSpec.tBurst + memSpec.memTimingSpec.tWL + memSpec.memTimingSpec.tWR;
 
-		memSpec.memImpedanceSpec = {1.0};
-
         ddr = std::make_unique<DDR4>(memSpec);
     }
 

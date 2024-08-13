@@ -450,7 +450,7 @@ TEST_F(DDR4_Energy_Tests, Parameters) {
 
 // Test pattern for energy consumption
 TEST_F(DDR4_Energy_Tests, Clock_Energy) {
-    SimulationStats stats = {0};
+    SimulationStats stats;
     stats.clockStats.ones = 200;
     stats.clockStats.zeroes_to_ones = 200;
 

@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <limits>
 #include <cassert>
+#include <limits.h>
 
 #include <iostream>
 
@@ -148,8 +149,7 @@ private:
 		width(width), burst_storage(width), datarate(datarate),
 		idle_pattern(idle_pattern), init_pattern(init_pattern), custom_init_pattern (custom_init_pattern)
 	{
-			
-		assert(width >= 0);
+		static_assert(std::numeric_limits<decltype(width)>::is_signed == false, "std::size_t must be unsigned");
 		
 		// Initialize zero and one patterns
 		this->zero_pattern = burst_t();
@@ -294,7 +294,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 	std::optional<burst_t> at(timestamp_t n) const
 	{
 		// Assert timestamp does not lie in past
-		assert(n - last_load >= 0);
+		assert(n >= last_load);
 
 		if (n - this->last_load >= burst_storage.size()) {
 			switch(this->idle_pattern)

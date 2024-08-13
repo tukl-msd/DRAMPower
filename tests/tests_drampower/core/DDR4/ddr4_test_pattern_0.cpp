@@ -7,6 +7,7 @@
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
 #include <variant>
+#include <stdint.h>
 
 #include <memory>
 
@@ -51,7 +52,7 @@ TEST_F(DramPowerTest_DDR4_0, Counters_and_Cycles){
 
     // Check bank command count: ACT
     ASSERT_EQ(stats.bank[0].counter.act, 1);
-    for(auto b = 1; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].counter.act, 0);
+    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].counter.act, 0);
 
 
     // Check cycles count
@@ -60,12 +61,12 @@ TEST_F(DramPowerTest_DDR4_0, Counters_and_Cycles){
 
     // Check bank specific ACT cycle count
     ASSERT_EQ(stats.bank[0].cycles.act, 15);
-    for(auto b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].cycles.act, 0);
 
     // Check bank specific PRE cycle count
     ASSERT_EQ(stats.bank[0].cycles.pre, 0);
-    for(auto b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].cycles.pre, 15);
 }
 

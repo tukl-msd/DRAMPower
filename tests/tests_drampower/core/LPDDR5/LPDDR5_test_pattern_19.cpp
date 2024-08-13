@@ -87,7 +87,6 @@ TEST_F(DramPowerTest_LPDDR5_19, Test)
 		ddr->doCoreCommand(command);
 	};
 
-	Rank & rank_1 = ddr->ranks[0];
 	auto stats = ddr->getStats();
 
 	// Check bank command count: ACT
@@ -138,9 +137,6 @@ TEST_F(DramPowerTest_LPDDR5_19, CalcWindow)
 
 	auto command = testPattern.begin();
 
-
-	// Inspect first rank
-	auto & rank_1 = ddr->ranks[0];
 
 	// Cycle 5
 	window = iterate_to_timestamp(command, 5);

@@ -9,17 +9,17 @@
 namespace DRAMPower {
 
     LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
-        : memSpec(memSpec),
-        ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks }),
-        commandBus{7, 2, // modelled with datarate 2
-            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
-        readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
-        writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
-        readDQS(memSpec.dataRate, true),
-        wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode),
-        dram_base<CmdType>(PatternEncoderOverrides{})
+        : dram_base<CmdType>(PatternEncoderOverrides{})
+        , memSpec(memSpec)
+        , ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks })
+        , commandBus{7, 2, // modelled with datarate 2
+            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L}
+        , readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
+            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L}
+        , writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
+            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L}
+        , readDQS(memSpec.dataRate, true)
+        , wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
     {
         this->registerPatterns();
 
@@ -247,10 +247,9 @@ namespace DRAMPower {
         });
     }
 
-    void LPDDR5::handleInterfaceOverrides(size_t length, bool read)
+    void LPDDR5::handleInterfaceOverrides(size_t length, bool /*read*/)
     {
         // Set command bus pattern overrides
-        bool def = false;
         switch(length) {
             case 32:
                 this->encoder.settings.updateSettings({
@@ -270,49 +269,43 @@ namespace DRAMPower {
     void LPDDR5::handle_interface(const Command &cmd) {
         size_t length = 0;
 
-        switch (cmd.type) {
-            case CmdType::RD:
-            case CmdType::RDA:
-                length = cmd.sz_bits / readBus.get_width();
-                if ( length != 0 )
-                {
-                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-                }
-                else
-                {
-                    length = memSpec.burstLength; // Use default burst length
-                    // Cannot load readBus with data. TODO toggling rate
-                }
-                readDQS.start(cmd.timestamp);
-                readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            length = cmd.sz_bits / readBus.get_width();
+            if ( length != 0 )
+            {
+                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            else
+            {
+                length = memSpec.burstLength; // Use default burst length
+                // Cannot load readBus with data. TODO toggling rate
+            }
+            readDQS.start(cmd.timestamp);
+            readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
 
-                // WCK also during reads
-                if (!memSpec.wckAlwaysOnMode) {
-                    wck.start(cmd.timestamp);
-                    wck.stop(cmd.timestamp + length / memSpec.dataRate);
-                }
-                handleInterfaceOverrides(length, true);
+            // WCK also during reads
+            if (!memSpec.wckAlwaysOnMode) {
+                wck.start(cmd.timestamp);
+                wck.stop(cmd.timestamp + length / memSpec.dataRate);
+            }
+            handleInterfaceOverrides(length, true);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            length = cmd.sz_bits / writeBus.get_width();
+            if ( length != 0 )
+            {
+                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            else
+            {
+                length = memSpec.burstLength; // Use default burst length
+                // Cannot load writeBus with data. TODO toggling rate
+            }
 
-                break;
-            case CmdType::WR:
-            case CmdType::WRA:
-                length = cmd.sz_bits / writeBus.get_width();
-                if ( length != 0 )
-                {
-                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-                }
-                else
-                {
-                    length = memSpec.burstLength; // Use default burst length
-                    // Cannot load writeBus with data. TODO toggling rate
-                }
-
-                if (!memSpec.wckAlwaysOnMode) {
-                    wck.start(cmd.timestamp);
-                    wck.stop(cmd.timestamp + length / memSpec.dataRate);
-                }
-                handleInterfaceOverrides(length, true);
-                break;
+            if (!memSpec.wckAlwaysOnMode) {
+                wck.start(cmd.timestamp);
+                wck.stop(cmd.timestamp + length / memSpec.dataRate);
+            }
+            handleInterfaceOverrides(length, true);
         }
         auto pattern = getCommandPattern(cmd);
         auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
@@ -391,7 +384,7 @@ namespace DRAMPower {
         });
     }
 
-    void LPDDR5::handleRead(Rank &rank, Bank &bank, timestamp_t timestamp) {
+    void LPDDR5::handleRead(Rank&, Bank &bank, timestamp_t) {
         ++bank.counter.reads;
     }
 
@@ -409,7 +402,7 @@ namespace DRAMPower {
         });
     }
 
-    void LPDDR5::handleWrite(Rank &rank, Bank &bank, timestamp_t timestamp) {
+    void LPDDR5::handleWrite(Rank&, Bank &bank, timestamp_t) {
         ++bank.counter.writes;
     }
 
@@ -519,7 +512,7 @@ namespace DRAMPower {
         rank.memState = MemState::SREF;
     }
 
-    void LPDDR5::endOfSimulation(timestamp_t timestamp) {
+    void LPDDR5::endOfSimulation(timestamp_t) {
         if (this->implicitCommandCount() > 0)
 			std::cout << ("[WARN] End of simulation but still implicit commands left!") << std::endl;
 	}

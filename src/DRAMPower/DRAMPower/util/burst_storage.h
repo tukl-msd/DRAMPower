@@ -21,9 +21,9 @@ public:
 	public:
 		using bitset_t = burst_t;
 	private:
-		const std::size_t N;
 		std::size_t pos = 0;
 		bitset_t& bitset;
+		const std::size_t N;
 	public:
 		bitset_inserter(bitset_t& bitset, std::size_t N)
 			: bitset(bitset) , N(N) {};

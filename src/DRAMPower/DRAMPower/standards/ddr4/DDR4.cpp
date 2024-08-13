@@ -9,8 +9,12 @@
 namespace DRAMPower {
 
     DDR4::DDR4(const MemSpecDDR4 &memSpec)
-		: memSpec(memSpec)
-		, ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
+        : dram_base<CmdType>({
+            {pattern_descriptor::V, PatternEncoderBitSpec::H},
+            {pattern_descriptor::X, PatternEncoderBitSpec::H},
+          })
+        , memSpec(memSpec)
+        , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
         , readBus(
             memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
              util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H
@@ -21,19 +25,15 @@ namespace DRAMPower {
         )
         , cmdBusWidth(27)
         , cmdBusInitPattern((1<<cmdBusWidth)-1)
+        , readDQS_(2, true)
+        , writeDQS_(2, true)
         , commandBus(
             cmdBusWidth, 1,
             util::Bus::BusIdlePatternSpec::H,
             util::Bus::burst_t(cmdBusWidth, cmdBusInitPattern)
         )
-        , readDQS_(2, true)
-        , writeDQS_(2, true)
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
-        , dram_base<CmdType>({
-            {pattern_descriptor::V, PatternEncoderBitSpec::H},
-            {pattern_descriptor::X, PatternEncoderBitSpec::H},
-        })
 	{
         // In the first state all ranks are precharged
         //for (auto &rank : ranks) {
@@ -166,24 +166,25 @@ namespace DRAMPower {
     )
     {
         // TODO: If simulation finishes in read/write transaction the postamble needs to be substracted
-        uint64_t minTccd = prepostambleWriteMinTccd;
+        // uint64_t minTccd = prepostambleWriteMinTccd; // Todo use minTccd
         uint64_t *lastAccess = &rank.lastWriteEnd;
         uint64_t diff = 0;
 
         if(read)
         {
             lastAccess = &rank.lastReadEnd;
-            minTccd = prepostambleReadMinTccd;
+            // minTccd = prepostambleReadMinTccd;
         }
         
-        diff = timestamp - *lastAccess;
-        *lastAccess = timestamp + length;
-        
-        if(diff < 0)
+        assert(timestamp >= *lastAccess);
+        if(timestamp < *lastAccess)
         {
             std::cout << "[Error] PrePostamble diff is negative. The last read/write transaction was not completed" << std::endl;
             return;
         }
+        diff = timestamp - *lastAccess;
+        *lastAccess = timestamp + length;
+        
         //assert(diff >= 0);
         
         // Pre and Postamble seamless
@@ -255,26 +256,22 @@ namespace DRAMPower {
         assert(this->ranks.size()>cmd.targetCoordinate.rank);
         auto & rank = this->ranks[cmd.targetCoordinate.rank];
 
-        switch (cmd.type) {
-            case CmdType::RD:
-            case CmdType::RDA:
-                length = cmd.sz_bits / readBus.get_width();
-                if ( length != 0 )
-                {
-                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-                }
-                else
-                {
-                    length = memSpec.burstLength; // Use default burst length
-                    // Cannot load readBus with data. TODO toggling rate
-                }
-                readDQS_.start(cmd.timestamp);
-                readDQS_.stop(cmd.timestamp + length / memSpec.dataRate);
-                handlePrePostamble(cmd.timestamp, length / memSpec.dataRate, rank, true);
-                handleInterfaceOverrides(length, true);
-                break;
-            case CmdType::WR:
-            case CmdType::WRA:
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            length = cmd.sz_bits / readBus.get_width();
+            if ( length != 0 )
+            {
+                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            else
+            {
+                length = memSpec.burstLength; // Use default burst length
+                // Cannot load readBus with data. TODO toggling rate
+            }
+            readDQS_.start(cmd.timestamp);
+            readDQS_.stop(cmd.timestamp + length / memSpec.dataRate);
+            handlePrePostamble(cmd.timestamp, length / memSpec.dataRate, rank, true);
+            handleInterfaceOverrides(length, true);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
                 length = cmd.sz_bits / writeBus.get_width();
                 if ( length != 0 )
                 {
@@ -289,8 +286,7 @@ namespace DRAMPower {
                 writeDQS_.stop(cmd.timestamp + length / memSpec.dataRate);
                 handlePrePostamble(cmd.timestamp, length / memSpec.dataRate, rank, false);
                 handleInterfaceOverrides(length, false);
-                break;
-        };
+        }
 
         auto pattern = this->getCommandPattern(cmd);
         length = this->getPattern(cmd.type).size() / commandBus.get_width();
@@ -361,7 +357,7 @@ namespace DRAMPower {
         // Required for precharge power-down
     }
 
-    void DDR4::handleRead(Rank &rank, Bank &bank, timestamp_t timestamp) {
+    void DDR4::handleRead(Rank&, Bank &bank, timestamp_t) {
         ++bank.counter.reads;
     }
 
@@ -379,7 +375,7 @@ namespace DRAMPower {
         });
     }
 
-    void DDR4::handleWrite(Rank &rank, Bank &bank, timestamp_t timestamp) {
+    void DDR4::handleWrite(Rank&, Bank &bank, timestamp_t) {
         ++bank.counter.writes;
     }
 
@@ -493,7 +489,7 @@ namespace DRAMPower {
         });
     }
 
-    void DDR4::endOfSimulation(timestamp_t timestamp) {
+    void DDR4::endOfSimulation(timestamp_t) {
         assert(this->implicitCommandCount() == 0);
 	}
 

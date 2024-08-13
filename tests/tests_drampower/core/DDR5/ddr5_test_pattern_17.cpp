@@ -81,7 +81,6 @@ TEST_F(DramPowerTest_DDR5_17, Test)
 		ddr->doCoreCommand(command);
 	};
 
-	Rank & rank_1 = ddr->ranks[0];
 	auto stats = ddr->getStats();
 
 	// Check bank command count: ACT

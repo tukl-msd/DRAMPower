@@ -31,19 +31,20 @@ public:
 
 public:
     commandCount_t commandCount;
-protected:
-    uint64_t lastPattern;
-    PatternEncoder encoder;
 private:
     commandRouter_t commandRouter;
     commandPatternMap_t commandPatternMap;
+protected:
+    PatternEncoder encoder;
+    uint64_t lastPattern;
+private:
     implicitCommandList_t implicitCommandList;
     timestamp_t last_command_time;
 
 public:
     dram_base(PatternEncoderOverrides encoderoverrides)
         : commandCount(static_cast<std::size_t>(CommandEnum::COUNT), 0)
-        , commandRouter(static_cast<std::size_t>(CommandEnum::COUNT), [](const Command& cmd) {})
+        , commandRouter(static_cast<std::size_t>(CommandEnum::COUNT), [](const Command&) {})
         , commandPatternMap(static_cast<std::size_t>(CommandEnum::COUNT), commandPattern_t {})
         , encoder(encoderoverrides)
         , lastPattern(0)
@@ -98,33 +99,33 @@ protected:
             [](const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; });
 
         implicitCommandList.emplace(upper, entry);
-    };
+    }
 
     template <CommandEnum cmd, typename Func>
     void routeCommand(Func&& func)
     {
         assert(commandRouter.size() > static_cast<std::size_t>(cmd));
         this->commandRouter[static_cast<std::size_t>(cmd)] = func;
-    };
+    }
 
     template <CommandEnum cmd_type>
     void registerPattern(std::initializer_list<pattern_descriptor::t> pattern)
     {
         this->commandPatternMap[static_cast<std::size_t>(cmd_type)] = commandPattern_t(pattern);
-    };
+    }
 
     template <CommandEnum cmd_type>
     void registerPattern(const commandPattern_t &pattern)
     {
         this->commandPatternMap[static_cast<std::size_t>(cmd_type)] = pattern;
-    };
+    }
 
     const commandPattern_t& getPattern(CmdType cmd_type)
     {
         return this->commandPatternMap[static_cast<std::size_t>(cmd_type)];
-    };
+    }
 
-    const std::size_t implicitCommandCount() const { return this->implicitCommandList.size(); };
+    std::size_t implicitCommandCount() const { return this->implicitCommandList.size(); };
 
     void processImplicitCommandQueue(timestamp_t timestamp)
     {
