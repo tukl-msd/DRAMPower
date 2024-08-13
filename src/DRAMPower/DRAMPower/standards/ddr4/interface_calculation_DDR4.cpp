@@ -27,7 +27,10 @@ interface_energy_info_t InterfaceCalculation_DDR4::calculateEnergy(const Simulat
     interface_energy_info_t result;
     result += calcClockEnergy(stats);
     result += calcDQSEnergy(stats);
-    result += calcDQEnergy(stats);
+    if (stats.togglingStats)
+        result += calcDQEnergyTogglingRate(*stats.togglingStats);
+    else
+        result += calcDQEnergy(stats);
     result += calcCAEnergy(stats);
 
     return result;
@@ -106,16 +109,37 @@ interface_energy_info_t InterfaceCalculation_DDR4::calcDQSEnergy(const Simulatio
     return result;
 }
 
+interface_energy_info_t InterfaceCalculation_DDR4::calcDQEnergyTogglingRate(const TogglingStats &stats)
+{
+    interface_energy_info_t result;
+
+    // Read
+    result.dram.staticEnergy +=
+        calc_static_energy(stats.read.zeroes, impedances_.R_eq_rb, t_CK_ / memspec_.dataRate, VDD_, 1.0);
+    result.dram.dynamicEnergy +=
+        calc_dynamic_energy(stats.read.zeroes_to_ones, impedances_.C_total_rb, VDD_);
+
+    // Write
+    result.controller.staticEnergy +=
+        calc_static_energy(stats.write.zeroes, impedances_.R_eq_wb, t_CK_ / memspec_.dataRate, VDD_, 1.0);
+    result.controller.dynamicEnergy +=
+        calc_dynamic_energy(stats.write.zeroes_to_ones, impedances_.C_total_wb, VDD_);
+    
+    return result;
+}
+
 interface_energy_info_t InterfaceCalculation_DDR4::calcDQEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
     // Pull up -> zeros
+    // Read
     result.dram.staticEnergy +=
         calc_static_energy(stats.readBus.zeroes, impedances_.R_eq_rb, t_CK_ / memspec_.dataRate, VDD_, 1.0);
-    result.controller.staticEnergy +=
-        calc_static_energy(stats.writeBus.zeroes, impedances_.R_eq_wb, t_CK_ / memspec_.dataRate, VDD_, 1.0);
-
     result.dram.dynamicEnergy +=
         calc_dynamic_energy(stats.readBus.zeroes_to_ones, impedances_.C_total_rb, VDD_);
+
+    // Write
+    result.controller.staticEnergy +=
+        calc_static_energy(stats.writeBus.zeroes, impedances_.R_eq_wb, t_CK_ / memspec_.dataRate, VDD_, 1.0);
     result.controller.dynamicEnergy +=
         calc_dynamic_energy(stats.writeBus.zeroes_to_ones, impedances_.C_total_wb, VDD_);
 

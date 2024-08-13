@@ -17,12 +17,13 @@
 #include <algorithm>
 #include <stdint.h>
 #include <vector>
+#include <optional>
 
 namespace DRAMPower {
 
 class DDR4 : public dram_base<CmdType>{
 public:
-    DDR4(const MemSpecDDR4& memSpec);
+    DDR4(const MemSpecDDR4 &memSpec);
     virtual ~DDR4() = default;
 public:
     MemSpecDDR4 memSpec;
@@ -44,6 +45,9 @@ public:
     util::Bus commandBus;
     uint64_t prepostambleReadMinTccd;
     uint64_t prepostambleWriteMinTccd;
+private:
+    TogglingHandle togglingHandleRead;
+    TogglingHandle togglingHandleWrite;
 
 protected:
     template<dram_base::commandEnum_t Cmd, typename Func>
@@ -94,7 +98,11 @@ public:
         return entryTime;
     };
 private:
+    void handle_interface_data_common(const Command& cmd, size_t length);
+    void handle_interface_commandbus(const Command& cmd);
     void handle_interface(const Command& cmd) override;
+    void handle_interface_toggleRate(const Command& cmd) override;
+    void update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleRateDefinition) override;
     void handleInterfaceOverrides(size_t length, bool read);
     uint64_t getInitEncoderPattern() override;
 public:

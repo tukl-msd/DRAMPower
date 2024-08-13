@@ -72,7 +72,10 @@ public:
 private:
     // Calculations
     void handle_interface(const Command& cmd) override;
+    void handle_interface_toggleRate(const Command& cmd) override;
+    void update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleRateDefinition) override;
     void handleInterfaceOverrides(size_t length, bool read);
+    void handle_interface_commandbus(const Command& cmd);
 
 private:
     template <dram_base::commandEnum_t Cmd, typename Func>

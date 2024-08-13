@@ -62,6 +62,11 @@ namespace DRAMPower {
             [this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
 
+    void DDR5::update_toggling_rate(const std::optional<ToggleRateDefinition>&)
+    {
+
+    }
+
     uint64_t DDR5::getBankCount() {
         return memSpec.numberOfBanks;
     }
@@ -206,6 +211,10 @@ namespace DRAMPower {
                 }
                 break;
         }
+    }
+
+    void DDR5::handle_interface_toggleRate(const Command &) {
+
     }
 
     void DDR5::handle_interface(const Command &cmd) {

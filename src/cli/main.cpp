@@ -5,6 +5,7 @@
 #include <utility>
 #include <iostream>
 #include <variant>
+#include <optional>
 #include <vector>
 #include <filesystem>
 #include <string_view>
@@ -187,6 +188,9 @@ int main(int argc, char *argv[])
 		std::cerr << "Invalid memory specification" << std::endl;
 		exit(1);
 	}
+
+    // TODO set togglingrate
+    ddr->setToggleRate(std::nullopt);
 
 	// Get json argument
 	if ( argc == 5 )

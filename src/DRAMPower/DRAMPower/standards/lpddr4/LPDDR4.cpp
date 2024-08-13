@@ -47,6 +47,11 @@ namespace DRAMPower {
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
 
+    void LPDDR4::update_toggling_rate(const std::optional<ToggleRateDefinition>&)
+    {
+
+    }
+
     uint64_t LPDDR4::getBankCount() {
         return memSpec.numberOfBanks;
     }
@@ -145,6 +150,10 @@ namespace DRAMPower {
                 });
                 break;
         }
+    }
+
+    void LPDDR4::handle_interface_toggleRate(const Command&) {
+        
     }
 
     void LPDDR4::handle_interface(const Command &cmd) {

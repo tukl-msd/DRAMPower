@@ -47,6 +47,12 @@ namespace DRAMPower {
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
 
+    
+    void LPDDR5::update_toggling_rate(const std::optional<ToggleRateDefinition>&)
+    {
+
+    }
+
     uint64_t LPDDR5::getBankCount() {
         return memSpec.numberOfBanks;
     }
@@ -266,19 +272,22 @@ namespace DRAMPower {
         }
     }
 
+    void LPDDR5::handle_interface_commandbus(const Command& cmd) {
+        auto pattern = getCommandPattern(cmd);
+        auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
+        commandBus.load(cmd.timestamp, pattern, ca_length);
+    }
+
+    void LPDDR5::handle_interface_toggleRate(const Command&) {
+        
+    }
+
     void LPDDR5::handle_interface(const Command &cmd) {
         size_t length = 0;
-
         if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
             length = cmd.sz_bits / readBus.get_width();
-            if ( length != 0 )
-            {
+            if ( cmd.data != nullptr ) {
                 readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            else
-            {
-                length = memSpec.burstLength; // Use default burst length
-                // Cannot load readBus with data. TODO toggling rate
             }
             readDQS.start(cmd.timestamp);
             readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
@@ -291,14 +300,8 @@ namespace DRAMPower {
             handleInterfaceOverrides(length, true);
         } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
             length = cmd.sz_bits / writeBus.get_width();
-            if ( length != 0 )
-            {
+            if (cmd.data != nullptr) {
                 writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            else
-            {
-                length = memSpec.burstLength; // Use default burst length
-                // Cannot load writeBus with data. TODO toggling rate
             }
 
             if (!memSpec.wckAlwaysOnMode) {
@@ -307,9 +310,7 @@ namespace DRAMPower {
             }
             handleInterfaceOverrides(length, true);
         }
-        auto pattern = getCommandPattern(cmd);
-        auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
-        commandBus.load(cmd.timestamp, pattern, ca_length);
+        handle_interface_commandbus(cmd);
     }
 
     void LPDDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {

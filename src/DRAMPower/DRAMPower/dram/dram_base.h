@@ -6,6 +6,7 @@
 
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/data/stats.h>
+#include <DRAMPower/dram/Interface.h>
 
 #include <algorithm>
 #include <cassert>
@@ -13,6 +14,7 @@
 #include <functional>
 #include <vector>
 #include <limits>
+#include <optional>
 
 namespace DRAMPower {
 
@@ -40,6 +42,7 @@ protected:
 private:
     implicitCommandList_t implicitCommandList;
     timestamp_t last_command_time;
+    std::optional<ToggleRateDefinition> toggleRateDefinition = std::nullopt;
 
 public:
     dram_base(PatternEncoderOverrides encoderoverrides)
@@ -61,7 +64,19 @@ private:
 public:
     virtual ~dram_base() = 0;
 private:
+    void internal_handle_interface(const Command& cmd)
+    {
+        if (toggleRateDefinition) {
+          handle_interface_toggleRate(cmd);
+        }
+        else {
+            handle_interface(cmd);
+        }
+    }
+private:
     virtual void handle_interface(const Command& cmd) = 0;
+    virtual void handle_interface_toggleRate(const Command& cmd) = 0;
+    virtual void update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleRateDefinition) = 0;
     virtual uint64_t getInitEncoderPattern()
     {
         // Default encoder init pattern
@@ -155,13 +170,19 @@ public:
         this->last_command_time = command.timestamp;
     };
 
+    void setToggleRate(const std::optional<ToggleRateDefinition> &toggleRateDefinition)
+    {
+        this->toggleRateDefinition = toggleRateDefinition;
+        update_toggling_rate(this->toggleRateDefinition);
+    }
+
     void doInterfaceCommand(const Command& command)
     {
         assert(commandCount.size() > static_cast<std::size_t>(command.type));
         assert(commandRouter.size() > static_cast<std::size_t>(command.type));
 
         if (command.type != CmdType::END_OF_SIMULATION)
-            this->handle_interface(command);
+            this->internal_handle_interface(command);
         this->last_command_time = command.timestamp;
     };
 

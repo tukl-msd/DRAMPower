@@ -8,6 +8,7 @@
 
 namespace DRAMPower {
 
+
     DDR4::DDR4(const MemSpecDDR4 &memSpec)
         : dram_base<CmdType>({
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
@@ -59,6 +60,26 @@ namespace DRAMPower {
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
 
     };
+
+    void DDR4::update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleratedefinition)
+    {
+        if (toggleratedefinition)
+        {
+            togglingHandleRead.setTogglingRateAndDutyCycle(
+                toggleratedefinition->togglingRateRead,
+                toggleratedefinition->dutyCycleRead
+            );
+            togglingHandleWrite.setTogglingRateAndDutyCycle(
+                toggleratedefinition->togglingRateWrite,
+                toggleratedefinition->dutyCycleWrite
+            );
+        }
+        else
+        {
+            togglingHandleRead.disable();
+            togglingHandleWrite.disable();
+        }
+    }
 
     uint64_t DDR4::getBankCount() {
         return memSpec.numberOfBanks;
@@ -249,48 +270,68 @@ namespace DRAMPower {
         }
     }
 
-    void DDR4::handle_interface(const Command &cmd) {
-        size_t length = 0;
-        
+    void DDR4::handle_interface_commandbus(const Command &cmd) {
+        auto pattern = this->getCommandPattern(cmd);
+        auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
+        this->commandBus.load(cmd.timestamp, pattern, ca_length);
+    }
+
+    void DDR4::handle_interface_data_common(const Command &cmd, const size_t length) {
         // For PrePostamble
         assert(this->ranks.size()>cmd.targetCoordinate.rank);
         auto & rank = this->ranks[cmd.targetCoordinate.rank];
 
         if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            length = cmd.sz_bits / readBus.get_width();
-            if ( length != 0 )
-            {
-                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            else
-            {
-                length = memSpec.burstLength; // Use default burst length
-                // Cannot load readBus with data. TODO toggling rate
-            }
             readDQS_.start(cmd.timestamp);
             readDQS_.stop(cmd.timestamp + length / memSpec.dataRate);
             handlePrePostamble(cmd.timestamp, length / memSpec.dataRate, rank, true);
             handleInterfaceOverrides(length, true);
         } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-                length = cmd.sz_bits / writeBus.get_width();
-                if ( length != 0 )
-                {
-                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-                }
-                else
-                {
-                    length = memSpec.burstLength; // Use default burst length
-                    // Cannot load writeBus with data. TODO toggling rate
-                }
-                writeDQS_.start(cmd.timestamp);
-                writeDQS_.stop(cmd.timestamp + length / memSpec.dataRate);
-                handlePrePostamble(cmd.timestamp, length / memSpec.dataRate, rank, false);
-                handleInterfaceOverrides(length, false);
+            writeDQS_.start(cmd.timestamp);
+            writeDQS_.stop(cmd.timestamp + length / memSpec.dataRate);
+            handlePrePostamble(cmd.timestamp, length / memSpec.dataRate, rank, false);
+            handleInterfaceOverrides(length, false);
         }
+    }
 
-        auto pattern = this->getCommandPattern(cmd);
-        length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        this->commandBus.load(cmd.timestamp, pattern, length);
+    void DDR4::handle_interface_toggleRate(const Command &cmd) {
+        size_t length = 0;
+
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+                length = cmd.sz_bits / readBus.get_width();
+                if (length == 0) {
+                    length = memSpec.burstLength; // Use default burst length
+                }
+                // TODO consider datarate and bus width in calculation
+                this->togglingHandleRead.incCount(length);
+                handle_interface_data_common(cmd, length);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+                length = cmd.sz_bits / writeBus.get_width();
+                if (length == 0) {
+                    length = memSpec.burstLength; // Use default burst length
+                }
+                // TODO consider datarate and bus width in calculation
+                this->togglingHandleWrite.incCount(length);
+                handle_interface_data_common(cmd, length);
+        }
+        handle_interface_commandbus(cmd);
+    }
+
+    void DDR4::handle_interface(const Command &cmd) {
+        size_t length = 0;
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            length = cmd.sz_bits / readBus.get_width();
+            if ( cmd.data != nullptr ) {
+                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            handle_interface_data_common(cmd, length);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            length = cmd.sz_bits / writeBus.get_width();
+            if ( cmd.data != nullptr ) {
+                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            handle_interface_data_common(cmd, length);
+        }
     }
 
     void DDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -564,6 +605,15 @@ namespace DRAMPower {
         stats.commandBus = commandBus.get_stats(timestamp);
         stats.readBus = readBus.get_stats(timestamp);
         stats.writeBus = writeBus.get_stats(timestamp);
+        if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
+            stats.togglingStats = {
+                togglingHandleRead.get_stats(timestamp), // read
+                togglingHandleWrite.get_stats(timestamp) // write
+            };
+        }
+        else {
+            stats.togglingStats = std::nullopt;
+        }
 
         // single line stored in stats
         // differential power calculated in interface calculation

@@ -2,8 +2,10 @@
 #define DRAMPOWER_DATA_STATS_H
 
 #include <DRAMPower/util/bus.h>
+#include <DRAMPower/dram/Interface.h>
 
 #include <cstdint>
+#include <optional>
 
 namespace DRAMPower
 {
@@ -45,6 +47,12 @@ namespace DRAMPower
 		} prepos;
 	};
 
+    struct TogglingStats
+    {
+        util::bus_stats_t read;
+        util::bus_stats_t write;
+    };
+
 	struct SimulationStats
 	{
 		util::bus_stats_t commandBus;
@@ -52,6 +60,8 @@ namespace DRAMPower
 		util::bus_stats_t writeBus;
 		util::bus_stats_t clockStats;
 		util::bus_stats_t wClockStats;
+
+        std::optional<TogglingStats>  togglingStats = std::nullopt;
 
 		util::bus_stats_t readDQSStats;
 		util::bus_stats_t writeDQSStats;
