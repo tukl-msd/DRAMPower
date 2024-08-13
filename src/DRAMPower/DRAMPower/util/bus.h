@@ -128,7 +128,6 @@ private:
 	burst_storage_t burst_storage;
 	
 	timestamp_t last_load = 0;
-    std::optional<timestamp_t> toggle_rate_end_timestamp = std::nullopt;
 	uint64_t datarate = 1;
 	bool init_load = false;
 	
@@ -202,11 +201,11 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		this->idle_pattern = idle_pattern;
 	}
 
-	void load(timestamp_t timestamp, const std::optional<const uint8_t *> data, std::size_t n_bits) {
+	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
 
 		// assume no interleaved commands appear, but the old one already finishes cleanly before the next
 		//assert(this->last_load + burst_storage.size() <= timestamp); // TODO add this assert??
-// Checks
+		
 		// check timestamp * this->datarate no overflow
 		assert(timestamp <= std::numeric_limits<timestamp_t>::max() / this->datarate);
 		if(timestamp > std::numeric_limits<timestamp_t>::max() / this->datarate)
@@ -214,122 +213,78 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 			std::cout << "[Error] timestamp * datarate overflows" << std::endl;
 		}
 		timestamp_t virtual_timestamp = timestamp * this->datarate;
-
-// Init load with timestamp = 0
-		// Init pattern consumed on first load (edge case)
+		
+		// Init pattern consumed on first load
 		if(!this->init_load && virtual_timestamp == 0)
 		{
 			// init load processed
 			this->init_load = true;
 
-			// Add new burst to storage to calculate pending stats and last pattern if not toggle rate
+			// Add new burst to storage to calculate pending stats and last pattern
 			this->burst_storage.clear();
+			this->burst_storage.insert_data(data, n_bits);
 
-            // If toggle rate is enabled, do not insert data to burst storage
-            // TODO tranisition from t=-1 to t=0 relevant for toggle_rate?
-            if (data.has_value())
-            {
-                this->burst_storage.insert_data(data.value(), n_bits);
-                // Add pending init stats if not high impedance
-                this->pending_stats.setPendingStats(virtual_timestamp, 
-                    diff(
-                        this->last_pattern,
-                        this->burst_storage.get_burst(0)
-                    )
-                );
-                this->last_load = virtual_timestamp;
-                // last pattern for idle pattern
-                this->last_pattern = this->burst_storage.get_burst(this->burst_storage.size()-1);
-            }
-            else // Toggle rate enabled
-            {
-                this->last_load = virtual_timestamp;
-                this->toggle_rate_end_timestamp = virtual_timestamp + n_bits / width;
-                // Last pattern for idle state doesn't change
-                // this->last_pattern = this->last_pattern;
-            }
-            return; // Reutrn after init load
-       }
+			// Add pending init stats if not high impedance
+			this->pending_stats.setPendingStats(virtual_timestamp, 
+				diff(
+					this->last_pattern,
+					this->burst_storage.get_burst(0)
+				)
+			);
+			
+			this->last_load = virtual_timestamp;
 
-// Init load with default pattern
-       else if(!this->init_load)
-       {
-           // virtual_timestamp > 0
-           // Init load then idle pattern
+			// last pattern for idle pattern
+			this->last_pattern = this->burst_storage.get_burst(this->burst_storage.size()-1);
+			return;
+		}
+		else if(!this->init_load)
+		{
+			// virtual_timestamp > 0
+			// Init load then idle pattern
 
-           // Init load processed
-          this->init_load = true;
+			// Init load processed
+			this->init_load = true;
 
-           // Use init pattern and idle pattern at t=0 for stats if no toggle rate
-           // Cannot compute transisition for toggle rate this->at(0) is not known
-            this->stats += diff(this->last_pattern, this->at(0));
-        }
-
-
-// Handle pending load
+			// Use init pattern and idle pattern at t=0 for stats
+			this->stats += diff(this->last_pattern, this->at(0));
+		}
+		
+		
+		// Add pending stats from last load
 		// TODO implicit this->pending.getTimestamp() > virtual_timestamp -> see assume no interleaved commands appear
-        // transition from (virtual_timestamp - 1, virtual_timestamp)
 		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < virtual_timestamp)
 		{
 			this->stats += this->pending_stats.getStats();
 			this->pending_stats.clear();
 		}
 
-// Clear toggle rate end timestamp if toggle rate is handled and disabled (no interleaved commands assumed)
-        bool toggle_rate_cleared = false;
-        timestamp_t advance_timestamp = this->toggle_rate_end_timestamp.value_or(this->last_load);
-        if (this->toggle_rate_end_timestamp.has_value() && virtual_timestamp >= this->toggle_rate_end_timestamp.value()) // TODO virtual_timestamp >= this->toggle_rate_end_timestamp.value() implicit no interleaved commands
-        {
-            // Toggle rate handled
-            this->toggle_rate_end_timestamp = std::nullopt;
-            toggle_rate_cleared = true;
-        }
-
-// Advance stats to new timestamp
-		// Advance counters to new timestamp if no toggle rate period present
-		for (auto n = advance_timestamp; virtual_timestamp != 0 && n < virtual_timestamp - 1; n++) {
+		// Advance counters to new timestamp
+		for (auto n = this->last_load; virtual_timestamp != 0 && n < virtual_timestamp - 1; n++) {
 			this->stats += diff(this->at(n), this->at(n + 1)); // Last: (virtual_timestamp - 2, virtual_timestamp - 1)
 		};
 
-// Pattern for pending stats (virtual_timestamp - 1, virtual_timestamp)
-		if(virtual_timestamp > 0 && !this->toggle_rate_end_timestamp.has_value() && !toggle_rate_cleared) // TODO implicit virtual_timestamp > 0
+		// Pattern for pending stats (virtual_timestamp - 1, virtual_timestamp)
+		if(virtual_timestamp > 0) // TODO implicit
 		{
 			this->last_pattern = this->at(virtual_timestamp - 1);
 		}
 
-        this->last_load = virtual_timestamp;
+		this->last_load = virtual_timestamp;
 
-// Set new toggle rate 
-    	if (!data.has_value())
-        {
-            this->toggle_rate_end_timestamp = virtual_timestamp + n_bits / width;
-            if (!toggle_rate_cleared)
-                this->last_pattern = this->burst_storage.get_burst(this->burst_storage.size()-1);
-        }
-// Add new burst to storage only if not toggle rate
-        else
-        { 
-            // Add new burst to storage
-            this->burst_storage.clear();
-            this->burst_storage.insert_data(data.value(), n_bits);
+		// Add new burst to storage
+		this->burst_storage.clear();
+		this->burst_storage.insert_data(data, n_bits);
 
-            // Adjust statistics for new data
-            this->pending_stats.setPendingStats(virtual_timestamp, diff(
-                this->last_pattern,
-                this->burst_storage.get_burst(0)
-            ));
-            // The timer are increment on the next load
-            // last pattern for idle pattern
-            if (!toggle_rate_cleared)
-                this->last_pattern = this->burst_storage.get_burst(this->burst_storage.size()-1);
-        }
+		// Adjust statistics for new data
+		this->pending_stats.setPendingStats(virtual_timestamp, diff(
+			this->last_pattern,
+			this->burst_storage.get_burst(0)
+		));
+
+		// last pattern for idle pattern
+		this->last_pattern = this->burst_storage.get_burst(this->burst_storage.size()-1);
 	};
-
-    // Necessary for type deduction
-    void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits)
-    {
-        this->load(timestamp, std::make_optional(data), n_bits);
-    }
 
 	void load(timestamp_t timestamp, uint64_t data, std::size_t length) {
 		this->load(timestamp, (uint8_t*)&data, (width * length));
