@@ -4,6 +4,7 @@
 #include <array>
 #include <utility>
 #include <iostream>
+#include <fstream>
 #include <variant>
 #include <optional>
 #include <vector>
@@ -34,6 +35,7 @@
 
 #include "csv.hpp"
 #include "util.hpp"
+#include "config.h"
 
 using namespace DRAMPower;
 
@@ -239,9 +241,14 @@ int main(int argc, char *argv[])
 	CLI::App app{"DRAMPower v" DRAMPOWER_VERSION_STRING};
 	argv = app.ensure_utf8(argv);
 	// Options
+	std::string configfile;
 	std::string tracefile;
 	std::string memspec;
 	std::optional<std::string> jsonfile = std::nullopt;
+	// Configfile
+	app.add_option("-c,--config", configfile, "config")
+		->required(true)
+		->check(CLI::ExistingFile);
 	// Tracefile
 	app.add_option("-t,--trace", tracefile, "csv trace file")
 		->required(true)
@@ -260,6 +267,25 @@ int main(int argc, char *argv[])
 	// Set spdlog pattern
 	spdlog::set_pattern("%v");
 
+	CLIConfig config;
+	// Get config file and parse
+	try
+	{
+		std::ifstream file(configfile);
+		if (!file.is_open()) {
+			spdlog::info("Cannot open config file");
+			exit(1);
+		}
+		json_t json_obj = json_t::parse(file);
+		config = json_obj;
+		from_json(json_obj, config);
+    }
+    catch (std::exception&)
+    {
+		spdlog::info("Invalid config file");
+		exit(1);
+    }
+
 	// Parse command list (load command list in memory)
 	auto commandList = parse_command_list(tracefile);
 
@@ -271,7 +297,13 @@ int main(int argc, char *argv[])
 	}
 
     // TODO set togglingrate
-    ddr->setToggleRate(std::nullopt);
+	if (config.useToggleRate) {
+		if (!config.toggleRateConfig) {
+			spdlog::info("toggleRateConfig missing in config file");
+			exit(1);
+		}
+    	ddr->setToggleRate(std::nullopt);
+	}
 
 	// Execute commands
 	for ( auto &command : commandList ) {
