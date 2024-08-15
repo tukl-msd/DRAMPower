@@ -332,6 +332,7 @@ namespace DRAMPower {
             }
             handle_interface_data_common(cmd, length);
         }
+        handle_interface_commandbus(cmd);
     }
 
     void DDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {

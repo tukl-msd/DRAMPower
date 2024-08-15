@@ -67,7 +67,7 @@ private:
     void internal_handle_interface(const Command& cmd)
     {
         if (toggleRateDefinition) {
-          handle_interface_toggleRate(cmd);
+            handle_interface_toggleRate(cmd);
         }
         else {
             handle_interface(cmd);
