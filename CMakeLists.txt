@@ -35,10 +35,15 @@
 ###############################################
 cmake_minimum_required(VERSION 3.13.0)
 
-set(PROJECT_NAME "DRAMPower 5.0")
+# TODO change for release
+set(DRAMPOWER_VERSION_MAJOR 5)
+set(DRAMPOWER_VERSION_MINOR 1)
+set(DRAMPOWER_VERSION_STRING "${DRAMPOWER_VERSION_MAJOR}.${DRAMPOWER_VERSION_MINOR}")
+
+set(PROJECT_NAME "DRAMPower ${DRAMPOWER_VERSION_STRING}")
 set(PROJECT_SHORTNAME "DRAMPower")
 
-project(${PROJECT_NAME} VERSION "5.0")
+project(${PROJECT_NAME} VERSION ${DRAMPOWER_VERSION_MAJOR}.${DRAMPOWER_VERSION_MINOR} LANGUAGES CXX)
 
 ### CMake settings ###
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -89,6 +94,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ### Detect OS threading library ###
 find_package(Threads)
+
+add_subdirectory(${DRAMPOWER_LIBRARY_DIR}/cli11)
 
 ### DRAMUtils ###
 if (DRAMUTILS_DIR) # Fetch DRAMUtils from supplied local path
