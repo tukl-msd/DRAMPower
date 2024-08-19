@@ -65,13 +65,17 @@ namespace DRAMPower {
     {
         if (toggleratedefinition)
         {
+            togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
+            togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
             togglingHandleRead.setTogglingRateAndDutyCycle(
                 toggleratedefinition->togglingRateRead,
-                toggleratedefinition->dutyCycleRead
+                toggleratedefinition->dutyCycleRead,
+                toggleratedefinition->idlePatternRead
             );
             togglingHandleWrite.setTogglingRateAndDutyCycle(
                 toggleratedefinition->togglingRateWrite,
-                toggleratedefinition->dutyCycleWrite
+                toggleratedefinition->dutyCycleWrite,
+                toggleratedefinition->idlePatternWrite
             );
         }
         else
@@ -295,24 +299,24 @@ namespace DRAMPower {
     }
 
     void DDR4::handle_interface_toggleRate(const Command &cmd) {
-        size_t length = 0;
-
         if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-                length = cmd.sz_bits / readBus.get_width();
-                if (length == 0) {
-                    length = memSpec.burstLength; // Use default burst length
-                }
-                // TODO consider datarate and bus width in calculation
-                this->togglingHandleRead.incCount(length);
-                handle_interface_data_common(cmd, length);
+            if (cmd.sz_bits == 0) {
+                // Use default burst length
+                this->togglingHandleRead.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
+            } else {
+                this->togglingHandleRead.incCountBitLength(cmd.timestamp, cmd.sz_bits);
+            }
+            assert(cmd.sz_bits % togglingHandleRead.getWidth() == 0);
+            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleRead.getWidth());
         } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-                length = cmd.sz_bits / writeBus.get_width();
-                if (length == 0) {
-                    length = memSpec.burstLength; // Use default burst length
-                }
-                // TODO consider datarate and bus width in calculation
-                this->togglingHandleWrite.incCount(length);
-                handle_interface_data_common(cmd, length);
+            if (cmd.sz_bits == 0) {
+                // Use default burst length
+                this->togglingHandleWrite.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
+            } else {
+                this->togglingHandleWrite.incCountBitLength(cmd.timestamp, cmd.sz_bits);
+            }
+            assert(cmd.sz_bits % togglingHandleWrite.getWidth() == 0);
+            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleWrite.getWidth());
         }
         handle_interface_commandbus(cmd);
     }
