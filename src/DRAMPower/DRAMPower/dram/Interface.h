@@ -39,6 +39,7 @@ struct TogglingHandleLastBurst {
 
 private:
     uint64_t width = 0;
+    uint64_t datarate = 0;
     double toggling_rate = 0; // [0, 1] allowed
     double duty_cycle = 0.0; // [0, 1] allowed
     std::optional<TogglingHandleLastBurst> last_burst = std::nullopt;
@@ -47,13 +48,15 @@ private:
     TogglingRateIdlePattern idlepattern = TogglingRateIdlePattern::Z;
 
 public:
-    TogglingHandle(const uint64_t width, const double toggling_rate, const double duty_cycle, const bool enabled = true)
+    TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, const bool enabled = true)
         : width(width)
+        , datarate(datarate)
         , toggling_rate(toggling_rate)
         , duty_cycle(duty_cycle)
         , enable(enabled)
     {
         assert(width > 0); // Check bounds
+        assert(datarate > 0); // Check bounds
         assert(duty_cycle >= 0 && duty_cycle <= 1); // Check bounds
         assert(toggling_rate >= 0 && toggling_rate <= 1); // Check bounds
     }
@@ -85,6 +88,14 @@ public:
     {
         this->width = width;
     }
+    uint64_t getDatarate() const
+    {
+        return this->datarate;
+    }
+    void setDataRate(const uint64_t datarate)
+    {
+        this->datarate = datarate;
+    }
     void setTogglingRateAndDutyCycle(const double toggling_rate, const double duty_cycle, const TogglingRateIdlePattern idlepattern)
     {
         this->toggling_rate = toggling_rate;
@@ -99,8 +110,11 @@ public:
 public:
     void incCountBurstLength(timestamp_t timestamp, uint64_t burstlength)
     {
+        // Convert to bus timings
+        timestamp_t virtual_timestamp = timestamp * this->datarate;
+        assert(virtual_timestamp / this->datarate == timestamp); // No overflow
         assert(
-            (this->last_burst && (timestamp >= (this->last_burst->last_length + this->last_burst->last_load)))
+            (this->last_burst && (virtual_timestamp >= (this->last_burst->last_length + this->last_burst->last_load)))
             || !this->last_burst
         );
         // Add last burst
@@ -112,7 +126,7 @@ public:
             // Set last_length and last_load to new burst_length
             this->last_burst = TogglingHandleLastBurst {
                 burstlength, // last_length
-                timestamp,   // last_load
+                virtual_timestamp,   // last_load
             };
         } else {
             // Clear last_length and loast_load
@@ -126,13 +140,17 @@ public:
     }
     util::bus_stats_t get_stats(timestamp_t timestamp)
     {
+        // Convert to bus timings
+        timestamp_t virtual_timestamp = timestamp * this->datarate;
+        assert(virtual_timestamp / this->datarate == timestamp); // No overflow
+
         util::bus_stats_t stats;
         // Check if last burst is finished
         if ((this->last_burst)
-            && (timestamp < this->last_burst->last_length + this->last_burst->last_load)
+            && (virtual_timestamp < this->last_burst->last_length + this->last_burst->last_load)
         ) {
             // last burst not finished
-            this->count += timestamp - this->last_burst->last_load;
+            this->count += virtual_timestamp - this->last_burst->last_load;
         } else if (this->last_burst) {
             // last burst finished
             this->count += this->last_burst->last_length;
@@ -144,10 +162,10 @@ public:
         // Compute idle
         switch (this->idlepattern) {
             case TogglingRateIdlePattern::L:
-                stats.zeroes += timestamp - this->count;
+                stats.zeroes += virtual_timestamp - this->count;
                 break;
             case TogglingRateIdlePattern::H:
-                stats.ones += timestamp - this->count;
+                stats.ones += virtual_timestamp - this->count;
                 break;
             case TogglingRateIdlePattern::Z:
                 // Nothing to do in high impedance mode

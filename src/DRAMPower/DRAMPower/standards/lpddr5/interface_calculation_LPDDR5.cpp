@@ -20,7 +20,11 @@ InterfaceCalculation_LPDDR5::InterfaceCalculation_LPDDR5(const MemSpecLPDDR5 &me
 interface_energy_info_t InterfaceCalculation_LPDDR5::calculateEnergy(const SimulationStats &stats) {
     interface_energy_info_t clock_energy = calcClockEnergy(stats);
     interface_energy_info_t DQS_energy = calcDQSEnergy(stats);
-    interface_energy_info_t DQ_energy = calcDQEnergy(stats);
+    interface_energy_info_t DQ_energy;
+    if (stats.togglingStats)
+        DQ_energy += calcDQEnergyTogglingRate(*stats.togglingStats);
+    else
+        DQ_energy += calcDQEnergy(stats);
     interface_energy_info_t CA_energy = calcCAEnergy(stats);
 
     interface_energy_info_t result;
@@ -57,6 +61,25 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQSEnergy(const Simulat
     result.dram.dynamicEnergy +=
         calc_dynamic_energy(stats.readDQSStats.zeroes_to_ones, impedances_.C_total_dqs, VDDQ_);
 
+    return result;
+}
+
+interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQEnergyTogglingRate(const TogglingStats &stats)
+{
+    interface_energy_info_t result;
+
+    // Read
+    result.dram.staticEnergy +=
+        calc_static_energy(stats.read.ones, impedances_.R_eq_rb, t_CK_ / memspec_.dataRate, VDDQ_);
+    result.dram.dynamicEnergy +=
+        calc_dynamic_energy(stats.read.zeroes_to_ones, impedances_.C_total_rb, VDDQ_);
+
+    // Write
+    result.controller.staticEnergy +=
+        calc_static_energy(stats.write.ones, impedances_.R_eq_wb, t_CK_ / memspec_.dataRate, VDDQ_);
+    result.controller.dynamicEnergy +=
+        calc_dynamic_energy(stats.write.zeroes_to_ones, impedances_.C_total_wb, VDDQ_);
+    
     return result;
 }
 

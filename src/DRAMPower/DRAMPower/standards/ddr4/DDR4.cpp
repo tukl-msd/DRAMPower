@@ -67,6 +67,8 @@ namespace DRAMPower {
         {
             togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
             togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
+            togglingHandleRead.setDataRate(memSpec.dataRate);
+            togglingHandleWrite.setDataRate(memSpec.dataRate);
             togglingHandleRead.setTogglingRateAndDutyCycle(
                 toggleratedefinition->togglingRateRead,
                 toggleratedefinition->dutyCycleRead,

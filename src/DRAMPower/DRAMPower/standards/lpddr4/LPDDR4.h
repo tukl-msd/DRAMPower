@@ -35,6 +35,9 @@ public:
     util::Clock writeDQS;
 
     util::Clock clock;
+private:
+    TogglingHandle togglingHandleRead;
+    TogglingHandle togglingHandleWrite;
 
 
     //util::Bus dataBus;
@@ -112,6 +115,7 @@ private:
     void update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleRateDefinition) override;
     void handleInterfaceOverrides(size_t length, bool read);
     void handle_interface_commandbus(const Command& cmd);
+    void handle_interface_data_common(const Command &cmd, const size_t length);
 public:
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
     energy_t calcCoreEnergy(timestamp_t timestamp) override;

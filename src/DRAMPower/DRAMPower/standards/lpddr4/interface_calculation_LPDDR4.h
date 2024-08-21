@@ -50,10 +50,30 @@ public:
 
 		// Clock 0.5 * t_CK high, 0.5 * t_CK low
 		energy.controller.staticEnergy += 2.0 * calc_static_energy(clock_stats.ones, impedanceSpec.R_eq_ck, 0.5);
-		energy.controller.dynamicEnergy += 2.0 *calc_dynamic_energy(clock_stats.ones_to_zeroes, impedanceSpec.C_total_ck);
+		energy.controller.dynamicEnergy += 2.0 *calc_dynamic_energy(clock_stats.zeroes_to_ones, impedanceSpec.C_total_ck);
 
 		return energy;
 	};
+
+	interface_energy_info_t calcDQEnergyTogglingRate(const TogglingStats &stats)
+	{
+		interface_energy_info_t result;
+
+		// Read
+		result.dram.staticEnergy +=
+			calc_static_energy(stats.read.ones, impedanceSpec.R_eq_rb, 1.0 / memspec_.dataRate);
+		result.dram.dynamicEnergy +=
+			calc_dynamic_energy(stats.read.zeroes_to_ones, impedanceSpec.C_total_rb);
+
+		// Write
+		result.controller.staticEnergy +=
+			calc_static_energy(stats.write.ones, impedanceSpec.R_eq_wb, 1.0 / memspec_.dataRate);
+		result.controller.dynamicEnergy +=
+			calc_dynamic_energy(stats.write.zeroes_to_ones, impedanceSpec.C_total_wb);
+		
+		return result;
+	}
+
 
 	interface_energy_info_t calcDQSEnergy(const SimulationStats & stats)
 	{
@@ -61,27 +81,47 @@ public:
 
 		// Datarate of data bus
 		energy.dram.staticEnergy += calc_static_energy(stats.readDQSStats.ones, impedanceSpec.R_eq_dqs, 1.0 / memspec_.dataRate);
-		energy.dram.dynamicEnergy += calc_dynamic_energy(stats.readDQSStats.ones_to_zeroes, impedanceSpec.C_total_dqs);
+		energy.dram.dynamicEnergy += calc_dynamic_energy(stats.readDQSStats.zeroes_to_ones, impedanceSpec.C_total_dqs);
 
 		energy.controller.staticEnergy += calc_static_energy(stats.writeDQSStats.ones, impedanceSpec.R_eq_dqs, 1.0 /  memspec_.dataRate);
-		energy.controller.dynamicEnergy += calc_dynamic_energy(stats.writeDQSStats.ones_to_zeroes, impedanceSpec.C_total_dqs);
+		energy.controller.dynamicEnergy += calc_dynamic_energy(stats.writeDQSStats.zeroes_to_ones, impedanceSpec.C_total_dqs);
 
 		return energy;
 	};
 
-	interface_energy_info_t calcEnergy(const SimulationStats& bus_stats)
+	interface_energy_info_t calcCAEnergy(const SimulationStats& bus_stats)
 	{
 		interface_energy_info_t energy;
+		energy.controller.staticEnergy += calc_static_energy(bus_stats.commandBus.ones, impedanceSpec.R_eq_cb, 1.0);
+		energy.controller.dynamicEnergy += calc_dynamic_energy(bus_stats.commandBus.zeroes_to_ones, impedanceSpec.C_total_cb);
+		return energy;
+	}
 
-		energy.controller.staticEnergy += calc_static_energy(bus_stats.commandBus.ones, impedanceSpec.R_eq_cb, false);
+	interface_energy_info_t calcDQEnergy(const SimulationStats& bus_stats)
+	{
+		interface_energy_info_t energy;
+		
 		energy.controller.staticEnergy += calc_static_energy(bus_stats.writeBus.ones, impedanceSpec.R_eq_wb, 1.0 /  memspec_.dataRate);
-		energy.dram.staticEnergy += calc_static_energy(bus_stats.readBus.ones, impedanceSpec.R_eq_rb, 1.0 /  memspec_.dataRate);
+		energy.controller.dynamicEnergy += calc_dynamic_energy(bus_stats.writeBus.zeroes_to_ones, impedanceSpec.C_total_rb);
 
-		energy.controller.dynamicEnergy += calc_dynamic_energy(bus_stats.commandBus.ones_to_zeroes, impedanceSpec.C_total_cb);
-		energy.controller.dynamicEnergy += calc_dynamic_energy(bus_stats.writeBus.ones_to_zeroes, impedanceSpec.C_total_rb);
-		energy.dram.dynamicEnergy += calc_dynamic_energy(bus_stats.readBus.ones_to_zeroes, impedanceSpec.C_total_wb);
+		energy.dram.staticEnergy += calc_static_energy(bus_stats.readBus.ones, impedanceSpec.R_eq_rb, 1.0 /  memspec_.dataRate);
+		energy.dram.dynamicEnergy += calc_dynamic_energy(bus_stats.readBus.zeroes_to_ones, impedanceSpec.C_total_wb);
 
 		return energy;
+	};
+
+	interface_energy_info_t calcEnergy(const SimulationStats& stats)
+	{
+		interface_energy_info_t result;
+		result += calcClockEnergy(stats.clockStats);
+		result += calcDQSEnergy(stats);
+		if (stats.togglingStats)
+			result += calcDQEnergyTogglingRate(*stats.togglingStats);
+		else
+			result += calcDQEnergy(stats);
+		result += calcCAEnergy(stats);
+
+		return result;
 	};
 };
 

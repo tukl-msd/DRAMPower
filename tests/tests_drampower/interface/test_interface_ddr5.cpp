@@ -101,6 +101,12 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_0) {
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 17); // 16 (first burst) + 1 (data ones to zeroes in bursts)
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 17); // 1 (data ones to zeroes in bursts) + 16 (end last burst)
 
+    // Clock
+    EXPECT_EQ(stats.clockStats.ones, 48);
+    EXPECT_EQ(stats.clockStats.zeroes, 48);
+    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 48);
+    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 48);
+
     // Notes
     // Pattern.h: first 4 bits of column (C0-C3) are set to 0 (for reads and writes) // TODO correct???
     EXPECT_EQ(stats.commandBus.ones, 282);
@@ -108,13 +114,15 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_0) {
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 39);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 39);
 
-    // For write and read the number of clock cycles the strobes stay on is
-    // currently ("size in bits" / bus_size) / bus_rate
-    uint64_t number_of_cycles = (SZ_BITS(wr_data) / 16) / spec->dataRate;
-
     // In this example read data and write data are the same size, so stats should be the same
-    uint_fast8_t dqspairs = 2 ? spec->bitWidth == 16 : 1;
-    uint64_t DQS_ones = dqspairs * number_of_cycles * spec->dataRate * 2; // Differential_Pairs * cycles * datarate * 2(Differential Pair)
+    EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
+    EXPECT_EQ(ddr->readBus.get_width(), spec->bitWidth);
+    EXPECT_EQ(ddr->writeBus.get_width(), spec->bitWidth);
+    uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
+    uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
+    // f(t) = t / 2;
+    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;

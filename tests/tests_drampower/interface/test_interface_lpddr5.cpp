@@ -136,10 +136,11 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_0) {
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 15);
 
     // For read the number of clock cycles the strobes stay on is
-    // currently ("size in bits" / bus_size) / bus_rate
-    uint64_t number_of_cycles = (SZ_BITS(wr_data) / 16) / spec->dataRate;
-
-    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    EXPECT_EQ(sizeof(wr_data), sizeof(rd_data));
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
+    uint_fast8_t scale = 1 * 2; // Differential_Pairs * 2(pairs of 2)
+    // f(t) = t / 2;
+    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;
@@ -309,9 +310,11 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_3_BG_Mode) {
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 21);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 21);
 
-    uint64_t number_of_cycles = (SZ_BITS(wr_data) / 16) / spec->dataRate;
-
-    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    EXPECT_EQ(sizeof(wr_data), sizeof(rd_data));
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
+    uint_fast8_t scale = 1 * 2; // Differential_Pairs * 2(pairs of 2)
+    // f(t) = t / 2;
+    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;

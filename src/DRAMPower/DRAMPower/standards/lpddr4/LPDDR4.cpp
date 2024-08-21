@@ -47,9 +47,30 @@ namespace DRAMPower {
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
 
-    void LPDDR4::update_toggling_rate(const std::optional<ToggleRateDefinition>&)
+    void LPDDR4::update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleratedefinition)
     {
-
+        if (toggleratedefinition)
+        {
+            togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
+            togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
+            togglingHandleRead.setDataRate(memSpec.dataRate);
+            togglingHandleWrite.setDataRate(memSpec.dataRate);
+            togglingHandleRead.setTogglingRateAndDutyCycle(
+                toggleratedefinition->togglingRateRead,
+                toggleratedefinition->dutyCycleRead,
+                toggleratedefinition->idlePatternRead
+            );
+            togglingHandleWrite.setTogglingRateAndDutyCycle(
+                toggleratedefinition->togglingRateWrite,
+                toggleratedefinition->dutyCycleWrite,
+                toggleratedefinition->idlePatternWrite
+            );
+        }
+        else
+        {
+            togglingHandleRead.disable();
+            togglingHandleWrite.disable();
+        }
     }
 
     uint64_t LPDDR4::getBankCount() {
@@ -152,48 +173,63 @@ namespace DRAMPower {
         }
     }
 
-    void LPDDR4::handle_interface_toggleRate(const Command&) {
-        
+    void LPDDR4::handle_interface_commandbus(const Command &cmd) {
+        auto pattern = this->getCommandPattern(cmd);
+        auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
+        this->commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
-    void LPDDR4::handle_interface(const Command &cmd) {
-        size_t length = 0;
-
-        // Handle data bus and dqs lines
+    void LPDDR4::handle_interface_data_common(const Command &cmd, const size_t length) {
         if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            length = cmd.sz_bits / readBus.get_width();
-            if ( length != 0 )
-            {
-                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            else
-            {
-                length = memSpec.burstLength; // Use default burst length
-                // Cannot load readBus with data. TODO toggling rate
-            }
             readDQS.start(cmd.timestamp);
             readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
             handleInterfaceOverrides(length, true);
         } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            length = cmd.sz_bits / writeBus.get_width();
-            if ( length != 0 )
-            {
-                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            else
-            {
-                length = memSpec.burstLength; // Use default burst length
-                // Cannot load writeBus with data. TODO toggling rate
-            }
             writeDQS.start(cmd.timestamp);
             writeDQS.stop(cmd.timestamp + length / memSpec.dataRate);
             handleInterfaceOverrides(length, false);
         }
+    }
 
-        // Command bus
-        auto pattern = getCommandPattern(cmd);
-        length = getPattern(cmd.type).size() / commandBus.get_width();
-        commandBus.load(cmd.timestamp, pattern, length);
+    void LPDDR4::handle_interface_toggleRate(const Command& cmd) {
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            if (cmd.sz_bits == 0) {
+                // Use default burst length
+                this->togglingHandleRead.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
+            } else {
+                this->togglingHandleRead.incCountBitLength(cmd.timestamp, cmd.sz_bits);
+            }
+            assert(cmd.sz_bits % togglingHandleRead.getWidth() == 0);
+            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleRead.getWidth());
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            if (cmd.sz_bits == 0) {
+                // Use default burst length
+                this->togglingHandleWrite.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
+            } else {
+                this->togglingHandleWrite.incCountBitLength(cmd.timestamp, cmd.sz_bits);
+            }
+            assert(cmd.sz_bits % togglingHandleWrite.getWidth() == 0);
+            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleWrite.getWidth());
+        }
+        handle_interface_commandbus(cmd);
+    }
+
+    void LPDDR4::handle_interface(const Command &cmd) {
+        size_t length = 0;
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            length = cmd.sz_bits / readBus.get_width();
+            if ( cmd.data != nullptr ) {
+                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            handle_interface_data_common(cmd, length);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            length = cmd.sz_bits / writeBus.get_width();
+            if ( cmd.data != nullptr ) {
+                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            handle_interface_data_common(cmd, length);
+        }
+        handle_interface_commandbus(cmd);
     }
 
     void LPDDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -456,6 +492,16 @@ namespace DRAMPower {
         stats.commandBus = commandBus.get_stats(timestamp);
         stats.readBus = readBus.get_stats(timestamp);
         stats.writeBus = writeBus.get_stats(timestamp);
+        if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
+            stats.togglingStats = {
+                togglingHandleRead.get_stats(timestamp), // read
+                togglingHandleWrite.get_stats(timestamp) // write
+            };
+        }
+        else {
+            stats.togglingStats = std::nullopt;
+        }
+
 
         stats.clockStats = 2 * clock.get_stats_at(timestamp);
         stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);

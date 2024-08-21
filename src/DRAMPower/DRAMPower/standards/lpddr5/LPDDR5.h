@@ -35,6 +35,8 @@ private:
     util::Clock readDQS;
     util::Clock wck;
     util::Clock clock;
+    TogglingHandle togglingHandleRead;
+    TogglingHandle togglingHandleWrite;
 
 public:
 
@@ -76,6 +78,7 @@ private:
     void update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleRateDefinition) override;
     void handleInterfaceOverrides(size_t length, bool read);
     void handle_interface_commandbus(const Command& cmd);
+    void handle_interface_data_common(const Command &cmd, const size_t length);
 
 private:
     template <dram_base::commandEnum_t Cmd, typename Func>

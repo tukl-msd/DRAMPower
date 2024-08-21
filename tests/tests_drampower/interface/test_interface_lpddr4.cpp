@@ -16,6 +16,8 @@
 
 using namespace DRAMPower;
 
+#define SZ_BITS(x) sizeof(x)*8
+
 class DramPowerTest_Interface_LPDDR4 : public ::testing::Test {
 protected:
 	static constexpr uint8_t wr_data[] = {
@@ -44,8 +46,8 @@ protected:
 	std::vector<Command> testPattern = {
 		// Timestamp,   Cmd,  { Bank, BG, Rank, Row, Co-lumn}
 			{  0, CmdType::ACT, { 1, 0, 0, 2 } },
-			{  5, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, sizeof(wr_data) * 8 },
-			{ 14, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, sizeof(rd_data) * 8 },
+			{  5, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
+			{ 14, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
 			{ 23, CmdType::PRE, { 1, 0, 0, 2 } },
 			{ 26,  CmdType::END_OF_SIMULATION },
 	};
@@ -54,24 +56,25 @@ protected:
 	std::vector<Command> testPattern_2 = {
 		// Timestamp,   Cmd,  { Bank, BG, Rank, Row, Co-lumn}
 			{  0, CmdType::ACT, { 1, 0, 0, 2 } },
-			{  5, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, sizeof(wr_data) * 8 },
-			{ 14, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, sizeof(rd_data) * 8 },
-			{ 23, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, sizeof(wr_data) * 8 },
-			{ 31, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, sizeof(wr_data) * 8 },
-			{ 40, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, sizeof(rd_data) * 8 },
-			{ 49, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, sizeof(wr_data) * 8 },
-			{ 57, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, sizeof(rd_data) * 8 },
+			{  5, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
+			{ 14, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
+			{ 23, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
+			{ 31, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
+			{ 40, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
+			{ 49, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
+			{ 57, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
 			{ 70,  CmdType::END_OF_SIMULATION },
 	};
 
 
 	// Test variables
-	std::unique_ptr<DRAMPower::LPDDR4> ddr;
+	std::unique_ptr<LPDDR4> ddr;
+    std::unique_ptr<MemSpecLPDDR4> spec;
 
 	virtual void SetUp()
 	{
 		auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr4.json");
-        auto memSpec = DRAMPower::MemSpecLPDDR4::from_memspec(*data);
+        auto memSpec = MemSpecLPDDR4::from_memspec(*data);
 
 		memSpec.numberOfRanks = 1;
 		memSpec.numberOfBanks = 2;
@@ -125,7 +128,8 @@ protected:
 		memSpec.memImpedanceSpec.R_eq_wb = 2.0;
 
 		memSpec.bwParams.bwPowerFactRho = 0.333333333;
-
+	
+		spec = std::make_unique<MemSpecLPDDR4>(memSpec);
 		ddr = std::make_unique<LPDDR4>(memSpec);
 	}
 
@@ -190,12 +194,34 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestDQS)
 	};
 
 	auto stats = ddr->getStats();
+	// DQs bus
+    EXPECT_EQ(sizeof(wr_data), sizeof(rd_data));
+    EXPECT_EQ(ddr->readBus.get_width(), spec->bitWidth);
+    EXPECT_EQ(ddr->writeBus.get_width(), spec->bitWidth);
+    int number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
+    uint_fast8_t scale = 1 * 2; // Differential_Pairs * 2(pairs of 2)
+    // f(t) = t / 2;
+    int DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
+    int DQS_zeros = DQS_ones;
+    int DQS_zeros_to_ones = DQS_ones;
+    int DQS_ones_to_zeros = DQS_zeros;
 
-	ASSERT_EQ(stats.readDQSStats.ones, 16*3); // 16 (burst length) * 3 (reads)
-	ASSERT_EQ(stats.readDQSStats.zeroes, 16*3);
+	// 4 writes
+    EXPECT_EQ(stats.writeDQSStats.ones, DQS_ones * 4);
+    EXPECT_EQ(stats.writeDQSStats.zeroes, DQS_zeros * 4);
+    EXPECT_EQ(stats.writeDQSStats.ones_to_zeroes, DQS_zeros_to_ones * 4);
+    EXPECT_EQ(stats.writeDQSStats.zeroes_to_ones, DQS_ones_to_zeros * 4);
+	// 3 reads
+    EXPECT_EQ(stats.readDQSStats.ones, DQS_ones * 3);
+    EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros * 3);
+    EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, DQS_zeros_to_ones * 3);
+    EXPECT_EQ(stats.readDQSStats.zeroes_to_ones, DQS_ones_to_zeros * 3);
 
-	ASSERT_EQ(stats.writeDQSStats.ones, 16*4); // 16 (burst length) * 4 (writes)
-	ASSERT_EQ(stats.writeDQSStats.zeroes, 16*4);
+	// ASSERT_EQ(stats.readDQSStats.ones, 16 *3); // 16 (burst length) * 3 (reads)
+	// ASSERT_EQ(stats.readDQSStats.zeroes, 16*3);
+
+	// ASSERT_EQ(stats.writeDQSStats.ones, 16*4); // 16 (burst length) * 4 (writes)
+	// ASSERT_EQ(stats.writeDQSStats.zeroes, 16*4);
 }
 
 

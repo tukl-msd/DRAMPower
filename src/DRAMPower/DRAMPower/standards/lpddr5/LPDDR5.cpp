@@ -48,9 +48,30 @@ namespace DRAMPower {
     };
 
     
-    void LPDDR5::update_toggling_rate(const std::optional<ToggleRateDefinition>&)
+    void LPDDR5::update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleratedefinition)
     {
-
+        if (toggleratedefinition)
+        {
+            togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
+            togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
+            togglingHandleRead.setDataRate(memSpec.dataRate);
+            togglingHandleWrite.setDataRate(memSpec.dataRate);
+            togglingHandleRead.setTogglingRateAndDutyCycle(
+                toggleratedefinition->togglingRateRead,
+                toggleratedefinition->dutyCycleRead,
+                toggleratedefinition->idlePatternRead
+            );
+            togglingHandleWrite.setTogglingRateAndDutyCycle(
+                toggleratedefinition->togglingRateWrite,
+                toggleratedefinition->dutyCycleWrite,
+                toggleratedefinition->idlePatternWrite
+            );
+        }
+        else
+        {
+            togglingHandleRead.disable();
+            togglingHandleWrite.disable();
+        }
     }
 
     uint64_t LPDDR5::getBankCount() {
@@ -272,14 +293,51 @@ namespace DRAMPower {
         }
     }
 
-    void LPDDR5::handle_interface_commandbus(const Command& cmd) {
+    void LPDDR5::handle_interface_commandbus(const Command &cmd) {
         auto pattern = getCommandPattern(cmd);
         auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
         commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
-    void LPDDR5::handle_interface_toggleRate(const Command&) {
-        
+    void LPDDR5::handle_interface_data_common(const Command &cmd, const size_t length) {
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            readDQS.start(cmd.timestamp);
+            readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
+            if (!memSpec.wckAlwaysOnMode) {
+                wck.start(cmd.timestamp);
+                wck.stop(cmd.timestamp + length / memSpec.dataRate);
+            }
+            handleInterfaceOverrides(length, true);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+             if (!memSpec.wckAlwaysOnMode) {
+                wck.start(cmd.timestamp);
+                wck.stop(cmd.timestamp + length / memSpec.dataRate);
+            }
+            handleInterfaceOverrides(length, false);
+        }
+    }
+
+    void LPDDR5::handle_interface_toggleRate(const Command &cmd) {
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            if (cmd.sz_bits == 0) {
+                // Use default burst length
+                this->togglingHandleRead.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
+            } else {
+                this->togglingHandleRead.incCountBitLength(cmd.timestamp, cmd.sz_bits);
+            }
+            assert(cmd.sz_bits % togglingHandleRead.getWidth() == 0);
+            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleRead.getWidth());
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            if (cmd.sz_bits == 0) {
+                // Use default burst length
+                this->togglingHandleWrite.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
+            } else {
+                this->togglingHandleWrite.incCountBitLength(cmd.timestamp, cmd.sz_bits);
+            }
+            assert(cmd.sz_bits % togglingHandleWrite.getWidth() == 0);
+            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleWrite.getWidth());
+        }
+        handle_interface_commandbus(cmd);
     }
 
     void LPDDR5::handle_interface(const Command &cmd) {
@@ -289,26 +347,13 @@ namespace DRAMPower {
             if ( cmd.data != nullptr ) {
                 readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
             }
-            readDQS.start(cmd.timestamp);
-            readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
-
-            // WCK also during reads
-            if (!memSpec.wckAlwaysOnMode) {
-                wck.start(cmd.timestamp);
-                wck.stop(cmd.timestamp + length / memSpec.dataRate);
-            }
-            handleInterfaceOverrides(length, true);
+            handle_interface_data_common(cmd, length);
         } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
             length = cmd.sz_bits / writeBus.get_width();
-            if (cmd.data != nullptr) {
+            if ( cmd.data != nullptr ) {
                 writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
             }
-
-            if (!memSpec.wckAlwaysOnMode) {
-                wck.start(cmd.timestamp);
-                wck.stop(cmd.timestamp + length / memSpec.dataRate);
-            }
-            handleInterfaceOverrides(length, true);
+            handle_interface_data_common(cmd, length);
         }
         handle_interface_commandbus(cmd);
     }
@@ -587,9 +632,18 @@ namespace DRAMPower {
         stats.readBus = readBus.get_stats(timestamp);
         stats.writeBus = writeBus.get_stats(timestamp);
 
-        stats.clockStats = 2 * clock.get_stats_at(timestamp);
-        stats.wClockStats = 2 * wck.get_stats_at(timestamp);
-        stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);
+        stats.clockStats = 2.0 * clock.get_stats_at(timestamp);
+        stats.wClockStats = 2.0 * wck.get_stats_at(timestamp);
+        stats.readDQSStats = 2.0 * readDQS.get_stats_at(timestamp);
+        if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
+            stats.togglingStats = {
+                togglingHandleRead.get_stats(timestamp), // read
+                togglingHandleWrite.get_stats(timestamp) // write
+            };
+        }
+        else {
+            stats.togglingStats = std::nullopt;
+        }
 
         return stats;
     }
