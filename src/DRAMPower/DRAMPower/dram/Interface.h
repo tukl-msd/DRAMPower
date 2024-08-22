@@ -6,6 +6,9 @@
 #include <DRAMPower/Types.h>
 #include <DRAMPower/util/bus.h>
 
+#include <DRAMUtils/util/json.h>
+#include <DRAMUtils/util/json_utils.h>
+
 #include <stdint.h>
 #include <optional>
 
@@ -17,7 +20,13 @@ enum class TogglingRateIdlePattern
     L = 0,
     H = 1,
     Z = 2,
+    Invalid = -1
 };
+NLOHMANN_JSON_SERIALIZE_ENUM(TogglingRateIdlePattern,
+                             {{TogglingRateIdlePattern::Invalid, nullptr},
+                              {TogglingRateIdlePattern::L, "L"},
+                              {TogglingRateIdlePattern::H, "H"},
+                              {TogglingRateIdlePattern::Z, "Z"}})
 
 struct ToggleRateDefinition
 {
@@ -28,6 +37,7 @@ struct ToggleRateDefinition
     TogglingRateIdlePattern idlePatternRead;
     TogglingRateIdlePattern idlePatternWrite;
 };
+NLOHMANN_JSONIFY_ALL_THINGS(ToggleRateDefinition, togglingRateRead, togglingRateWrite, dutyCycleRead, dutyCycleWrite, idlePatternRead, idlePatternWrite)
 
 class TogglingHandle
 {
@@ -167,6 +177,8 @@ public:
             case TogglingRateIdlePattern::H:
                 stats.ones += virtual_timestamp - this->count;
                 break;
+            case TogglingRateIdlePattern::Invalid:
+                assert(false); // Fallback to Z
             case TogglingRateIdlePattern::Z:
                 // Nothing to do in high impedance mode
                 break;
