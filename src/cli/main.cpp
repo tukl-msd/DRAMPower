@@ -296,13 +296,13 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-    // TODO set togglingrate
+    // Set togglingrate
 	if (config.useToggleRate) {
 		if (!config.toggleRateConfig) {
 			spdlog::info("toggleRateConfig missing in config file");
 			exit(1);
 		}
-    	ddr->setToggleRate(std::nullopt);
+		ddr->setToggleRate(config.toggleRateConfig);
 	}
 
 	// Execute commands
