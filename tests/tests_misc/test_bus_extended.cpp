@@ -129,7 +129,7 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_64)
 	auto expected = util::Bus::burst_t();
 
 	auto pattern_gen = [] (size_t i) -> uint8_t {
-		return i;
+		return static_cast<uint8_t>(i);
 	};
 
 	// Load bus
@@ -162,7 +162,7 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_512)
 	auto expected = util::Bus::burst_t();
 
 	auto pattern_gen = [] (size_t i) -> uint8_t {
-		return i;
+		return static_cast<uint8_t>(i);
 	};
 
 	// Load bus

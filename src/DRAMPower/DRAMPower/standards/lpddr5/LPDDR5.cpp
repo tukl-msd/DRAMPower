@@ -586,9 +586,9 @@ namespace DRAMPower {
         stats.readBus = readBus.get_stats(timestamp);
         stats.writeBus = writeBus.get_stats(timestamp);
 
-        stats.clockStats = 2.0 * clock.get_stats_at(timestamp);
-        stats.wClockStats = 2.0 * wck.get_stats_at(timestamp);
-        stats.readDQSStats = 2.0 * readDQS.get_stats_at(timestamp);
+        stats.clockStats = 2 * clock.get_stats_at(timestamp);
+        stats.wClockStats = 2 * wck.get_stats_at(timestamp);
+        stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);
 
         return stats;
     }

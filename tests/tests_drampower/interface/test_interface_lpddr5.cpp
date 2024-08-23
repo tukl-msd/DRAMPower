@@ -137,12 +137,12 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_0) {
 
     // For read the number of clock cycles the strobes stay on is
     // currently ("size in bits" / bus_size) / bus_rate
-    int number_of_cycles = (SZ_BITS(wr_data) / 16) / spec->dataRate;
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / 16) / spec->dataRate;
 
-    int DQS_ones = number_of_cycles * spec->dataRate;
-    int DQS_zeros = DQS_ones;
-    int DQS_zeros_to_ones = DQS_ones;
-    int DQS_ones_to_zeros = DQS_zeros;
+    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    uint64_t DQS_zeros = DQS_ones;
+    uint64_t DQS_zeros_to_ones = DQS_ones;
+    uint64_t DQS_ones_to_zeros = DQS_zeros;
 
     EXPECT_EQ(stats.readDQSStats.ones, DQS_ones);
     EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros);
@@ -309,12 +309,12 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_3_BG_Mode) {
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 21);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 21);
 
-    int number_of_cycles = (SZ_BITS(wr_data) / 16) / spec->dataRate;
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / 16) / spec->dataRate;
 
-    int DQS_ones = number_of_cycles * spec->dataRate;
-    int DQS_zeros = DQS_ones;
-    int DQS_zeros_to_ones = DQS_ones;
-    int DQS_ones_to_zeros = DQS_zeros;
+    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    uint64_t DQS_zeros = DQS_ones;
+    uint64_t DQS_zeros_to_ones = DQS_ones;
+    uint64_t DQS_ones_to_zeros = DQS_zeros;
 
     EXPECT_EQ(stats.readDQSStats.ones, DQS_ones);
     EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros);

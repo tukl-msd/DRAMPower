@@ -42,9 +42,9 @@ namespace DRAMPower {
         uint64_t timeToCompletion(CmdType type) override;
 
 
-        unsigned numberOfBankGroups;
-        unsigned banksPerGroup;
-        unsigned numberOfRanks;
+        uint64_t numberOfBankGroups;
+        uint64_t banksPerGroup;
+        uint64_t numberOfRanks;
         std::size_t perTwoBankOffset = 8;
         BankArchitectureMode bank_arch;
         bool wckAlwaysOnMode;

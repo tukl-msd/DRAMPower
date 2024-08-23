@@ -132,14 +132,14 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_0) {
     // ("size in bits" / bus_size) / bus_rate
     // read and write have the same length
     // number of cycles per write/read
-    int number_of_cycles = (SZ_BITS(wr_data) / 8) / spec->dataRate;
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / 8) / spec->dataRate;
 
     // In this example read data and write data are the same size, so stats should be the same
     // DQs modelled as single line
-    int DQS_ones = number_of_cycles * spec->dataRate;
-    int DQS_zeros = DQS_ones;
-    int DQS_zeros_to_ones = DQS_ones;
-    int DQS_ones_to_zeros = DQS_zeros;
+    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    uint64_t DQS_zeros = DQS_ones;
+    uint64_t DQS_zeros_to_ones = DQS_ones;
+    uint64_t DQS_ones_to_zeros = DQS_zeros;
     EXPECT_EQ(stats.writeDQSStats.ones, DQS_ones);
     EXPECT_EQ(stats.writeDQSStats.zeroes, DQS_zeros);
     EXPECT_EQ(stats.writeDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
@@ -194,12 +194,12 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_1) {
     // DQs bus
     // For write and read the number of clock cycles the strobes stay on is
     // (("number of writes/reads" * "size in bits") / bus_size) / bus_rate
-    int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
+    uint64_t number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
 
-    int DQS_ones = number_of_cycles * spec->dataRate;
-    int DQS_zeros = DQS_ones;
-    int DQS_zeros_to_ones = DQS_ones;
-    int DQS_ones_to_zeros = DQS_zeros;
+    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    uint64_t DQS_zeros = DQS_ones;
+    uint64_t DQS_zeros_to_ones = DQS_ones;
+    uint64_t DQS_ones_to_zeros = DQS_zeros;
     EXPECT_EQ(stats.writeDQSStats.ones, DQS_ones);
     EXPECT_EQ(stats.writeDQSStats.zeroes, DQS_zeros);
     EXPECT_EQ(stats.writeDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
@@ -251,13 +251,13 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_2) {
     // DQs bus
     // For write and read the number of clock cycles the strobes stay on is
     // (("number of reads/writes" * "size in bits") / bus_size) / bus_rate
-    int number_of_cycles = ((2 * SZ_BITS(rd_data)) / 8) / spec->dataRate;
+    uint64_t number_of_cycles = ((2 * SZ_BITS(rd_data)) / 8) / spec->dataRate;
 
     // Only read
-    int DQS_ones = number_of_cycles * spec->dataRate;
-    int DQS_zeros = DQS_ones;
-    int DQS_zeros_to_ones = DQS_ones;
-    int DQS_ones_to_zeros = DQS_zeros;
+    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    uint64_t DQS_zeros = DQS_ones;
+    uint64_t DQS_zeros_to_ones = DQS_ones;
+    uint64_t DQS_ones_to_zeros = DQS_zeros;
     EXPECT_EQ(stats.readDQSStats.ones, DQS_ones);
     EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros);
     EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
@@ -309,13 +309,13 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_3) {
     // DQs bus
     // For write and read the number of clock cycles the strobes stay on is
     // (("number of writes/reads" * "size in bits") / bus_size) / bus_rate
-    int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
+    uint64_t number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
 
     // Only writes
-    int DQS_ones = number_of_cycles * spec->dataRate;
-    int DQS_zeros = DQS_ones;
-    int DQS_zeros_to_ones = DQS_ones;
-    int DQS_ones_to_zeros = DQS_zeros;
+    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    uint64_t DQS_zeros = DQS_ones;
+    uint64_t DQS_zeros_to_ones = DQS_ones;
+    uint64_t DQS_ones_to_zeros = DQS_zeros;
     EXPECT_EQ(stats.writeDQSStats.ones, DQS_ones);
     EXPECT_EQ(stats.writeDQSStats.zeroes, DQS_zeros);
     EXPECT_EQ(stats.writeDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
@@ -367,13 +367,13 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_4) {
     // DQs bus
     // For write and read the number of clock cycles the strobes stay on is
     // (("number of writes/reads" * "size in bits") / bus_size) / bus_rate
-    int number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
+    uint64_t number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
 
     // Only reads
-    int DQS_ones = number_of_cycles * spec->dataRate;
-    int DQS_zeros = DQS_ones;
-    int DQS_zeros_to_ones = DQS_ones;
-    int DQS_ones_to_zeros = DQS_zeros;
+    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    uint64_t DQS_zeros = DQS_ones;
+    uint64_t DQS_zeros_to_ones = DQS_ones;
+    uint64_t DQS_ones_to_zeros = DQS_zeros;
     EXPECT_EQ(stats.readDQSStats.ones, DQS_ones);
     EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros);
     EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
@@ -594,8 +594,8 @@ TEST_F(DDR4_Energy_Tests, PrePostamble_Energy) {
     stats.rank_total[0].counter.writes = 6;
     stats.rank_total[0].counter.writeAuto = 11;
 
-    double writecount = stats.rank_total[0].counter.writes + stats.rank_total[0].counter.writeAuto;
-    double readcount = stats.rank_total[0].counter.reads + stats.rank_total[0].counter.readAuto;
+    uint64_t writecount = stats.rank_total[0].counter.writes + stats.rank_total[0].counter.writeAuto;
+    uint64_t readcount = stats.rank_total[0].counter.reads + stats.rank_total[0].counter.readAuto;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = stats.writeDQSStats.zeroes_to_ones *

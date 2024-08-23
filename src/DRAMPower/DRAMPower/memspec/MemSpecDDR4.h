@@ -77,8 +77,8 @@ public:
 
     uint64_t timeToCompletion(CmdType type) override;
 
-	unsigned numberOfBankGroups;
-	unsigned numberOfRanks;
+	uint64_t numberOfBankGroups;
+	uint64_t numberOfRanks;
 
 	double vddq;
 
