@@ -103,7 +103,7 @@ TEST_F(DDR4_TogglingRate_Tests, Pattern_0_LH) {
     // ones: {idle + floor[duty_cycle * toggling_count]} * width
     EXPECT_EQ(stats.togglingStats->read.ones, (idleread_ones +  static_cast<uint64_t>(std::floor(dutyCycleRead * toggles_read))) * spec->bitWidth); // 32
     // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 152
+    EXPECT_EQ(stats.togglingStats->read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 344
     // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
     EXPECT_EQ(stats.togglingStats->read.ones_to_zeroes, std::floor((togglingRateRead / 2) * toggles_read) * spec->bitWidth); // 16
     // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
@@ -111,7 +111,7 @@ TEST_F(DDR4_TogglingRate_Tests, Pattern_0_LH) {
     
     // Write bus
     // ones: {idle + floor[duty_cycle * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 152
+    EXPECT_EQ(stats.togglingStats->write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 344
     // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
     EXPECT_EQ(stats.togglingStats->write.zeroes, (idlewrite_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleWrite) * toggles_write))) * spec->bitWidth); // 32
     // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
@@ -212,9 +212,9 @@ TEST_F(DDR4_TogglingRate_Tests, Pattern_0_HZ) {
 // Data bus
     // Read bus
     // ones: {idle + floor[duty_cycle * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->read.ones, (idleread_ones +  static_cast<uint64_t>(std::floor(dutyCycleRead * toggles_read))) * spec->bitWidth); // 32
+    EXPECT_EQ(stats.togglingStats->read.ones, (idleread_ones +  static_cast<uint64_t>(std::floor(dutyCycleRead * toggles_read))) * spec->bitWidth); // 352
     // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 152
+    EXPECT_EQ(stats.togglingStats->read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 24
     // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
     EXPECT_EQ(stats.togglingStats->read.ones_to_zeroes, std::floor((togglingRateRead / 2) * toggles_read) * spec->bitWidth); // 16
     // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
@@ -222,7 +222,7 @@ TEST_F(DDR4_TogglingRate_Tests, Pattern_0_HZ) {
     
     // Write bus
     // ones: {idle + floor[duty_cycle * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 152
+    EXPECT_EQ(stats.togglingStats->write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 24
     // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
     EXPECT_EQ(stats.togglingStats->write.zeroes, (idlewrite_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleWrite) * toggles_write))) * spec->bitWidth); // 32
     // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
