@@ -232,7 +232,7 @@ TEST_F(DDR5_Energy_Tests, Clock_Energy) {
     EXPECT_DOUBLE_EQ(result.dram.staticEnergy, 0.0);
 
     // DDR5 clock power consumed on 1's
-    double expected_static = stats.clockStats.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_ck;
+    double expected_static = stats.clockStats.zeroes * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_ck;
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic = stats.clockStats.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_ck * voltage * voltage;
 
@@ -256,9 +256,9 @@ TEST_F(DDR5_Energy_Tests, DQS_Energy) {
     // Controller -> write power
     // Dram -> read power
     double expected_static_controller =
-        0.5 * stats.writeDQSStats.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_dqs;
+        0.5 * stats.writeDQSStats.zeroes * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_dqs;
     double expected_static_dram =
-        0.5 * stats.readDQSStats.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_dqs;
+        0.5 * stats.readDQSStats.zeroes * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_dqs;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = stats.writeDQSStats.zeroes_to_ones *
@@ -290,9 +290,9 @@ TEST_F(DDR5_Energy_Tests, DQ_Energy) {
     // Controller -> write power
     // Dram -> read power
     double expected_static_controller =
-        0.5 * stats.writeBus.zeroes * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_wb;
+        stats.writeBus.zeroes * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_wb;
     double expected_static_dram =
-        0.5 * stats.readBus.zeroes * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_rb;
+        stats.readBus.zeroes * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_rb;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller =

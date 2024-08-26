@@ -387,11 +387,11 @@ TEST_F(LPDDR5_Energy_Tests, Clock_Energy) {
     // Clock is differential so there is always going to be one signal that consumes power
     // Calculation is done considering number of ones but could also be zeroes, since clock is
     // a symmetrical signal
-    double expected_static = stats.clockStats.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_ck;
-    expected_static += stats.wClockStats.ones * voltage * voltage * t_WCK / spec->memImpedanceSpec.R_eq_wck;
+    double expected_static = stats.clockStats.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_ck;
+    expected_static += stats.wClockStats.ones * voltage * voltage * 0.5 * t_WCK / spec->memImpedanceSpec.R_eq_wck;
 
-    double expected_dynamic = stats.clockStats.zeroes_to_ones * spec->memImpedanceSpec.C_total_ck * voltage * voltage;
-    expected_dynamic += stats.wClockStats.zeroes_to_ones * spec->memImpedanceSpec.C_total_wck * voltage * voltage;
+    double expected_dynamic = stats.clockStats.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_ck * voltage * voltage;
+    expected_dynamic += stats.wClockStats.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_wck * voltage * voltage;
 
     EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static);  // value itself doesn't matter, only that it matches the formula
     EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic);
@@ -422,7 +422,7 @@ TEST_F(LPDDR5_Energy_Tests, DQS_Energy) {
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = 0;
     double expected_dynamic_dram = stats.readDQSStats.zeroes_to_ones *
-                                   spec->memImpedanceSpec.C_total_dqs / 2.0 * voltage * voltage;
+                                   0.5 * spec->memImpedanceSpec.C_total_dqs * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
     EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
@@ -479,7 +479,8 @@ TEST_F(LPDDR5_Energy_Tests, CA_Energy) {
     stats.commandBus.zeroes_to_ones = 39;
     stats.commandBus.ones_to_zeroes = 49;
 
-    double expected_static_controller = stats.commandBus.zeroes * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_cb;
+    // Data rate 2
+    double expected_static_controller = stats.commandBus.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_cb;
     double expected_dynamic_controller = stats.commandBus.zeroes_to_ones * spec->memImpedanceSpec.C_total_cb / 2.0 * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);

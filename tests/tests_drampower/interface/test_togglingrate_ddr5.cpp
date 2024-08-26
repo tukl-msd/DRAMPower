@@ -266,9 +266,9 @@ TEST_F(DDR5_TogglingRateEnergy_Tests, DQ_Energy) {
     // Controller -> write power
     // Dram -> read power
     double expected_static_controller =
-        stats.togglingStats->write.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_wb;
+        stats.togglingStats->write.zeroes * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_wb;
     double expected_static_dram =
-        stats.togglingStats->read.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_rb;
+        stats.togglingStats->read.zeroes * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_rb;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = stats.togglingStats->write.zeroes_to_ones *
