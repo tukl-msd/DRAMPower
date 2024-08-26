@@ -18,7 +18,7 @@ namespace DRAMPower
 
 class DRAM;
 
-class InterfaceCalculation_LPPDR4
+class InterfaceCalculation_LPDDR4
 {
 private:
 	const MemSpecLPDDR4 &memspec_;
@@ -27,7 +27,7 @@ private:
 	double VDDQ;
 
 public:
-	InterfaceCalculation_LPPDR4(const MemSpecLPDDR4 & memspec);
+	InterfaceCalculation_LPDDR4(const MemSpecLPDDR4 & memspec);
 private:
 	double calc_static_energy(uint64_t NxBits, double R_eq, double t_CK, double voltage, double factor);
 	double calc_dynamic_energy(uint64_t transitions, double C_total, double voltage);

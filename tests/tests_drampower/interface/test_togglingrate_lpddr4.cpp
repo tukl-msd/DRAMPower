@@ -248,13 +248,13 @@ class LPDDR4_TogglingRateEnergy_Tests : public ::testing::Test {
         spec->memImpedanceSpec.C_total_rb = 5;
         spec->memImpedanceSpec.C_total_wb = 6;
 
-        io_calc = std::make_unique<InterfaceCalculation_LPPDR4>(*spec);
+        io_calc = std::make_unique<InterfaceCalculation_LPDDR4>(*spec);
     }
 
     std::unique_ptr<MemSpecLPDDR4> spec;
     double t_CK;
     double voltage;
-    std::unique_ptr<InterfaceCalculation_LPPDR4> io_calc;
+    std::unique_ptr<InterfaceCalculation_LPDDR4> io_calc;
 };
 
 TEST_F(LPDDR4_TogglingRateEnergy_Tests, DQ_Energy) {

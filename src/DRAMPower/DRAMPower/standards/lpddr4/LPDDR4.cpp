@@ -428,7 +428,7 @@ namespace DRAMPower {
     }
 
     interface_energy_info_t LPDDR4::calcInterfaceEnergy(timestamp_t timestamp) {
-        InterfaceCalculation_LPPDR4 interface_calc(memSpec);
+        InterfaceCalculation_LPDDR4 interface_calc(memSpec);
         return interface_calc.calculateEnergy(getWindowStats(timestamp));
     }
 

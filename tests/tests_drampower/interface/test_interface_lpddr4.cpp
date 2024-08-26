@@ -178,7 +178,7 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestPower)
 
 	// TODO add tests
 
-	InterfaceCalculation_LPPDR4 interface_calc(this->ddr->memSpec);
+	InterfaceCalculation_LPDDR4 interface_calc(this->ddr->memSpec);
 
 	// auto interface_stats = interface_calc.calcEnergy(stats);
 	// auto dqs_stats = interface_calc.calcDQSEnergy(stats);
