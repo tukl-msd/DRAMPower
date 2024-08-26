@@ -50,7 +50,6 @@ interface_energy_info_t InterfaceCalculation_DDR4::calcClockEnergy(const Simulat
 interface_energy_info_t InterfaceCalculation_DDR4::calcDQSEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
     // Pull up -> zeros
-    // TODO x16 devices have 2 DQS line
     uint_fast8_t NumDQsPairs = 1;
     if(memspec_.bitWidth == 16)
         NumDQsPairs = 2;

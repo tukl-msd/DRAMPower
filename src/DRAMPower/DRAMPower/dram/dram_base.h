@@ -188,7 +188,7 @@ public:
 
     void doCoreInterfaceCommand(const Command& command)
     {
-        doCoreCommand(command); // TODO handleCoreCommand
+        doCoreCommand(command);
         doInterfaceCommand(command);
         this->last_command_time = command.timestamp;
     }
