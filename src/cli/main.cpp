@@ -278,7 +278,6 @@ int main(int argc, char *argv[])
 		}
 		json_t json_obj = json_t::parse(file);
 		config = json_obj;
-		from_json(json_obj, config);
     }
     catch (std::exception&)
     {
@@ -313,8 +312,6 @@ int main(int argc, char *argv[])
 	// Calculate energy and stats
 	energy_t core_energy = ddr->calcCoreEnergy(commandList.back().first.timestamp);
     interface_energy_info_t interface_energy = ddr->calcInterfaceEnergy(commandList.back().first.timestamp);
-	auto stats = ddr->getStats();
-
 	if(jsonfile)
 	{
 		jsonFileResult(*jsonfile, std::move(ddr), core_energy, interface_energy);
