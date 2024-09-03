@@ -7,10 +7,13 @@
 #include <deque>
 #include <vector>
 
+#include <DRAMUtils/config/toggling_rate.h>
+
 #include "DRAMPower/Types.h"
 #include "DRAMPower/command/Command.h"
 #include "DRAMPower/data/energy.h"
 #include "DRAMPower/dram/Rank.h"
+#include <DRAMPower/dram/Interface.h>
 #include "DRAMPower/dram/dram_base.h"
 #include "DRAMPower/memspec/MemSpec.h"
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
@@ -75,7 +78,7 @@ private:
     // Calculations
     void handle_interface(const Command& cmd) override;
     void handle_interface_toggleRate(const Command& cmd) override;
-    void update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleRateDefinition) override;
+    void update_toggling_rate(const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
     void handleInterfaceOverrides(size_t length, bool read);
     void handle_interface_commandbus(const Command& cmd);
     void handle_interface_data_common(const Command &cmd, const size_t length);

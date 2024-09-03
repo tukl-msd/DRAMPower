@@ -4,6 +4,8 @@
 #include <vector>
 #include <cmath>
 
+#include <DRAMUtils/config/toggling_rate.h>
+
 #include "DRAMPower/standards/ddr5/DDR5.h"
 #include "DRAMPower/memspec/MemSpecDDR5.h"
 #include "DRAMPower/standards/ddr5/interface_calculation_DDR5.h"
@@ -12,6 +14,7 @@
 #include "DRAMPower/data/stats.h"
 
 using namespace DRAMPower;
+using namespace DRAMUtils::Config;
 
 #define SZ_BITS(x) (x)*8
 

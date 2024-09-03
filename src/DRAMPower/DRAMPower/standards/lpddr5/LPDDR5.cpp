@@ -8,6 +8,8 @@
 
 namespace DRAMPower {
 
+    using namespace DRAMUtils::Config;
+
     LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
         : dram_base<CmdType>(PatternEncoderOverrides{})
         , memSpec(memSpec)

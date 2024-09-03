@@ -6,7 +6,8 @@
 
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/data/stats.h>
-#include <DRAMPower/dram/Interface.h>
+
+#include <DRAMUtils/config/toggling_rate.h>
 
 #include <algorithm>
 #include <cassert>
@@ -17,6 +18,8 @@
 #include <optional>
 
 namespace DRAMPower {
+
+using namespace DRAMUtils::Config;
 
 template <typename CommandEnum>
 class dram_base {

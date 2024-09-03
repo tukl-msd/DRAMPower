@@ -9,6 +9,8 @@
 
 namespace DRAMPower {
 
+    using namespace DRAMUtils::Config;
+
     DDR5::DDR5(const MemSpecDDR5 &memSpec)
         : dram_base<CmdType>(PatternEncoderOverrides{
             {pattern_descriptor::V, PatternEncoderBitSpec::H},

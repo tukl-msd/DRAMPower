@@ -6,11 +6,11 @@
 #include <DRAMUtils/util/json.h>
 #include <DRAMUtils/util/json_utils.h>
 
-#include <DRAMPower/dram/Interface.h>
+#include <DRAMUtils/config/toggling_rate.h>
 
 struct CLIConfig {
     bool useToggleRate;
-    std::optional<DRAMPower::ToggleRateDefinition> toggleRateConfig;
+    std::optional<DRAMUtils::Config::ToggleRateDefinition> toggleRateConfig;
 };
 
 NLOHMANN_JSONIFY_ALL_THINGS(CLIConfig, useToggleRate, toggleRateConfig)

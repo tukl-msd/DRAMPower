@@ -8,6 +8,7 @@
 
 namespace DRAMPower {
 
+    using namespace DRAMUtils::Config;
 
     DDR4::DDR4(const MemSpecDDR4 &memSpec)
         : dram_base<CmdType>({

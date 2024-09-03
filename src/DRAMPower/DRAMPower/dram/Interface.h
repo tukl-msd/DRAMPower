@@ -6,38 +6,13 @@
 #include <DRAMPower/Types.h>
 #include <DRAMPower/util/bus.h>
 
-#include <DRAMUtils/util/json.h>
-#include <DRAMUtils/util/json_utils.h>
+#include <DRAMUtils/config/toggling_rate.h>
 
 #include <stdint.h>
 #include <optional>
 
 
 namespace DRAMPower {
-
-enum class TogglingRateIdlePattern
-{
-    L = 0,
-    H = 1,
-    Z = 2,
-    Invalid = -1
-};
-NLOHMANN_JSON_SERIALIZE_ENUM(TogglingRateIdlePattern,
-                             {{TogglingRateIdlePattern::Invalid, nullptr},
-                              {TogglingRateIdlePattern::L, "L"},
-                              {TogglingRateIdlePattern::H, "H"},
-                              {TogglingRateIdlePattern::Z, "Z"}})
-
-struct ToggleRateDefinition
-{
-    double togglingRateRead;
-    double togglingRateWrite;
-    double dutyCycleRead;
-    double dutyCycleWrite;
-    TogglingRateIdlePattern idlePatternRead;
-    TogglingRateIdlePattern idlePatternWrite;
-};
-NLOHMANN_JSONIFY_ALL_THINGS(ToggleRateDefinition, togglingRateRead, togglingRateWrite, dutyCycleRead, dutyCycleWrite, idlePatternRead, idlePatternWrite)
 
 class TogglingHandle
 {
@@ -55,7 +30,7 @@ private:
     std::optional<TogglingHandleLastBurst> last_burst = std::nullopt;
     bool enable = false;
     uint64_t count = 0;
-    TogglingRateIdlePattern idlepattern = TogglingRateIdlePattern::Z;
+    DRAMUtils::Config::TogglingRateIdlePattern idlepattern = DRAMUtils::Config::TogglingRateIdlePattern::Z;
 
 public:
     TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, const bool enabled = true);
@@ -69,7 +44,7 @@ public:
     uint64_t getWidth() const;
     uint64_t getDatarate() const;
     
-    void setTogglingRateAndDutyCycle(const double toggling_rate, const double duty_cycle, const TogglingRateIdlePattern idlepattern);
+    void setTogglingRateAndDutyCycle(const double toggling_rate, const double duty_cycle, const DRAMUtils::Config::TogglingRateIdlePattern idlepattern);
     void disable();
     void setWidth(const uint64_t width);
     void setDataRate(const uint64_t datarate);

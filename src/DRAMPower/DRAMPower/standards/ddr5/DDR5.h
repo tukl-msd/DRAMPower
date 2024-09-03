@@ -5,10 +5,13 @@
 #include <deque>
 #include <vector>
 
+#include <DRAMUtils/config/toggling_rate.h>
+
 #include "DRAMPower/Types.h"
 #include "DRAMPower/command/Command.h"
 #include "DRAMPower/data/energy.h"
 #include "DRAMPower/dram/Rank.h"
+#include <DRAMPower/dram/Interface.h>
 #include "DRAMPower/dram/dram_base.h"
 #include "DRAMPower/memspec/MemSpec.h"
 #include "DRAMPower/memspec/MemSpecDDR5.h"
@@ -52,7 +55,7 @@ public:
 private:
     void handle_interface(const Command& cmd) override;
     void handle_interface_toggleRate(const Command& cmd) override;
-    void update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleRateDefinition) override;
+    void update_toggling_rate(const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
     void handleInterfaceOverrides(size_t length, bool read);
     uint64_t getInitEncoderPattern() override;
 public:

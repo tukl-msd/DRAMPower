@@ -7,6 +7,8 @@
 
 namespace DRAMPower {
 
+    using namespace DRAMUtils::Config;
+
     LPDDR4::LPDDR4(const MemSpecLPDDR4 &memSpec)
         : dram_base<CmdType>(PatternEncoderOverrides{
             {pattern_descriptor::C0, PatternEncoderBitSpec::L},

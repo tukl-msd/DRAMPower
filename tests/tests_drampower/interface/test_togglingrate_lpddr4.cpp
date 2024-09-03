@@ -4,6 +4,8 @@
 #include <vector>
 #include <cmath>
 
+#include <DRAMUtils/config/toggling_rate.h>
+
 #include "DRAMPower/standards/lpddr4/LPDDR4.h"
 #include "DRAMPower/memspec/MemSpecLPDDR4.h"
 #include "DRAMPower/standards/lpddr4/interface_calculation_LPDDR4.h"
@@ -12,6 +14,7 @@
 #include "DRAMPower/data/stats.h"
 
 using namespace DRAMPower;
+using namespace DRAMUtils::Config;
 
 #define SZ_BITS(x) (x)*8
 

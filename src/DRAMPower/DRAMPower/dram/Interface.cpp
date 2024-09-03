@@ -1,7 +1,9 @@
 #include "Interface.h"
 
 namespace DRAMPower {
- 
+
+using namespace DRAMUtils::Config;
+
 TogglingHandle::TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, const bool enabled)
     : width(width)
     , datarate(datarate)
