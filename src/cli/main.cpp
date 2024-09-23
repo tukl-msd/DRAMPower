@@ -112,7 +112,7 @@ std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(s
 		// Read csv row
 		if ( row.size() < MINCSVSIZE )
 		{
-			std::cerr << "Invalid command structure. Row " << rowcounter << std::endl;
+			spdlog::error("Invalid command structure. Row {}", rowcounter);
 			exit(1);
 		}
 			
@@ -130,7 +130,7 @@ std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(s
 		// Get data if needed
 		if ( DRAMPower::CmdTypeUtil::needs_data(cmd) ) {
 			if ( row.size() < MINCSVSIZE + 1 ) {
-				std::cerr << "Invalid command structure. Row " << rowcounter << std::endl;
+				spdlog::error("Invalid command structure. Row {}", rowcounter);
 				exit(1);
 			}
 			// uint64_t length = 0;
@@ -142,8 +142,8 @@ std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(s
 			}
 			catch (std::exception &e)
 			{
-				std::cerr << e.what() << std::endl;
-				std::cerr << "Invalid data field in row " << rowcounter << std::endl;
+				spdlog::error(e.what());
+				spdlog::error("Invalid data field in row {}", rowcounter);
 				exit(1);
 			}
 			commandList.emplace_back(Command{ timestamp, cmd, { bank_id, bank_group_id, rank_id, row_id, column_id}, arr.get(), size * 8}, std::move(arr));
@@ -163,7 +163,7 @@ void jsonFileResult(const std::string &jsonfile, const std::unique_ptr<dram_base
 	std::ofstream out;
 	out = std::ofstream(jsonfile);
 	if ( !out.is_open() ) {
-		std::cerr << "Could not open file " << jsonfile << std::endl;
+		spdlog::error("Could not open file {}", jsonfile);
 		exit(1);
 	}
 	json_t j;
@@ -185,7 +185,7 @@ void jsonFileResult(const std::string &jsonfile, const std::unique_ptr<dram_base
 	if ( !j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].is_array() || j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].size() != rankcount * bankcount * devicecount )
 	{
 		assert(false); // (should not happen)
-		std::cerr << "Invalid energy array length" << std::endl;
+		spdlog::error("Invalid energy array length");
 		exit(1);
 	}
 	
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
 	// Initialize memory / Create memory object
 	std::unique_ptr<dram_base<CmdType>> ddr = getMemory(std::string_view(memspec));
 	if (!ddr) {
-		std::cerr << "Invalid memory specification" << std::endl;
+		spdlog::error("Invalid memory specification");
 		exit(1);
 	}
 
