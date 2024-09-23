@@ -47,8 +47,12 @@ protected:
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func && member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command & command) {
-            auto & rank = this->ranks[command.targetCoordinate.rank];
-            auto & bank = rank.banks[command.targetCoordinate.bank];
+            assert(this->ranks.size()>command.targetCoordinate.rank);
+            auto & rank = this->ranks.at(command.targetCoordinate.rank);
+
+            assert(rank.banks.size()>command.targetCoordinate.bank);
+            auto & bank = rank.banks.at(command.targetCoordinate.bank);
+
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, bank, command.timestamp);
         });
@@ -57,7 +61,8 @@ protected:
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerRankHandler(Func && member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command & command) {
-            auto & rank = this->ranks[command.targetCoordinate.rank];
+            assert(this->ranks.size()>command.targetCoordinate.rank);
+            auto & rank = this->ranks.at(command.targetCoordinate.rank);
 
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, command.timestamp);

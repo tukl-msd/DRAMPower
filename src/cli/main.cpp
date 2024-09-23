@@ -304,14 +304,20 @@ int main(int argc, char *argv[])
 		ddr->setToggleRate(config.toggleRateConfig);
 	}
 
-	// Execute commands
-	for ( auto &command : commandList ) {
-		ddr->doCoreInterfaceCommand(command.first);
+	try {
+		// Execute commands
+		for ( auto &command : commandList ) {
+			ddr->doCoreInterfaceCommand(command.first);
+		}
+	} catch (std::exception &e) {
+		spdlog::error(e.what());
+		spdlog::info("Error while executing commands. Exiting application");
+		exit(1);
 	}
 
 	// Calculate energy and stats
-	energy_t core_energy = ddr->calcCoreEnergy(commandList.back().first.timestamp);
-    interface_energy_info_t interface_energy = ddr->calcInterfaceEnergy(commandList.back().first.timestamp);
+	energy_t core_energy = ddr->calcCoreEnergy(ddr->getLastCommandTime());
+    interface_energy_info_t interface_energy = ddr->calcInterfaceEnergy(ddr->getLastCommandTime());
 	if(jsonfile)
 	{
 		jsonFileResult(*jsonfile, std::move(ddr), core_energy, interface_energy);
