@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <string_view>
 #include <type_traits>
+#include <exception>
 
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/command/Command.h>
