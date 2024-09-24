@@ -112,10 +112,7 @@ EnsureFileExists_t::EnsureFileExists_t() {
     non_modifying_ = false; // The validator modifies the input for a symlink
     func_ = [](std::string &filepath) {
 // Check if file exists
-        if (std::filesystem::is_regular_file(filepath)) {
-            // file exists
-            return std::string{};
-        } else if (std::filesystem::is_symlink(filepath)) {
+        if (std::filesystem::is_symlink(filepath)) {
 // resolve symlink chain for at most MAX_SYMLINK_RESOLVE_ITERATIONS iterations
             auto resolved = resolve_symlink(filepath, MAX_SYMLINK_RESOLVE_ITERATIONS);
             if (!resolved) {
@@ -135,6 +132,9 @@ EnsureFileExists_t::EnsureFileExists_t() {
                 filepath = resolved->path;
                 return createFileInParentDirectory(filepath);
             }
+        } else if (std::filesystem::is_regular_file(filepath)) {
+            // file exists
+            return std::string{};
         } else if(std::filesystem::exists(filepath)) {
             // the path exists but is not a file or a symlink
             return std::string{"Path is not a file"};
