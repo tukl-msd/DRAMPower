@@ -9,6 +9,7 @@
 #include <optional>
 #include <vector>
 #include <filesystem>
+#include <string>
 #include <string_view>
 #include <type_traits>
 #include <exception>
@@ -37,6 +38,7 @@
 #include "csv.hpp"
 #include "util.hpp"
 #include "config.h"
+#include "validators.h"
 
 using namespace DRAMPower;
 
@@ -261,7 +263,7 @@ int main(int argc, char *argv[])
 	// JSON output file
 	app.add_option("-j,--json", jsonfile, "json output file path")
 		->required(false)
-		->check(CLI::ExistingFile);
+		->transform(validators::EnsureFileExists); // Can transform the argument for a symlink
 	// Parse arguments
 	CLI11_PARSE(app, argc, argv);
 
