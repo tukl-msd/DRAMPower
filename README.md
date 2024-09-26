@@ -64,7 +64,7 @@ The DRAMPower cli tool uses the following libraries:
  - DRAMPower
  - [DRAMUtils](https://github.com/tukl-msd/DRAMUtils)
  - [spdlog](https://github.com/gabime/spdlog/releases/tag/v1.9.2)
- - [CLI11](https://github.com/CLIUtils/CLI11/releases/tag/v2.4.2)
+ - [CLI11 (CLI11 2.2 Copyright (c) 2017-2024 University of Cincinnati, developed by Henry Schreiner under NSF AWARD 1414736. All rights reserved.)](https://github.com/CLIUtils/CLI11/releases/tag/v2.4.2)
 
 ## Usage of the DRAMPower library
 
