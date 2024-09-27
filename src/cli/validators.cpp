@@ -66,7 +66,7 @@ std::optional<ResolveSymlinkResult> resolve_symlink(const std::string &filepath,
     return std::nullopt;
 }
 
-// Assumes the filepath does not exist
+// This function assumes the filepath does not exist
 std::string createFileInParentDirectory(const std::filesystem::path& filepath)
 {
 // Check parent directory exists
