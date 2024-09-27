@@ -11,7 +11,7 @@ struct ResolveSymlinkResult {
     enum class Type {
         FILE,
         DIRECTORY, // included for future default filename creation
-        POTENTIAL_PARENT_DIRECTORY // File does not exist but a parent directory could exist
+        NOT_FOUND // File does not exist but a parent directory could exist
     };
     Type type;
     std::string path;
@@ -36,7 +36,7 @@ std::optional<ResolveSymlinkResult> resolve_symlink(const std::string &filepath,
         if (!std::filesystem::exists(resolved)) {
             // symlink resolved to a non-existing path
             return std::make_optional(ResolveSymlinkResult{
-                ResolveSymlinkResult::Type::POTENTIAL_PARENT_DIRECTORY, // type
+                ResolveSymlinkResult::Type::NOT_FOUND, // type
                 resolved.string() // path
             }); 
         } else
@@ -66,22 +66,22 @@ std::optional<ResolveSymlinkResult> resolve_symlink(const std::string &filepath,
     return std::nullopt;
 }
 
-std::string createFileInParentDirectory(const std::string& filepath)
+// Assumes the filepath does not exist
+std::string createFileInParentDirectory(const std::filesystem::path& filepath)
 {
 // Check parent directory exists
-    std::filesystem::path path = std::filesystem::path(filepath).parent_path();
+    std::filesystem::path path = filepath.parent_path();
 
-    // No path directory provided -> create file in current directory
-    if (path.empty()) {
+    // No path directory provided -> create the file in current directory
+    if (path.empty() && filepath.is_relative()) {
         path = std::filesystem::current_path();
     }
     if (!std::filesystem::exists(path)) {
-        // path directory does not exist
+        // parent directory does not exist
         return std::string{"Parent directory does not exist"};
     } else if (!std::filesystem::is_directory(path)) {
-        // TODO does not include symlinks
-        // parent is not a directory
-        return std::string{"Parent is not a directory"};
+        // parent is not a directory. The path is invalid
+        return std::string{"Invlid path"};
     }
 
 // File does not exist and the parent directory exists
@@ -89,18 +89,18 @@ std::string createFileInParentDirectory(const std::string& filepath)
     try { // Catch std::ofstream exceptions
         std::ofstream file{filepath};
         if (!file.is_open()) {
-            // Could not create file
+            // Could not create the file
             // creation failed ofstream closes the file in destructor
             return std::string{"Could not create the file"};
         }
         // explicitly close the file to ensure that the file is created and closed
         file.close();
         if (!file.good()) {
-            // Could not create file
+            // Could not create the file
             return std::string{"Could not create the file"};
         }
     } catch (const std::exception &e) {
-        // Could not create file
+        // Could not create the file
         return std::string{"Could not create the file"};
     }
 // File was created successfully
@@ -116,7 +116,7 @@ EnsureFileExists_t::EnsureFileExists_t() {
 // resolve symlink chain for at most MAX_SYMLINK_RESOLVE_ITERATIONS iterations
             auto resolved = resolve_symlink(filepath, MAX_SYMLINK_RESOLVE_ITERATIONS);
             if (!resolved) {
-                return std::string{"Could not resolve the symlink chain"};
+                return std::string{"Could not resolve the symlink"};
             }
             // resolved is valid
             if (resolved->type == ResolveSymlinkResult::Type::FILE) {
@@ -125,10 +125,9 @@ EnsureFileExists_t::EnsureFileExists_t() {
                 return std::string{};
             } else if (resolved->type == ResolveSymlinkResult::Type::DIRECTORY) {
                 // resolved to a directory
-                // TODO create file with a default name
                 return std::string{"Path is a directory"};
-            } else if (resolved->type == ResolveSymlinkResult::Type::POTENTIAL_PARENT_DIRECTORY) {
-                // resolved to a potentional parent directory
+            } else if (resolved->type == ResolveSymlinkResult::Type::NOT_FOUND) {
+                // file not found but a parent directory could exist
                 filepath = resolved->path;
                 return createFileInParentDirectory(filepath);
             }
@@ -139,6 +138,7 @@ EnsureFileExists_t::EnsureFileExists_t() {
             // the path exists but is not a file or a symlink
             return std::string{"Path is not a file"};
         }
+        // The filepath does not exist
 // Try to create the file in the parent directory
         return createFileInParentDirectory(filepath);
     };
