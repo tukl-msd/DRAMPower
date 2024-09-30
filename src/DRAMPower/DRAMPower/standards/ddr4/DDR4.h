@@ -29,10 +29,12 @@ public:
     DDR4(const MemSpecDDR4 &memSpec);
     virtual ~DDR4() = default;
 public:
+    using commandbus_t = util::Bus<27>;
+    using databus_t = util::Bus<8>;
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
-    util::Bus readBus;
-    util::Bus writeBus;
+    std::vector<databus_t> readBus_vec;
+    std::vector<databus_t> writeBus_vec;
 
 // commandBus dependes on cmdBusInitPattern and cmdBusWidth
 // cmdBusInitPattern must be initialized before commandBus
@@ -45,7 +47,7 @@ private:
     util::Clock writeDQS_;
     util::Clock clock;
 public:
-    util::Bus commandBus;
+    commandbus_t commandBus;
     uint64_t prepostambleReadMinTccd;
     uint64_t prepostambleWriteMinTccd;
 private:
@@ -105,8 +107,8 @@ private:
     void handle_interface_commandbus(const Command& cmd);
     void handle_interface(const Command& cmd) override;
     void handle_interface_toggleRate(const Command& cmd) override;
-    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
-    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
+    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, std::vector<databus_t> &bus, DRAMPower::TogglingHandle &togglinghandle);
+    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, std::vector<databus_t> &bus, DRAMPower::TogglingHandle &togglinghandle);
     timestamp_t toggling_rate_get_enable_time(timestamp_t timestamp);
     timestamp_t toggling_rate_get_disable_time(timestamp_t timestamp);
     timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
