@@ -29,10 +29,12 @@ public:
     DDR4(const MemSpecDDR4 &memSpec);
     virtual ~DDR4() = default;
 public:
+    using commandbus_t = util::Bus<27>;
+    using databus_t = util::Bus<8>;
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
-    util::Bus readBus;
-    util::Bus writeBus;
+    std::vector<databus_t> readBus_vec;
+    std::vector<databus_t> writeBus_vec;
 
 // commandBus dependes on cmdBusInitPattern and cmdBusWidth
 // cmdBusInitPattern must be initialized before commandBus
@@ -45,7 +47,7 @@ private:
     util::Clock writeDQS_;
     util::Clock clock;
 public:
-    util::Bus commandBus;
+    commandbus_t commandBus;
     uint64_t prepostambleReadMinTccd;
     uint64_t prepostambleWriteMinTccd;
 private:

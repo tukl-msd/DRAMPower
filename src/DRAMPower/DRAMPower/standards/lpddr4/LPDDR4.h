@@ -28,11 +28,16 @@ public:
     LPDDR4(const MemSpecLPDDR4& memSpec);
     virtual ~LPDDR4() = default;
 public:
+    using commandbus_t = util::Bus<6>;
+    using databus_8_t = util::Bus<8>;
+    using databus_16_t = util::Bus<16>;
     MemSpecLPDDR4 memSpec;
     std::vector<Rank> ranks;
-    util::Bus commandBus;
-    util::Bus readBus;
-    util::Bus writeBus;
+    commandbus_t commandBus;
+    std::vector<databus_8_t> readBus_8_vec;
+    std::vector<databus_8_t> writeBus_8_vec;
+    std::vector<databus_16_t> readBus_16_vec;
+    std::vector<databus_16_t> writeBus_16_vec;
     util::Clock readDQS;
     util::Clock writeDQS;
 
@@ -117,6 +122,32 @@ public:
 
     void endOfSimulation(timestamp_t timestamp);
 private:
+    template <size_t N>
+    void handle_interface_impl(
+        const Command &cmd,
+        std::vector<util::Bus<N>> &writeBus_vec,
+        std::vector<util::Bus<N>> &readBus_vec
+    ) {
+        size_t length = 0;
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            length = cmd.sz_bits / readBus_vec[0].get_width();
+            if ( cmd.data != nullptr ) {
+                for (auto &readBus : readBus_vec) {
+                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+            }
+            handle_interface_data_common(cmd, length);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            length = cmd.sz_bits / writeBus_vec[0].get_width();
+            if ( cmd.data != nullptr ) {
+                for (auto &writeBus : writeBus_vec) {
+                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+            }
+            handle_interface_data_common(cmd, length);
+        }
+        handle_interface_commandbus(cmd);
+    }
     void handle_interface(const Command& cmd) override;
     void handle_interface_toggleRate(const Command& cmd) override;
     void update_toggling_rate(const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;

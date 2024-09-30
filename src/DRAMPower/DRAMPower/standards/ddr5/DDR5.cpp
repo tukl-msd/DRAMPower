@@ -25,20 +25,27 @@ namespace DRAMPower {
           })
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-        , writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H}
-        , readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H}
+        , writeBus_8_vec{memSpec.numberOfDevices, databus_8_t{ memSpec.dataRate,
+            databus_8_t::BusIdlePatternSpec::H, databus_8_t::BusInitPatternSpec::H}}
+        , readBus_8_vec{memSpec.numberOfDevices, databus_8_t{ memSpec.dataRate,
+            databus_8_t::BusIdlePatternSpec::H, databus_8_t::BusInitPatternSpec::H}}
+        , writeBus_16_vec{memSpec.numberOfDevices, databus_16_t{ memSpec.dataRate,
+            databus_16_t::BusIdlePatternSpec::H, databus_16_t::BusInitPatternSpec::H}}
+        , readBus_16_vec{memSpec.numberOfDevices, databus_16_t{ memSpec.dataRate,
+            databus_16_t::BusIdlePatternSpec::H, databus_16_t::BusInitPatternSpec::H}}
         , cmdBusWidth(14)
         , cmdBusInitPattern((1<<cmdBusWidth)-1)
         , commandBus(
-            cmdBusWidth, 1,
-            util::Bus::BusIdlePatternSpec::H,
-            util::Bus::burst_t(cmdBusWidth, cmdBusInitPattern)
+            1,
+            commandbus_t::BusIdlePatternSpec::H,
+            commandbus_t::burst_t(cmdBusInitPattern)
         )
         , readDQS(memSpec.dataRateSpec.dqsBusRate, true)
         , writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
     {
+        if (memSpec.numberOfDevices < 1) {
+            throw std::invalid_argument("Number of devices must be at least 1");
+        }
         this->registerPatterns();
 
         this->registerBankHandler<CmdType::ACT>(&DDR5::handleAct);
@@ -278,21 +285,11 @@ namespace DRAMPower {
     }
 
     void DDR5::handle_interface(const Command &cmd) {
-        size_t length = 0;
-        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            length = cmd.sz_bits / readBus.get_width();
-            if ( cmd.data != nullptr ) {
-                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            handle_interface_data_common(cmd, length);
-        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            length = cmd.sz_bits / writeBus.get_width();
-            if ( cmd.data != nullptr ) {
-                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            handle_interface_data_common(cmd, length);
+        if (memSpec.bitWidth == 16) {
+            handle_interface_impl(cmd, writeBus_16_vec, readBus_16_vec);
+        } else {
+            handle_interface_impl(cmd, writeBus_8_vec, readBus_8_vec);
         }
-        handle_interface_commandbus(cmd);
     }
 
     void DDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -561,8 +558,22 @@ namespace DRAMPower {
         }
 
         stats.commandBus = commandBus.get_stats(timestamp);
-        stats.readBus = readBus.get_stats(timestamp);
-        stats.writeBus = writeBus.get_stats(timestamp);
+        if (memSpec.bitWidth == 16) {
+            for (auto &bus : readBus_16_vec) {
+                stats.readBus += bus.get_stats(timestamp);
+            }
+            for (auto &bus : writeBus_16_vec) {
+                stats.writeBus += bus.get_stats(timestamp);
+            }
+        } else {
+            for (auto &bus : readBus_8_vec) {
+                stats.readBus += bus.get_stats(timestamp);
+            }
+            for (auto &bus : writeBus_8_vec) {
+                stats.writeBus += bus.get_stats(timestamp);
+            }
+        }
+        
         if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
             stats.togglingStats = {
                 togglingHandleRead.get_stats(timestamp), // read

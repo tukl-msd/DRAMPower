@@ -57,6 +57,7 @@ struct bus_stats_t {
 	}
 };
 
+template <::std::size_t width>
 class Bus {
 
 private:
@@ -119,9 +120,8 @@ public:
 		H = 1,
 		Z = 2,
 	};
-	using burst_storage_t = util::burst_storage;
+	using burst_storage_t = util::burst_storage<width>;
 	using burst_t = typename burst_storage_t::burst_t;
-	const std::size_t width;
 	bus_stats_t stats;
 
 private:
@@ -143,10 +143,10 @@ private:
 	std::optional<burst_t> custom_init_pattern;
 
 private:
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec_ init_pattern,
+	Bus(uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec_ init_pattern,
 		std::optional<burst_t> custom_init_pattern = std::nullopt
 	) :
-		width(width), burst_storage(width), datarate(datarate),
+		datarate(datarate),
 		idle_pattern(idle_pattern), init_pattern(init_pattern), custom_init_pattern (custom_init_pattern)
 	{
 		static_assert(std::numeric_limits<decltype(width)>::is_signed == false, "std::size_t must be unsigned");
@@ -154,11 +154,8 @@ private:
 		// Initialize zero and one patterns
 		this->zero_pattern = burst_t();
 		this->one_pattern = burst_t();
-		for(std::size_t i = 0; i < width; i++)
-		{
-			this->zero_pattern.push_back(false);
-			this->one_pattern.push_back(true);
-		}
+		this->zero_pattern.reset();
+		this->one_pattern.set();
 
 		// Initialize last pattern and init stats
 		switch(init_pattern)
@@ -190,11 +187,11 @@ private:
 		}
 	};
 public: // Ensure type safety for init_pattern with 2 seperate constructors
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
-		: Bus(width, datarate, idle_pattern, static_cast<BusInitPatternSpec_>(init_pattern)) {} // TODO alternative to static_cast ??
+	Bus(uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
+		: Bus(datarate, idle_pattern, static_cast<BusInitPatternSpec_>(init_pattern)) {} // TODO alternative to static_cast ??
 	
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
-		: Bus(width, datarate, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern) {}
+	Bus(uint64_t datarate, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
+		: Bus(datarate, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern) {}
 
 	void set_idle_pattern(BusIdlePatternSpec idle_pattern)
 	{

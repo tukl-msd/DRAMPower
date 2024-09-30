@@ -94,8 +94,6 @@ TEST_F(DDR5_TogglingRate_Tests, Pattern_0_LH) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(spec->dataRate, 2);
-    EXPECT_EQ(ddr->readBus.get_width(), spec->bitWidth);
-    EXPECT_EQ(ddr->writeBus.get_width(), spec->bitWidth);
 
     // Toggling rate in stats
     EXPECT_TRUE(stats.togglingStats);
