@@ -29,10 +29,12 @@ public:
     LPDDR4(const MemSpecLPDDR4& memSpec);
     virtual ~LPDDR4() = default;
 public:
+    using commandbus_t = util::Bus<6>;
+    using databus_t = util::DataBus<16>;
     MemSpecLPDDR4 memSpec;
     std::vector<Rank> ranks;
-    util::Bus commandBus;
-    util::DataBus dataBus;
+    commandbus_t commandBus;
+    databus_t dataBus;
     util::Clock readDQS;
     util::Clock writeDQS;
 

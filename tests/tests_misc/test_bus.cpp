@@ -1,9 +1,17 @@
 #include <gtest/gtest.h>
 
 #include <DRAMPower/util/bus.h>
-#include <optional>
+#include <DRAMPower/util/dynamic_bitset.h>
 
 using namespace DRAMPower;
+
+using Bus_512 = util::Bus<512>;
+using Bus_128 = util::Bus<128>;
+using Bus_64 = util::Bus<64>;
+using Bus_16 = util::Bus<16>;
+using Bus_8 = util::Bus<8>;
+using Bus_6 = util::Bus<6>;
+using Bus_4 = util::Bus<4>;
 
 class BusTest : public ::testing::Test {
 protected:
@@ -18,41 +26,40 @@ protected:
 
 #define ASSERT_HAS_DATA(lhs) ASSERT_TRUE(lhs.has_value())
 #define ASSERT_NO_DATA(lhs) ASSERT_FALSE(lhs.has_value())
-#define ASSERT_EQ_BITSET(lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), util::dynamic_bitset( lhs.value().size(), rhs))
-#define ASSERT_EQ_BURST(lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), rhs)
+#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), util::dynamic_bitset<N>(N, rhs))
 
 TEST_F(BusTest, EmptyTest)
 {
-	util::Bus bus(8, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::L, Bus_8::BusInitPatternSpec::L);
 
 	// auto [hasData, data] = bus.at(0);
 
 	ASSERT_HAS_DATA(bus.at(0));
-	ASSERT_EQ(bus.at(0).value(), util::dynamic_bitset( 8, 0b0000'0000 ));
-	ASSERT_EQ_BITSET(bus.at(1), 0b0000'0000);
+	ASSERT_EQ(bus.at(0).value(), Bus_8::burst_t(8, 0b0000'0000));
+	ASSERT_EQ_BITSET(8, bus.at(1), 0b0000'0000);
 };
 
 TEST_F(BusTest, Load_Width_8_Single)
 {
-	util::Bus bus(8, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::L, Bus_8::BusInitPatternSpec::L);
 
 	bus.load(0, 0b1010'1111, 1);
-	ASSERT_EQ_BITSET(bus.at(0), 0b1010'1111);
-	ASSERT_EQ_BITSET(bus.at(1), 0b0000'0000);
+	ASSERT_EQ_BITSET(8, bus.at(0), 0b1010'1111);
+	ASSERT_EQ_BITSET(8, bus.at(1), 0b0000'0000);
 };
 
 TEST_F(BusTest, Load_Width_4)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::L, Bus_4::BusInitPatternSpec::L);
 
 	bus.load(0, 0b1010'1111, 2);
-	ASSERT_EQ_BITSET(bus.at(0), 0b1010);
-	ASSERT_EQ_BITSET(bus.at(1), 0b1111);
+	ASSERT_EQ_BITSET(4, bus.at(0), 0b1010);
+	ASSERT_EQ_BITSET(4, bus.at(1), 0b1111);
 };
 
 TEST_F(BusTest, Load_HighImpedance_Width_4_0)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::Z, util::Bus::BusInitPatternSpec::L);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::Z, Bus_4::BusInitPatternSpec::L);
 	
 	// Bursts
 	// -1 LLLL
@@ -76,8 +83,8 @@ TEST_F(BusTest, Load_HighImpedance_Width_4_0)
 
 	bus.load(3, 0b1010'1111, 2);
 
-	ASSERT_EQ_BITSET(bus.at(3), 0b1010);
-	ASSERT_EQ_BITSET(bus.at(4), 0b1111);
+	ASSERT_EQ_BITSET(4, bus.at(3), 0b1010);
+	ASSERT_EQ_BITSET(4, bus.at(4), 0b1111);
 	ASSERT_NO_DATA(bus.at(5));
 	
 	stats = bus.get_stats(4); // ZZZZ -> 1010
@@ -97,7 +104,7 @@ TEST_F(BusTest, Load_HighImpedance_Width_4_0)
 
 TEST_F(BusTest, Load_HighImpedance_Width_4_1)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::Z, util::Bus::BusInitPatternSpec::Z);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::Z, Bus_4::BusInitPatternSpec::Z);
 
 	// Bursts
 	// -1 ZZZZ
@@ -114,8 +121,8 @@ TEST_F(BusTest, Load_HighImpedance_Width_4_1)
 
 	bus.load(3, 0b1010'1111, 2);
 
-	ASSERT_EQ_BITSET(bus.at(3), 0b1010);
-	ASSERT_EQ_BITSET(bus.at(4), 0b1111);
+	ASSERT_EQ_BITSET(4, bus.at(3), 0b1010);
+	ASSERT_EQ_BITSET(4, bus.at(4), 0b1111);
 	ASSERT_NO_DATA(bus.at(5));
 
 	auto stats = bus.get_stats(3);
@@ -142,7 +149,7 @@ TEST_F(BusTest, Load_HighImpedance_Width_4_1)
 
 TEST_F(BusTest, Load_HighImpedance_Width_4_2)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::LAST_PATTERN, util::Bus::BusInitPatternSpec::Z);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::LAST_PATTERN, Bus_4::BusInitPatternSpec::Z);
 
 	// Bursts
 	// -1 ZZZZ
@@ -160,8 +167,8 @@ TEST_F(BusTest, Load_HighImpedance_Width_4_2)
 
 	bus.load(3, 0b1010'0101, 2);
 
-	ASSERT_EQ_BITSET(bus.at(3), 0b1010);
-	ASSERT_EQ_BITSET(bus.at(4), 0b0101);
+	ASSERT_EQ_BITSET(4, bus.at(3), 0b1010);
+	ASSERT_EQ_BITSET(4, bus.at(4), 0b0101);
 	ASSERT_HAS_DATA(bus.at(5));
 	ASSERT_HAS_DATA(bus.at(6));
 
@@ -196,7 +203,7 @@ TEST_F(BusTest, Load_HighImpedance_Width_4_2)
 
 TEST_F(BusTest, Load_HighImpedance_Width_4_3)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::Z, util::Bus::BusInitPatternSpec::L);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::Z, Bus_4::BusInitPatternSpec::L);
 
 	// Bursts
 	// -1 0000
@@ -206,8 +213,8 @@ TEST_F(BusTest, Load_HighImpedance_Width_4_3)
 	//  3 ZZZZ
 
 	bus.load(0, 0b1010'0101, 2);
-	ASSERT_EQ_BITSET(bus.at(0), 0b1010);
-	ASSERT_EQ_BITSET(bus.at(1), 0b0101);
+	ASSERT_EQ_BITSET(4, bus.at(0), 0b1010);
+	ASSERT_EQ_BITSET(4, bus.at(1), 0b0101);
 	ASSERT_NO_DATA(bus.at(2));
 	ASSERT_NO_DATA(bus.at(3));
 
@@ -242,38 +249,38 @@ TEST_F(BusTest, Load_HighImpedance_Width_4_3)
 
 TEST_F(BusTest, Load_Width_8)
 {
-	util::Bus bus(8, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::L, Bus_8::BusInitPatternSpec::L);
 
 	bus.load(0, 0b0010'1010'1001'0110, 2);
-	ASSERT_EQ_BITSET(bus.at(0), 0b0010'1010);
-	ASSERT_EQ_BITSET(bus.at(1), 0b1001'0110);
+	ASSERT_EQ_BITSET(8, bus.at(0), 0b0010'1010);
+	ASSERT_EQ_BITSET(8, bus.at(1), 0b1001'0110);
 };
 
 
 TEST_F(BusTest, Load_Width_4_Cont)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::L, Bus_4::BusInitPatternSpec::L);
 
 	bus.load(0, 0b1010'1111, 2);
-	ASSERT_EQ_BITSET(bus.at(0), 0b1010);
-	ASSERT_EQ_BITSET(bus.at(1), 0b1111);
-	ASSERT_EQ_BITSET(bus.at(2), 0b0000);
+	ASSERT_EQ_BITSET(4, bus.at(0), 0b1010);
+	ASSERT_EQ_BITSET(4, bus.at(1), 0b1111);
+	ASSERT_EQ_BITSET(4, bus.at(2), 0b0000);
 
 	bus.load(2, 0b0101'0001, 2);
-	ASSERT_EQ_BITSET(bus.at(2), 0b0101);
-	ASSERT_EQ_BITSET(bus.at(3), 0b0001);
-	ASSERT_EQ_BITSET(bus.at(4), 0b0000);
+	ASSERT_EQ_BITSET(4, bus.at(2), 0b0101);
+	ASSERT_EQ_BITSET(4, bus.at(3), 0b0001);
+	ASSERT_EQ_BITSET(4, bus.at(4), 0b0000);
 
 	bus.load(5, 0b0101'0001'1111, 3);
-	ASSERT_EQ_BITSET(bus.at(5), 0b0101);
-	ASSERT_EQ_BITSET(bus.at(6), 0b0001);
-	ASSERT_EQ_BITSET(bus.at(7), 0b1111);
-	ASSERT_EQ_BITSET(bus.at(8), 0b0000);
+	ASSERT_EQ_BITSET(4, bus.at(5), 0b0101);
+	ASSERT_EQ_BITSET(4, bus.at(6), 0b0001);
+	ASSERT_EQ_BITSET(4, bus.at(7), 0b1111);
+	ASSERT_EQ_BITSET(4, bus.at(8), 0b0000);
 };
 
 TEST_F(BusTest, Stats_Empty_1)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::L, Bus_4::BusInitPatternSpec::L);
 	auto stats = bus.get_stats(0);
 	ASSERT_EQ(stats.ones, 0);
 	ASSERT_EQ(stats.zeroes, 0);
@@ -284,7 +291,7 @@ TEST_F(BusTest, Stats_Empty_1)
 
 TEST_F(BusTest, Stats_Empty_2)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::L, Bus_4::BusInitPatternSpec::L);
 	bus.load(0, 0b1010'1111, 2);
 	auto stats = bus.get_stats(0);
 	ASSERT_EQ(stats.ones, 0);
@@ -296,7 +303,7 @@ TEST_F(BusTest, Stats_Empty_2)
 
 TEST_F(BusTest, Stats_Basic_1)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::H);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::L, Bus_4::BusInitPatternSpec::H);
 
 	auto stats = bus.get_stats(0);
 	ASSERT_EQ(stats.ones, 0);
@@ -337,7 +344,7 @@ TEST_F(BusTest, Stats_Basic_1)
 
 TEST_F(BusTest, Stats_Basic_2)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::H);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::L, Bus_4::BusInitPatternSpec::H);
 
 	auto stats = bus.get_stats(0);
 	ASSERT_EQ(stats.ones, 0);
@@ -378,7 +385,7 @@ TEST_F(BusTest, Stats_Basic_2)
 
 TEST_F(BusTest, Stats_Basic_3)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::H);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::L, Bus_4::BusInitPatternSpec::H);
 
 	auto stats = bus.get_stats(0);
 	ASSERT_EQ(stats.ones, 0);
@@ -419,7 +426,7 @@ TEST_F(BusTest, Stats_Basic_3)
 
 TEST_F(BusTest, Stats_4)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::L, Bus_4::BusInitPatternSpec::L);
 
 	bus.load(0, 0b1010'1111, 2);
 
@@ -454,7 +461,7 @@ TEST_F(BusTest, Stats_4)
 
 TEST_F(BusTest, Stats_4_Idle)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::L, Bus_4::BusInitPatternSpec::L);
 
 	bus.load(0, 0b1010'1111, 2);
 
@@ -483,7 +490,7 @@ TEST_F(BusTest, Stats_4_Idle)
 
 TEST_F(BusTest, Stats_8)
 {
-	util::Bus bus(8, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::L, Bus_8::BusInitPatternSpec::L);
 
 	bus.load(0, 0b1010'1111'0110'1001, 2);
 	// 1010'1111
@@ -506,7 +513,7 @@ TEST_F(BusTest, Stats_8)
 
 TEST_F(BusTest, Stats_Second_Load_4)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::L, Bus_4::BusInitPatternSpec::L);
 
 	bus.load(0, 0b1010'1111, 2);
 
@@ -536,7 +543,7 @@ TEST_F(BusTest, Stats_Second_Load_4)
 
 TEST_F(BusTest, Load_4_cycles)
 {
-	util::Bus bus(4, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
+	Bus_4 bus(4, 1, Bus_4::BusIdlePatternSpec::L, Bus_4::BusInitPatternSpec::L);
 
 	bus.load(0, 0b1010'1111'1001'0011, 4);
 
@@ -597,7 +604,7 @@ TEST_F(BusTest, Load_Data)
 		0, 0b0000'0001,
 	};
 
-	util::Bus bus{ 16 , 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L};
+	Bus_16 bus{16, 1, Bus_16::BusIdlePatternSpec::L, Bus_16::BusInitPatternSpec::L};
 
 	bus.load(0, data, sizeof(data) * 8);
 
@@ -683,7 +690,7 @@ TEST_F(BusTest, Test_001)
 	*/
 
 
-	util::Bus bus{ 6, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L};
+	Bus_6 bus{6, 1, Bus_6::BusIdlePatternSpec::L, Bus_6::BusInitPatternSpec::L};
 
 	bus.load(0, cmd_1.to_ulong(), 4);
 

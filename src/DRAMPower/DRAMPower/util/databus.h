@@ -10,17 +10,22 @@
 
 namespace DRAMPower::util {
 
+template<std::size_t blocksize = 32>
 class DataBus {
 
 public:
+    using Bus_t = util::Bus<blocksize>;
+    using IdlePattern = typename Bus_t::BusIdlePatternSpec;
+    using InitPattern = typename Bus_t::BusInitPatternSpec;
+
     enum class BusType {
         Bus = 0,
         TogglingRate
     };
 
 public:
-    DataBus(size_t numberOfDevices, size_t width, size_t dataRate,
-            util::Bus::BusIdlePatternSpec idlePattern, util::Bus::BusInitPatternSpec initPattern,
+    DataBus(std::size_t numberOfDevices, std::size_t width, std::size_t dataRate,
+        IdlePattern idlePattern, InitPattern initPattern,
             DRAMUtils::Config::TogglingRateIdlePattern togglingRateIdlePattern = DRAMUtils::Config::TogglingRateIdlePattern::Z,
             const double togglingRate = 0.0, const double dutyCycle = 0.0,
             BusType busType = BusType::Bus
@@ -31,8 +36,8 @@ public:
         , togglingHandleWrite(width * numberOfDevices, dataRate, togglingRate, dutyCycle, togglingRateIdlePattern, false)
         , busType(busType)
         , numberOfDevices(numberOfDevices)
-        , width(width)
         , dataRate(dataRate)
+        , width(width)
     {
         switch(busType) {
             case BusType::Bus:
@@ -47,7 +52,7 @@ public:
     }
 
 private:
-    void load(util::Bus &bus, TogglingHandle &togglingHandle, timestamp_t timestamp, size_t n_bits, const uint8_t *data = nullptr) {
+    void load(Bus_t &bus, TogglingHandle &togglingHandle, timestamp_t timestamp, std::size_t n_bits, const uint8_t *data = nullptr) {
         switch(busType) {
             case BusType::Bus:
                 if (nullptr == data || 0 == n_bits) {
@@ -63,10 +68,10 @@ private:
     }
 
 public:
-    void loadWrite(timestamp_t timestamp, size_t n_bits, const uint8_t *data = nullptr) {
+    void loadWrite(timestamp_t timestamp, std::size_t n_bits, const uint8_t *data = nullptr) {
         load(busWrite, togglingHandleWrite, timestamp, n_bits, data);
     }
-    void loadRead(timestamp_t timestamp, size_t n_bits, const uint8_t *data = nullptr) {
+    void loadRead(timestamp_t timestamp, std::size_t n_bits, const uint8_t *data = nullptr) {
         load(busRead, togglingHandleRead, timestamp, n_bits, data);
     }
 
@@ -110,19 +115,19 @@ public:
         return BusType::TogglingRate == busType;
     }
 
-    size_t getWidth() {
+    std::size_t getWidth() {
         return width;
     }
 
-    size_t getNumberOfDevices() {
+    std::size_t getNumberOfDevices() {
         return numberOfDevices;
     }
 
-    size_t getCombinedBusWidth() {
+    std::size_t getCombinedBusWidth() {
         return width * numberOfDevices;
     }
 
-    size_t getDataRate() {
+    std::size_t getDataRate() {
         return dataRate;
     }
 
@@ -139,14 +144,14 @@ public:
     }
 
 private:
-    util::Bus busRead;
-    util::Bus busWrite;
+    Bus_t busRead;
+    Bus_t busWrite;
     TogglingHandle togglingHandleRead;
     TogglingHandle togglingHandleWrite;
     BusType busType;
-    size_t numberOfDevices;
-    size_t width;
-    size_t dataRate;
+    std::size_t numberOfDevices;
+    std::size_t dataRate;
+    std::size_t width;
 };
 
 } // namespace DRAMPower
