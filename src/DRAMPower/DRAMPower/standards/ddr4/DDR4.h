@@ -31,7 +31,7 @@ public:
     virtual ~DDR4() = default;
 public:
     using commandbus_t = util::Bus<27>;
-    using databus_t = util::DataBus<8>;
+    using databus_t = util::DataBus<16>;
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
 

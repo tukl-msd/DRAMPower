@@ -376,7 +376,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 	size_t get_width() const { return width; };
 
 	// Get stats not including timestamp t
-	auto get_stats(timestamp_t timestamp) const 
+	bus_stats_t get_stats(timestamp_t timestamp) const 
 	{
 
 		timestamp_t t_virtual = timestamp * this->datarate;
@@ -398,8 +398,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		}
 		
 		// Add pending stats from last load
-		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < t_virtual
-		)
+		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < t_virtual)
 		{
 			stats += this->pending_stats.getStats();
 		}
