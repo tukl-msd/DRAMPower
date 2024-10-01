@@ -57,8 +57,17 @@ struct bus_stats_t {
 	}
 };
 
+class BusBase {
+public:
+	BusBase() = default;
+	virtual ~BusBase() = default;
+	virtual void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) = 0;
+	virtual bus_stats_t get_stats(timestamp_t timestamp) const = 0;
+	virtual size_t get_width() const { return 0; };
+};
+
 template <::std::size_t width>
-class Bus {
+class Bus : public BusBase {
 
 private:
 	enum class BusInitPatternSpec_
@@ -373,7 +382,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 	size_t get_width() const { return width; };
 
 	// Get stats not including timestamp t
-	auto get_stats(timestamp_t timestamp) const 
+	bus_stats_t get_stats(timestamp_t timestamp) const 
 	{
 
 		timestamp_t t_virtual = timestamp * this->datarate;
@@ -395,8 +404,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		}
 		
 		// Add pending stats from last load
-		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < t_virtual
-		)
+		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < t_virtual)
 		{
 			stats += this->pending_stats.getStats();
 		}

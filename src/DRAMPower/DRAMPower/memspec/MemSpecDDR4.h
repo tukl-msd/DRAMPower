@@ -82,6 +82,14 @@ public:
 
 	double vddq;
 
+	enum class BusConfig {
+		X4 = 4,
+		X8 = 8,
+		X16 = 16,
+	};
+
+	BusConfig busConfig;
+
 	// Memspec Variables:
 	struct MemTimingSpec 
 	{
