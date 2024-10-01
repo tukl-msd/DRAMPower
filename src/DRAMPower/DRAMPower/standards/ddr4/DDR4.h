@@ -24,17 +24,40 @@
 
 namespace DRAMPower {
 
+template<size_t N>
+struct DatabusContainer {
+    using Bus = util::Bus<N>;
+    std::vector<Bus> writeBus_vec;
+    std::vector<Bus> readBus_vec;
+    DatabusContainer() = default;
+    
+    // Forward arguments to Bus constructor
+    template<typename... Args>
+    DatabusContainer(size_t devices, Args&&... args)
+        : writeBus_vec{devices, Bus{std::forward<Args>(args)...}}
+        , readBus_vec{devices, Bus{std::forward<Args>(args)...}}
+    {}
+
+    void get_stats(util::bus_stats_t &readBusStats, util::bus_stats_t &writeBusStats, timestamp_t timestamp) const
+    {
+        for (const auto &writeBus : writeBus_vec) {
+            writeBusStats += writeBus.get_stats(timestamp);
+        }
+        for (const auto &readBus : readBus_vec) {
+            readBusStats += readBus.get_stats(timestamp);
+        }
+    }
+};
+
 class DDR4 : public dram_base<CmdType>{
 public:
     DDR4(const MemSpecDDR4 &memSpec);
     virtual ~DDR4() = default;
 public:
     using commandbus_t = util::Bus<27>;
-    using databus_t = util::Bus<8>;
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
-    std::vector<databus_t> readBus_vec;
-    std::vector<databus_t> writeBus_vec;
+    std::variant<DatabusContainer<4>, DatabusContainer<8>, DatabusContainer<16>> databus;
 
 // commandBus dependes on cmdBusInitPattern and cmdBusWidth
 // cmdBusInitPattern must be initialized before commandBus
@@ -103,6 +126,29 @@ public:
         return entryTime;
     };
 private:
+    template<size_t N>
+    void handle_interface_impl(const Command &cmd, DatabusContainer<N> &databus) {
+        // databus shadows variant databus
+        size_t length = 0;
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            length = cmd.sz_bits / databus.readBus_vec[0].get_width();
+            if ( cmd.data != nullptr ) {
+                for (auto &readBus : databus.readBus_vec) {
+                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+            }
+            handle_interface_data_common(cmd, length);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            length = cmd.sz_bits / databus.writeBus_vec[0].get_width();
+            if ( cmd.data != nullptr ) {
+                for (auto &writeBus : databus.writeBus_vec) {
+                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+            }
+            handle_interface_data_common(cmd, length);
+        }
+        handle_interface_commandbus(cmd);
+    }
     void handle_interface_data_common(const Command& cmd, size_t length);
     void handle_interface_commandbus(const Command& cmd);
     void handle_interface(const Command& cmd) override;

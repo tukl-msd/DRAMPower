@@ -17,14 +17,6 @@ namespace DRAMPower {
           })
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-        , readBus_vec( memSpec.numberOfDevices, databus_t(
-            /*memSpec.bitWidth * memSpec.numberOfDevices, */memSpec.dataRate,
-             databus_t::BusIdlePatternSpec::H, databus_t::BusInitPatternSpec::H
-        ))
-        , writeBus_vec( memSpec.numberOfDevices, databus_t(
-            /*memSpec.bitWidth * memSpec.numberOfDevices, */memSpec.dataRate,
-             databus_t::BusIdlePatternSpec::H, databus_t::BusInitPatternSpec::H
-        ))
         , cmdBusWidth(27)
         , cmdBusInitPattern((1<<cmdBusWidth)-1)
         , readDQS_(2, true)
@@ -36,9 +28,22 @@ namespace DRAMPower {
         )
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
-	{
+    {
+        switch(memSpec.busConfig) {
+            case MemSpecDDR4::BusConfig::X4:
+                databus = DatabusContainer<4>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<4>::BusIdlePatternSpec::H, util::Bus<4>::BusInitPatternSpec::H);
+                break;
+            case MemSpecDDR4::BusConfig::X8:
+                databus = DatabusContainer<8>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<8>::BusIdlePatternSpec::H, util::Bus<8>::BusInitPatternSpec::H);
+                break;
+            case MemSpecDDR4::BusConfig::X16:
+                databus = DatabusContainer<16>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<16>::BusIdlePatternSpec::H, util::Bus<16>::BusInitPatternSpec::H);
+                break;
+            default:
+                throw std::runtime_error("Invalid bus width");
+        }
         if (memSpec.numberOfDevices < 1) {
-            throw std::invalid_argument("Number of devices must be at least 1");
+            throw std::runtime_error("Invalid number of devices");
         }
         // In the first state all ranks are precharged
         //for (auto &rank : ranks) {
@@ -328,25 +333,9 @@ namespace DRAMPower {
     }
 
     void DDR4::handle_interface(const Command &cmd) {
-        size_t length = 0;
-        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            length = cmd.sz_bits / readBus_vec[0].get_width();
-            if ( cmd.data != nullptr ) {
-                for (auto &readBus : readBus_vec) {
-                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-                }
-            }
-            handle_interface_data_common(cmd, length);
-        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            length = cmd.sz_bits / writeBus_vec[0].get_width();
-            if ( cmd.data != nullptr ) {
-                for (auto &writeBus : writeBus_vec) {
-                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-                }
-            }
-            handle_interface_data_common(cmd, length);
-        }
-        handle_interface_commandbus(cmd);
+        std::visit([this, &cmd](auto &databus) {
+            this->handle_interface_impl(cmd, databus);
+        }, databus);
     }
 
     void DDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -618,12 +607,10 @@ namespace DRAMPower {
             stats.rank_total[i].prepos.writeMergedTime = rank.mergedPrePostambleTime_write;
         }
         stats.commandBus = commandBus.get_stats(timestamp);
-        for (auto &readBus : readBus_vec) {
-            stats.readBus += readBus.get_stats(timestamp);
-        }
-        for (auto &writeBus : writeBus_vec) {
-            stats.writeBus += writeBus.get_stats(timestamp);
-        }
+
+        std::visit([this, &stats, timestamp](auto &databus) {
+            databus.get_stats(stats.readBus, stats.writeBus, timestamp);
+        }, databus);
         if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
             stats.togglingStats = {
                 togglingHandleRead.get_stats(timestamp), // read

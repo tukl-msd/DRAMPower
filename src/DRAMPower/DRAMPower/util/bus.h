@@ -57,8 +57,17 @@ struct bus_stats_t {
 	}
 };
 
+class BusBase {
+public:
+	BusBase() = default;
+	virtual ~BusBase() = default;
+	virtual void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) = 0;
+	virtual bus_stats_t get_stats(timestamp_t timestamp) const = 0;
+	virtual size_t get_width() const { return 0; };
+};
+
 template <::std::size_t width>
-class Bus {
+class Bus : public BusBase {
 
 private:
 	enum class BusInitPatternSpec_
@@ -198,7 +207,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		this->idle_pattern = idle_pattern;
 	}
 
-	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
+	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) override {
 
 		// assume no interleaved commands appear, but the old one already finishes cleanly before the next
 		//assert(this->last_load + burst_storage.size() <= timestamp); // TODO add this assert??
@@ -315,12 +324,12 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		return std::make_optional(burst);
 	};
 
-	auto get_width() const { return width; };
+	size_t get_width() const override { return width; };
 
 	// Get stats not including timestamp t
-	auto get_stats(timestamp_t t) const 
+	bus_stats_t get_stats(timestamp_t timestamp) const override
 	{
-		timestamp_t virtual_t = t * this->datarate;
+		timestamp_t virtual_t = timestamp * this->datarate;
 		assert(virtual_t >= this->last_load);
 		// Return empty stats for virtual_t = 0
 		if(virtual_t == 0)

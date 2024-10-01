@@ -93,10 +93,12 @@ TEST_F(DDR4_TogglingRate_Tests, Pattern_0_LH) {
 
 
     SimulationStats stats = ddr->getStats();
-
+    
     EXPECT_EQ(spec->dataRate, 2);
-    EXPECT_EQ(ddr->readBus_vec.at(0).get_width(), spec->bitWidth);
-    EXPECT_EQ(ddr->writeBus_vec.at(0).get_width(), spec->bitWidth);
+    std::visit([this](auto &databus) {
+        EXPECT_EQ(databus.readBus_vec.at(0).get_width(), spec->bitWidth);
+        EXPECT_EQ(databus.writeBus_vec.at(0).get_width(), spec->bitWidth);
+    }, ddr->databus);
 
     // Toggling rate in stats
     EXPECT_TRUE(stats.togglingStats);
@@ -206,8 +208,10 @@ TEST_F(DDR4_TogglingRate_Tests, Pattern_0_HZ) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(spec->dataRate, 2);
-    EXPECT_EQ(ddr->readBus_vec.at(0).get_width(), spec->bitWidth);
-    EXPECT_EQ(ddr->writeBus_vec.at(0).get_width(), spec->bitWidth);
+    std::visit([this](auto &databus) {
+        EXPECT_EQ(databus.readBus_vec.at(0).get_width(), spec->bitWidth);
+        EXPECT_EQ(databus.writeBus_vec.at(0).get_width(), spec->bitWidth);
+    }, ddr->databus);
 
     // Toggling rate in stats
     EXPECT_TRUE(stats.togglingStats);
