@@ -30,10 +30,7 @@ public:
     using databus_16_t = util::Bus<16>;
     MemSpecDDR5 memSpec;
     std::vector<Rank> ranks;
-    std::vector<databus_8_t> writeBus_8_vec;
-    std::vector<databus_8_t> readBus_8_vec;
-    std::vector<databus_16_t> writeBus_16_vec;
-    std::vector<databus_16_t> readBus_16_vec;
+    std::variant<util::DatabusContainer<4>, util::DatabusContainer<8>, util::DatabusContainer<16>> databus;
 private:
     std::size_t cmdBusWidth;
     uint64_t cmdBusInitPattern;
@@ -60,24 +57,21 @@ public:
 
 private:
     template <size_t N>
-    void handle_interface_impl(
-        const Command &cmd,
-        std::vector<util::Bus<N>> &writeBus_vec,
-        std::vector<util::Bus<N>> &readBus_vec
-    ) {
+    void handle_interface_impl(const Command &cmd, util::DatabusContainer<N> &databus) {
+        // databus shadows variant databus
         size_t length = 0;
         if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            length = cmd.sz_bits / readBus_vec[0].get_width();
+            length = cmd.sz_bits / databus.readBus_vec[0].get_width();
             if ( cmd.data != nullptr ) {
-                for (auto &readBus : readBus_vec) {
+                for (auto &readBus : databus.readBus_vec) {
                     readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
                 }
             }
             handle_interface_data_common(cmd, length);
         } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            length = cmd.sz_bits / writeBus_vec[0].get_width();
+            length = cmd.sz_bits / databus.writeBus_vec[0].get_width();
             if ( cmd.data != nullptr ) {
-                for (auto &writeBus : writeBus_vec) {
+                for (auto &writeBus : databus.writeBus_vec) {
                     writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
                 }
             }
@@ -86,48 +80,10 @@ private:
         handle_interface_commandbus(cmd);
     }
 
-    template <class bus_t>
-    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, std::vector<bus_t> &bus, DRAMPower::TogglingHandle &togglinghandle) {
-        // Change from bus to toggling rate
-        assert(enable_timestamp >= timestamp);
-        if ( enable_timestamp > timestamp ) {
-            // Schedule toggling rate enable
-            this->addImplicitCommand(enable_timestamp, [this, &togglinghandle, &bus, enable_timestamp]() {
-                for (auto &b : bus) {
-                    b.disable(enable_timestamp);
-                    togglinghandle.enable(enable_timestamp);
-                }
-            });
-        } else {
-            for (auto &b : bus) {
-                b.disable(enable_timestamp);
-                togglinghandle.enable(enable_timestamp);
-            }
-        }
-    }
-
-    template <class bus_t>
-    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, std::vector<bus_t> &bus, DRAMPower::TogglingHandle &togglinghandle) {
-        // Change from toggling rate to bus
-        assert(disable_timestamp >= timestamp);
-        if ( disable_timestamp > timestamp ) {
-            // Schedule toggling rate disable
-            this->addImplicitCommand(disable_timestamp, [this, &togglinghandle, &bus, disable_timestamp]() {
-                for (auto &b : bus) {
-                    b.enable(disable_timestamp);
-                    togglinghandle.disable(disable_timestamp);
-                }
-            });
-        } else {
-            for (auto &b : bus) {
-                b.enable(disable_timestamp);
-                togglinghandle.disable(disable_timestamp);
-            }
-        }
-    }
-
     void handle_interface(const Command& cmd) override;
     void handle_interface_toggleRate(const Command& cmd) override;
+    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite);
+    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite);
     timestamp_t toggling_rate_get_enable_time(timestamp_t timestamp);
     timestamp_t toggling_rate_get_disable_time(timestamp_t timestamp);
     timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;

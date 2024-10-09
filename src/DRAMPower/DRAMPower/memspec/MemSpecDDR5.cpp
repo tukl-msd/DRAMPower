@@ -19,6 +19,20 @@ MemSpecDDR5::MemSpecDDR5(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec)
     memTimingSpec.tRP       = memspec.memtimingspec.RP;
     memTimingSpec.tRFCsb    = memspec.memtimingspec.RFCsb_slr;
 
+    switch(memspec.memarchitecturespec.width) {
+        case 4:
+            busConfig = BusConfig::X4;
+            break;
+        case 8:
+            busConfig = BusConfig::X8;
+            break;
+        case 16:
+            busConfig = BusConfig::X16;
+            break;
+        default:
+            throw std::runtime_error("Invalid bus width");
+    }
+
     auto VDD = VoltageDomain::VDD;
     auto VPP = VoltageDomain::VPP;
 
