@@ -81,6 +81,7 @@ class LPDDR5_WindowStats_Tests : public ::testing::Test {
 
         spec->numberOfDevices = 1;
         spec->bitWidth = 16;
+        spec->busConfig = MemSpecLPDDR5::BusConfig::X16;
     }
 
     void runCommands(const std::vector<Command> &commands) {
