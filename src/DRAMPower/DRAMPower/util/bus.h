@@ -382,6 +382,31 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 	};
 };
 
+template<size_t N>
+struct DatabusContainer {
+    using Bus_t = Bus<N>;
+    std::vector<Bus_t> writeBus_vec;
+    std::vector<Bus_t> readBus_vec;
+    DatabusContainer() = default;
+    
+    // Forward arguments to Bus constructor
+    template<typename... Args>
+    DatabusContainer(size_t devices, Args&&... args)
+        : writeBus_vec{devices, Bus_t{std::forward<Args>(args)...}}
+        , readBus_vec{devices, Bus_t{std::forward<Args>(args)...}}
+    {}
+
+    void get_stats(util::bus_stats_t &readBusStats, util::bus_stats_t &writeBusStats, timestamp_t timestamp) const
+    {
+        for (const auto &writeBus : writeBus_vec) {
+            writeBusStats += writeBus.get_stats(timestamp);
+        }
+        for (const auto &readBus : readBus_vec) {
+            readBusStats += readBus.get_stats(timestamp);
+        }
+    }
+};
+
 }
 
 #endif /* DRAMPOWER_UTIL_BUS_H */
