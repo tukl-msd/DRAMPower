@@ -34,10 +34,7 @@ public:
     MemSpecLPDDR4 memSpec;
     std::vector<Rank> ranks;
     commandbus_t commandBus;
-    std::vector<databus_8_t> readBus_8_vec;
-    std::vector<databus_8_t> writeBus_8_vec;
-    std::vector<databus_16_t> readBus_16_vec;
-    std::vector<databus_16_t> writeBus_16_vec;
+    std::variant<util::DatabusContainer<8>, util::DatabusContainer<16>> databus;
     util::Clock readDQS;
     util::Clock writeDQS;
 
@@ -122,25 +119,22 @@ public:
 
     void endOfSimulation(timestamp_t timestamp);
 private:
-    template <size_t N>
-    void handle_interface_impl(
-        const Command &cmd,
-        std::vector<util::Bus<N>> &writeBus_vec,
-        std::vector<util::Bus<N>> &readBus_vec
-    ) {
+    template<size_t N>
+    void handle_interface_impl(const Command &cmd, util::DatabusContainer<N> &databus) {
+        // databus shadows variant databus
         size_t length = 0;
         if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            length = cmd.sz_bits / readBus_vec[0].get_width();
+            length = cmd.sz_bits / databus.readBus_vec[0].get_width();
             if ( cmd.data != nullptr ) {
-                for (auto &readBus : readBus_vec) {
+                for (auto &readBus : databus.readBus_vec) {
                     readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
                 }
             }
             handle_interface_data_common(cmd, length);
         } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            length = cmd.sz_bits / writeBus_vec[0].get_width();
+            length = cmd.sz_bits / databus.writeBus_vec[0].get_width();
             if ( cmd.data != nullptr ) {
-                for (auto &writeBus : writeBus_vec) {
+                for (auto &writeBus : databus.writeBus_vec) {
                     writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
                 }
             }

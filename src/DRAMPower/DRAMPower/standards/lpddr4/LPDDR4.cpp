@@ -17,23 +17,21 @@ namespace DRAMPower {
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
         , commandBus{1, commandbus_t::BusIdlePatternSpec::L, commandbus_t::BusInitPatternSpec::L}
-        , readBus_8_vec{memSpec.numberOfDevices, databus_8_t{ memSpec.dataRate,
-            databus_8_t::BusIdlePatternSpec::L, databus_8_t::BusInitPatternSpec::L
-        }}
-        , writeBus_8_vec{memSpec.numberOfDevices, databus_8_t{ memSpec.dataRate,
-            databus_8_t::BusIdlePatternSpec::L, databus_8_t::BusInitPatternSpec::L
-        }}
-        , readBus_16_vec{memSpec.numberOfDevices, databus_16_t{ memSpec.dataRate,
-            databus_16_t::BusIdlePatternSpec::L, databus_16_t::BusInitPatternSpec::L
-        }}
-        , writeBus_16_vec{memSpec.numberOfDevices, databus_16_t{ memSpec.dataRate,
-            databus_16_t::BusIdlePatternSpec::L, databus_16_t::BusInitPatternSpec::L
-        }}
         , readDQS(memSpec.dataRate, true)
         , writeDQS(memSpec.dataRate, true)
     {
+        switch(memSpec.busConfig) {
+            case MemSpecLPDDR4::BusConfig::X8:
+                databus = util::DatabusContainer<8>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<8>::BusIdlePatternSpec::L, util::Bus<8>::BusInitPatternSpec::L);
+                break;
+            case MemSpecLPDDR4::BusConfig::X16:
+                databus = util::DatabusContainer<16>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<16>::BusIdlePatternSpec::L, util::Bus<16>::BusInitPatternSpec::L);
+                break;
+            default:
+                throw std::runtime_error("Invalid bus width");
+        }
         if (memSpec.numberOfDevices < 1) {
-            throw std::invalid_argument("Number of devices must be at least 1");
+            throw std::runtime_error("Number of devices must be at least 1");
         }
         this->registerPatterns();
 
@@ -226,11 +224,9 @@ namespace DRAMPower {
     }
 
     void LPDDR4::handle_interface(const Command &cmd) {
-        if (memSpec.bitWidth == 16) {
-            handle_interface_impl(cmd, writeBus_16_vec, readBus_16_vec);
-        } else {
-            handle_interface_impl(cmd, writeBus_8_vec, readBus_8_vec);
-        }
+        std::visit([this, &cmd](auto &databus) {
+            this->handle_interface_impl(cmd, databus);
+        }, databus);
     }
 
     void LPDDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -491,21 +487,11 @@ namespace DRAMPower {
         }
 
         stats.commandBus = commandBus.get_stats(timestamp);
-        if (memSpec.bitWidth == 16) {
-            for (auto &bus : readBus_16_vec) {
-                stats.readBus += bus.get_stats(timestamp);
-            }
-            for (auto &bus : writeBus_16_vec) {
-                stats.writeBus += bus.get_stats(timestamp);
-            }
-        } else {
-            for (auto &bus : readBus_8_vec) {
-                stats.readBus += bus.get_stats(timestamp);
-            }
-            for (auto &bus : writeBus_8_vec) {
-                stats.writeBus += bus.get_stats(timestamp);
-            }
-        }
+        
+        std::visit([this, &stats, timestamp](auto &databus) {
+            databus.get_stats(stats.readBus, stats.writeBus, timestamp);
+        }, databus);
+
         if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
             stats.togglingStats = {
                 togglingHandleRead.get_stats(timestamp), // read
