@@ -24,31 +24,6 @@
 
 namespace DRAMPower {
 
-template<size_t N>
-struct DatabusContainer {
-    using Bus = util::Bus<N>;
-    std::vector<Bus> writeBus_vec;
-    std::vector<Bus> readBus_vec;
-    DatabusContainer() = default;
-    
-    // Forward arguments to Bus constructor
-    template<typename... Args>
-    DatabusContainer(size_t devices, Args&&... args)
-        : writeBus_vec{devices, Bus{std::forward<Args>(args)...}}
-        , readBus_vec{devices, Bus{std::forward<Args>(args)...}}
-    {}
-
-    void get_stats(util::bus_stats_t &readBusStats, util::bus_stats_t &writeBusStats, timestamp_t timestamp) const
-    {
-        for (const auto &writeBus : writeBus_vec) {
-            writeBusStats += writeBus.get_stats(timestamp);
-        }
-        for (const auto &readBus : readBus_vec) {
-            readBusStats += readBus.get_stats(timestamp);
-        }
-    }
-};
-
 class DDR4 : public dram_base<CmdType>{
 public:
     DDR4(const MemSpecDDR4 &memSpec);
@@ -57,7 +32,7 @@ public:
     using commandbus_t = util::Bus<27>;
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
-    std::variant<DatabusContainer<4>, DatabusContainer<8>, DatabusContainer<16>> databus;
+    std::variant<util::DatabusContainer<4>, util::DatabusContainer<8>, util::DatabusContainer<16>> databus;
 
 // commandBus dependes on cmdBusInitPattern and cmdBusWidth
 // cmdBusInitPattern must be initialized before commandBus
@@ -127,7 +102,7 @@ public:
     };
 private:
     template<size_t N>
-    void handle_interface_impl(const Command &cmd, DatabusContainer<N> &databus) {
+    void handle_interface_impl(const Command &cmd, util::DatabusContainer<N> &databus) {
         // databus shadows variant databus
         size_t length = 0;
         if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {

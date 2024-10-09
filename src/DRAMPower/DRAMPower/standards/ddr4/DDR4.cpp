@@ -31,13 +31,13 @@ namespace DRAMPower {
     {
         switch(memSpec.busConfig) {
             case MemSpecDDR4::BusConfig::X4:
-                databus = DatabusContainer<4>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<4>::BusIdlePatternSpec::H, util::Bus<4>::BusInitPatternSpec::H);
+                databus = util::DatabusContainer<4>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<4>::BusIdlePatternSpec::H, util::Bus<4>::BusInitPatternSpec::H);
                 break;
             case MemSpecDDR4::BusConfig::X8:
-                databus = DatabusContainer<8>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<8>::BusIdlePatternSpec::H, util::Bus<8>::BusInitPatternSpec::H);
+                databus = util::DatabusContainer<8>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<8>::BusIdlePatternSpec::H, util::Bus<8>::BusInitPatternSpec::H);
                 break;
             case MemSpecDDR4::BusConfig::X16:
-                databus = DatabusContainer<16>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<16>::BusIdlePatternSpec::H, util::Bus<16>::BusInitPatternSpec::H);
+                databus = util::DatabusContainer<16>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<16>::BusIdlePatternSpec::H, util::Bus<16>::BusInitPatternSpec::H);
                 break;
             default:
                 throw std::runtime_error("Invalid bus width");
@@ -689,6 +689,7 @@ namespace DRAMPower {
         std::visit([this, &stats, timestamp](auto &databus) {
             databus.get_stats(stats.readBus, stats.writeBus, timestamp);
         }, databus);
+        
         stats.togglingStats = {
             togglingHandleRead.get_stats(timestamp), // read
             togglingHandleWrite.get_stats(timestamp) // write
