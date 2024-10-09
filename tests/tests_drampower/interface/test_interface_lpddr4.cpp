@@ -79,6 +79,7 @@ protected:
 		memSpec.numberOfRanks = 1;
 		memSpec.numberOfBanks = 2;
 		memSpec.bitWidth = 16;
+		memSpec.busConfig = MemSpecLPDDR4::BusConfig::X16;
 		memSpec.burstLength = 16;
 		memSpec.dataRate = 2;
 		memSpec.numberOfDevices = 1;
@@ -196,8 +197,10 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestDQS)
 	auto stats = ddr->getStats();
 	// DQs bus
     EXPECT_EQ(sizeof(wr_data), sizeof(rd_data));
-    EXPECT_EQ(ddr->readBus_16_vec.at(0).get_width(), spec->bitWidth);
-    EXPECT_EQ(ddr->writeBus_16_vec.at(0).get_width(), spec->bitWidth);
+	std::visit([this](auto &databus) {
+        EXPECT_EQ(databus.readBus_vec.at(0).get_width(), spec->bitWidth);
+        EXPECT_EQ(databus.writeBus_vec.at(0).get_width(), spec->bitWidth);
+    }, ddr->databus);
     int number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = 1 * 2; // Differential_Pairs * 2(pairs of 2)
     // f(t) = t / 2;

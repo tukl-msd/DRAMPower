@@ -43,6 +43,13 @@ public:
 
 	double vddq;
 
+	enum class BusConfig {
+		X8 = 8,
+		X16 = 16,
+	};
+
+	BusConfig busConfig;
+
 	struct MemTimingSpec
 	{
 		double fck;

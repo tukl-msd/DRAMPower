@@ -17,23 +17,21 @@ namespace DRAMPower {
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
         , commandBus{1, commandbus_t::BusIdlePatternSpec::L, commandbus_t::BusInitPatternSpec::L}
-        , readBus_8_vec{memSpec.numberOfDevices, databus_8_t{ memSpec.dataRate,
-            databus_8_t::BusIdlePatternSpec::L, databus_8_t::BusInitPatternSpec::L
-        }}
-        , writeBus_8_vec{memSpec.numberOfDevices, databus_8_t{ memSpec.dataRate,
-            databus_8_t::BusIdlePatternSpec::L, databus_8_t::BusInitPatternSpec::L
-        }}
-        , readBus_16_vec{memSpec.numberOfDevices, databus_16_t{ memSpec.dataRate,
-            databus_16_t::BusIdlePatternSpec::L, databus_16_t::BusInitPatternSpec::L
-        }}
-        , writeBus_16_vec{memSpec.numberOfDevices, databus_16_t{ memSpec.dataRate,
-            databus_16_t::BusIdlePatternSpec::L, databus_16_t::BusInitPatternSpec::L
-        }}
         , readDQS(memSpec.dataRate, true)
         , writeDQS(memSpec.dataRate, true)
     {
+        switch(memSpec.busConfig) {
+            case MemSpecLPDDR4::BusConfig::X8:
+                databus = util::DatabusContainer<8>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<8>::BusIdlePatternSpec::L, util::Bus<8>::BusInitPatternSpec::L);
+                break;
+            case MemSpecLPDDR4::BusConfig::X16:
+                databus = util::DatabusContainer<16>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<16>::BusIdlePatternSpec::L, util::Bus<16>::BusInitPatternSpec::L);
+                break;
+            default:
+                throw std::runtime_error("Invalid bus width");
+        }
         if (memSpec.numberOfDevices < 1) {
-            throw std::invalid_argument("Number of devices must be at least 1");
+            throw std::runtime_error("Number of devices must be at least 1");
         }
 
         togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
@@ -61,25 +59,64 @@ namespace DRAMPower {
 
 
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
-    };
+    }
+
+    void LPDDR4::toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite) {
+        // Change from bus to toggling rate
+        assert(enable_timestamp >= timestamp);
+        auto enable_callback = [this, &togglinghandleRead, &togglinghandleWrite, enable_timestamp]() {
+            std::visit([this, &enable_timestamp](auto &databus) {
+                for (auto &b : databus.readBus_vec) {
+                    b.disable(enable_timestamp);
+                }
+                for (auto &b : databus.writeBus_vec) {
+                    b.disable(enable_timestamp);
+                }
+            }, this->databus);
+            togglinghandleRead.enable(enable_timestamp);
+            togglinghandleWrite.enable(enable_timestamp);
+        };
+        if ( enable_timestamp > timestamp ) {
+            // Schedule toggling rate enable
+            this->addImplicitCommand(enable_timestamp, enable_callback);
+        } else {
+            enable_callback();
+        }
+    }
+
+    void LPDDR4::toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite) {
+        // Change from toggling rate to bus
+        assert(disable_timestamp >= timestamp);
+        auto disable_callback = [this, &togglinghandleRead, &togglinghandleWrite, disable_timestamp]() {
+            std::visit([this, &disable_timestamp](auto &databus) {
+                for (auto &b : databus.readBus_vec) {
+                    b.enable(disable_timestamp);
+                }
+                for (auto &b : databus.writeBus_vec) {
+                    b.enable(disable_timestamp);
+                }
+            }, this->databus);
+            togglinghandleRead.disable(disable_timestamp);
+            togglinghandleWrite.disable(disable_timestamp);
+        };
+        if ( disable_timestamp > timestamp ) {
+            // Schedule toggling rate disable
+            this->addImplicitCommand(disable_timestamp, disable_callback);
+        } else {
+            disable_callback();
+        }
+    }
 
     timestamp_t LPDDR4::toggling_rate_get_enable_time(timestamp_t timestamp) {
         timestamp_t busdisabletimestamp = timestamp;
-        if (memSpec.bitWidth == 16) {
-            for (const auto &b : this->readBus_16_vec) {
+        std::visit([this, &busdisabletimestamp](auto &databus) {
+            for (const auto &b : databus.readBus_vec) {
                 busdisabletimestamp = std::max(b.get_lastburst_timestamp(), busdisabletimestamp);
             }
-            for (const auto &b : this->writeBus_16_vec) {
+            for (const auto &b : databus.writeBus_vec) {
                 busdisabletimestamp = std::max(b.get_lastburst_timestamp(), busdisabletimestamp);
             }
-        } else {
-            for (const auto &b : this->readBus_8_vec) {
-                busdisabletimestamp = std::max(b.get_lastburst_timestamp(), busdisabletimestamp);
-            }
-            for (const auto &b : this->writeBus_8_vec) {
-                busdisabletimestamp = std::max(b.get_lastburst_timestamp(), busdisabletimestamp);
-            }
-        }
+        }, this->databus);
         return busdisabletimestamp;
     }
 
@@ -110,13 +147,7 @@ namespace DRAMPower {
             }
             // Enable toggling rate
             timestamp_t enable_timestamp = toggling_rate_get_enable_time(timestamp);
-            if (memSpec.bitWidth == 16) {
-                toggling_rate_enable(timestamp, enable_timestamp, readBus_16_vec, togglingHandleRead);
-                toggling_rate_enable(timestamp, enable_timestamp, writeBus_16_vec, togglingHandleWrite);
-            } else {
-                toggling_rate_enable(timestamp, enable_timestamp, readBus_8_vec, togglingHandleRead);
-                toggling_rate_enable(timestamp, enable_timestamp, writeBus_8_vec, togglingHandleWrite);
-            }
+            toggling_rate_enable(timestamp, enable_timestamp, togglingHandleRead, togglingHandleWrite);
             return enable_timestamp;
         } else {
             // Toggling rate already disabled
@@ -125,13 +156,7 @@ namespace DRAMPower {
             }
             // Disable toggling rate
             timestamp_t disable_timestamp = toggling_rate_get_disable_time(timestamp);
-            if (memSpec.bitWidth == 16) {
-                toggling_rate_disable(timestamp, disable_timestamp, readBus_16_vec, togglingHandleRead);
-                toggling_rate_disable(timestamp, disable_timestamp, writeBus_16_vec, togglingHandleWrite);
-            } else {
-                toggling_rate_disable(timestamp, disable_timestamp, readBus_8_vec, togglingHandleRead);
-                toggling_rate_disable(timestamp, disable_timestamp, writeBus_8_vec, togglingHandleWrite);
-            }
+            toggling_rate_disable(timestamp, disable_timestamp, togglingHandleRead, togglingHandleWrite);
             return disable_timestamp;
         }
         return timestamp;
@@ -279,11 +304,9 @@ namespace DRAMPower {
     }
 
     void LPDDR4::handle_interface(const Command &cmd) {
-        if (memSpec.bitWidth == 16) {
-            handle_interface_impl(cmd, writeBus_16_vec, readBus_16_vec);
-        } else {
-            handle_interface_impl(cmd, writeBus_8_vec, readBus_8_vec);
-        }
+        std::visit([this, &cmd](auto &databus) {
+            this->handle_interface_impl(cmd, databus);
+        }, databus);
     }
 
     void LPDDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -545,21 +568,9 @@ namespace DRAMPower {
 
         stats.commandBus = commandBus.get_stats(timestamp);
 
-        if (memSpec.bitWidth == 16) {
-            for (auto &bus : readBus_16_vec) {
-                stats.readBus += bus.get_stats(timestamp);
-            }
-            for (auto &bus : writeBus_16_vec) {
-                stats.writeBus += bus.get_stats(timestamp);
-            }
-        } else {
-            for (auto &bus : readBus_8_vec) {
-                stats.readBus += bus.get_stats(timestamp);
-            }
-            for (auto &bus : writeBus_8_vec) {
-                stats.writeBus += bus.get_stats(timestamp);
-            }
-        }
+        std::visit([this, &stats, timestamp](auto &databus) {
+            databus.get_stats(stats.readBus, stats.writeBus, timestamp);
+        }, databus);
 
         stats.togglingStats = {
             togglingHandleRead.get_stats(timestamp), // read
