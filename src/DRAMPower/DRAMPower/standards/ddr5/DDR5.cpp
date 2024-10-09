@@ -25,14 +25,6 @@ namespace DRAMPower {
           })
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-        , writeBus_8_vec{memSpec.numberOfDevices, databus_8_t{ memSpec.dataRate,
-            databus_8_t::BusIdlePatternSpec::H, databus_8_t::BusInitPatternSpec::H}}
-        , readBus_8_vec{memSpec.numberOfDevices, databus_8_t{ memSpec.dataRate,
-            databus_8_t::BusIdlePatternSpec::H, databus_8_t::BusInitPatternSpec::H}}
-        , writeBus_16_vec{memSpec.numberOfDevices, databus_16_t{ memSpec.dataRate,
-            databus_16_t::BusIdlePatternSpec::H, databus_16_t::BusInitPatternSpec::H}}
-        , readBus_16_vec{memSpec.numberOfDevices, databus_16_t{ memSpec.dataRate,
-            databus_16_t::BusIdlePatternSpec::H, databus_16_t::BusInitPatternSpec::H}}
         , cmdBusWidth(14)
         , cmdBusInitPattern((1<<cmdBusWidth)-1)
         , commandBus(
@@ -43,8 +35,21 @@ namespace DRAMPower {
         , readDQS(memSpec.dataRateSpec.dqsBusRate, true)
         , writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
     {
+        switch(memSpec.busConfig) {
+            case MemSpecDDR5::BusConfig::X4:
+                databus = util::DatabusContainer<4>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<4>::BusIdlePatternSpec::H, util::Bus<4>::BusInitPatternSpec::H);
+                break;
+            case MemSpecDDR5::BusConfig::X8:
+                databus = util::DatabusContainer<8>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<8>::BusIdlePatternSpec::H, util::Bus<8>::BusInitPatternSpec::H);
+                break;
+            case MemSpecDDR5::BusConfig::X16:
+                databus = util::DatabusContainer<16>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<16>::BusIdlePatternSpec::H, util::Bus<16>::BusInitPatternSpec::H);
+                break;
+            default:
+                throw std::runtime_error("Invalid bus width");
+        }
         if (memSpec.numberOfDevices < 1) {
-            throw std::invalid_argument("Number of devices must be at least 1");
+            throw std::runtime_error("Number of devices must be at least 1");
         }
         this->registerPatterns();
 
@@ -285,11 +290,9 @@ namespace DRAMPower {
     }
 
     void DDR5::handle_interface(const Command &cmd) {
-        if (memSpec.bitWidth == 16) {
-            handle_interface_impl(cmd, writeBus_16_vec, readBus_16_vec);
-        } else {
-            handle_interface_impl(cmd, writeBus_8_vec, readBus_8_vec);
-        }
+        std::visit([this, &cmd](auto &databus) {
+            this->handle_interface_impl(cmd, databus);
+        }, databus);
     }
 
     void DDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -558,22 +561,11 @@ namespace DRAMPower {
         }
 
         stats.commandBus = commandBus.get_stats(timestamp);
-        if (memSpec.bitWidth == 16) {
-            for (auto &bus : readBus_16_vec) {
-                stats.readBus += bus.get_stats(timestamp);
-            }
-            for (auto &bus : writeBus_16_vec) {
-                stats.writeBus += bus.get_stats(timestamp);
-            }
-        } else {
-            for (auto &bus : readBus_8_vec) {
-                stats.readBus += bus.get_stats(timestamp);
-            }
-            for (auto &bus : writeBus_8_vec) {
-                stats.writeBus += bus.get_stats(timestamp);
-            }
-        }
-        
+
+        std::visit([this, &stats, timestamp](auto &databus) {
+            databus.get_stats(stats.readBus, stats.writeBus, timestamp);
+        }, databus);
+
         if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
             stats.togglingStats = {
                 togglingHandleRead.get_stats(timestamp), // read
