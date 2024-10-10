@@ -14,10 +14,10 @@ class test_ddr : public dram_base<CmdType>
 {
 	// Overrides
 private:
-	void handle_interface(const Command& cmd) override {};
+	void handle_interface(const Command&) override {};
 public:
-	energy_t calcCoreEnergy(timestamp_t timestamp) override { return energy_t(1); };
-    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override { return interface_energy_info_t(); };
+	energy_t calcCoreEnergy(timestamp_t) override { return energy_t(1); };
+    interface_energy_info_t calcInterfaceEnergy(timestamp_t) override { return interface_energy_info_t(); };
 	uint64_t getBankCount() override { return 1; };
 	uint64_t getRankCount() override { return 1; };
 	uint64_t getDeviceCount() override { return 1; };

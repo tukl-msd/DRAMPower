@@ -10,22 +10,7 @@
 namespace DRAMPower {
 
     DDR5::DDR5(const MemSpecDDR5 &memSpec)
-        : memSpec(memSpec),
-        ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks}),
-        cmdBusWidth(14),
-        cmdBusInitPattern((1<<cmdBusWidth)-1),
-        commandBus(
-            cmdBusWidth, 1,
-            util::Bus::BusIdlePatternSpec::H,
-            util::Bus::burst_t(cmdBusWidth, cmdBusInitPattern)
-        ),
-        readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H},
-        writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H},
-        readDQS(memSpec.dataRateSpec.dqsBusRate, true),
-        writeDQS(memSpec.dataRateSpec.dqsBusRate, true),
-        dram_base<CmdType>(PatternEncoderOverrides{
+        : dram_base<CmdType>(PatternEncoderOverrides{
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
             {pattern_descriptor::X, PatternEncoderBitSpec::H}, // TODO high impedance ???
             {pattern_descriptor::C0, PatternEncoderBitSpec::H},
@@ -35,7 +20,22 @@ namespace DRAMPower {
             // {pattern_descriptor::CID1, PatternEncoderBitSpec::H},
             // {pattern_descriptor::CID2, PatternEncoderBitSpec::H},
             // {pattern_descriptor::CID3, PatternEncoderBitSpec::H},
-        })
+          })
+        , memSpec(memSpec)
+        , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
+        , writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
+            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H}
+        , readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
+            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H}
+        , cmdBusWidth(14)
+        , cmdBusInitPattern((1<<cmdBusWidth)-1)
+        , commandBus(
+            cmdBusWidth, 1,
+            util::Bus::BusIdlePatternSpec::H,
+            util::Bus::burst_t(cmdBusWidth, cmdBusInitPattern)
+        )
+        , readDQS(memSpec.dataRateSpec.dqsBusRate, true)
+        , writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
     {
         this->registerPatterns();
 
@@ -212,39 +212,34 @@ namespace DRAMPower {
         size_t length = 0;
 
         // Handle data bus and dqs lines
-        switch (cmd.type) {
-            case CmdType::RD:
-            case CmdType::RDA:
-                length = cmd.sz_bits / readBus.get_width();
-                if ( length != 0 )
-                {
-                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-                }
-                else
-                {
-                    length = memSpec.burstLength; // Default default burst length
-                    // Cannot load readBus with data. TODO toggling rate
-                }
-                readDQS.start(cmd.timestamp);
-                readDQS.stop(cmd.timestamp + length / memSpec.dataRateSpec.dqsBusRate);
-                this->handleInterfaceOverrides(length, true);
-                break;
-            case CmdType::WR:
-            case CmdType::WRA:
-                length = cmd.sz_bits / writeBus.get_width();
-                if ( length != 0 )
-                {
-                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-                }
-                else
-                {
-                    length = memSpec.burstLength; // Default default burst length
-                    // Cannot load writeBus with data. TODO toggling rate
-                }
-                writeDQS.start(cmd.timestamp);
-                writeDQS.stop(cmd.timestamp + length / memSpec.dataRateSpec.dqsBusRate);
-                this->handleInterfaceOverrides(length, false);
-                break;
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            length = cmd.sz_bits / readBus.get_width();
+            if ( length != 0 )
+            {
+                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            else
+            {
+                length = memSpec.burstLength; // Default default burst length
+                // Cannot load readBus with data. TODO toggling rate
+            }
+            readDQS.start(cmd.timestamp);
+            readDQS.stop(cmd.timestamp + length / memSpec.dataRateSpec.dqsBusRate);
+            this->handleInterfaceOverrides(length, true);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            length = cmd.sz_bits / writeBus.get_width();
+            if ( length != 0 )
+            {
+                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            else
+            {
+                length = memSpec.burstLength; // Default default burst length
+                // Cannot load writeBus with data. TODO toggling rate
+            }
+            writeDQS.start(cmd.timestamp);
+            writeDQS.stop(cmd.timestamp + length / memSpec.dataRateSpec.dqsBusRate);
+            this->handleInterfaceOverrides(length, false);
         }
 
         // command bus
@@ -281,7 +276,7 @@ namespace DRAMPower {
 
     void DDR5::handlePreSameBank(Rank & rank, std::size_t bank_id, timestamp_t timestamp) {
         auto bank_id_inside_bg = bank_id % this->memSpec.banksPerGroup;
-        for(auto bank_group = 0; bank_group < this->memSpec.numberOfBankGroups; bank_group++) {
+        for(unsigned bank_group = 0; bank_group < this->memSpec.numberOfBankGroups; bank_group++) {
             auto & bank = rank.banks[bank_group * this->memSpec.banksPerGroup + bank_id_inside_bg];
             handlePre(rank, bank, timestamp);
         }
@@ -295,7 +290,7 @@ namespace DRAMPower {
 
     void DDR5::handleRefSameBank(Rank & rank, std::size_t bank_id, timestamp_t timestamp) {
         auto bank_id_inside_bg = bank_id % this->memSpec.banksPerGroup;
-        for(auto bank_group = 0; bank_group < this->memSpec.numberOfBankGroups; bank_group++) {
+        for(unsigned bank_group = 0; bank_group < this->memSpec.numberOfBankGroups; bank_group++) {
             auto & bank = rank.banks[bank_group * this->memSpec.banksPerGroup + bank_id_inside_bg];
             handleRefreshOnBank(rank, bank, timestamp, memSpec.memTimingSpec.tRFCsb, bank.counter.refSameBank);
         }
@@ -336,7 +331,7 @@ namespace DRAMPower {
         });
     }
 
-    void DDR5::handleRead(Rank &rank, Bank &bank, timestamp_t timestamp){
+    void DDR5::handleRead(Rank&, Bank &bank, timestamp_t){
         ++bank.counter.reads;
     }
 
@@ -354,7 +349,7 @@ namespace DRAMPower {
         });
     }
 
-    void DDR5::handleWrite(Rank &rank, Bank &bank, timestamp_t timestamp) {
+    void DDR5::handleWrite(Rank&, Bank &bank, timestamp_t) {
         ++bank.counter.writes;
     }
 
@@ -453,7 +448,7 @@ namespace DRAMPower {
         });
     }
 
-    void DDR5::endOfSimulation(timestamp_t timestamp) {
+    void DDR5::endOfSimulation(timestamp_t) {
         if (this->implicitCommandCount() > 0)
             std::cout << ("[WARN] End of simulation but still implicit commands left!") << std::endl;
     }

@@ -34,25 +34,25 @@ struct BinaryOps {
     static std::size_t popcount(const T& bitset)
     {
         return bitset.count();
-    };
+    }
 
     template <typename T>
     static std::size_t zero_to_ones(const T& p, const T& q)
     {
         return popcount(~p & q);
-    };
+    }
 
     template <typename T>
     static std::size_t one_to_zeroes(const T& p, const T& q)
     {
         return popcount(p & ~q);
-    };
+    }
 
     template <typename T>
     static std::size_t bit_changes(const T& p, const T& q)
     {
         return popcount(p ^ q);
-    };
+    }
 };
 
 };

@@ -7,6 +7,7 @@
 #include <cassert>
 #include <unordered_map>
 #include <vector>
+#include <limits.h>
 
 namespace DRAMPower {
 namespace pattern_descriptor {
@@ -135,11 +136,12 @@ public:
         std::bitset<32> bank_group_bits(cmd.targetCoordinate.bankGroup);
 
         std::size_t n = pattern.size() - 1;
+        static_assert(std::numeric_limits<decltype(n)>::is_signed == false, "std::size_t must be unsigned");
 
         assert(n < 64);
 
         for (const auto descriptor : pattern) {
-            assert(n >= 0);
+            // assert(n >= 0); // std::size_t is unsigned
 
             switch (descriptor) {
             case H:

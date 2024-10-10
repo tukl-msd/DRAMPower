@@ -31,6 +31,7 @@ Total * 5:				22101.923076923081
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
 #include <variant>
+#include <stdint.h>
 
 #include <fstream>
 
@@ -79,7 +80,7 @@ TEST_F(DramPowerTest_LPDDR4_MultiDevice, Counters_and_Cycles){
     auto stats = ddr->getStats();
 
     // Check bank command count: ACT
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
         if(b == 0 || b == 3)
             ASSERT_EQ(stats.bank[b].counter.act, 1);
         else
@@ -87,7 +88,7 @@ TEST_F(DramPowerTest_LPDDR4_MultiDevice, Counters_and_Cycles){
     }
 
     // Check bank command count: RD
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
         if (b == 0)
             ASSERT_EQ(stats.bank[b].counter.reads, 2);
         else if(b == 3)
@@ -97,7 +98,7 @@ TEST_F(DramPowerTest_LPDDR4_MultiDevice, Counters_and_Cycles){
     };
 
     // Check bank command count: PRE
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
         if(b == 0 || b == 3)
             ASSERT_EQ(stats.bank[b].counter.pre, 1);
         else
@@ -109,7 +110,7 @@ TEST_F(DramPowerTest_LPDDR4_MultiDevice, Counters_and_Cycles){
     ASSERT_EQ(stats.rank_total[0].cycles.pre, 20);
 
     // Check bank specific ACT cycle count;
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
         if (b == 0)
             ASSERT_EQ(stats.bank[b].cycles.act, 50);
         else if(b == 3)
@@ -119,7 +120,7 @@ TEST_F(DramPowerTest_LPDDR4_MultiDevice, Counters_and_Cycles){
     }
 
     // Check bank specific PRE cycle count
-    for(auto b = 1; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++){
         if(b == 0)
             ASSERT_EQ(stats.bank[b].cycles.pre, 20);
         else if (b == 3)

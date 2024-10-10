@@ -22,7 +22,7 @@ private:
 public:
     explicit dynamic_bitset();
     explicit dynamic_bitset(std::size_t num_bits);
-    explicit dynamic_bitset(std::size_t num_bits, unsigned long value = 0);
+    explicit dynamic_bitset(std::size_t num_bits, uint64_t value = 0);
 public:
     dynamic_bitset(const dynamic_bitset&) = default;
     dynamic_bitset(dynamic_bitset&&) noexcept = default;

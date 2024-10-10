@@ -37,9 +37,9 @@ public:
 	~MemSpecLPDDR4() = default;
 	uint64_t timeToCompletion(CmdType type) override;
 
-    unsigned numberOfBankGroups;
-    unsigned banksPerGroup;
-    unsigned numberOfRanks;
+    uint64_t numberOfBankGroups;
+    uint64_t banksPerGroup;
+    uint64_t numberOfRanks;
 
 	double vddq;
 
@@ -110,7 +110,7 @@ public:
 		// ACT Standby power factor
 		double bwPowerFactRho;
 		// Self-Refresh power factor
-		uint64_t bwPowerFactSigma;
+		double bwPowerFactSigma;
 		// Whether PASR is enabled ( true : enabled )
 		bool flgPASR;
 		// PASR mode utilized (int 0-7)

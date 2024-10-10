@@ -27,6 +27,8 @@ public:
 public:
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
+    util::Bus readBus;
+    util::Bus writeBus;
 
 // commandBus dependes on cmdBusInitPattern and cmdBusWidth
 // cmdBusInitPattern must be initialized before commandBus
@@ -35,11 +37,11 @@ public:
 private:
     std::size_t cmdBusWidth;
     uint64_t cmdBusInitPattern;
+    util::Clock readDQS_;
+    util::Clock writeDQS_;
+    util::Clock clock;
 public:
     util::Bus commandBus;
-    util::Bus readBus;
-    util::Bus writeBus;
-
     uint64_t prepostambleReadMinTccd;
     uint64_t prepostambleWriteMinTccd;
 
@@ -56,7 +58,7 @@ protected:
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, bank, command.timestamp);
         });
-    };
+    }
 
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerRankHandler(Func && member_func) {
@@ -67,14 +69,14 @@ protected:
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, command.timestamp);
         });
-    };
+    }
 
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerHandler(Func && member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command & command) {
             (this->*member_func)(command.timestamp);
         });
-    };
+    }
 
     void registerPatterns();
 public:
@@ -130,10 +132,6 @@ private:
 public:
     SimulationStats getWindowStats(timestamp_t timestamp);
 
-private:
-    util::Clock clock;
-    util::Clock readDQS_;
-    util::Clock writeDQS_;
 };
 
 };

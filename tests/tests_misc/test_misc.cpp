@@ -81,7 +81,6 @@ TEST_F(MiscTest, TestChunking)
 	};
 
 	// Test setup
-	constexpr std::size_t width = 6;
 	util::burst_storage burst_storage(6);
 
 	burst_storage.insert_data(data.data(), data.size() * 8);

@@ -38,9 +38,9 @@ namespace DRAMPower {
         uint64_t timeToCompletion(CmdType type) override;
 
 
-        unsigned numberOfBankGroups;
-        unsigned banksPerGroup;
-        unsigned numberOfRanks;
+        uint64_t numberOfBankGroups;
+        uint64_t banksPerGroup;
+        uint64_t numberOfRanks;
 
         double vddq;
 
@@ -94,9 +94,9 @@ namespace DRAMPower {
         };
 
         struct DataRateSpec {
-            uint32_t commandBusRate;
-            uint32_t dataBusRate;
-            uint32_t dqsBusRate;
+            uint64_t commandBusRate;
+            uint64_t dataBusRate;
+            uint64_t dqsBusRate;
         };
 
         struct BankWiseParams

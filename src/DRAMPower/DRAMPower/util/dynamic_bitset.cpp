@@ -10,7 +10,7 @@ dynamic_bitset::dynamic_bitset()
 dynamic_bitset::dynamic_bitset(std::size_t num_bits)
     : buffer(num_bits, 0) {};
 
-dynamic_bitset::dynamic_bitset(std::size_t num_bits, unsigned long value)
+dynamic_bitset::dynamic_bitset(std::size_t num_bits, uint64_t value)
     : buffer(num_bits)
 {
     std::size_t accumulator = 1;

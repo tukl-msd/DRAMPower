@@ -59,7 +59,7 @@ struct energy_t
 	std::vector<energy_info_t> bank_energy;
 	energy_info_t total_energy(); // TODO rename
 	void to_json(json_t &j) const;
-	constexpr inline const char * const get_Bank_energy_keyword() const
+	constexpr inline const char * get_Bank_energy_keyword() const
 	{
 		return "BankEnergy";
 	}
