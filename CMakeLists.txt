@@ -88,7 +88,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(OPTIMIZE_FOR_NATIVE "Build with -march=native (overrides CPU_TYPE if enabled)" OFF)
+option(OPTIMIZE_FOR_NATIVE "Build with -march=native (overrides CPU_TYPE if enabled)" ON)
 set(CPU_TYPE "" CACHE STRING "CPU type for -march=CPU_TYPE compile option")
 # Set CPU_TYPE to native if OPTIMIZE_FOR_NATIVE is enabled
 if(OPTIMIZE_FOR_NATIVE)
