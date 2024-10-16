@@ -87,7 +87,21 @@ set(DRAMUTILS_DIR "" CACHE PATH "Local DRAMUtils installation path (optional)")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CPU_TYPE "" CACHE STRING "CPU type for compiler flags")
+
+option(OPTIMIZE_FOR_NATIVE "Build with -march=native (overrides CPU_TYPE if enabled)" OFF)
+set(CPU_TYPE "" CACHE STRING "CPU type for -march=CPU_TYPE compile option")
+# Set CPU_TYPE to native if OPTIMIZE_FOR_NATIVE is enabled
+if(OPTIMIZE_FOR_NATIVE)
+    if(CPU_TYPE)
+        message(NOTICE "OPTIMIZE_FOR_NATIVE is enabled. Overriding CPU_TYPE from \"${CPU_TYPE}\" to \"native\".")
+    endif()
+    set(CPU_TYPE "native")
+endif()
+
+# add CPU_TYPE to cmake cxx flags
+if(CPU_TYPE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_TYPE}")
+endif()
 
 ###############################################
 ###           Library Settings              ###

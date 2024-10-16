@@ -12,10 +12,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC 
     DRAMUtils
 )
-if (CPU_TYPE)
-    message(STATUS "${PROJECT_NAME} using CPU_TYPE ${CPU_TYPE}")
-    target_compile_options(${PROJECT_NAME} PRIVATE -march=${CPU_TYPE})
-endif()
+message(DEBUG "${PROJECT_NAME} using CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 
 add_library(DRAMSys::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 

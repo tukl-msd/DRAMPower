@@ -36,10 +36,6 @@ target_link_libraries(${PROJECT_NAME}
         DRAMUtils
         cli11
 )
-if (CPU_TYPE)
-    message(STATUS "${PROJECT_NAME} using CPU_TYPE ${CPU_TYPE}")
-    target_compile_options(${PROJECT_NAME} PRIVATE -march=${CPU_TYPE})
-endif()
-
+message(DEBUG "${PROJECT_NAME} using CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 
 build_source_group()
