@@ -29,7 +29,7 @@ struct BinaryOps {
     static std::size_t one_to_zeroes(uint64_t p, uint64_t q);
     static std::size_t bit_changes(uint64_t p, uint64_t q);
 
-    // overloadsfor std::bitset
+    // overloads for std::bitset
     template <typename T>
     static std::size_t popcount(const T& bitset)
     {
