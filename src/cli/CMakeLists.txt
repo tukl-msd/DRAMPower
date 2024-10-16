@@ -2,7 +2,7 @@
 ###                CLI               ###
 ########################################
 
-project(cli)
+project(drampower_cli)
 
 #### Dependencies ###
 
@@ -28,13 +28,18 @@ file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS *.h)
 
 add_compile_definitions(DRAMPOWER_VERSION_STRING="${DRAMPOWER_VERSION_STRING}")
 
-add_executable(drampower_cli ${SOURCE_FILES})
-target_link_libraries(drampower_cli 
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME} 
     PRIVATE 
         DRAMSys::DRAMPower
         spdlog::spdlog
         DRAMUtils
         cli11
 )
+if (CPU_TYPE)
+    message(STATUS "${PROJECT_NAME} using CPU_TYPE ${CPU_TYPE}")
+    target_compile_options(${PROJECT_NAME} PRIVATE -march=${CPU_TYPE})
+endif()
+
 
 build_source_group()

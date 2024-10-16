@@ -21,6 +21,10 @@ target_link_libraries(${PROJECT_NAME}
 	DRAMSys::DRAMPower
 	gtest_main
 )
+if (CPU_TYPE)
+	message(STATUS "${PROJECT_NAME} using CPU_TYPE ${CPU_TYPE}")
+	target_compile_options(${PROJECT_NAME} PRIVATE -march=${CPU_TYPE})
+endif()
 
 gtest_discover_tests(${PROJECT_NAME})
 
