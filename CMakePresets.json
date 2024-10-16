@@ -19,6 +19,7 @@
 		{
 			"name": "dev-mode",
 			"hidden": true,
+			"binaryDir": "${sourceDir}/build",
 			"inherits": "cmake-pedantic",
 			"cacheVariables": {
 				"DRAMPOWER_BUILD_TESTS": "ON",
@@ -27,7 +28,6 @@
 		},
 		{
 			"name": "ci-common",
-			"binaryDir": "${sourceDir}/build",
 			"inherits": [
 				"dev-mode"
 			],
