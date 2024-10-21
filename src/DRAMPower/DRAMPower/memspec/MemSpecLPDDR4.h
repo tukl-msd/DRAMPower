@@ -77,18 +77,71 @@ public:
 
 	};
 
-	struct MemImpedanceSpec {
-		double C_total_ck;
-		double C_total_cb;
-		double C_total_rb;
-		double C_total_wb;
-		double C_total_dqs;
+	struct MemDynamicSpecContainer {
+		DRAMUtils::MemSpec::MemDynamicPowerType entry;
+		double lineCapacity;
 
-		double R_eq_ck;
-		double R_eq_cb;
-		double R_eq_rb;
-		double R_eq_wb;
-		double R_eq_dqs;
+		MemDynamicSpecContainer() = default; // explicit default constructor
+
+		// Copy constructor from DRAMUtils entry to DRAMPower entry
+		MemDynamicSpecContainer(const DRAMUtils::MemSpec::MemDynamicPowerType &entry, double fCK)
+		: entry(entry) // invokes copy constructor
+		{
+			if (entry.riseTime < 2.5 * entry.flightTime) {
+				// t_r < 2.5 * t_f
+				// C_line = t_r / Z_0
+				lineCapacity = 
+					entry.riseTime / entry.lineImpedance;
+			} else {
+				// t_r >= 2.5 * t_f
+				// C_line = 1 / (2 * f * Z_0)
+				lineCapacity =
+					1 / (2 * entry.lineImpedance * fCK);
+			}
+		}
+	};
+
+	struct MemStaticSpecContainer {
+		DRAMUtils::MemSpec::MemStaticPowerType entry;
+		double equivalent_resistance;
+
+		MemStaticSpecContainer() = default; // explicit default constructor
+
+		// Copy constructor from DRAMUtils entry to DRAMPower entry
+		MemStaticSpecContainer(const DRAMUtils::MemSpec::MemStaticPowerType &entry)
+		: entry(entry) // invokes copy constructor
+		{
+			switch(entry.termination) {
+				case DRAMUtils::MemSpec::TerminationScheme::Invalid:
+					assert(false);
+					this->entry.termination = DRAMUtils::MemSpec::TerminationScheme::PUSH_PULL;
+					// TODO throw runtime error?
+					// throw std::runtime_error("Invalid termination");
+					equivalent_resistance = 4 * (entry.R_ON + entry.R_TT);
+					break;
+				case DRAMUtils::MemSpec::TerminationScheme::PUSH_PULL:
+					equivalent_resistance = 4 * (entry.R_ON + entry.R_TT);
+					break;
+				case DRAMUtils::MemSpec::TerminationScheme::OPEN_DRAIN_PULL_DOWN:
+				case DRAMUtils::MemSpec::TerminationScheme::OPEN_DRAIN_PULL_UP:
+					equivalent_resistance = entry.R_ON + entry.R_TT;
+					break;
+			}
+		}
+	};
+
+	struct MemImpedanceSpec {
+		MemDynamicSpecContainer dynamic_ck;
+		MemDynamicSpecContainer dynamic_cb;
+		MemDynamicSpecContainer dynamic_rb;
+		MemDynamicSpecContainer dynamic_wb;
+		MemDynamicSpecContainer dynamic_dqs;
+
+		MemStaticSpecContainer static_ck;
+		MemStaticSpecContainer static_cb;
+		MemStaticSpecContainer static_rb;
+		MemStaticSpecContainer static_wb;
+		MemStaticSpecContainer static_dqs;
 	};
 
 	struct BankWiseParams

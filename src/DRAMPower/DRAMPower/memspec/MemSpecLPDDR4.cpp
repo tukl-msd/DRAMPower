@@ -218,17 +218,18 @@ uint64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::CmdType type)
 } // MemSpecLPDDR4::timeToCompletion
 
 void MemSpecLPDDR4::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec) {
-    memImpedanceSpec.C_total_cb = memspec.memimpedancespec.C_total_cb;
-    memImpedanceSpec.C_total_ck = memspec.memimpedancespec.C_total_ck;
-    memImpedanceSpec.C_total_dqs = memspec.memimpedancespec.C_total_dqs;
-    memImpedanceSpec.C_total_rb = memspec.memimpedancespec.C_total_rb;
-    memImpedanceSpec.C_total_wb = memspec.memimpedancespec.C_total_wb;
+    double fCK = 1 / memspec.memtimingspec.tCK;
+    memImpedanceSpec.dynamic_ck = MemDynamicSpecContainer{memspec.memimpedancespec.dynamic_ck, fCK};
+    memImpedanceSpec.dynamic_cb = MemDynamicSpecContainer{memspec.memimpedancespec.dynamic_cb, fCK};
+    memImpedanceSpec.dynamic_dqs = MemDynamicSpecContainer{memspec.memimpedancespec.dynamic_dqs, memspec.memarchitecturespec.dataRate * fCK};
+    memImpedanceSpec.dynamic_rb = MemDynamicSpecContainer{memspec.memimpedancespec.dynamic_rb, memspec.memarchitecturespec.dataRate * fCK};
+    memImpedanceSpec.dynamic_wb = MemDynamicSpecContainer{memspec.memimpedancespec.dynamic_wb, memspec.memarchitecturespec.dataRate * fCK};
 
-    memImpedanceSpec.R_eq_cb = memspec.memimpedancespec.R_eq_cb;
-    memImpedanceSpec.R_eq_ck = memspec.memimpedancespec.R_eq_ck;
-    memImpedanceSpec.R_eq_dqs = memspec.memimpedancespec.R_eq_dqs;
-    memImpedanceSpec.R_eq_rb = memspec.memimpedancespec.R_eq_rb;
-    memImpedanceSpec.R_eq_wb = memspec.memimpedancespec.R_eq_wb;
+    memImpedanceSpec.static_ck = memspec.memimpedancespec.static_ck;
+    memImpedanceSpec.static_cb = memspec.memimpedancespec.static_cb;
+    memImpedanceSpec.static_rb = memspec.memimpedancespec.static_rb;
+    memImpedanceSpec.static_wb = memspec.memimpedancespec.static_wb;
+    memImpedanceSpec.static_dqs = memspec.memimpedancespec.static_dqs;
 }
 
 MemSpecLPDDR4 MemSpecLPDDR4::from_memspec(const DRAMUtils::MemSpec::MemSpecVariant& memSpec)
