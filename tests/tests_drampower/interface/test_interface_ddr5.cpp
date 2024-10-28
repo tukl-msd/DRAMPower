@@ -110,14 +110,14 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_0) {
 
     // For write and read the number of clock cycles the strobes stay on is
     // currently ("size in bits" / bus_size) / bus_rate
-    int number_of_cycles = (SZ_BITS(wr_data) / 16) / spec->dataRate;
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / 16) / spec->dataRate;
 
     // In this example read data and write data are the same size, so stats should be the same
     uint_fast8_t dqspairs = 2 ? spec->bitWidth == 16 : 1;
-    int DQS_ones = dqspairs * number_of_cycles * spec->dataRate * 2; // Differential_Pairs * cycles * datarate * 2(Differential Pair)
-    int DQS_zeros = DQS_ones;
-    int DQS_zeros_to_ones = DQS_ones;
-    int DQS_ones_to_zeros = DQS_zeros;
+    uint64_t DQS_ones = dqspairs * number_of_cycles * spec->dataRate * 2; // Differential_Pairs * cycles * datarate * 2(Differential Pair)
+    uint64_t DQS_zeros = DQS_ones;
+    uint64_t DQS_zeros_to_ones = DQS_ones;
+    uint64_t DQS_ones_to_zeros = DQS_zeros;
     EXPECT_EQ(stats.writeDQSStats.ones, DQS_ones);
     EXPECT_EQ(stats.writeDQSStats.zeroes, DQS_zeros);
     EXPECT_EQ(stats.writeDQSStats.ones_to_zeroes, DQS_zeros_to_ones);

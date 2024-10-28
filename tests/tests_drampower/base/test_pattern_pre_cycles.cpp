@@ -77,8 +77,6 @@ protected:
 
 TEST_F(DramPowerTest_Pre_Cycles, Test)
 {
-	Rank & rank_1 = ddr->ranks[0];
-
 	for (const auto& command : testPattern) {
 		ddr->doCoreCommand(command);
 	};
@@ -110,9 +108,6 @@ TEST_F(DramPowerTest_Pre_Cycles, Test_Detailed)
 
 		return this->ddr->getWindowStats(timestamp);
 	};
-
-	// Inspect first rank
-	auto & rank_1 = ddr->ranks[0];
 
 	// Cycle 5
 	window = iterate_to_timestamp(5);

@@ -9,6 +9,7 @@
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
 #include <variant>
+#include <stdint.h>
 
 #include <fstream>
 
@@ -52,7 +53,7 @@ TEST_F(DramPowerTest_DDR5_3, Counters_and_Cycles){
     auto stats = ddr->getStats();
 
     // Check bank command count: ACT
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
         if(b == 0 || b == 3)
             ASSERT_EQ(stats.bank[b].counter.act, 1);
         else
@@ -60,7 +61,7 @@ TEST_F(DramPowerTest_DDR5_3, Counters_and_Cycles){
     }
 
     // Check bank command count: RD
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
         if(b == 0)
             ASSERT_EQ(stats.bank[b].counter.reads, 1);
         else
@@ -68,7 +69,7 @@ TEST_F(DramPowerTest_DDR5_3, Counters_and_Cycles){
     };
 
     // Check bank command count: PRE
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
         if(b == 0 || b == 3)
             ASSERT_EQ(stats.bank[b].counter.pre, 1);
         else
@@ -80,7 +81,7 @@ TEST_F(DramPowerTest_DDR5_3, Counters_and_Cycles){
     ASSERT_EQ(stats.rank_total[0].cycles.pre, 5);
 
     // Check bank specific ACT cycle count;
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
         if (b == 0)
             ASSERT_EQ(stats.bank[b].cycles.act, 35);
         else if(b == 3)
@@ -90,7 +91,7 @@ TEST_F(DramPowerTest_DDR5_3, Counters_and_Cycles){
     }
 
     // Check bank specific PRE cycle count
-    for(auto b = 1; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++){
         if(b == 0)
             ASSERT_EQ(stats.bank[b].cycles.pre, 15);
         else if (b == 3)

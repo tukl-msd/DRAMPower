@@ -136,8 +136,6 @@ protected:
 
 TEST_F(DramPowerTest_Interface_LPDDR4, TestStats)
 {
-	Rank & rank_1 = ddr->ranks[0];
-
 	for (const auto& command : testPattern) {
 		ddr->doCoreCommand(command);
 		ddr->doInterfaceCommand(command);
@@ -167,8 +165,6 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestStats)
 
 TEST_F(DramPowerTest_Interface_LPDDR4, TestPower)
 {
-	Rank& rank_1 = ddr->ranks[0];
-
 	for (const auto& command : testPattern) {
 		ddr->doCoreCommand(command);
 		ddr->doInterfaceCommand(command);
@@ -180,14 +176,12 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestPower)
 
 	InterfacePowerCalculation_LPPDR4 interface_calc(this->ddr->memSpec);
 
-	auto interface_stats = interface_calc.calcEnergy(stats);
-	auto dqs_stats = interface_calc.calcDQSEnergy(stats);
+	// auto interface_stats = interface_calc.calcEnergy(stats);
+	// auto dqs_stats = interface_calc.calcDQSEnergy(stats);
 }
 
 TEST_F(DramPowerTest_Interface_LPDDR4, TestDQS)
 {
-	Rank& rank_1 = ddr->ranks[0];
-
 	for (const auto& command : testPattern_2) {
 		auto stats = ddr->getWindowStats(command.timestamp);
 
@@ -218,9 +212,6 @@ TEST_F(DramPowerTest_Interface_LPDDR4, Test_Detailed)
 
 		return this->ddr->getWindowStats(timestamp);
 	};
-
-	// Inspect first rank
-	auto & rank_1 = ddr->ranks[0];
 
 	// Cycle 0 to 0 (0 delta)
 	window = iterate_to_timestamp(0);

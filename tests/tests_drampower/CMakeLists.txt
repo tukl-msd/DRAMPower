@@ -2,7 +2,7 @@
 ###              tests_drampower            ###
 ###############################################
 
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.5.0)
 
 project(tests_drampower)
 

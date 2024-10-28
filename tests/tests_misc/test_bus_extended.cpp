@@ -3,6 +3,7 @@
 #include <DRAMPower/util/bus.h>
 #include <array>
 #include <optional>
+#include <algorithm>
 
 using namespace DRAMPower;
 
@@ -17,7 +18,7 @@ protected:
 
 	virtual void SetUp()
 	{
-		for(int i = 0; i < buswidth; i++)
+		for(size_t i = 0; i < buswidth; i++)
 		{
 			burst_ones.push_back(true);
 			burst_zeroes.push_back(false);
@@ -128,7 +129,7 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_64)
 	auto expected = util::Bus::burst_t();
 
 	auto pattern_gen = [] (size_t i) -> uint8_t {
-		return i;
+		return static_cast<uint8_t>(i);
 	};
 
 	// Load bus
@@ -161,7 +162,7 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_512)
 	auto expected = util::Bus::burst_t();
 
 	auto pattern_gen = [] (size_t i) -> uint8_t {
-		return i;
+		return static_cast<uint8_t>(i);
 	};
 
 	// Load bus
@@ -194,7 +195,7 @@ protected:
 
 	virtual void SetUp()
 	{
-		for(int i = 0; i < buswidth; i++)
+		for(size_t i = 0; i < buswidth; i++)
 		{
 			burst_ones.push_back(true);
 			burst_zeroes.push_back(false);
@@ -212,14 +213,6 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_Datarate_1)
 	uint_fast8_t datarate = 2;
 	timestamp_t timestamp = 3;
 	util::Bus bus(buswidth, datarate, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
-	std::size_t custom_ones = burst_custom.count();
-	std::size_t custom_zeroes = buswidth - custom_ones;
-	uint8_t burst_ones_data[bus_array_size] = { 0xFF };
-	uint8_t burst_zeroes_data[bus_array_size] = { 0 };
-
-	for(auto i = 0; i < bus_array_size; i++) {
-		burst_ones_data[i] = 0xFF;
-	}
 
 	ASSERT_EQ(buswidth, 128);
 
@@ -236,14 +229,6 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_Datarate_2)
 	uint_fast8_t datarate = 13;
 	timestamp_t timestamp = 47;
 	util::Bus bus(buswidth, datarate, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L);
-	std::size_t custom_ones = burst_custom.count();
-	std::size_t custom_zeroes = buswidth - custom_ones;
-	uint8_t burst_ones_data[bus_array_size] = { 0xFF };
-	uint8_t burst_zeroes_data[bus_array_size] = { 0 };
-
-	for(auto i = 0; i < bus_array_size; i++) {
-		burst_ones_data[i] = 0xFF;
-	}
 
 	ASSERT_EQ(buswidth, 128);
 
@@ -260,12 +245,8 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_1)
 	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::L, burst_custom);
 	std::size_t custom_ones = burst_custom.count();
 	std::size_t custom_zeroes = buswidth - custom_ones;
-	uint8_t burst_ones_data[bus_array_size] = { 0xFF };
-	uint8_t burst_zeroes_data[bus_array_size] = { 0 };
-
-	for(auto i = 0; i < bus_array_size; i++) {
-		burst_ones_data[i] = 0xFF;
-	}
+	uint8_t burst_ones_data[bus_array_size];
+	std::fill_n(burst_ones_data, bus_array_size, 0xFF);
 
 	ASSERT_EQ(buswidth, 128);
 	ASSERT_EQ(custom_ones, 85);
@@ -323,12 +304,8 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_2)
 	util::Bus bus(buswidth, 1, util::Bus::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
 	std::size_t custom_ones = burst_custom.count();
 	std::size_t custom_zeroes = buswidth - custom_ones;
-	uint8_t burst_ones_data[bus_array_size] = { 0xFF };
-	uint8_t burst_zeroes_data[bus_array_size] = { 0 };
-
-	for(auto i = 0; i < bus_array_size; i++) {
-		burst_ones_data[i] = 0xFF;
-	}
+	uint8_t burst_ones_data[bus_array_size];
+	std::fill_n(burst_ones_data, bus_array_size, 0xFF);
 
 	ASSERT_EQ(buswidth, 128);
 	ASSERT_EQ(custom_ones, 85);

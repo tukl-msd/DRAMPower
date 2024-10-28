@@ -9,6 +9,7 @@
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
 #include <variant>
+#include <stdint.h>
 
 #include <fstream>
 
@@ -61,7 +62,7 @@ TEST_F(DramPowerTest_LPDDR5_11, Counters_and_Cycles){
     ASSERT_EQ(stats.rank_total[0].cycles.powerDownPre, 0);
 
     // Check bank specific ACT cycle count
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
         if(b == 0){
             ASSERT_EQ(stats .bank[b].cycles.act, 30);
         }else if (b == 2){
@@ -76,7 +77,7 @@ TEST_F(DramPowerTest_LPDDR5_11, Counters_and_Cycles){
     }
 
     // Check bank specific PRE cycle count
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
         if(b == 0){
             ASSERT_EQ(stats.bank[b].cycles.pre, 70);
         }else if (b == 2){
@@ -91,13 +92,13 @@ TEST_F(DramPowerTest_LPDDR5_11, Counters_and_Cycles){
     }
 
     // Check bank specific PDNA cycle count
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.powerDownAct, 0);
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.powerDownAct, 0);
 
     // Check bank specific PDNP cycle count
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.powerDownPre, 0);
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.powerDownPre, 0);
 
     // Check bank specific SREF cycle count
-    for(auto b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.selfRefresh, 0);
+    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.selfRefresh, 0);
 }
 
 TEST_F(DramPowerTest_LPDDR5_11, Energy) {

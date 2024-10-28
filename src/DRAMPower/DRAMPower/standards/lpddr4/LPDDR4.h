@@ -28,16 +28,14 @@ public:
 public:
     MemSpecLPDDR4 memSpec;
     std::vector<Rank> ranks;
-
-    util::Clock clock;
-
     util::Bus commandBus;
     util::Bus readBus;
     util::Bus writeBus;
-
     util::Clock readDQS;
-
     util::Clock writeDQS;
+
+    util::Clock clock;
+
 
     //util::Bus dataBus;
 protected:
@@ -49,7 +47,7 @@ protected:
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, bank, command.timestamp);
         });
-    };
+    }
 
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerRankHandler(Func && member_func) {
@@ -59,14 +57,14 @@ protected:
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, command.timestamp);
         });
-    };
+    }
 
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerHandler(Func && member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command & command) {
             (this->*member_func)(command.timestamp);
         });
-    };
+    }
 
     void registerPatterns();
 public:

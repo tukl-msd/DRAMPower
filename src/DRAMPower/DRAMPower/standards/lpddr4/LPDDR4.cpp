@@ -7,20 +7,22 @@
 
 namespace DRAMPower {
 
-    LPDDR4::LPDDR4(const MemSpecLPDDR4 &memSpec): 
-        memSpec(memSpec), ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks}),
-        commandBus{6, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L},
-        readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
-        },
-        writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
-        },
-        readDQS(memSpec.dataRate, true), writeDQS(memSpec.dataRate, true),
-        dram_base<CmdType>(PatternEncoderOverrides{
+    LPDDR4::LPDDR4(const MemSpecLPDDR4 &memSpec)
+        : dram_base<CmdType>(PatternEncoderOverrides{
             {pattern_descriptor::C0, PatternEncoderBitSpec::L},
             {pattern_descriptor::C1, PatternEncoderBitSpec::L},
-        }) 
+          }) 
+        , memSpec(memSpec)
+        , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
+        , commandBus{6, 1, util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L}
+        , readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
+            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
+        }
+        , writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
+            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L
+        }
+        , readDQS(memSpec.dataRate, true)
+        , writeDQS(memSpec.dataRate, true)
     {
         this->registerPatterns();
 
@@ -118,10 +120,9 @@ namespace DRAMPower {
                                            });
     };
 
-    void LPDDR4::handleInterfaceOverrides(size_t length, bool read)
+    void LPDDR4::handleInterfaceOverrides(size_t length, bool /*read*/)
     {
         // Set command bus pattern overrides
-        bool def = false;
         switch(length) {
             case 32:
                 this->encoder.settings.updateSettings({
@@ -150,39 +151,34 @@ namespace DRAMPower {
         size_t length = 0;
 
         // Handle data bus and dqs lines
-        switch (cmd.type) {
-            case CmdType::RD:
-            case CmdType::RDA:
-                length = cmd.sz_bits / readBus.get_width();
-                if ( length != 0 )
-                {
-                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-                }
-                else
-                {
-                    length = memSpec.burstLength; // Use default burst length
-                    // Cannot load readBus with data. TODO toggling rate
-                }
-                readDQS.start(cmd.timestamp);
-                readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
-                handleInterfaceOverrides(length, true);
-                break;
-            case CmdType::WR:
-            case CmdType::WRA:
-                length = cmd.sz_bits / writeBus.get_width();
-                if ( length != 0 )
-                {
-                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-                }
-                else
-                {
-                    length = memSpec.burstLength; // Use default burst length
-                    // Cannot load writeBus with data. TODO toggling rate
-                }
-                writeDQS.start(cmd.timestamp);
-                writeDQS.stop(cmd.timestamp + length / memSpec.dataRate);
-                handleInterfaceOverrides(length, false);
-                break;
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            length = cmd.sz_bits / readBus.get_width();
+            if ( length != 0 )
+            {
+                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            else
+            {
+                length = memSpec.burstLength; // Use default burst length
+                // Cannot load readBus with data. TODO toggling rate
+            }
+            readDQS.start(cmd.timestamp);
+            readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
+            handleInterfaceOverrides(length, true);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            length = cmd.sz_bits / writeBus.get_width();
+            if ( length != 0 )
+            {
+                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            else
+            {
+                length = memSpec.burstLength; // Use default burst length
+                // Cannot load writeBus with data. TODO toggling rate
+            }
+            writeDQS.start(cmd.timestamp);
+            writeDQS.stop(cmd.timestamp + length / memSpec.dataRate);
+            handleInterfaceOverrides(length, false);
         }
 
         // Command bus
@@ -339,11 +335,11 @@ namespace DRAMPower {
         });
     }
 
-    void LPDDR4::handleRead(Rank &rank, Bank &bank, timestamp_t timestamp) {
+    void LPDDR4::handleRead(Rank&, Bank &bank, timestamp_t) {
         ++bank.counter.reads;
     }
 
-    void LPDDR4::handleWrite(Rank &rank, Bank &bank, timestamp_t timestamp) {
+    void LPDDR4::handleWrite(Rank&, Bank &bank, timestamp_t) {
         ++bank.counter.writes;
     }
 
@@ -375,7 +371,7 @@ namespace DRAMPower {
         });
     }
 
-    void LPDDR4::endOfSimulation(timestamp_t timestamp) {
+    void LPDDR4::endOfSimulation(timestamp_t) {
         if (this->implicitCommandCount() > 0)
 			std::cout << ("[WARN] End of simulation but still implicit commands left!") << std::endl;
 	}

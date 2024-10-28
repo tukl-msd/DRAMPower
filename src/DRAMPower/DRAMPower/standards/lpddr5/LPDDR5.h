@@ -20,10 +20,23 @@
 
 namespace DRAMPower {
 class LPDDR5 : public dram_base<CmdType> {
-   public:
+
+public:
     LPDDR5(const MemSpecLPDDR5& memSpec);
     virtual ~LPDDR5() = default;
 
+public:
+    MemSpecLPDDR5 memSpec;
+    std::vector<Rank> ranks;
+private:
+    util::Bus commandBus;
+    util::Bus readBus;
+    util::Bus writeBus;
+    util::Clock readDQS;
+    util::Clock wck;
+    util::Clock clock;
+
+public:
 
     SimulationStats getStats() override;
     uint64_t getBankCount() override;
@@ -56,16 +69,10 @@ class LPDDR5 : public dram_base<CmdType> {
     energy_t calcCoreEnergy(timestamp_t timestamp) override;
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
     
-    MemSpecLPDDR5 memSpec;
-    std::vector<Rank> ranks;
 private:
     // Calculations
     void handle_interface(const Command& cmd) override;
     void handleInterfaceOverrides(size_t length, bool read);
-
-    util::Bus commandBus;
-    util::Bus readBus;
-    util::Bus writeBus;
 
 private:
     template <dram_base::commandEnum_t Cmd, typename Func>
@@ -76,13 +83,12 @@ private:
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, bank, command.timestamp);
         });
-    };
+    }
 
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankGroupHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {
             auto& rank = this->ranks[command.targetCoordinate.rank];
-            auto& bank = rank.banks[command.targetCoordinate.bank];
             rank.commandCounter.inc(command.type);
             auto bank_id = command.targetCoordinate.bank;
             (this->*member_func)(rank, bank_id, command.timestamp);
@@ -97,21 +103,18 @@ private:
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, command.timestamp);
         });
-    };
+    }
 
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {
             (this->*member_func)(command.timestamp);
         });
-    };
+    }
 
     void registerPatterns();
     timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
 
-    util::Clock clock;
-    util::Clock wck;
-    util::Clock readDQS;
 };
 };  // namespace DRAMPower
 

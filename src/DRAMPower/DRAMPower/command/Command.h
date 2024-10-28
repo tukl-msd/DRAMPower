@@ -33,19 +33,19 @@ class Command {
 public:
     Command() = default;
 	Command(timestamp_t timestamp, CmdType type, TargetCoordinate targetCoord = {}, const uint8_t * data = nullptr, std::size_t sz_bits = 0)
-		: type(type)
+        : timestamp(timestamp)
+		, type(type)
 		, targetCoordinate(targetCoord)
-        , timestamp(timestamp)
 		, data(data)
 		, sz_bits(sz_bits)
 	{};
 
 public:
+    timestamp_t timestamp = 0;
+    CmdType type;
     TargetCoordinate targetCoordinate;
 
-    CmdType type;
 
-    timestamp_t timestamp = 0;
     const uint8_t * data = 0x00; // ToDo: buffer{ptr, sz} / TLM Standard
 	std::size_t sz_bits;
     //uint64_t burstLength;

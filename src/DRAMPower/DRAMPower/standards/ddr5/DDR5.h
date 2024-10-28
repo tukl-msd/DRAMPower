@@ -20,16 +20,22 @@ namespace DRAMPower {
 
 class DDR5 : public dram_base<CmdType> {
 
+public:
+    MemSpecDDR5 memSpec;
+    std::vector<Rank> ranks;
+    util::Bus writeBus;
+    util::Bus readBus;
 private:
     std::size_t cmdBusWidth;
     uint64_t cmdBusInitPattern;
 public:
-    MemSpecDDR5 memSpec;
-    std::vector<Rank> ranks;
     util::Bus commandBus;
-    util::Bus readBus;
-    util::Bus writeBus;
+private:
+    util::Clock readDQS;
+    util::Clock writeDQS;
+    util::Clock clock;
 
+public:
     DDR5(const MemSpecDDR5& memSpec);
     virtual ~DDR5() = default;
 
@@ -101,21 +107,16 @@ protected:
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, command.timestamp);
         });
-    };
+    }
 
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {
             (this->*member_func)(command.timestamp);
         });
-    };
+    }
 
     void registerPatterns();
-
-private:
-    util::Clock clock;
-    util::Clock readDQS;
-    util::Clock writeDQS;
 };
 
 }  // namespace DRAMPower
