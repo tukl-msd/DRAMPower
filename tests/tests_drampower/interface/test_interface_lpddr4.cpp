@@ -363,15 +363,15 @@ class LPDDR4_Energy_Tests : public ::testing::Test {
 
 		// Change impedances to different values from each other
 		spec->memImpedanceSpec.static_cb.equivalent_resistance = 2;
-        spec->memImpedanceSpec.static_cb.entry.termination = DRAMUtils::MemSpec::TerminationScheme::OPEN_DRAIN_PULL_DOWN;
+        spec->memImpedanceSpec.static_cb.entry.termination = DRAMUtils::MemSpec::TerminationScheme::LWSTL;
         spec->memImpedanceSpec.static_ck.equivalent_resistance = 3;
-        spec->memImpedanceSpec.static_ck.entry.termination = DRAMUtils::MemSpec::TerminationScheme::OPEN_DRAIN_PULL_DOWN;
+        spec->memImpedanceSpec.static_ck.entry.termination = DRAMUtils::MemSpec::TerminationScheme::LWSTL;
         spec->memImpedanceSpec.static_dqs.equivalent_resistance = 4;
-        spec->memImpedanceSpec.static_dqs.entry.termination = DRAMUtils::MemSpec::TerminationScheme::OPEN_DRAIN_PULL_DOWN;
+        spec->memImpedanceSpec.static_dqs.entry.termination = DRAMUtils::MemSpec::TerminationScheme::LWSTL;
         spec->memImpedanceSpec.static_rb.equivalent_resistance = 5;
-        spec->memImpedanceSpec.static_rb.entry.termination = DRAMUtils::MemSpec::TerminationScheme::OPEN_DRAIN_PULL_DOWN;
+        spec->memImpedanceSpec.static_rb.entry.termination = DRAMUtils::MemSpec::TerminationScheme::LWSTL;
         spec->memImpedanceSpec.static_wb.equivalent_resistance = 6;
-        spec->memImpedanceSpec.static_wb.entry.termination = DRAMUtils::MemSpec::TerminationScheme::OPEN_DRAIN_PULL_DOWN;
+        spec->memImpedanceSpec.static_wb.entry.termination = DRAMUtils::MemSpec::TerminationScheme::LWSTL;
 
         spec->memImpedanceSpec.dynamic_cb.lineCapacity = 2;
         spec->memImpedanceSpec.dynamic_cb.entry.lineSwing = 3;

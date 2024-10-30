@@ -122,8 +122,8 @@ public:
 				case DRAMUtils::MemSpec::TerminationScheme::PUSH_PULL:
 					equivalent_resistance = 4 * (entry.R_ON + entry.R_TT);
 					break;
-				case DRAMUtils::MemSpec::TerminationScheme::OPEN_DRAIN_PULL_DOWN:
-				case DRAMUtils::MemSpec::TerminationScheme::OPEN_DRAIN_PULL_UP:
+				case DRAMUtils::MemSpec::TerminationScheme::LWSTL:
+				case DRAMUtils::MemSpec::TerminationScheme::PODL:
 					equivalent_resistance = entry.R_ON + entry.R_TT;
 					break;
 			}
