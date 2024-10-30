@@ -189,7 +189,6 @@ MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec)
     }
     prechargeOffsetWR      =  memTimingSpec.tWL + burstLength/2 + memTimingSpec.tWR + 1;
     parseImpedanceSpec(memspec);
-
 }
 
 bool MemSpecLPDDR4::BankWiseParams::isBankActiveInPasr(const unsigned bankIdx) const
