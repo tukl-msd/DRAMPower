@@ -105,7 +105,7 @@
         "static_ck": {
           "R_ON": 50,
           "R_TT": 100,
-          "termination": "ODPU"
+          "termination": "LWSTL"
         },
 
         "dynamic_cb": {
@@ -127,7 +127,7 @@
         "static_cb": {
           "R_ON": 50,
           "R_TT": 100,
-          "termination": "ODPU"
+          "termination": "LWSTL"
         },
 
         "dynamic_rb": {
@@ -149,7 +149,7 @@
         "static_rb": {
           "R_ON": 50,
           "R_TT": 100,
-          "termination": "ODPU"
+          "termination": "LWSTL"
         },
 
         "dynamic_wb": {
@@ -171,7 +171,7 @@
         "static_wb": {
           "R_ON": 50,
           "R_TT": 100,
-          "termination": "ODPU"
+          "termination": "LWSTL"
         },
 
         "dynamic_dqs": {
@@ -193,7 +193,7 @@
         "static_dqs": {
           "R_ON": 50,
           "R_TT": 100,
-          "termination": "ODPU"
+          "termination": "LWSTL"
         }
     }
   }

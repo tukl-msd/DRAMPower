@@ -14,6 +14,9 @@ double InterfaceCalculation_LPDDR4::calc_static_energy(const uint64_t NxBits, co
 }
 
 double InterfaceCalculation_LPDDR4::calc_dynamic_energy(const uint64_t NxBits, const MemSpecLPDDR4::MemDynamicSpecContainer &container, const double voltage) {
+    // TODO the power depends on the termination
+    // f.e. Pull up open drain charges with R_on and R_tt
+    // f.e. PUll down open drain charges with R_on
     // Compute charge
     // Q = C * U
     double charge = 0;
@@ -39,10 +42,10 @@ double InterfaceCalculation_LPDDR4::calcStaticTermination(const DRAMPower::util:
             // E_UP = E_DOWN -> E = 2 * E_UP = 2 * E_DOWN
             return calc_static_energy(stats.ones, static_container.equivalent_resistance, /*0.5 * */t_CK, voltage);
             // + calc_static_energy(stats.zeroes, static_container.equivalent_resistance, 0.5 * t_CK, voltage);
-        case DRAMUtils::MemSpec::TerminationScheme::OPEN_DRAIN_PULL_DOWN:
+        case DRAMUtils::MemSpec::TerminationScheme::LWSTL:
             return calc_static_energy(stats.ones, static_container.equivalent_resistance, 0.5 * t_CK, voltage);
             break;
-        case DRAMUtils::MemSpec::TerminationScheme::OPEN_DRAIN_PULL_UP:
+        case DRAMUtils::MemSpec::TerminationScheme::PODL:
             return calc_static_energy(stats.zeroes, static_container.equivalent_resistance, 0.5 * t_CK, voltage);
     }
     return 0;
