@@ -27,6 +27,9 @@ namespace DRAMPower {
             case MemSpecLPDDR4::BusConfig::X16:
                 databus = util::DatabusContainer<16>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<16>::BusIdlePatternSpec::L, util::Bus<16>::BusInitPatternSpec::L);
                 break;
+            case MemSpecLPDDR4::BusConfig::X32:
+                databus = util::DatabusContainer<32>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<32>::BusIdlePatternSpec::L, util::Bus<32>::BusInitPatternSpec::L);
+                break;
             default:
                 throw std::runtime_error("Invalid bus width");
         }

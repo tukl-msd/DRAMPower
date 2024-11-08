@@ -29,6 +29,9 @@ MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec)
         case 16:
             busConfig = BusConfig::X16;
             break;
+        case 32:
+            busConfig = BusConfig::X32;
+            break;
         default:
             throw std::runtime_error("Invalid bus width");
     }

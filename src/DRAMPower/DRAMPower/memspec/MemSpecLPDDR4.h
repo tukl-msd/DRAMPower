@@ -46,6 +46,7 @@ public:
 	enum class BusConfig {
 		X8 = 8,
 		X16 = 16,
+		X32 = 32,
 	};
 
 	BusConfig busConfig;

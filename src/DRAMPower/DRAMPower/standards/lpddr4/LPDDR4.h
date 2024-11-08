@@ -34,7 +34,7 @@ public:
     MemSpecLPDDR4 memSpec;
     std::vector<Rank> ranks;
     commandbus_t commandBus;
-    std::variant<util::DatabusContainer<8>, util::DatabusContainer<16>> databus;
+    std::variant<util::DatabusContainer<8>, util::DatabusContainer<16>, util::DatabusContainer<32>> databus;
     util::Clock readDQS;
     util::Clock writeDQS;
 
