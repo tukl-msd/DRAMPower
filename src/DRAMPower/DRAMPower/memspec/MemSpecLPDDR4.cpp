@@ -217,12 +217,11 @@ uint64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::CmdType type)
 } // MemSpecLPDDR4::timeToCompletion
 
 void MemSpecLPDDR4::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec) {
-    double fCK = 1 / memspec.memtimingspec.tCK;
-    memImpedanceSpec.dynamic_ck = MemDynamicSpecContainer{memspec.memimpedancespec.dynamic_ck, fCK};
-    memImpedanceSpec.dynamic_cb = MemDynamicSpecContainer{memspec.memimpedancespec.dynamic_cb, fCK};
-    memImpedanceSpec.dynamic_dqs = MemDynamicSpecContainer{memspec.memimpedancespec.dynamic_dqs, memspec.memarchitecturespec.dataRate * fCK};
-    memImpedanceSpec.dynamic_rb = MemDynamicSpecContainer{memspec.memimpedancespec.dynamic_rb, memspec.memarchitecturespec.dataRate * fCK};
-    memImpedanceSpec.dynamic_wb = MemDynamicSpecContainer{memspec.memimpedancespec.dynamic_wb, memspec.memarchitecturespec.dataRate * fCK};
+    memImpedanceSpec.dynamicEnergy_ck = memspec.memimpedancespec.dynamicEnergy_ck;
+    memImpedanceSpec.dynamicEnergy_cb = memspec.memimpedancespec.dynamicEnergy_cb;
+    memImpedanceSpec.dynamicEnergy_dqs = memspec.memimpedancespec.dynamicEnergy_dqs;
+    memImpedanceSpec.dynamicEnergy_rb = memspec.memimpedancespec.dynamicEnergy_rb;
+    memImpedanceSpec.dynamicEnergy_wb = memspec.memimpedancespec.dynamicEnergy_wb;
 
     memImpedanceSpec.static_ck = memspec.memimpedancespec.static_ck;
     memImpedanceSpec.static_cb = memspec.memimpedancespec.static_cb;

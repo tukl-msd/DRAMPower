@@ -31,7 +31,7 @@ public:
 private:
 	double calcStaticTermination(const DRAMPower::util::bus_stats_t &stats, const DRAMPower::MemSpecLPDDR4::MemStaticSpecContainer &static_container, const double t, const double voltage);
 	double calc_static_energy(const uint64_t NxBits, const double R_eq, const double t_CK, const double voltage);
-	double calc_dynamic_energy(const uint64_t NxBits, const MemSpecLPDDR4::MemDynamicSpecContainer &container, const double voltage);
+	double calc_dynamic_energy(const uint64_t NxBits, const double energy);
 
 	interface_energy_info_t calcClockEnergy(const SimulationStats &stats);
 	interface_energy_info_t calcDQSEnergy(const SimulationStats & stats);

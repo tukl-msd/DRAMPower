@@ -77,30 +77,6 @@ public:
 
 	};
 
-	struct MemDynamicSpecContainer {
-		DRAMUtils::MemSpec::MemDynamicPowerType entry;
-		double lineCapacity;
-
-		MemDynamicSpecContainer() = default; // explicit default constructor
-
-		// Copy constructor from DRAMUtils entry to DRAMPower entry
-		MemDynamicSpecContainer(const DRAMUtils::MemSpec::MemDynamicPowerType &entry, double fCK)
-		: entry(entry) // invokes copy constructor
-		{
-			if (entry.riseTime < 2.5 * entry.flightTime) {
-				// t_r < 2.5 * t_f
-				// C_line = t_r / Z_0
-				lineCapacity = 
-					entry.riseTime / entry.lineImpedance;
-			} else {
-				// t_r >= 2.5 * t_f
-				// C_line = 1 / (2 * f * Z_0)
-				lineCapacity =
-					1 / (2 * entry.lineImpedance * fCK);
-			}
-		}
-	};
-
 	struct MemStaticSpecContainer {
 		DRAMUtils::MemSpec::MemStaticPowerType entry;
 		double equivalent_resistance;
@@ -131,11 +107,11 @@ public:
 	};
 
 	struct MemImpedanceSpec {
-		MemDynamicSpecContainer dynamic_ck;
-		MemDynamicSpecContainer dynamic_cb;
-		MemDynamicSpecContainer dynamic_rb;
-		MemDynamicSpecContainer dynamic_wb;
-		MemDynamicSpecContainer dynamic_dqs;
+		double dynamicEnergy_ck;
+		double dynamicEnergy_cb;
+		double dynamicEnergy_rb;
+		double dynamicEnergy_wb;
+		double dynamicEnergy_dqs;
 
 		MemStaticSpecContainer static_ck;
 		MemStaticSpecContainer static_cb;

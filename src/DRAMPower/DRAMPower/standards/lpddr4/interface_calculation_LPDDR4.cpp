@@ -13,21 +13,8 @@ double InterfaceCalculation_LPDDR4::calc_static_energy(const uint64_t NxBits, co
     return NxBits * ((voltage * voltage) / R_eq) * t_CK; // N * P * t = N * E
 }
 
-double InterfaceCalculation_LPDDR4::calc_dynamic_energy(const uint64_t NxBits, const MemSpecLPDDR4::MemDynamicSpecContainer &container, const double voltage) {
-    // TODO the power depends on the termination
-    // f.e. Pull up open drain charges with R_on and R_tt
-    // f.e. PUll down open drain charges with R_on
-    // Compute charge
-    // Q = C * U
-    double charge = 0;
-    for (const auto &cap : container.entry.capacities) {
-        charge += cap.capacity * cap.swing;
-    }
-    // Add line capacity
-    charge += container.lineCapacity * container.entry.lineSwing;
-    // E = U * Q
-    double result = NxBits * charge * voltage;
-    return result;
+double InterfaceCalculation_LPDDR4::calc_dynamic_energy(const uint64_t NxBits, const double energy) {
+    return NxBits * energy;
 }
 
 double InterfaceCalculation_LPDDR4::calcStaticTermination(const DRAMPower::util::bus_stats_t &stats, const DRAMPower::MemSpecLPDDR4::MemStaticSpecContainer &static_container, const double t_CK, const double voltage)
@@ -59,7 +46,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calcClockEnergy(const Simul
         calcStaticTermination(stats.clockStats, impedances_.static_ck, t_CK, VDDQ);
 
     result.controller.dynamicEnergy = 
-        calc_dynamic_energy(stats.clockStats.zeroes_to_ones, impedances_.dynamic_ck, VDDQ);
+        calc_dynamic_energy(stats.clockStats.zeroes_to_ones, impedances_.dynamicEnergy_ck);
     return result;
 }
 
@@ -69,10 +56,10 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQSEnergy(const Simulat
 
     // Datarate of data bus
     result.dram.staticEnergy += calcStaticTermination(stats.readDQSStats, impedances_.static_dqs, t_CK / memspec_.dataRate, VDDQ);
-    result.dram.dynamicEnergy += calc_dynamic_energy(stats.readDQSStats.zeroes_to_ones, impedances_.dynamic_dqs, VDDQ);
+    result.dram.dynamicEnergy += calc_dynamic_energy(stats.readDQSStats.zeroes_to_ones, impedances_.dynamicEnergy_dqs);
 
     result.controller.staticEnergy += calcStaticTermination(stats.writeDQSStats, impedances_.static_dqs, t_CK / memspec_.dataRate, VDDQ);
-    result.controller.dynamicEnergy += calc_dynamic_energy(stats.writeDQSStats.zeroes_to_ones, impedances_.dynamic_dqs, VDDQ);
+    result.controller.dynamicEnergy += calc_dynamic_energy(stats.writeDQSStats.zeroes_to_ones, impedances_.dynamicEnergy_dqs);
 
     return result;
 }
@@ -83,7 +70,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calcCAEnergy(const Simulati
     result.controller.staticEnergy = 
         calcStaticTermination(bus_stats.commandBus, impedances_.static_cb, t_CK, VDDQ);
     result.controller.dynamicEnergy =
-        calc_dynamic_energy(bus_stats.commandBus.zeroes_to_ones, impedances_.dynamic_cb, VDDQ);
+        calc_dynamic_energy(bus_stats.commandBus.zeroes_to_ones, impedances_.dynamicEnergy_cb);;
     return result;
 }
 
@@ -94,12 +81,12 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQEnergy(const Simulati
     result.controller.staticEnergy +=
         calcStaticTermination(bus_stats.writeBus, impedances_.static_wb, t_CK /  memspec_.dataRate, VDDQ);
     result.controller.dynamicEnergy +=
-        calc_dynamic_energy(bus_stats.writeBus.zeroes_to_ones, impedances_.dynamic_wb, VDDQ);
+        calc_dynamic_energy(bus_stats.writeBus.zeroes_to_ones, impedances_.dynamicEnergy_wb);
 
     result.dram.staticEnergy +=
         calcStaticTermination(bus_stats.readBus, impedances_.static_rb, t_CK /  memspec_.dataRate, VDDQ);
     result.dram.dynamicEnergy +=
-        calc_dynamic_energy(bus_stats.readBus.zeroes_to_ones, impedances_.dynamic_rb, VDDQ);
+        calc_dynamic_energy(bus_stats.readBus.zeroes_to_ones, impedances_.dynamicEnergy_rb);
 
     return result;
 }
@@ -112,13 +99,13 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQEnergyTogglingRate(co
     result.dram.staticEnergy +=
         calcStaticTermination(stats.read, impedances_.static_rb, t_CK / memspec_.dataRate, VDDQ);
     result.dram.dynamicEnergy +=
-        calc_dynamic_energy(stats.read.zeroes_to_ones, impedances_.dynamic_rb, VDDQ);
+        calc_dynamic_energy(stats.read.zeroes_to_ones, impedances_.dynamicEnergy_rb);
 
     // Write
     result.controller.staticEnergy +=
         calcStaticTermination(stats.write, impedances_.static_wb, t_CK / memspec_.dataRate, VDDQ);
     result.controller.dynamicEnergy +=
-        calc_dynamic_energy(stats.write.zeroes_to_ones, impedances_.dynamic_wb, VDDQ);
+        calc_dynamic_energy(stats.write.zeroes_to_ones, impedances_.dynamicEnergy_wb);
     
     return result;
 }
