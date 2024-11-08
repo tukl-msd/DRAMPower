@@ -253,36 +253,11 @@ class LPDDR4_TogglingRateEnergy_Tests : public ::testing::Test {
         spec->memImpedanceSpec.static_wb.equivalent_resistance = 6;
         spec->memImpedanceSpec.static_wb.entry.termination = DRAMUtils::MemSpec::TerminationScheme::LWSTL;
 
-        spec->memImpedanceSpec.dynamic_cb.lineCapacity = 2;
-        spec->memImpedanceSpec.dynamic_cb.entry.lineSwing = 3;
-        spec->memImpedanceSpec.dynamic_cb.entry.capacities.push_back(DRAMUtils::MemSpec::MemDynamicPowerCapcitancePairType{
-            4, // double capacity
-            5  // double swing
-        });
-        spec->memImpedanceSpec.dynamic_ck.lineCapacity = 6;
-        spec->memImpedanceSpec.dynamic_ck.entry.lineSwing = 7;
-        spec->memImpedanceSpec.dynamic_ck.entry.capacities.push_back(DRAMUtils::MemSpec::MemDynamicPowerCapcitancePairType{
-            8, // double capacity
-            9  // double swing
-        });
-        spec->memImpedanceSpec.dynamic_dqs.lineCapacity = 10;
-        spec->memImpedanceSpec.dynamic_dqs.entry.lineSwing = 11;
-        spec->memImpedanceSpec.dynamic_dqs.entry.capacities.push_back(DRAMUtils::MemSpec::MemDynamicPowerCapcitancePairType{
-            12, // double capacity
-            13  // double swing
-        });
-        spec->memImpedanceSpec.dynamic_rb.lineCapacity = 14;
-        spec->memImpedanceSpec.dynamic_rb.entry.lineSwing = 15;
-        spec->memImpedanceSpec.dynamic_rb.entry.capacities.push_back(DRAMUtils::MemSpec::MemDynamicPowerCapcitancePairType{
-            16, // double capacity
-            17  // double swing
-        });
-        spec->memImpedanceSpec.dynamic_wb.lineCapacity = 18;
-        spec->memImpedanceSpec.dynamic_wb.entry.lineSwing = 19;
-        spec->memImpedanceSpec.dynamic_wb.entry.capacities.push_back(DRAMUtils::MemSpec::MemDynamicPowerCapcitancePairType{
-            20, // double capacity
-            21  // double swing
-        });
+        spec->memImpedanceSpec.dynamicEnergy_cb = 7;
+        spec->memImpedanceSpec.dynamicEnergy_ck = 8;
+        spec->memImpedanceSpec.dynamicEnergy_dqs = 9;
+        spec->memImpedanceSpec.dynamicEnergy_rb = 10;
+        spec->memImpedanceSpec.dynamicEnergy_wb = 11;
 
         io_calc = std::make_unique<InterfaceCalculation_LPDDR4>(*spec);
     }
