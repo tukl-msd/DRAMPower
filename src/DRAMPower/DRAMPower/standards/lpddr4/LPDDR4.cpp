@@ -495,20 +495,29 @@ namespace DRAMPower {
 
         stats.commandBus = commandBus.get_stats(timestamp);
         
-        std::visit([this, &stats, timestamp](auto &databus) {
-            databus.get_stats(stats.readBus, stats.writeBus, timestamp);
-        }, databus);
-
-        if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
-            stats.togglingStats = {
-                togglingHandleRead.get_stats(timestamp), // read
-                togglingHandleWrite.get_stats(timestamp) // write
-            };
+        // Default nullopt
+        stats.togglingStats = std::nullopt;
+        
+        // Read bus
+        if (!togglingHandleRead.isEnabled()) {
+            std::visit([this, &stats, timestamp](auto &databus) {
+                for (auto &bus : databus.readBus_vec) {
+                    stats.readBus += bus.get_stats(timestamp);
+                }
+            }, databus);
+        } else {
+            stats.togglingStats.value_or(TogglingStats{}).read = togglingHandleRead.get_stats(timestamp);
         }
-        else {
-            stats.togglingStats = std::nullopt;
+        // Write bus
+        if (!togglingHandleWrite.isEnabled()) {
+            std::visit([this, &stats, timestamp](auto &databus) {
+                for (auto &bus : databus.writeBus_vec) {
+                    stats.writeBus += bus.get_stats(timestamp);
+                }
+            }, databus);
+        } else {
+            stats.togglingStats.value_or(TogglingStats{}).write = togglingHandleWrite.get_stats(timestamp);
         }
-
 
         stats.clockStats = 2 * clock.get_stats_at(timestamp);
         stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);
