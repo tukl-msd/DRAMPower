@@ -109,7 +109,7 @@ else() # Fetch DRAMUtils from github
     FetchContent_Declare(
         DRAMUtils
         GIT_REPOSITORY https://github.com/tukl-msd/DRAMUtils
-        GIT_TAG "v1.0"
+        GIT_TAG "v1.1"
     )
 endif()
 
