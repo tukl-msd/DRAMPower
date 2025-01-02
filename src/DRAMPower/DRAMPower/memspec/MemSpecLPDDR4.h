@@ -102,6 +102,9 @@ public:
 				case DRAMUtils::MemSpec::TerminationScheme::PODL:
 					equivalent_resistance = entry.R_ON + entry.R_TT;
 					break;
+				case DRAMUtils::MemSpec::TerminationScheme::UNTERMINATED:
+					equivalent_resistance = 0;
+					break;
 			}
 		}
 	};

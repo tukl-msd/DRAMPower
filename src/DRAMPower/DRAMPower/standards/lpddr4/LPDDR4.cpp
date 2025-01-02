@@ -537,6 +537,10 @@ namespace DRAMPower {
         stats.clockStats = 2 * clock.get_stats_at(timestamp);
         stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);
         stats.writeDQSStats = 2 * writeDQS.get_stats_at(timestamp);
+        if (memSpec.bitWidth == 16) {
+            stats.readDQSStats *= 2;
+            stats.writeDQSStats *= 2;
+        }
 
         return stats;
     }
