@@ -305,6 +305,10 @@ namespace DRAMPower {
     }
 
     void LPDDR5::handle_interface_commandbus(const Command &cmd) {
+        // Skip command bus if no pattern is available
+        if (this->getPattern(cmd.type).size() == 0) {
+            return;
+        }
         auto pattern = getCommandPattern(cmd);
         auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
         commandBus.load(cmd.timestamp, pattern, ca_length);

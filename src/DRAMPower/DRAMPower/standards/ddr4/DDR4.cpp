@@ -286,6 +286,10 @@ namespace DRAMPower {
     }
 
     void DDR4::handle_interface_commandbus(const Command &cmd) {
+        // Skip command bus if no pattern is available
+        if (this->getPattern(cmd.type).size() == 0) {
+            return;
+        }
         auto pattern = this->getCommandPattern(cmd);
         auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
         this->commandBus.load(cmd.timestamp, pattern, ca_length);
