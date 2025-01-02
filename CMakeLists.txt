@@ -75,8 +75,9 @@ message(STATUS "CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
 message(STATUS "" )
 
 ### Build options ###
-option(DRAMPOWER_BUILD_TESTS "Build DRAMPower unit tests" OFF)
 option(DRAMPOWER_BUILD_CLI "Build DRAMPower Command Line Tool" ${PROJECT_IS_TOP_LEVEL})
+option(DRAMPOWER_BUILD_BENCHMARKS "Build DRAMPower Command Line Tool" OFF)
+option(DRAMPOWER_BUILD_TESTS "Build DRAMPower unit tests" OFF)
 
 # Use sane defaults for FetchContent:
 # In case we are the top-level project, get everything by default
@@ -118,7 +119,7 @@ if (DRAMPOWER_USE_FETCH_CONTENT)
     endif()
 
     # spdlog
-    if (DRAMPOWER_USE_FETCH_CONTENT_SPDLOG AND DRAMPOWER_BUILD_CLI)
+    if (DRAMPOWER_USE_FETCH_CONTENT_SPDLOG AND (DRAMPOWER_BUILD_CLI OR DRAMPOWER_BUILD_BENCHMARKS))
         add_subdirectory(${DRAMPOWER_LIBRARY_DIR}/spdlog)
     endif()
 endif()
@@ -129,7 +130,7 @@ endif()
 
 add_subdirectory(src/DRAMPower)
 
-if(DRAMPOWER_BUILD_CLI)
+if(DRAMPOWER_BUILD_CLI OR DRAMPOWER_BUILD_BENCHMARKS)
     add_subdirectory(src/cli)
 endif()
 
@@ -140,6 +141,14 @@ endif()
 if(DRAMPOWER_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
+endif()
+
+###############################################
+###         Benchmark Directory             ###
+###############################################
+
+if(DRAMPOWER_BUILD_BENCHMARKS)
+    add_subdirectory(benches)
 endif()
 
 ###############################################

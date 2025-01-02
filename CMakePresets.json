@@ -24,7 +24,8 @@
 			"cacheVariables": {
 				"DRAMPOWER_BUILD_TESTS": "ON",
 				"CMAKE_BUILD_PARALLEL_LEVEL": "",
-				"DRAMPOWER_BUILD_CLI": "ON"
+				"DRAMPOWER_BUILD_CLI": "ON",
+				"DRAMPOWER_BUILD_BENCHMARKS": "ON"
 			}
 		},
 		{
