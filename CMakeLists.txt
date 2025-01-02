@@ -41,6 +41,7 @@ cmake_minimum_required(VERSION 3.22.0)
 set(DRAMPOWER_VERSION_MAJOR 5)
 set(DRAMPOWER_VERSION_MINOR 1)
 set(DRAMPOWER_VERSION_STRING "${DRAMPOWER_VERSION_MAJOR}.${DRAMPOWER_VERSION_MINOR}")
+add_compile_definitions(DRAMPOWER_VERSION_STRING="${DRAMPOWER_VERSION_STRING}")
 
 set(PROJECT_NAME "DRAMPower ${DRAMPOWER_VERSION_STRING}")
 set(PROJECT_SHORTNAME "DRAMPower")
@@ -121,6 +122,17 @@ if (DRAMPOWER_USE_FETCH_CONTENT)
         add_subdirectory(${DRAMPOWER_LIBRARY_DIR}/spdlog)
     endif()
 endif()
+
+### spdlog ###
+if(DRAMPOWER_BUILD_CLI)
+    FetchContent_Declare(
+            spdlog
+            GIT_REPOSITORY https://github.com/gabime/spdlog.git
+            GIT_TAG        v1.9.2)
+    FetchContent_MakeAvailable(spdlog)
+    set_target_properties(spdlog PROPERTIES FOLDER lib)
+endif()
+
 
 ###############################################
 ###           Source Directory              ###

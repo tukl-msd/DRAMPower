@@ -1,49 +1,46 @@
+#include "run.hpp"
 
-#include <stdint.h>
-#include <unordered_map>
-#include <array>
-#include <utility>
-#include <iostream>
-#include <fstream>
-#include <variant>
-#include <optional>
+#include <memory>
 #include <vector>
-#include <filesystem>
-#include <string>
-#include <string_view>
-#include <type_traits>
+#include <fstream>
 #include <exception>
+#include <string>
 
-#include <DRAMPower/data/energy.h>
-#include <DRAMPower/command/Command.h>
-#include <DRAMPower/standards/ddr4/DDR4.h>
-#include <DRAMPower/memspec/MemSpecDDR4.h>
-#include <DRAMPower/standards/ddr5/DDR5.h>
-#include <DRAMPower/memspec/MemSpecDDR5.h>
-#include <DRAMPower/memspec/MemSpecLPDDR4.h>
-#include <DRAMPower/memspec/MemSpecLPDDR5.h>
-#include <DRAMPower/standards/lpddr4/LPDDR4.h>
-#include <DRAMPower/standards/lpddr5/LPDDR5.h>
-#include <DRAMUtils/util/json_utils.h>
-#include <DRAMUtils/memspec/MemSpec.h>
-#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
-#include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
-#include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
-#include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
-
-#include <CLI/CLI.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
+
+#include <DRAMPower/dram/dram_base.h>
+
+#include <DRAMPower/data/energy.h>
+
+#include <DRAMPower/standards/ddr4/DDR4.h>
+#include <DRAMPower/memspec/MemSpecDDR4.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+
+#include <DRAMPower/standards/ddr5/DDR5.h>
+#include <DRAMPower/memspec/MemSpecDDR5.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
+
+#include <DRAMPower/standards/lpddr4/LPDDR4.h>
+#include <DRAMPower/memspec/MemSpecLPDDR4.h>
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
+
+#include <DRAMPower/standards/lpddr5/LPDDR5.h>
+#include <DRAMPower/memspec/MemSpecLPDDR5.h>
+#include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
+
+#include <DRAMUtils/util/json_utils.h>
+#include <DRAMUtils/memspec/MemSpec.h>
 
 #include "csv.hpp"
 #include "util.hpp"
 #include "config.h"
-#include "validators.h"
+
+namespace DRAMPower::CLI {
 
 using namespace DRAMPower;
 
-
-std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data)
+std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data, std::optional<DRAMUtils::Config::ToggleRateDefinition> togglingRate)
 {
 	try
 	{
@@ -77,19 +74,21 @@ std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data)
 				result = std::make_unique<LPDDR5>(ddr);
 			}
 		}, memspec->getVariant());
+
+        // Set toggling rate
+        if (togglingRate) {
+            result->setToggleRate(0, togglingRate);
+        }
 		return result;
 	}
 	catch(const std::exception& e)
 	{
-		spdlog::error(e.what());
 		return nullptr;
 	}
 }
 
-std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(std::string_view csv_file)
+bool parse_command_list(std::string_view csv_file, std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> &commandList)
 {
-	std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> commandList;
-
 	// Read csv file
 	csv::CSVFormat format;
 	format.no_header();
@@ -115,8 +114,7 @@ std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(s
 		// Read csv row
 		if ( row.size() < MINCSVSIZE )
 		{
-			spdlog::error("Invalid command structure. Row {}", rowcounter);
-			exit(1);
+            return false;
 		}
 			
 		timestamp = row[rowidx++].get<timestamp_t>();
@@ -133,21 +131,18 @@ std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(s
 		// Get data if needed
 		if ( DRAMPower::CmdTypeUtil::needs_data(cmd) ) {
 			if ( row.size() < MINCSVSIZE + 1 ) {
-				spdlog::error("Invalid command structure. Row {}", rowcounter);
-				exit(1);
+                return false;
 			}
 			// uint64_t length = 0;
 			csv::string_view data = row[rowidx++].get_sv();
 			std::unique_ptr<uint8_t[]> arr;
 			try
 			{
-				arr = CLIutil::hexStringToUint8Array(data, size);
+				arr = util::hexStringToUint8Array(data, size);
 			}
 			catch (std::exception &e)
 			{
-				spdlog::error(e.what());
-				spdlog::error("Invalid data field in row {}", rowcounter);
-				exit(1);
+                return false;
 			}
 			commandList.emplace_back(Command{ timestamp, cmd, { bank_id, bank_group_id, rank_id, row_id, column_id}, arr.get(), size * 8}, std::move(arr));
 		}
@@ -158,16 +153,15 @@ std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> parse_command_list(s
 		++rowcounter;
 	}
 
-	return commandList;
+	return true;
 };
 
-void jsonFileResult(const std::string &jsonfile, const std::unique_ptr<dram_base<CmdType>> &ddr, const energy_t &core_energy, const interface_energy_info_t &interface_energy)
+bool jsonFileResult(const std::string &jsonfile, const std::unique_ptr<dram_base<CmdType>> &ddr, const energy_t &core_energy, const interface_energy_info_t &interface_energy)
 {
 	std::ofstream out;
 	out = std::ofstream(jsonfile);
 	if ( !out.is_open() ) {
-		spdlog::error("Could not open file {}", jsonfile);
-		exit(1);
+        return false;
 	}
 	json_t j;
 	size_t energy_offset = 0;
@@ -188,8 +182,7 @@ void jsonFileResult(const std::string &jsonfile, const std::unique_ptr<dram_base
 	if ( !j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].is_array() || j["CoreEnergy"][core_energy.get_Bank_energy_keyword()].size() != rankcount * bankcount * devicecount )
 	{
 		assert(false); // (should not happen)
-		spdlog::error("Invalid energy array length");
-		exit(1);
+        return false;
 	}
 	
 	// Add rank,device,bank description
@@ -207,9 +200,10 @@ void jsonFileResult(const std::string &jsonfile, const std::unique_ptr<dram_base
 	
 	out << j.dump(4) << std::endl;
 	out.close();
+	return true;
 }
 
-void stdoutResult(const std::unique_ptr<dram_base<CmdType>> &ddr, const energy_t &core_energy, const interface_energy_info_t &interface_energy)
+bool stdoutResult(const std::unique_ptr<dram_base<CmdType>> &ddr, const energy_t &core_energy, const interface_energy_info_t &interface_energy)
 {
 	// Setup output format
 	std::cout << std::defaultfloat << std::setprecision(3);
@@ -236,98 +230,58 @@ void stdoutResult(const std::unique_ptr<dram_base<CmdType>> &ddr, const energy_t
 	spdlog::info("Shared energy -> {}", core_energy);
 	spdlog::info("Interface Energy:\n{}", interface_energy);
 	spdlog::info("Total Energy -> {}", core_energy.total() + interface_energy.total());
+	return true;
 }
 
-int main(int argc, char *argv[])
+bool getConfig(const std::string &configfile, config::CLIConfig &config)
 {
-	// Application description
-	CLI::App app{"DRAMPower v" DRAMPOWER_VERSION_STRING};
-	argv = app.ensure_utf8(argv);
-	// Options
-	std::string configfile;
-	std::string tracefile;
-	std::string memspec;
-	std::optional<std::string> jsonfile = std::nullopt;
-	// Configfile
-	app.add_option("-c,--config", configfile, "config")
-		->required(true)
-		->check(CLI::ExistingFile);
-	// Tracefile
-	app.add_option("-t,--trace", tracefile, "csv trace file")
-		->required(true)
-		->check(CLI::ExistingFile);
-	// Memspec
-	app.add_option("-m,--memspec", memspec, "json memspec file")
-		->required(true)
-		->check(CLI::ExistingFile);
-	// JSON output file
-	app.add_option("-j,--json", jsonfile, "json output file path")
-		->required(false)
-		->transform(validators::EnsureFileExists); // Can transform the argument for a symlink
-	// Parse arguments
-	CLI11_PARSE(app, argc, argv);
-
-	// Set spdlog pattern
-	spdlog::set_pattern("%v");
-
-	CLIConfig config;
-	// Get config file and parse
-	try
-	{
-		std::ifstream file(configfile);
-		if (!file.is_open()) {
-			spdlog::info("Cannot open config file");
-			exit(1);
-		}
-		json_t json_obj = json_t::parse(file);
-		config = json_obj;
+    try
+    {
+        std::ifstream file(configfile);
+        if (!file.is_open()) {
+            return false;
+        }
+        json_t json_obj = json_t::parse(file, nullptr, false, true);
+        config = json_obj;
+        if (config.useToggleRate) {
+            if (!config.toggleRateConfig) {
+                return false;
+            }
+        } else { // !config.useToggleRate
+            config.toggleRateConfig = std::nullopt;
+        }
     }
     catch (std::exception&)
     {
-		spdlog::info("Invalid config file");
-		exit(1);
+        return false;
     }
+    return true;
+}
 
-	// Parse command list (load command list in memory)
-	auto commandList = parse_command_list(tracefile);
-
-	// Initialize memory / Create memory object
-	std::unique_ptr<dram_base<CmdType>> ddr = getMemory(std::string_view(memspec));
-	if (!ddr) {
-		spdlog::error("Invalid memory specification");
-		exit(1);
-	}
-
-    // Set togglingrate
-	if (config.useToggleRate) {
-		if (!config.toggleRateConfig) {
-			spdlog::info("toggleRateConfig missing in config file");
-			exit(1);
-		}
-		ddr->setToggleRate(0, config.toggleRateConfig);
-	}
-
-	try {
-		// Execute commands
-		for ( auto &command : commandList ) {
-			ddr->doCoreInterfaceCommand(command.first);
-		}
-	} catch (std::exception &e) {
-		spdlog::error(e.what());
-		spdlog::info("Error while executing commands. Exiting application");
-		exit(1);
-	}
-
-	// Calculate energy and stats
-	energy_t core_energy = ddr->calcCoreEnergy(ddr->getLastCommandTime());
+bool makeResult(std::optional<std::string> jsonfile, const std::unique_ptr<dram_base<CmdType>> &ddr)
+{
+    energy_t core_energy = ddr->calcCoreEnergy(ddr->getLastCommandTime());
     interface_energy_info_t interface_energy = ddr->calcInterfaceEnergy(ddr->getLastCommandTime());
-	if(jsonfile)
+    if(jsonfile)
 	{
-		jsonFileResult(*jsonfile, std::move(ddr), core_energy, interface_energy);
+		return jsonFileResult(*jsonfile, std::move(ddr), core_energy, interface_energy);
 	}
 	else
 	{
-		stdoutResult(std::move(ddr), core_energy, interface_energy);
+		return stdoutResult(std::move(ddr), core_energy, interface_energy);
 	}
-	return 0;
-};
+}
+
+bool runCommands(std::unique_ptr<dram_base<CmdType>> &ddr, const std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> &commandList)
+{
+    try {
+		for (auto &command : commandList ) {
+			ddr->doCoreInterfaceCommand(command.first);
+		}
+	} catch (std::exception &e) {
+		return false;
+	}
+    return true;
+}
+
+} // namespace DRAMPower::CLI

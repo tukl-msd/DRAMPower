@@ -1,0 +1,11 @@
+{
+    "useToggleRate": true,
+    "toggleRateConfig": {
+        "togglingRateRead": 0.5,
+        "togglingRateWrite": 0.5,
+        "dutyCycleRead": 0.5,
+        "dutyCycleWrite": 0.5,
+        "idlePatternRead": "L",
+        "idlePatternWrite": "L"
+    }
+}
