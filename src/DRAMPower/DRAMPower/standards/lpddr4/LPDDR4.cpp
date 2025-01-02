@@ -495,9 +495,6 @@ namespace DRAMPower {
 
         stats.commandBus = commandBus.get_stats(timestamp);
         
-        // Default nullopt
-        stats.togglingStats = std::nullopt;
-        
         // Read bus
         if (!togglingHandleRead.isEnabled()) {
             std::visit([this, &stats, timestamp](auto &databus) {
@@ -506,7 +503,10 @@ namespace DRAMPower {
                 }
             }, databus);
         } else {
-            stats.togglingStats.value_or(TogglingStats{}).read = togglingHandleRead.get_stats(timestamp);
+            if (!stats.togglingStats.has_value()) {
+                stats.togglingStats = TogglingStats{};
+            }
+            stats.togglingStats->read = togglingHandleRead.get_stats(timestamp);
         }
         // Write bus
         if (!togglingHandleWrite.isEnabled()) {
@@ -516,12 +516,19 @@ namespace DRAMPower {
                 }
             }, databus);
         } else {
-            stats.togglingStats.value_or(TogglingStats{}).write = togglingHandleWrite.get_stats(timestamp);
+            if (!stats.togglingStats.has_value()) {
+                stats.togglingStats = TogglingStats{};
+            }
+            stats.togglingStats->write = togglingHandleWrite.get_stats(timestamp);
         }
 
         stats.clockStats = 2 * clock.get_stats_at(timestamp);
         stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);
         stats.writeDQSStats = 2 * writeDQS.get_stats_at(timestamp);
+        if (memSpec.bitWidth == 16) {
+            stats.readDQSStats *= 2;
+            stats.writeDQSStats *= 2;
+        }
 
         return stats;
     }
