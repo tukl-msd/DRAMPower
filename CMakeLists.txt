@@ -53,6 +53,8 @@ add_library(${PROJECT_NAME} STATIC
 	src/MemBankWiseParams.cc
 )
 
+add_library(DRAMSys::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
 # Configuration:
 target_include_directories(${PROJECT_NAME}
     PUBLIC
