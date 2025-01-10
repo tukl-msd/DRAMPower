@@ -62,10 +62,31 @@ namespace DRAMPower {
 
     };
 
-    void DDR4::update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleratedefinition)
+    void DDR4::toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle) {
+        // Change from bus to toggling rate
+        assert(enable_timestamp >= timestamp);
+        bus.disable(enable_timestamp);
+        if ( enable_timestamp > timestamp ) {
+            // Schedule toggling rate enable
+            this->addImplicitCommand(enable_timestamp, [this, &togglinghandle, enable_timestamp]() {
+                togglinghandle.enable(enable_timestamp);
+            });
+        } else {
+            togglinghandle.enable(enable_timestamp);
+        }
+    }
+
+    timestamp_t DDR4::toggling_rate_get_enable_time(timestamp_t timestamp) {
+        timestamp_t busdisabletimestamp = timestamp;
+        busdisabletimestamp = std::max(readBus.get_lastburst_timestamp(), busdisabletimestamp);
+        busdisabletimestamp = std::max(writeBus.get_lastburst_timestamp(), busdisabletimestamp);
+        return busdisabletimestamp;
+    }
+
+    timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleratedefinition)
     {
-        if (toggleratedefinition)
-        {
+        if (toggleratedefinition) {
+            // Enable toggle rate
             togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
             togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
             togglingHandleRead.setDataRate(memSpec.dataRate);
@@ -80,12 +101,23 @@ namespace DRAMPower {
                 toggleratedefinition->dutyCycleWrite,
                 toggleratedefinition->idlePatternWrite
             );
+            // toggling rate already enabled
+            if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
+                return timestamp;
+            }
+            // Get next possible enable time (wait for pending bus transactions with data)
+            timestamp_t enable_timestamp = toggling_rate_get_enable_time(timestamp);
+            // Enable toggling rate
+            toggling_rate_enable(timestamp, enable_timestamp, readBus, togglingHandleRead);
+            toggling_rate_enable(timestamp, enable_timestamp, writeBus, togglingHandleWrite);
+            return enable_timestamp;
+        } else {
+            togglingHandleRead.disable(timestamp);
+            togglingHandleWrite.disable(timestamp);
+            readBus.enable(timestamp);
+            writeBus.enable(timestamp);
         }
-        else
-        {
-            togglingHandleRead.disable();
-            togglingHandleWrite.disable();
-        }
+        return timestamp;
     }
 
     uint64_t DDR4::getBankCount() {

@@ -28,8 +28,10 @@ private:
     double toggling_rate = 0; // [0, 1] allowed
     double duty_cycle = 0.0; // [0, 1] allowed
     std::optional<TogglingHandleLastBurst> last_burst = std::nullopt;
-    bool enable = false;
+    bool enableflag = false; // default disabled if default constructor is used
     uint64_t count = 0;
+    timestamp_t disable_timestamp = 0;
+    timestamp_t disable_time = 0;
     DRAMUtils::Config::TogglingRateIdlePattern idlepattern = DRAMUtils::Config::TogglingRateIdlePattern::Z;
 
 public:
@@ -45,7 +47,8 @@ public:
     uint64_t getDatarate() const;
     
     void setTogglingRateAndDutyCycle(const double toggling_rate, const double duty_cycle, const DRAMUtils::Config::TogglingRateIdlePattern idlepattern);
-    void disable();
+    void disable(timestamp_t timestamp);
+    void enable(timestamp_t timestamp);
     void setWidth(const uint64_t width);
     void setDataRate(const uint64_t datarate);
     uint64_t getCount() const;

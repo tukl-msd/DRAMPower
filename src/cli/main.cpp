@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
 			spdlog::info("toggleRateConfig missing in config file");
 			exit(1);
 		}
-		ddr->setToggleRate(config.toggleRateConfig);
+		ddr->setToggleRate(0, config.toggleRateConfig);
 	}
 
 	try {

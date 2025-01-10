@@ -119,7 +119,9 @@ public:
 private:
     void handle_interface(const Command& cmd) override;
     void handle_interface_toggleRate(const Command& cmd) override;
-    void update_toggling_rate(const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
+    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
+    timestamp_t toggling_rate_get_enable_time(timestamp_t timestamp);
+    timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
     void handleInterfaceOverrides(size_t length, bool read);
     void handle_interface_commandbus(const Command& cmd);
     void handle_interface_data_common(const Command &cmd, const size_t length);

@@ -16,7 +16,7 @@
 using namespace DRAMPower;
 using namespace DRAMUtils::Config;
 
-#define SZ_BITS(x) (x)*8
+#define SZ_BITS(x) sizeof(x)*8
 
 class LPDDR4_TogglingRate_Tests : public ::testing::Test {
    public:
@@ -59,7 +59,7 @@ TEST_F(LPDDR4_TogglingRate_Tests, Pattern_0_LH) {
     double dutyCycleWrite = 0.4;
     TogglingRateIdlePattern idlePatternRead = TogglingRateIdlePattern::L;
     TogglingRateIdlePattern idlePatternWrite = TogglingRateIdlePattern::H;
-    ddr->setToggleRate(ToggleRateDefinition {
+    ddr->setToggleRate(0, ToggleRateDefinition {
         togglingRateRead, // togglingRateRead
         togglingRateWrite, // togglingRateWrite
         dutyCycleRead, // dutyCycleRead
@@ -128,10 +128,10 @@ TEST_F(LPDDR4_TogglingRate_Tests, Pattern_0_LH) {
     EXPECT_EQ(stats.clockStats.zeroes_to_ones, 52);
 
 // Command bus (see test_interface_lpddr4)
-    ASSERT_EQ(stats.commandBus.ones, 15);
-    ASSERT_EQ(stats.commandBus.zeroes, 141);
-    ASSERT_EQ(stats.commandBus.ones_to_zeroes, 14);
-    ASSERT_EQ(stats.commandBus.zeroes_to_ones, 14);
+    EXPECT_EQ(stats.commandBus.ones, 15);
+    EXPECT_EQ(stats.commandBus.zeroes, 141);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 14);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 14);
 
 // DQs (see test_interface_lpddr4)
     int number_of_cycles = (datasize_bits / spec->bitWidth);
@@ -168,7 +168,7 @@ TEST_F(LPDDR4_TogglingRate_Tests, Pattern_0_HZ) {
     double dutyCycleWrite = 0.4;
     TogglingRateIdlePattern idlePatternRead = TogglingRateIdlePattern::H;
     TogglingRateIdlePattern idlePatternWrite = TogglingRateIdlePattern::Z;
-    ddr->setToggleRate(ToggleRateDefinition {
+    ddr->setToggleRate(0, ToggleRateDefinition {
         togglingRateRead, // togglingRateRead
         togglingRateWrite, // togglingRateWrite
         dutyCycleRead, // dutyCycleRead

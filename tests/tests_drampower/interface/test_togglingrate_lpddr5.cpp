@@ -59,7 +59,7 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_0_LH) {
     double dutyCycleWrite = 0.4;
     TogglingRateIdlePattern idlePatternRead = TogglingRateIdlePattern::L;
     TogglingRateIdlePattern idlePatternWrite = TogglingRateIdlePattern::H;
-    ddr->setToggleRate(ToggleRateDefinition {
+    ddr->setToggleRate(0, ToggleRateDefinition {
         togglingRateRead, // togglingRateRead
         togglingRateWrite, // togglingRateWrite
         dutyCycleRead, // dutyCycleRead
@@ -162,7 +162,7 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_0_HZ) {
     double dutyCycleWrite = 0.4;
     TogglingRateIdlePattern idlePatternRead = TogglingRateIdlePattern::H;
     TogglingRateIdlePattern idlePatternWrite = TogglingRateIdlePattern::Z;
-    ddr->setToggleRate(ToggleRateDefinition {
+    ddr->setToggleRate(0, ToggleRateDefinition {
         togglingRateRead, // togglingRateRead
         togglingRateWrite, // togglingRateWrite
         dutyCycleRead, // dutyCycleRead

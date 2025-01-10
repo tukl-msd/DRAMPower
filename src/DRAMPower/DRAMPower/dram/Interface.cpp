@@ -9,7 +9,7 @@ TogglingHandle::TogglingHandle(const uint64_t width, const uint64_t datarate, co
     , datarate(datarate)
     , toggling_rate(toggling_rate)
     , duty_cycle(duty_cycle)
-    , enable(enabled)
+    , enableflag(enabled)
 {
     assert(width > 0); // Check bounds
     assert(datarate > 0); // Check bounds
@@ -17,14 +17,35 @@ TogglingHandle::TogglingHandle(const uint64_t width, const uint64_t datarate, co
     assert(toggling_rate >= 0 && toggling_rate <= 1); // Check bounds
 }
 
-void TogglingHandle::disable()
+void TogglingHandle::disable(timestamp_t timestamp)
 {
-    this->enable = false;
+    if(!this->enableflag) {
+        return;
+    }
+    this->enableflag = false;
+    this->disable_timestamp = timestamp * this->datarate;
+    if (this->last_burst) {
+        if(timestamp * datarate >= this->last_burst->last_length + this->last_burst->last_load) {
+            this->count += this->last_burst->last_length;
+        } else {
+            this->count += timestamp * datarate - this->last_burst->last_load;
+        }
+        this->last_burst = std::nullopt;
+    }
+}
+
+void TogglingHandle::enable(timestamp_t timestamp)
+{
+    if (this->enableflag) {
+        return;
+    }
+    this->disable_time += timestamp * this->datarate - this->disable_timestamp;
+    this->enableflag = true;
 }
 
 bool TogglingHandle::isEnabled() const
 {
-    return this->enable;
+    return this->enableflag;
 }
 
 double TogglingHandle::getTogglingRate() const
@@ -57,7 +78,6 @@ void TogglingHandle::setTogglingRateAndDutyCycle(const double toggling_rate, con
     this->toggling_rate = toggling_rate;
     this->duty_cycle = duty_cycle;
     this->idlepattern = idlepattern;
-    this->enable = true;
 }
 uint64_t TogglingHandle::getCount() const
 {
@@ -78,7 +98,7 @@ void TogglingHandle::incCountBurstLength(timestamp_t timestamp, uint64_t burstle
         this->count += this->last_burst->last_length;
     }
     // Store burst in last_length and last_load if enabled
-    if (this->enable) {
+    if (this->enableflag) {
         // Set last_length and last_load to new burst_length
         this->last_burst = TogglingHandleLastBurst {
             burstlength, // last_length
@@ -118,10 +138,10 @@ util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp)
     // Compute idle
     switch (this->idlepattern) {
         case TogglingRateIdlePattern::L:
-            stats.zeroes += virtual_timestamp - this->count;
+            stats.zeroes += virtual_timestamp - this->disable_time - this->count;
             break;
         case TogglingRateIdlePattern::H:
-            stats.ones += virtual_timestamp - this->count;
+            stats.ones += virtual_timestamp - this->disable_time - this->count;
             break;
         case TogglingRateIdlePattern::Invalid:
             assert(false); // Fallback to Z

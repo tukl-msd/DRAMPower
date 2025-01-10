@@ -67,19 +67,18 @@ private:
 public:
     virtual ~dram_base() = 0;
 private:
-    void internal_handle_interface(const Command& cmd)
+    void internal_handle_interface(const Command& cmd) 
     {
-        if (toggleRateDefinition) {
+        if (this->toggleRateDefinition) {
             handle_interface_toggleRate(cmd);
-        }
-        else {
+        } else {
             handle_interface(cmd);
         }
     }
 private:
     virtual void handle_interface(const Command& cmd) = 0;
     virtual void handle_interface_toggleRate(const Command& cmd) = 0;
-    virtual void update_toggling_rate(const std::optional<ToggleRateDefinition> &toggleRateDefinition) = 0;
+    virtual timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleRateDefinition) = 0;
     virtual uint64_t getInitEncoderPattern()
     {
         // Default encoder init pattern
@@ -173,10 +172,10 @@ public:
         this->last_command_time = command.timestamp;
     };
 
-    void setToggleRate(const std::optional<ToggleRateDefinition> &toggleRateDefinition)
+    void setToggleRate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleRateDefinition)
     {
         this->toggleRateDefinition = toggleRateDefinition;
-        update_toggling_rate(this->toggleRateDefinition);
+        update_toggling_rate(timestamp, this->toggleRateDefinition);
     }
 
     void doInterfaceCommand(const Command& command)

@@ -16,7 +16,7 @@ class test_ddr : public dram_base<CmdType>
 private:
 	void handle_interface(const Command&) override {};
     void handle_interface_toggleRate(const Command&) override {};
-    void update_toggling_rate(const std::optional<ToggleRateDefinition>&) override {};
+    timestamp_t update_toggling_rate(timestamp_t, const std::optional<ToggleRateDefinition>&) override {return 0;};
 public:
 	energy_t calcCoreEnergy(timestamp_t) override { return energy_t(1); };
     interface_energy_info_t calcInterfaceEnergy(timestamp_t) override { return interface_energy_info_t(); };
