@@ -526,16 +526,10 @@ namespace DRAMPower {
         stats.commandBus = commandBus.get_stats(timestamp);
         stats.readBus = readBus.get_stats(timestamp);
         stats.writeBus = writeBus.get_stats(timestamp);
-        if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
-            stats.togglingStats = {
-                togglingHandleRead.get_stats(timestamp), // read
-                togglingHandleWrite.get_stats(timestamp) // write
-            };
-        }
-        else {
-            stats.togglingStats = std::nullopt;
-        }
-
+        stats.togglingStats = {
+            togglingHandleRead.get_stats(timestamp), // read
+            togglingHandleWrite.get_stats(timestamp) // write
+        };
 
         stats.clockStats = 2 * clock.get_stats_at(timestamp);
         stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);

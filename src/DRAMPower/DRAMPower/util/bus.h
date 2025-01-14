@@ -336,12 +336,11 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 	timestamp_t disable(timestamp_t timestamp) {
 		// Already disabled
 		if (!this->enableflag) {
-			return this->virtual_disable_timestamp / this->datarate;
+			assert(timestamp * this->datarate >= this->virtual_disable_timestamp);
+			return timestamp;
 		}
-
-		timestamp_t virtual_target_t_disable = timestamp * this->datarate;
-
-		assert(virtual_target_t_disable >= this->last_load);
+		this->virtual_disable_timestamp = timestamp * this->datarate;
+		assert(this->virtual_disable_timestamp  >= this->last_load);
 
 		// Init stats
 		if(!this->init_load && this->virtual_disable_timestamp == 0) {
@@ -402,9 +401,11 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 			stats += this->pending_stats.getStats();
 		}
 
-		// Advance stats to new timestamp
-		for (auto n = this->last_load; n < t_virtual - 1; n++) {
-			stats += diff(this->at(n), this->at(n + 1)); // Last: (timestamp - 2, timestamp - 1)
+		// Advance stats to new timestamp if enabled
+		if (this->enableflag) {
+			for (auto n = this->last_load; n < t_virtual - 1; n++) {
+				stats += diff(this->at(n), this->at(n + 1)); // Last: (timestamp - 2, timestamp - 1)
+			}
 		}
 
 		return stats;

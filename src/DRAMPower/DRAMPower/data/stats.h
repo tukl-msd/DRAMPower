@@ -61,6 +61,7 @@ namespace DRAMPower
 		util::bus_stats_t clockStats;
 		util::bus_stats_t wClockStats;
 
+		// TODO remove optional when toggling is implemented correctly in all standards
         std::optional<TogglingStats>  togglingStats = std::nullopt;
 
 		util::bus_stats_t readDQSStats;

@@ -19,19 +19,21 @@ TogglingHandle::TogglingHandle(const uint64_t width, const uint64_t datarate, co
 
 void TogglingHandle::disable(timestamp_t timestamp)
 {
+    timestamp_t virtualtimestamp = timestamp * this->datarate;
     if(!this->enableflag) {
         return;
     }
-    this->enableflag = false;
-    this->disable_timestamp = timestamp * this->datarate;
     if (this->last_burst) {
-        if(timestamp * datarate >= this->last_burst->last_length + this->last_burst->last_load) {
+        if(virtualtimestamp >= this->last_burst->last_length + this->last_burst->last_load) {
             this->count += this->last_burst->last_length;
         } else {
-            this->count += timestamp * datarate - this->last_burst->last_load;
+            // Partial burst is lost
+            this->count += virtualtimestamp - this->last_burst->last_load;
         }
         this->last_burst = std::nullopt;
     }
+    this->disable_timestamp = virtualtimestamp;
+    this->enableflag = false;
 }
 
 void TogglingHandle::enable(timestamp_t timestamp)
@@ -121,27 +123,31 @@ util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp)
     assert(virtual_timestamp / this->datarate == timestamp); // No overflow
 
     util::bus_stats_t stats;
-    // Check if last burst is finished
-    if ((this->last_burst)
-        && (virtual_timestamp < this->last_burst->last_length + this->last_burst->last_load)
-    ) {
-        // last burst not finished
-        this->count += virtual_timestamp - this->last_burst->last_load;
-    } else if (this->last_burst) {
-        // last burst finished
-        this->count += this->last_burst->last_length;
+
+    uint64_t count = this->count;
+    if(this->enableflag) {
+        // Check if last burst is finished
+        if ((this->last_burst)
+            && (virtual_timestamp < this->last_burst->last_length + this->last_burst->last_load)
+        ) {
+            // last burst not finished
+            count += virtual_timestamp - this->last_burst->last_load;
+        } else if (this->last_burst) {
+            // last burst finished
+            count += this->last_burst->last_length;
+        }
     }
     // Compute toggles
-    stats.ones = this->count * this->duty_cycle;
-    stats.zeroes = this->count * (1 - this->duty_cycle);
-    stats.ones_to_zeroes = this->count * this->toggling_rate / 2; // Round down
+    stats.ones = count * this->duty_cycle;
+    stats.zeroes = count * (1 - this->duty_cycle);
+    stats.ones_to_zeroes = count * this->toggling_rate / 2; // Round down
     // Compute idle
     switch (this->idlepattern) {
         case TogglingRateIdlePattern::L:
-            stats.zeroes += virtual_timestamp - this->disable_time - this->count;
+            stats.zeroes += virtual_timestamp - this->disable_time - count;
             break;
         case TogglingRateIdlePattern::H:
-            stats.ones += virtual_timestamp - this->disable_time - this->count;
+            stats.ones += virtual_timestamp - this->disable_time - count;
             break;
         case TogglingRateIdlePattern::Invalid:
             assert(false); // Fallback to Z
