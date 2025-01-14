@@ -18,15 +18,41 @@ using namespace DRAMUtils::Config;
 
 #define SZ_BITS(x) sizeof(x)*8
 
+// burst length = 16 for x8 devices
+static constexpr uint8_t wr_data[] = {
+    0, 0, 0, 0,  0, 0, 0, 255,  0, 0, 0, 0,  0, 0, 0, 0,
+};
+
+// burst length = 16 for x8 devices
+static constexpr uint8_t rd_data[] = {
+    0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 255,
+};
+
 class LPDDR4_TogglingRate_Tests : public ::testing::Test {
    public:
     LPDDR4_TogglingRate_Tests() {
-        test_patterns.push_back({
+        test_patterns.push_back(
+        { // Pattern 1
             {0, CmdType::ACT, {1, 0, 0, 2}},
-            {5, CmdType::WR, {1, 0, 0, 0, 16}, nullptr, datasize_bits},
-            {14, CmdType::RD, {1, 0, 0, 0, 16}, nullptr, datasize_bits},
+            {5, CmdType::WR, {1, 0, 0, 0, 16}, nullptr, datasize_bits0},
+            {14, CmdType::RD, {1, 0, 0, 0, 16}, nullptr, datasize_bits0},
             {23, CmdType::PRE, {1, 0, 0, 2}},
             {26, CmdType::END_OF_SIMULATION},
+        });
+        test_patterns.push_back(
+        { // Part of pattern 2
+            {0, CmdType::ACT, {1, 0, 0, 2}},
+            {5, CmdType::WR, {1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
+            {14, CmdType::RD, {1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
+            {23, CmdType::PRE, {1, 0, 0, 2}},
+        });
+        test_patterns.push_back(
+        { // Second part of pattern 2
+            {30, CmdType::ACT, {1, 0, 0, 2}},
+            {35, CmdType::WR, {1, 0, 0, 0, 16}, nullptr, datasize_bits2},
+            {44, CmdType::RD, {1, 0, 0, 0, 16}, nullptr, datasize_bits2},
+            {53, CmdType::PRE, {1, 0, 0, 2}},
+            {56, CmdType::END_OF_SIMULATION},
         });
 
         initSpec();
@@ -48,7 +74,8 @@ class LPDDR4_TogglingRate_Tests : public ::testing::Test {
     std::vector<std::vector<Command>> test_patterns;
     std::unique_ptr<MemSpecLPDDR4> spec;
     std::unique_ptr<LPDDR4> ddr;
-    uint_fast16_t datasize_bits = 32 * 8; // 32 bytes
+    uint_fast16_t datasize_bits0 = 32 * 8; // 32 bytes
+    uint_fast16_t datasize_bits2 = 16 * 8; // 16 bytes
 };
 
 TEST_F(LPDDR4_TogglingRate_Tests, Pattern_0_LH) {
@@ -134,7 +161,7 @@ TEST_F(LPDDR4_TogglingRate_Tests, Pattern_0_LH) {
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 14);
 
 // DQs (see test_interface_lpddr4)
-    int number_of_cycles = (datasize_bits / spec->bitWidth);
+    int number_of_cycles = (datasize_bits0 / spec->bitWidth);
     uint_fast8_t scale = 1 * 2; // Differential_Pairs * 2(pairs of 2)
     // f(t) = t / 2;
     int DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2
@@ -291,4 +318,108 @@ TEST_F(LPDDR4_TogglingRateEnergy_Tests, DQ_Energy) {
     EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
     EXPECT_DOUBLE_EQ(result.dram.staticEnergy, expected_static_dram);
     EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, expected_dynamic_dram);
+}
+
+TEST_F(LPDDR4_TogglingRate_Tests, Enable_mid_Sim) {
+    // Setup toggling rate
+    double togglingRateRead = 0.7;
+    double togglingRateWrite = 0.3;
+    double dutyCycleRead = 0.6;
+    double dutyCycleWrite = 0.4;
+    TogglingRateIdlePattern idlePatternRead = TogglingRateIdlePattern::L;
+    TogglingRateIdlePattern idlePatternWrite = TogglingRateIdlePattern::H;
+    // Run commands
+    ddr->setToggleRate(0, std::nullopt);
+    runCommands(test_patterns.at(1));
+    ddr->setToggleRate(30, ToggleRateDefinition {
+        togglingRateRead, // togglingRateRead
+        togglingRateWrite, // togglingRateWrite
+        dutyCycleRead, // dutyCycleRead
+        dutyCycleWrite, // dutyCycleWrite
+        idlePatternRead, // idlePatternRead
+        idlePatternWrite  // idlePatternWrite
+    });
+    runCommands(test_patterns.at(2));
+
+
+
+    SimulationStats stats = ddr->getStats();
+
+    EXPECT_EQ(spec->dataRate, 2);
+    EXPECT_EQ(ddr->readBus.get_width(), spec->bitWidth);
+    EXPECT_EQ(ddr->writeBus.get_width(), spec->bitWidth);
+
+    // Toggling rate in stats
+    EXPECT_TRUE(stats.togglingStats);
+
+// Toggling rate
+    uint64_t toggles_read = 16;
+    uint64_t idleread_ones = 0;
+    uint64_t idleread_zeroes = 36; // TogglingRateIdlePattern::L
+
+    uint64_t toggles_write = 16;
+    uint64_t idlewrite_ones = 36; // TogglingRateIdlePattern::H
+    uint64_t idlewrite_zeroes = 0;
+
+    // Read bus
+    // ones: {idle + floor[duty_cycle * toggling_count]} * width
+    EXPECT_EQ(stats.togglingStats->read.ones, (idleread_ones +  static_cast<uint64_t>(std::floor(dutyCycleRead * toggles_read))) * spec->bitWidth); // 112
+    // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
+    EXPECT_EQ(stats.togglingStats->read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 296
+    // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
+    EXPECT_EQ(stats.togglingStats->read.ones_to_zeroes, std::floor((togglingRateRead / 2) * toggles_read) * spec->bitWidth); // 64
+    // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
+    EXPECT_EQ(stats.togglingStats->read.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateRead / 2) * toggles_read)) * spec->bitWidth); // 64
+    
+    // Write bus
+    // ones: {idle + floor[duty_cycle * toggling_count]} * width
+    EXPECT_EQ(stats.togglingStats->write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 256
+    // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
+    EXPECT_EQ(stats.togglingStats->write.zeroes, (idlewrite_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleWrite) * toggles_write))) * spec->bitWidth); // 152
+    // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
+    EXPECT_EQ(stats.togglingStats->write.ones_to_zeroes, std::floor((togglingRateWrite / 2) * toggles_write) * spec->bitWidth); // 32
+    // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
+    EXPECT_EQ(stats.togglingStats->write.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateWrite / 2) * toggles_write)) * spec->bitWidth); // 32
+
+// Data bus
+    EXPECT_EQ(stats.readBus.zeroes_to_ones, 8);
+    EXPECT_EQ(stats.readBus.ones_to_zeroes, 8);
+    EXPECT_EQ(stats.readBus.zeroes, 472);
+    EXPECT_EQ(stats.readBus.ones, 8);
+
+    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 8);
+    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 8);
+    EXPECT_EQ(stats.writeBus.zeroes, 472);
+    EXPECT_EQ(stats.writeBus.ones, 8);
+
+// Clock (see test_interface_lpddr4)
+    EXPECT_EQ(stats.clockStats.ones, 112);
+    EXPECT_EQ(stats.clockStats.zeroes, 112);
+    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 112);
+    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 112);
+
+// Command bus (see test_interface_lpddr4)
+    EXPECT_EQ(stats.commandBus.ones, 30);
+    EXPECT_EQ(stats.commandBus.zeroes, 306);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 28);
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 28);
+
+// DQs (see test_interface_lpddr4)
+    EXPECT_EQ(stats.writeDQSStats.ones, 32);
+    EXPECT_EQ(stats.writeDQSStats.zeroes, 32);
+    EXPECT_EQ(stats.writeDQSStats.ones_to_zeroes, 32);
+    EXPECT_EQ(stats.writeDQSStats.zeroes_to_ones, 32);
+    EXPECT_EQ(stats.readDQSStats.ones, 32);
+    EXPECT_EQ(stats.readDQSStats.zeroes, 32);
+    EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, 32);
+    EXPECT_EQ(stats.readDQSStats.zeroes_to_ones, 32);
+
+// PrePostamble
+    auto prepos = stats.rank_total[0].prepos;
+    EXPECT_EQ(prepos.readSeamless, 0);
+    EXPECT_EQ(prepos.writeSeamless, 0);
+    EXPECT_EQ(prepos.readMerged, 0);
+    EXPECT_EQ(prepos.readMergedTime, 0);
+    EXPECT_EQ(prepos.writeMerged, 0);
+    EXPECT_EQ(prepos.writeMergedTime, 0);
 }
