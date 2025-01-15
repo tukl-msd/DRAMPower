@@ -87,7 +87,7 @@ uint64_t TogglingHandle::getCount() const
 }
 
 // Returns timestamp of last burst
-timestamp_t TogglingHandle::get_lastburst_timestamp(bool relative_to_clock = true) const
+timestamp_t TogglingHandle::get_lastburst_timestamp(bool relative_to_clock) const
 {
     timestamp_t lastburst = this->last_burst.last_load + this->last_burst.last_length;
     if (relative_to_clock) {
@@ -140,6 +140,7 @@ util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp)
     util::bus_stats_t stats;
 
     uint64_t count = this->count;
+    timestamp_t disable_time = this->disable_time;
     if(this->enableflag) {
         // Check if last burst is finished
         if ((this->last_burst)
@@ -151,6 +152,8 @@ util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp)
             // last burst finished
             count += this->last_burst.last_length;
         }
+    } else {
+        disable_time += virtual_timestamp - this->disable_timestamp;
     }
     // Compute toggles
     stats.ones = count * this->duty_cycle;
@@ -159,10 +162,10 @@ util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp)
     // Compute idle
     switch (this->idlepattern) {
         case TogglingRateIdlePattern::L:
-            stats.zeroes += virtual_timestamp - this->disable_time - count;
+            stats.zeroes += virtual_timestamp - disable_time - count;
             break;
         case TogglingRateIdlePattern::H:
-            stats.ones += virtual_timestamp - this->disable_time - count;
+            stats.ones += virtual_timestamp - disable_time - count;
             break;
         case TogglingRateIdlePattern::Invalid:
             assert(false); // Fallback to Z

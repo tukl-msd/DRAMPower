@@ -27,7 +27,7 @@ struct TogglingHandleLastBurst {
 
 private:
     uint64_t width = 0;
-    uint64_t datarate = 0;
+    uint64_t datarate = 1;
     double toggling_rate = 0; // [0, 1] allowed
     double duty_cycle = 0.0; // [0, 1] allowed
     TogglingHandleLastBurst last_burst;
