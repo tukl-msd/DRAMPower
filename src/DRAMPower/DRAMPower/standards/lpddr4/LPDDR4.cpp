@@ -52,28 +52,50 @@ namespace DRAMPower {
     void LPDDR4::toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle) {
         // Change from bus to toggling rate
         assert(enable_timestamp >= timestamp);
-        bus.disable(enable_timestamp);
         if ( enable_timestamp > timestamp ) {
             // Schedule toggling rate enable
-            this->addImplicitCommand(enable_timestamp, [this, &togglinghandle, enable_timestamp]() {
+            this->addImplicitCommand(enable_timestamp, [this, &togglinghandle, &bus, enable_timestamp]() {
+                bus.disable(enable_timestamp);
                 togglinghandle.enable(enable_timestamp);
             });
         } else {
+            bus.disable(enable_timestamp);
             togglinghandle.enable(enable_timestamp);
+        }
+    }
+
+    void LPDDR4::toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle) {
+        // Change from toggling rate to bus
+        assert(disable_timestamp >= timestamp);
+        if ( disable_timestamp > timestamp ) {
+            // Schedule toggling rate disable
+            this->addImplicitCommand(disable_timestamp, [this, &togglinghandle, &bus, disable_timestamp]() {
+                bus.enable(disable_timestamp);
+                togglinghandle.disable(disable_timestamp);
+            });
+        } else {
+            bus.enable(disable_timestamp);
+            togglinghandle.disable(disable_timestamp);
         }
     }
 
     timestamp_t LPDDR4::toggling_rate_get_enable_time(timestamp_t timestamp) {
         timestamp_t busdisabletimestamp = timestamp;
-        busdisabletimestamp = std::max(readBus.get_lastburst_timestamp(), busdisabletimestamp);
-        busdisabletimestamp = std::max(writeBus.get_lastburst_timestamp(), busdisabletimestamp);
+        busdisabletimestamp = std::max(this->readBus.get_lastburst_timestamp(), busdisabletimestamp);
+        busdisabletimestamp = std::max(this->writeBus.get_lastburst_timestamp(), busdisabletimestamp);
         return busdisabletimestamp;
+    }
+    timestamp_t LPDDR4::toggling_rate_get_disable_time(timestamp_t timestamp) {
+        timestamp_t busenabletimestamp = timestamp;
+        busenabletimestamp = std::max(this->togglingHandleRead.get_lastburst_timestamp(), busenabletimestamp);
+        busenabletimestamp = std::max(this->togglingHandleWrite.get_lastburst_timestamp(), busenabletimestamp);
+        return busenabletimestamp;
     }
 
     timestamp_t LPDDR4::update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleratedefinition)
     {
         if (toggleratedefinition) {
-            // Enable toggle rate
+            // Update toggling rate
             togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
             togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
             togglingHandleRead.setDataRate(memSpec.dataRate);
@@ -92,17 +114,21 @@ namespace DRAMPower {
             if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
                 return timestamp;
             }
-            // Get next possible enable time (wait for pending bus transactions with data)
-            timestamp_t enable_timestamp = toggling_rate_get_enable_time(timestamp);
             // Enable toggling rate
+            timestamp_t enable_timestamp = toggling_rate_get_enable_time(timestamp);
             toggling_rate_enable(timestamp, enable_timestamp, readBus, togglingHandleRead);
             toggling_rate_enable(timestamp, enable_timestamp, writeBus, togglingHandleWrite);
             return enable_timestamp;
         } else {
-            togglingHandleRead.disable(timestamp);
-            togglingHandleWrite.disable(timestamp);
-            readBus.enable(timestamp);
-            writeBus.enable(timestamp);
+            // Toggling rate already disabled
+            if (!togglingHandleRead.isEnabled() && !togglingHandleWrite.isEnabled()) {
+                return timestamp;
+            }
+            // Disable toggling rate
+            timestamp_t disable_timestamp = toggling_rate_get_disable_time(timestamp);
+            toggling_rate_disable(timestamp, disable_timestamp, readBus, togglingHandleRead);
+            toggling_rate_disable(timestamp, disable_timestamp, writeBus, togglingHandleWrite);
+            return disable_timestamp;
         }
         return timestamp;
     }

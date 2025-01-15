@@ -24,13 +24,13 @@ void TogglingHandle::disable(timestamp_t timestamp)
         return;
     }
     if (this->last_burst) {
-        if(virtualtimestamp >= this->last_burst->last_length + this->last_burst->last_load) {
-            this->count += this->last_burst->last_length;
+        if(virtualtimestamp >= this->last_burst.last_length + this->last_burst.last_load) {
+            this->count += this->last_burst.last_length;
         } else {
             // Partial burst is lost
-            this->count += virtualtimestamp - this->last_burst->last_load;
+            this->count += virtualtimestamp - this->last_burst.last_load;
         }
-        this->last_burst = std::nullopt;
+        this->last_burst.handled = true;
     }
     this->disable_timestamp = virtualtimestamp;
     this->enableflag = false;
@@ -86,18 +86,32 @@ uint64_t TogglingHandle::getCount() const
     return this->count;
 }
 
+// Returns timestamp of last burst
+timestamp_t TogglingHandle::get_lastburst_timestamp(bool relative_to_clock = true) const
+{
+    timestamp_t lastburst = this->last_burst.last_load + this->last_burst.last_length;
+    if (relative_to_clock) {
+        auto remainder = lastburst % this->datarate;
+        if (remainder != 0) {
+            lastburst += this->datarate - remainder;
+        }
+        return lastburst / this->datarate;
+    }
+    return lastburst;
+}
+
 void TogglingHandle::incCountBurstLength(timestamp_t timestamp, uint64_t burstlength)
 {
     // Convert to bus timings
     timestamp_t virtual_timestamp = timestamp * this->datarate;
     assert(virtual_timestamp / this->datarate == timestamp); // No overflow
     assert(
-        (this->last_burst && (virtual_timestamp >= (this->last_burst->last_length + this->last_burst->last_load)))
+        (this->last_burst && (virtual_timestamp >= (this->last_burst.last_length + this->last_burst.last_load)))
         || !this->last_burst
     );
     // Add last burst
-    if (this->last_burst) {
-        this->count += this->last_burst->last_length;
+    if (!this->last_burst.handled) {
+        this->count += this->last_burst.last_length;
     }
     // Store burst in last_length and last_load if enabled
     if (this->enableflag) {
@@ -105,10 +119,11 @@ void TogglingHandle::incCountBurstLength(timestamp_t timestamp, uint64_t burstle
         this->last_burst = TogglingHandleLastBurst {
             burstlength, // last_length
             virtual_timestamp,   // last_load
+            false // handled
         };
     } else {
-        // Clear last_length and loast_load
-        this->last_burst = std::nullopt;
+        // Clear last_burst
+        this->last_burst.handled = true;
     }
 }
 void TogglingHandle::incCountBitLength(timestamp_t timestamp, uint64_t bitlength)
@@ -128,13 +143,13 @@ util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp)
     if(this->enableflag) {
         // Check if last burst is finished
         if ((this->last_burst)
-            && (virtual_timestamp < this->last_burst->last_length + this->last_burst->last_load)
+            && (virtual_timestamp < this->last_burst.last_length + this->last_burst.last_load)
         ) {
             // last burst not finished
-            count += virtual_timestamp - this->last_burst->last_load;
+            count += virtual_timestamp - this->last_burst.last_load;
         } else if (this->last_burst) {
             // last burst finished
-            count += this->last_burst->last_length;
+            count += this->last_burst.last_length;
         }
     }
     // Compute toggles

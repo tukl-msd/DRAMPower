@@ -18,8 +18,11 @@ class TogglingHandle
 {
 
 struct TogglingHandleLastBurst {
-    uint64_t last_length;
-    timestamp_t last_load;
+    uint64_t last_length = 0;
+    timestamp_t last_load = 0;
+    bool handled = true;
+    TogglingHandleLastBurst() = default;
+    operator bool() const { return !this->handled; }
 };
 
 private:
@@ -27,7 +30,7 @@ private:
     uint64_t datarate = 0;
     double toggling_rate = 0; // [0, 1] allowed
     double duty_cycle = 0.0; // [0, 1] allowed
-    std::optional<TogglingHandleLastBurst> last_burst = std::nullopt;
+    TogglingHandleLastBurst last_burst;
     bool enableflag = false; // default disabled if default constructor is used
     uint64_t count = 0;
     timestamp_t disable_timestamp = 0;
@@ -45,6 +48,7 @@ public:
     bool isEnabled() const;
     uint64_t getWidth() const;
     uint64_t getDatarate() const;
+    timestamp_t get_lastburst_timestamp(bool relative_to_clock = true) const;
     
     void setTogglingRateAndDutyCycle(const double toggling_rate, const double duty_cycle, const DRAMUtils::Config::TogglingRateIdlePattern idlepattern);
     void disable(timestamp_t timestamp);
