@@ -16,7 +16,17 @@
 using namespace DRAMPower;
 using namespace DRAMUtils::Config;
 
-#define SZ_BITS(x) (x)*8
+#define SZ_BITS(x) sizeof(x)*8
+
+// burst length = 16 for x8 devices
+static constexpr uint8_t wr_data[] = {
+    0, 0, 0, 0,  0, 0, 0, 255,  0, 0, 0, 0,  0, 0, 0, 0,
+};
+
+// burst length = 16 for x8 devices
+static constexpr uint8_t rd_data[] = {
+    255, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,
+};
 
 class LPDDR5_TogglingRate_Tests : public ::testing::Test {
    public:
@@ -286,4 +296,114 @@ TEST_F(LPDDR5_TogglingRateEnergy_Tests, DQ_Energy) {
     EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
     EXPECT_DOUBLE_EQ(result.dram.staticEnergy, expected_static_dram);
     EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, expected_dynamic_dram);
+}
+
+TEST_F(LPDDR5_TogglingRate_Tests, Pattern_1) {
+    // Setup toggling rate
+    double togglingRateRead = 0.7;
+    double togglingRateWrite = 0.3;
+    double dutyCycleRead = 0.6;
+    double dutyCycleWrite = 0.4;
+    TogglingRateIdlePattern idlePatternRead = TogglingRateIdlePattern::L;
+    TogglingRateIdlePattern idlePatternWrite = TogglingRateIdlePattern::H;
+    // Run commands
+    ddr->setToggleRate(0, std::nullopt);
+    ddr->doCoreInterfaceCommand({0, CmdType::ACT, {1, 0, 0, 2}});
+    ddr->doCoreInterfaceCommand({5, CmdType::WR, {1, 0, 0, 0, 8}, wr_data, SZ_BITS(wr_data)});
+    ddr->doCoreInterfaceCommand({14, CmdType::RD, {1, 0, 0, 0, 8}, rd_data, SZ_BITS(rd_data)});
+    // Enable toggling rate at beginning of read
+    // The toggling rate should be enabled at t=22
+    ddr->setToggleRate(14, ToggleRateDefinition {
+        togglingRateRead, // togglingRateRead
+        togglingRateWrite, // togglingRateWrite
+        dutyCycleRead, // dutyCycleRead
+        dutyCycleWrite, // dutyCycleWrite
+        idlePatternRead, // idlePatternRead
+        idlePatternWrite  // idlePatternWrite
+    });
+    ddr->doCoreInterfaceCommand({23, CmdType::PRE, {1, 0, 0, 2}});
+    ddr->doCoreInterfaceCommand({30, CmdType::ACT, {1, 0, 0, 2}});
+    ddr->doCoreInterfaceCommand({35, CmdType::WR, {1, 0, 0, 0, 8}, nullptr, 16*8}); // burst length = 16
+    ddr->doCoreInterfaceCommand({44, CmdType::RD, {1, 0, 0, 0, 8}, nullptr, 16*8}); // burst length = 16
+    // Disable toggling rate during read
+    // The toggling rate should be disabled at t=52
+    ddr->setToggleRate(46, std::nullopt);
+    ddr->doCoreInterfaceCommand({53, CmdType::PRE, {1, 0, 0, 2}});
+    ddr->doCoreInterfaceCommand({56, CmdType::END_OF_SIMULATION});
+
+
+
+    SimulationStats stats = ddr->getStats();
+
+    EXPECT_EQ(spec->dataRate, 2);
+
+    // Toggling rate in stats
+    EXPECT_TRUE(stats.togglingStats);
+
+// Toggling rate
+    uint64_t toggles_read = 16;
+    uint64_t idleread_ones = 0;
+    uint64_t idleread_zeroes = 44; // TogglingRateIdlePattern::L
+
+    uint64_t toggles_write = 16;
+    uint64_t idlewrite_ones = 44; // TogglingRateIdlePattern::H
+    uint64_t idlewrite_zeroes = 0;
+
+    // Read bus
+    // ones: {idle + floor[duty_cycle * toggling_count]} * width
+    EXPECT_EQ(stats.togglingStats->read.ones, (idleread_ones +  static_cast<uint64_t>(std::floor(dutyCycleRead * toggles_read))) * spec->bitWidth); // 112
+    // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
+    EXPECT_EQ(stats.togglingStats->read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 296
+    // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
+    EXPECT_EQ(stats.togglingStats->read.ones_to_zeroes, std::floor((togglingRateRead / 2) * toggles_read) * spec->bitWidth); // 64
+    // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
+    EXPECT_EQ(stats.togglingStats->read.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateRead / 2) * toggles_read)) * spec->bitWidth); // 64
+    
+    // Write bus
+    // ones: {idle + floor[duty_cycle * toggling_count]} * width
+    EXPECT_EQ(stats.togglingStats->write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 256
+    // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
+    EXPECT_EQ(stats.togglingStats->write.zeroes, (idlewrite_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleWrite) * toggles_write))) * spec->bitWidth); // 152
+    // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
+    EXPECT_EQ(stats.togglingStats->write.ones_to_zeroes, std::floor((togglingRateWrite / 2) * toggles_write) * spec->bitWidth); // 32
+    // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
+    EXPECT_EQ(stats.togglingStats->write.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateWrite / 2) * toggles_write)) * spec->bitWidth); // 32
+
+// Data bus
+    EXPECT_EQ(stats.readBus.zeroes_to_ones, 8);
+    EXPECT_EQ(stats.readBus.ones_to_zeroes, 0);
+    EXPECT_EQ(stats.readBus.zeroes, 408);
+    EXPECT_EQ(stats.readBus.ones, 8);
+
+    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 8);
+    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 8);
+    EXPECT_EQ(stats.writeBus.zeroes, 408);
+    EXPECT_EQ(stats.writeBus.ones, 8);
+
+// Clock (see test_interface_lpddr5)
+    EXPECT_EQ(stats.clockStats.zeroes_to_ones, 112);
+    EXPECT_EQ(stats.clockStats.ones_to_zeroes, 112);
+    EXPECT_EQ(stats.clockStats.zeroes, 112);
+    EXPECT_EQ(stats.clockStats.ones, 112);
+
+// Command bus (see test_interface_lpddr5)
+    EXPECT_EQ(stats.commandBus.zeroes_to_ones, 30);
+    EXPECT_EQ(stats.commandBus.ones_to_zeroes, 30);
+    EXPECT_EQ(stats.commandBus.zeroes, 746);
+    EXPECT_EQ(stats.commandBus.ones, 38);
+
+// DQs (see test_interface_lpddr5)
+    EXPECT_EQ(stats.readDQSStats.zeroes_to_ones, 32);
+    EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, 32);
+    EXPECT_EQ(stats.readDQSStats.zeroes, 32);
+    EXPECT_EQ(stats.readDQSStats.ones, 32);
+
+// PrePostamble
+    auto prepos = stats.rank_total[0].prepos;
+    EXPECT_EQ(prepos.readSeamless, 0);
+    EXPECT_EQ(prepos.writeSeamless, 0);
+    EXPECT_EQ(prepos.readMerged, 0);
+    EXPECT_EQ(prepos.readMergedTime, 0);
+    EXPECT_EQ(prepos.writeMerged, 0);
+    EXPECT_EQ(prepos.writeMergedTime, 0);
 }

@@ -368,6 +368,9 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		assert(timestamp * datarate > this->virtual_disable_timestamp);
 		// Shift the counters to the enabled timestamp
 		this->last_load = timestamp * this->datarate;
+		// Add pending stats at enable timestamp
+		this->pending_stats.setPendingStats(this->last_load, this->diff(std::nullopt, this->at(this->last_load)));
+		this->enableflag = true;
 	}
 
 	size_t get_width() const { return width; };

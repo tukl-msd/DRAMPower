@@ -26,6 +26,10 @@ namespace DRAMPower {
         , readDQS(memSpec.dataRate, true)
         , writeDQS(memSpec.dataRate, true)
     {
+        togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
+        togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
+        togglingHandleRead.setDataRate(memSpec.dataRate);
+        togglingHandleWrite.setDataRate(memSpec.dataRate);
         this->registerPatterns();
 
         this->registerBankHandler<CmdType::ACT>(&LPDDR4::handleAct);
@@ -96,10 +100,6 @@ namespace DRAMPower {
     {
         if (toggleratedefinition) {
             // Update toggling rate
-            togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
-            togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
-            togglingHandleRead.setDataRate(memSpec.dataRate);
-            togglingHandleWrite.setDataRate(memSpec.dataRate);
             togglingHandleRead.setTogglingRateAndDutyCycle(
                 toggleratedefinition->togglingRateRead,
                 toggleratedefinition->dutyCycleRead,
