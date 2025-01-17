@@ -20,11 +20,8 @@ InterfaceCalculation_LPDDR5::InterfaceCalculation_LPDDR5(const MemSpecLPDDR5 &me
 interface_energy_info_t InterfaceCalculation_LPDDR5::calculateEnergy(const SimulationStats &stats) {
     interface_energy_info_t clock_energy = calcClockEnergy(stats);
     interface_energy_info_t DQS_energy = calcDQSEnergy(stats);
-    interface_energy_info_t DQ_energy;
-    if (stats.togglingStats)
-        DQ_energy += calcDQEnergyTogglingRate(*stats.togglingStats);
-    else
-        DQ_energy += calcDQEnergy(stats);
+    interface_energy_info_t DQ_energy = calcDQEnergy(stats);
+    DQ_energy += calcDQEnergyTogglingRate(stats.togglingStats);
     interface_energy_info_t CA_energy = calcCAEnergy(stats);
 
     interface_energy_info_t result;

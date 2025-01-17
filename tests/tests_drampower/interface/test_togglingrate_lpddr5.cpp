@@ -105,29 +105,26 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_0_LH) {
 
     EXPECT_EQ(spec->dataRate, 2);
 
-    // Toggling rate in stats
-    EXPECT_TRUE(stats.togglingStats);
-
 // Data bus
     // Read bus
     // ones: {idle + floor[duty_cycle * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->read.ones, (idleread_ones +  static_cast<uint64_t>(std::floor(dutyCycleRead * toggles_read))) * spec->bitWidth); // 112
+    EXPECT_EQ(stats.togglingStats.read.ones, (idleread_ones +  static_cast<uint64_t>(std::floor(dutyCycleRead * toggles_read))) * spec->bitWidth); // 112
     // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 264
+    EXPECT_EQ(stats.togglingStats.read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 264
     // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->read.ones_to_zeroes, std::floor((togglingRateRead / 2) * toggles_read) * spec->bitWidth); // 64
+    EXPECT_EQ(stats.togglingStats.read.ones_to_zeroes, std::floor((togglingRateRead / 2) * toggles_read) * spec->bitWidth); // 64
     // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->read.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateRead / 2) * toggles_read)) * spec->bitWidth); // 64
+    EXPECT_EQ(stats.togglingStats.read.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateRead / 2) * toggles_read)) * spec->bitWidth); // 64
     
     // Write bus
     // ones: {idle + floor[duty_cycle * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 224
+    EXPECT_EQ(stats.togglingStats.write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 224
     // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->write.zeroes, (idlewrite_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleWrite) * toggles_write))) * spec->bitWidth); // 152
+    EXPECT_EQ(stats.togglingStats.write.zeroes, (idlewrite_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleWrite) * toggles_write))) * spec->bitWidth); // 152
     // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->write.ones_to_zeroes, std::floor((togglingRateWrite / 2) * toggles_write) * spec->bitWidth); // 32
+    EXPECT_EQ(stats.togglingStats.write.ones_to_zeroes, std::floor((togglingRateWrite / 2) * toggles_write) * spec->bitWidth); // 32
     // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->write.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateWrite / 2) * toggles_write)) * spec->bitWidth); // 32
+    EXPECT_EQ(stats.togglingStats.write.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateWrite / 2) * toggles_write)) * spec->bitWidth); // 32
 
 // Clock (see test_interface_lpddr5)
     EXPECT_EQ(stats.clockStats.ones, 48);
@@ -208,29 +205,26 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_0_HZ) {
 
     EXPECT_EQ(spec->dataRate, 2);
 
-    // Toggling rate in stats
-    EXPECT_TRUE(stats.togglingStats);
-
 // Data bus
     // Read bus
     // ones: {idle + floor[duty_cycle * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->read.ones, (idleread_ones +  static_cast<uint64_t>(std::floor(dutyCycleRead * toggles_read))) * spec->bitWidth); // 304
+    EXPECT_EQ(stats.togglingStats.read.ones, (idleread_ones +  static_cast<uint64_t>(std::floor(dutyCycleRead * toggles_read))) * spec->bitWidth); // 304
     // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 72
+    EXPECT_EQ(stats.togglingStats.read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 72
     // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->read.ones_to_zeroes, std::floor((togglingRateRead / 2) * toggles_read) * spec->bitWidth); // 64
+    EXPECT_EQ(stats.togglingStats.read.ones_to_zeroes, std::floor((togglingRateRead / 2) * toggles_read) * spec->bitWidth); // 64
     // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->read.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateRead / 2) * toggles_read)) * spec->bitWidth); // 64
+    EXPECT_EQ(stats.togglingStats.read.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateRead / 2) * toggles_read)) * spec->bitWidth); // 64
     
     // Write bus
     // ones: {idle + floor[duty_cycle * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 96
+    EXPECT_EQ(stats.togglingStats.write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 96
     // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->write.zeroes, (idlewrite_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleWrite) * toggles_write))) * spec->bitWidth); // 152
+    EXPECT_EQ(stats.togglingStats.write.zeroes, (idlewrite_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleWrite) * toggles_write))) * spec->bitWidth); // 152
     // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->write.ones_to_zeroes, std::floor((togglingRateWrite / 2) * toggles_write) * spec->bitWidth); // 32
+    EXPECT_EQ(stats.togglingStats.write.ones_to_zeroes, std::floor((togglingRateWrite / 2) * toggles_write) * spec->bitWidth); // 32
     // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->write.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateWrite / 2) * toggles_write)) * spec->bitWidth); // 32
+    EXPECT_EQ(stats.togglingStats.write.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateWrite / 2) * toggles_write)) * spec->bitWidth); // 32
 }
 
 // Tests for power consumption (given a known SimulationStats)
@@ -268,27 +262,27 @@ class LPDDR5_TogglingRateEnergy_Tests : public ::testing::Test {
 TEST_F(LPDDR5_TogglingRateEnergy_Tests, DQ_Energy) {
     SimulationStats stats;
     stats.togglingStats = TogglingStats();
-    stats.togglingStats->read.ones = 7;
-    stats.togglingStats->read.zeroes = 11;
-    stats.togglingStats->read.zeroes_to_ones = 19;
-    stats.togglingStats->read.ones_to_zeroes = 39;
+    stats.togglingStats.read.ones = 7;
+    stats.togglingStats.read.zeroes = 11;
+    stats.togglingStats.read.zeroes_to_ones = 19;
+    stats.togglingStats.read.ones_to_zeroes = 39;
 
-    stats.togglingStats->write.ones = 43;
-    stats.togglingStats->write.zeroes = 59;
-    stats.togglingStats->write.zeroes_to_ones = 13;
-    stats.togglingStats->write.ones_to_zeroes = 17;
+    stats.togglingStats.write.ones = 43;
+    stats.togglingStats.write.zeroes = 59;
+    stats.togglingStats.write.zeroes_to_ones = 13;
+    stats.togglingStats.write.ones_to_zeroes = 17;
 
     // Controller -> write power
     // Dram -> read power
     double expected_static_controller =
-        stats.togglingStats->write.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_wb;
+        stats.togglingStats.write.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_wb;
     double expected_static_dram =
-        stats.togglingStats->read.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_rb;
+        stats.togglingStats.read.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.R_eq_rb;
 
     // Dynamic power is consumed on 0 -> 1 transition
-    double expected_dynamic_controller = stats.togglingStats->write.zeroes_to_ones *
+    double expected_dynamic_controller = stats.togglingStats.write.zeroes_to_ones *
                             0.5 * spec->memImpedanceSpec.C_total_wb * voltage * voltage;
-    double expected_dynamic_dram = stats.togglingStats->read.zeroes_to_ones *
+    double expected_dynamic_dram = stats.togglingStats.read.zeroes_to_ones *
                             0.5 * spec->memImpedanceSpec.C_total_rb * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
@@ -337,9 +331,6 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_1) {
 
     EXPECT_EQ(spec->dataRate, 2);
 
-    // Toggling rate in stats
-    EXPECT_TRUE(stats.togglingStats);
-
 // Toggling rate
     uint64_t toggles_read = 16;
     uint64_t idleread_ones = 0;
@@ -351,23 +342,23 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_1) {
 
     // Read bus
     // ones: {idle + floor[duty_cycle * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->read.ones, (idleread_ones +  static_cast<uint64_t>(std::floor(dutyCycleRead * toggles_read))) * spec->bitWidth); // 112
+    EXPECT_EQ(stats.togglingStats.read.ones, (idleread_ones +  static_cast<uint64_t>(std::floor(dutyCycleRead * toggles_read))) * spec->bitWidth); // 112
     // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 296
+    EXPECT_EQ(stats.togglingStats.read.zeroes, (idleread_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleRead) * toggles_read))) * spec->bitWidth); // 296
     // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->read.ones_to_zeroes, std::floor((togglingRateRead / 2) * toggles_read) * spec->bitWidth); // 64
+    EXPECT_EQ(stats.togglingStats.read.ones_to_zeroes, std::floor((togglingRateRead / 2) * toggles_read) * spec->bitWidth); // 64
     // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->read.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateRead / 2) * toggles_read)) * spec->bitWidth); // 64
+    EXPECT_EQ(stats.togglingStats.read.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateRead / 2) * toggles_read)) * spec->bitWidth); // 64
     
     // Write bus
     // ones: {idle + floor[duty_cycle * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 256
+    EXPECT_EQ(stats.togglingStats.write.ones, (idlewrite_ones +  static_cast<uint64_t>(std::floor(dutyCycleWrite * toggles_write))) * spec->bitWidth); // 256
     // zeroes: {idle + floor[(1 - duty_cycle) * toggling_count]} * width
-    EXPECT_EQ(stats.togglingStats->write.zeroes, (idlewrite_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleWrite) * toggles_write))) * spec->bitWidth); // 152
+    EXPECT_EQ(stats.togglingStats.write.zeroes, (idlewrite_zeroes +  static_cast<uint64_t>(std::floor((1 - dutyCycleWrite) * toggles_write))) * spec->bitWidth); // 152
     // onestozeroes: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->write.ones_to_zeroes, std::floor((togglingRateWrite / 2) * toggles_write) * spec->bitWidth); // 32
+    EXPECT_EQ(stats.togglingStats.write.ones_to_zeroes, std::floor((togglingRateWrite / 2) * toggles_write) * spec->bitWidth); // 32
     // zeroestoones: floor[(toggle_rate / 2) * toggling_count] * width
-    EXPECT_EQ(stats.togglingStats->write.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateWrite / 2) * toggles_write)) * spec->bitWidth); // 32
+    EXPECT_EQ(stats.togglingStats.write.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateWrite / 2) * toggles_write)) * spec->bitWidth); // 32
 
 // Data bus
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 8);

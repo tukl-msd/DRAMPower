@@ -19,11 +19,8 @@ InterfaceCalculation_DDR5::InterfaceCalculation_DDR5(const MemSpecDDR5 &memspec)
 interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(const SimulationStats &stats) {
     interface_energy_info_t clock_energy = calcClockEnergy(stats);
     interface_energy_info_t DQS_energy = calcDQSEnergy(stats);
-    interface_energy_info_t DQ_energy;
-    if (stats.togglingStats)
-        DQ_energy += calcDQEnergyTogglingRate(*stats.togglingStats);
-    else
-        DQ_energy += calcDQEnergy(stats);
+    interface_energy_info_t DQ_energy = calcDQEnergy(stats);
+    DQ_energy += calcDQEnergyTogglingRate(stats.togglingStats);
     interface_energy_info_t CA_energy = calcCAEnergy(stats);
     // TODO: CA Bus inversion energy
 

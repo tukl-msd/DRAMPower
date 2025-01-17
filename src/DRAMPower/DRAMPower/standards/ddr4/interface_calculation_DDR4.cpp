@@ -27,10 +27,8 @@ interface_energy_info_t InterfaceCalculation_DDR4::calculateEnergy(const Simulat
     interface_energy_info_t result;
     result += calcClockEnergy(stats);
     result += calcDQSEnergy(stats);
-    if (stats.togglingStats)
-        result += calcDQEnergyTogglingRate(*stats.togglingStats);
-    else
-        result += calcDQEnergy(stats);
+    result += calcDQEnergyTogglingRate(stats.togglingStats);
+    result += calcDQEnergy(stats);
     result += calcCAEnergy(stats);
 
     return result;
