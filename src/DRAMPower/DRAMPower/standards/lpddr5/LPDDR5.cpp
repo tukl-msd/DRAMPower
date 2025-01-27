@@ -64,25 +64,65 @@ namespace DRAMPower {
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     }
 
+    void LPDDR5::toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite) {
+        // Change from bus to toggling rate
+        assert(enable_timestamp >= timestamp);
+        auto enable_callback = [this, &togglinghandleRead, &togglinghandleWrite, enable_timestamp]() {
+            std::visit([this, &enable_timestamp](auto &databus) {
+                for (auto &b : databus.readBus_vec) {
+                    b.disable(enable_timestamp);
+                }
+                for (auto &b : databus.writeBus_vec) {
+                    b.disable(enable_timestamp);
+                }
+            }, this->databus);
+            togglinghandleRead.enable(enable_timestamp);
+            togglinghandleWrite.enable(enable_timestamp);
+        };
+        if ( enable_timestamp > timestamp ) {
+            // Schedule toggling rate enable
+            this->addImplicitCommand(enable_timestamp, enable_callback);
+        } else {
+            enable_callback();
+        }
+    }
+
+    void LPDDR5::toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite) {
+        // Change from toggling rate to bus
+        assert(disable_timestamp >= timestamp);
+        auto disable_callback = [this, &togglinghandleRead, &togglinghandleWrite, disable_timestamp]() {
+            std::visit([this, &disable_timestamp](auto &databus) {
+                for (auto &b : databus.readBus_vec) {
+                    b.enable(disable_timestamp);
+                }
+                for (auto &b : databus.writeBus_vec) {
+                    b.enable(disable_timestamp);
+                }
+            }, this->databus);
+            togglinghandleRead.disable(disable_timestamp);
+            togglinghandleWrite.disable(disable_timestamp);
+        };
+        if ( disable_timestamp > timestamp ) {
+            // Schedule toggling rate disable
+            this->addImplicitCommand(disable_timestamp, disable_callback);
+        } else {
+            disable_callback();
+        }
+    }
+
     timestamp_t LPDDR5::toggling_rate_get_enable_time(timestamp_t timestamp) {
         timestamp_t busdisabletimestamp = timestamp;
-        if (memSpec.bitWidth == 16) {
-            for (const auto &b : this->readBus_16_vec) {
+        std::visit([this, &busdisabletimestamp](auto &databus) {
+            for (const auto &b : databus.readBus_vec) {
                 busdisabletimestamp = std::max(b.get_lastburst_timestamp(), busdisabletimestamp);
             }
-            for (const auto &b : this->writeBus_16_vec) {
+            for (const auto &b : databus.writeBus_vec) {
                 busdisabletimestamp = std::max(b.get_lastburst_timestamp(), busdisabletimestamp);
             }
-        } else {
-            for (const auto &b : this->readBus_8_vec) {
-                busdisabletimestamp = std::max(b.get_lastburst_timestamp(), busdisabletimestamp);
-            }
-            for (const auto &b : this->writeBus_8_vec) {
-                busdisabletimestamp = std::max(b.get_lastburst_timestamp(), busdisabletimestamp);
-            }
-        }
+        }, this->databus);
         return busdisabletimestamp;
     }
+
     timestamp_t LPDDR5::toggling_rate_get_disable_time(timestamp_t timestamp) {
         timestamp_t busenabletimestamp = timestamp;
         busenabletimestamp = std::max(this->togglingHandleRead.get_lastburst_timestamp(), busenabletimestamp);
@@ -110,13 +150,7 @@ namespace DRAMPower {
             }
             // Enable toggling rate
             timestamp_t enable_timestamp = toggling_rate_get_enable_time(timestamp);
-            if (memSpec.bitWidth == 16) {
-                toggling_rate_enable(timestamp, enable_timestamp, readBus_16_vec, togglingHandleRead);
-                toggling_rate_enable(timestamp, enable_timestamp, writeBus_16_vec, togglingHandleWrite);
-            } else {
-                toggling_rate_enable(timestamp, enable_timestamp, readBus_8_vec, togglingHandleRead);
-                toggling_rate_enable(timestamp, enable_timestamp, writeBus_8_vec, togglingHandleWrite);
-            }
+            toggling_rate_enable(timestamp, enable_timestamp, togglingHandleRead, togglingHandleWrite);
             return enable_timestamp;
         } else {
             // Toggling rate already disabled
@@ -125,13 +159,7 @@ namespace DRAMPower {
             }
             // Disable toggling rate
             timestamp_t disable_timestamp = toggling_rate_get_disable_time(timestamp);
-            if (memSpec.bitWidth == 16) {
-                toggling_rate_disable(timestamp, disable_timestamp, readBus_16_vec, togglingHandleRead);
-                toggling_rate_disable(timestamp, disable_timestamp, writeBus_16_vec, togglingHandleWrite);
-            } else {
-                toggling_rate_disable(timestamp, disable_timestamp, readBus_8_vec, togglingHandleRead);
-                toggling_rate_disable(timestamp, disable_timestamp, writeBus_8_vec, togglingHandleWrite);
-            }
+            toggling_rate_disable(timestamp, disable_timestamp, togglingHandleRead, togglingHandleWrite);
             return disable_timestamp;
         }
         return timestamp;
