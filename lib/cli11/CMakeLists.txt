@@ -1,14 +1,11 @@
 ########################################
-###              cli11               ###
+###              CLI11               ###
 ########################################
 
-project(cli11 VERSION 2.4.2)
 
-if(NOT TARGET cli11)
+FetchContent_Declare(cli11
+    URL "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.4.2.tar.gz"
+    OVERRIDE_FIND_PACKAGE
+)
 
-add_library(${PROJECT_NAME} INTERFACE)
-target_include_directories(${PROJECT_NAME} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
-
-endif()
+FetchContent_MakeAvailable(cli11)

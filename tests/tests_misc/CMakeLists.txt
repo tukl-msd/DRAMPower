@@ -2,21 +2,23 @@
 ###              tests_misc                 ###
 ###############################################
 
-cmake_minimum_required(VERSION 3.5.0)
+add_executable(tests_misc
+	test_bus_extended.cpp
+	test_bus.cpp
+	test_clock.cpp
+	test_dynamic_bitset.cpp
+	test_interval.cpp
+	test_misc.cpp
+	test_pattern.cpp
+)
 
-project(tests_misc)
-
-file(GLOB_RECURSE SOURCE_FILES *.cpp)
-file(GLOB_RECURSE HEADER_FILES *.h)
-
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
-
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR})
-target_link_libraries(${PROJECT_NAME} 
-	DRAMSys::DRAMPower
+target_link_libraries(tests_misc
+	DRAMPower::DRAMPower
+	DRAMUtils::DRAMUtils
+	gtest
 	gtest_main
 )
 
-gtest_discover_tests(${PROJECT_NAME})
-
-build_source_group()
+gtest_discover_tests(tests_misc
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)

@@ -30,7 +30,7 @@
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
 
-#include <cli11/CLI11.hpp>
+#include <CLI/CLI.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 

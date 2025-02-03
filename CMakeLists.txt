@@ -28,7 +28,9 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Thomas Psota
+# Author:
+#    Thomas Psota
+#    Marco Mörz
 
 ###############################################
 ###              DRAMPower 5.0              ###
@@ -52,41 +54,42 @@ include(diagnostics_print)
 include(enable_clang_format)
 include(enable_clang_tidy)
 include(enable_cppcheck)
-include(FetchContent)
 
-# Check if standalone build or being included as submodule
-get_directory_property(DRAMPOWER_IS_SUBMODULE PARENT_DIRECTORY)
+if (PROJECT_IS_TOP_LEVEL)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+endif()
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ### Project settings ###
 message(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message(STATUS "CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
 message(STATUS "" )
 
-if(NOT DRAMPOWER_IS_SUBMODULE)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-endif()
-
-### DRAMPower directories ###
-set(DRAMPOWER_SOURCE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(DRAMPOWER_LIBRARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
-set(DRAMPOWER_TEST_DIR    "${CMAKE_CURRENT_SOURCE_DIR}/tests")
-
 ### Build options ###
 option(DRAMPOWER_BUILD_TESTS "Build DRAMPower unit tests" OFF)
-option(DRAMPOWER_VERBOSE_CMAKE_OUTPUT "Show detailed CMake output" OFF)
-option(DRAMPOWER_BUILD_CLI "Build DRAMPower Command Line Tool" OFF)
+option(DRAMPOWER_BUILD_CLI "Build DRAMPower Command Line Tool" ${PROJECT_IS_TOP_LEVEL})
 
-set(DRAMUTILS_DIR "" CACHE PATH "Local DRAMUtils installation path (optional)")
+# Use sane defaults for FetchContent:
+# In case we are the top-level project, get everything by default
+# In case we are included in another project, the user might want to provide their own system dependencies
+option(DRAMPOWER_USE_FETCH_CONTENT "Enable the FetchContent module" ${PROJECT_IS_TOP_LEVEL})
+option(DRAMPOWER_USE_FETCH_CONTENT_INTERNAL "Enable FetchContent to provide internal dependencies" ${DRAMPOWER_USE_FETCH_CONTENT})
+option(DRAMPOWER_USE_FETCH_CONTENT_CLI11 "Enable FetchContent to provide CLI11" ${DRAMPOWER_USE_FETCH_CONTENT})
+option(DRAMPOWER_USE_FETCH_CONTENT_SPDLOG "Enable FetchContent to provide spdlog" ${DRAMPOWER_USE_FETCH_CONTENT})
 
 ### Compiler settings ###
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+### DRAMPower directories ###
+set(DRAMPOWER_SOURCE_DIR      "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(DRAMPOWER_LIBRARY_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+set(DRAMPOWER_TESTS_DIR       "${CMAKE_CURRENT_SOURCE_DIR}/tests")
 
 ###############################################
 ###           Library Settings              ###
@@ -95,43 +98,33 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ### Detect OS threading library ###
 find_package(Threads)
 
-add_subdirectory(${DRAMPOWER_LIBRARY_DIR}/cli11)
+if (DRAMPOWER_USE_FETCH_CONTENT)
+    include(FetchContent)
 
-### DRAMUtils ###
-if (DRAMUTILS_DIR) # Fetch DRAMUtils from supplied local path
-    message(STATUS "Using local DRAMUtils installation from ${DRAMUTILS_DIR}")
-    FetchContent_Declare(
-        DRAMUtils
-        SOURCE_DIR ${DRAMUTILS_DIR}
-    )
-else() # Fetch DRAMUtils from github
-    message(STATUS "Fetching DRAMUtils from github")
-    FetchContent_Declare(
-        DRAMUtils
-        GIT_REPOSITORY https://github.com/tukl-msd/DRAMUtils
-        GIT_TAG "v1.1"
-    )
+    # DRAMUtils
+    if (DRAMPOWER_USE_FETCH_CONTENT_INTERNAL)
+        FetchContent_Declare(
+            DRAMUtils
+            URL "https://github.com/tukl-msd/DRAMUtils/archive/refs/tags/v1.1.tar.gz"
+            OVERRIDE_FIND_PACKAGE
+        )
+
+        FetchContent_MakeAvailable(DRAMUtils)
+    endif()
+
+    # cli11
+    if (DRAMPOWER_USE_FETCH_CONTENT_CLI11 AND DRAMPOWER_BUILD_CLI)
+        add_subdirectory(${DRAMPOWER_LIBRARY_DIR}/cli11)
+    endif()
+
+    # spdlog
+    if (DRAMPOWER_USE_FETCH_CONTENT_SPDLOG AND DRAMPOWER_BUILD_CLI)
+        add_subdirectory(${DRAMPOWER_LIBRARY_DIR}/spdlog)
+    endif()
 endif()
 
-FetchContent_MakeAvailable(DRAMUtils)
-set_target_properties(DRAMUtils PROPERTIES FOLDER lib)
-
-### GoogleTest ###
-if(DRAMPOWER_BUILD_TESTS)
-    FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest
-        GIT_TAG release-1.12.1
-    )
-
-    # For Windows: Prevent overriding the parent project's compiler/linker settings
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
-    set_target_properties(gmock PROPERTIES FOLDER lib)
-    set_target_properties(gmock_main PROPERTIES FOLDER lib)
-    set_target_properties(gtest PROPERTIES FOLDER lib)
-    set_target_properties(gtest_main PROPERTIES FOLDER lib)
-endif()
+# find_package(cli11)
+find_package(DRAMUtils REQUIRED)
 
 ###############################################
 ###           Source Directory              ###
@@ -148,8 +141,7 @@ endif()
 ###############################################
 
 if(DRAMPOWER_BUILD_TESTS)
-    include( GoogleTest )
-    include( CTest )
+    enable_testing()
     add_subdirectory(tests)
 endif()
 
