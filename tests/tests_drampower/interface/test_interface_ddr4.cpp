@@ -128,15 +128,14 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_0) {
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 57);
 
     // DQs bus
-    // For write and read the number of clock cycles the strobes stay on is
-    // ("size in bits" / bus_size) / bus_rate
-    // read and write have the same length
-    // number of cycles per write/read
-    uint64_t number_of_cycles = (SZ_BITS(wr_data) / 8) / spec->dataRate;
-
-    // In this example read data and write data are the same size, so stats should be the same
-    // DQs modelled as single line
-    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
+    EXPECT_EQ(ddr->readBus.get_width(), spec->bitWidth);
+    EXPECT_EQ(ddr->writeBus.get_width(), spec->bitWidth);
+    uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
+    uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
+    // f(t) = t / 2;
+    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;
@@ -192,18 +191,21 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_1) {
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 55);
 
     // DQs bus
-    // For write and read the number of clock cycles the strobes stay on is
-    // (("number of writes/reads" * "size in bits") / bus_size) / bus_rate
-    uint64_t number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
-
-    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
+    EXPECT_EQ(ddr->readBus.get_width(), spec->bitWidth);
+    EXPECT_EQ(ddr->writeBus.get_width(), spec->bitWidth);
+    uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
+    uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
+    // f(t) = t / 2;
+    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;
-    EXPECT_EQ(stats.writeDQSStats.ones, DQS_ones);
-    EXPECT_EQ(stats.writeDQSStats.zeroes, DQS_zeros);
-    EXPECT_EQ(stats.writeDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
-    EXPECT_EQ(stats.writeDQSStats.zeroes_to_ones, DQS_ones_to_zeros);
+    EXPECT_EQ(stats.writeDQSStats.ones, DQS_ones * 2); // 2 writes
+    EXPECT_EQ(stats.writeDQSStats.zeroes, DQS_zeros* 2);
+    EXPECT_EQ(stats.writeDQSStats.ones_to_zeroes, DQS_zeros_to_ones * 2);
+    EXPECT_EQ(stats.writeDQSStats.zeroes_to_ones, DQS_ones_to_zeros * 2);
 
     // Read strobe should be zero (no reads in this test)
     EXPECT_EQ(stats.readDQSStats.ones, 0);
@@ -249,19 +251,21 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_2) {
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 59);
 
     // DQs bus
-    // For write and read the number of clock cycles the strobes stay on is
-    // (("number of reads/writes" * "size in bits") / bus_size) / bus_rate
-    uint64_t number_of_cycles = ((2 * SZ_BITS(rd_data)) / 8) / spec->dataRate;
-
-    // Only read
-    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
+    EXPECT_EQ(ddr->readBus.get_width(), spec->bitWidth);
+    EXPECT_EQ(ddr->writeBus.get_width(), spec->bitWidth);
+    uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
+    uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
+    // f(t) = t / 2;
+    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;
-    EXPECT_EQ(stats.readDQSStats.ones, DQS_ones);
-    EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros);
-    EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
-    EXPECT_EQ(stats.readDQSStats.zeroes_to_ones, DQS_ones_to_zeros);
+    EXPECT_EQ(stats.readDQSStats.ones, DQS_ones * 2); // 2 reads
+    EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros * 2);
+    EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, DQS_zeros_to_ones * 2);
+    EXPECT_EQ(stats.readDQSStats.zeroes_to_ones, DQS_ones_to_zeros * 2);
 
     // Write strobe should be zero (no writes in this test)
     EXPECT_EQ(stats.writeDQSStats.ones, 0);
@@ -307,19 +311,21 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_3) {
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 55);
 
     // DQs bus
-    // For write and read the number of clock cycles the strobes stay on is
-    // (("number of writes/reads" * "size in bits") / bus_size) / bus_rate
-    uint64_t number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
-
-    // Only writes
-    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
+    EXPECT_EQ(ddr->readBus.get_width(), spec->bitWidth);
+    EXPECT_EQ(ddr->writeBus.get_width(), spec->bitWidth);
+    uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
+    uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
+    // f(t) = t / 2;
+    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;
-    EXPECT_EQ(stats.writeDQSStats.ones, DQS_ones);
-    EXPECT_EQ(stats.writeDQSStats.zeroes, DQS_zeros);
-    EXPECT_EQ(stats.writeDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
-    EXPECT_EQ(stats.writeDQSStats.zeroes_to_ones, DQS_ones_to_zeros);
+    EXPECT_EQ(stats.writeDQSStats.ones, DQS_ones * 2); // 2 writes
+    EXPECT_EQ(stats.writeDQSStats.zeroes, DQS_zeros * 2);
+    EXPECT_EQ(stats.writeDQSStats.ones_to_zeroes, DQS_zeros_to_ones * 2);
+    EXPECT_EQ(stats.writeDQSStats.zeroes_to_ones, DQS_ones_to_zeros * 2);
 
     // Read strobe should be zero (no reads in this test)
     EXPECT_EQ(stats.readDQSStats.ones, 0);
@@ -365,19 +371,21 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_4) {
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 59);
 
     // DQs bus
-    // For write and read the number of clock cycles the strobes stay on is
-    // (("number of writes/reads" * "size in bits") / bus_size) / bus_rate
-    uint64_t number_of_cycles = ((2 * SZ_BITS(wr_data)) / 8) / spec->dataRate;
-
-    // Only reads
-    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
+    EXPECT_EQ(ddr->readBus.get_width(), spec->bitWidth);
+    EXPECT_EQ(ddr->writeBus.get_width(), spec->bitWidth);
+    uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
+    uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
+    // f(t) = t / 2;
+    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;
-    EXPECT_EQ(stats.readDQSStats.ones, DQS_ones);
-    EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros);
-    EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
-    EXPECT_EQ(stats.readDQSStats.zeroes_to_ones, DQS_ones_to_zeros);
+    EXPECT_EQ(stats.readDQSStats.ones, DQS_ones * 2); // 2 reads
+    EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros * 2);
+    EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, DQS_zeros_to_ones * 2);
+    EXPECT_EQ(stats.readDQSStats.zeroes_to_ones, DQS_ones_to_zeros * 2);
 
     // Write strobe should be zero (no writes in this test)
     EXPECT_EQ(stats.writeDQSStats.ones, 0);
@@ -403,7 +411,7 @@ class DDR4_Energy_Tests : public ::testing::Test {
         spec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
 
         t_CK = spec->memTimingSpec.tCK;
-        voltage = spec->memPowerSpec[MemSpecDDR4::VoltageDomain::VDD].vXX;
+        voltage = spec->vddq;
 
         // Change impedances to different values from each other
         spec->memImpedanceSpec.R_eq_cb = 2;

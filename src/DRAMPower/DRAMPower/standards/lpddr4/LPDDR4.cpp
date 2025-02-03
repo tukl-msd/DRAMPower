@@ -7,6 +7,8 @@
 
 namespace DRAMPower {
 
+    using namespace DRAMUtils::Config;
+
     LPDDR4::LPDDR4(const MemSpecLPDDR4 &memSpec)
         : dram_base<CmdType>(PatternEncoderOverrides{
             {pattern_descriptor::C0, PatternEncoderBitSpec::L},
@@ -24,6 +26,10 @@ namespace DRAMPower {
         , readDQS(memSpec.dataRate, true)
         , writeDQS(memSpec.dataRate, true)
     {
+        togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
+        togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
+        togglingHandleRead.setDataRate(memSpec.dataRate);
+        togglingHandleWrite.setDataRate(memSpec.dataRate);
         this->registerPatterns();
 
         this->registerBankHandler<CmdType::ACT>(&LPDDR4::handleAct);
@@ -46,6 +52,86 @@ namespace DRAMPower {
 
         routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     };
+
+    void LPDDR4::toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle) {
+        // Change from bus to toggling rate
+        assert(enable_timestamp >= timestamp);
+        if ( enable_timestamp > timestamp ) {
+            // Schedule toggling rate enable
+            this->addImplicitCommand(enable_timestamp, [this, &togglinghandle, &bus, enable_timestamp]() {
+                bus.disable(enable_timestamp);
+                togglinghandle.enable(enable_timestamp);
+            });
+        } else {
+            bus.disable(enable_timestamp);
+            togglinghandle.enable(enable_timestamp);
+        }
+    }
+
+    void LPDDR4::toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle) {
+        // Change from toggling rate to bus
+        assert(disable_timestamp >= timestamp);
+        if ( disable_timestamp > timestamp ) {
+            // Schedule toggling rate disable
+            this->addImplicitCommand(disable_timestamp, [this, &togglinghandle, &bus, disable_timestamp]() {
+                bus.enable(disable_timestamp);
+                togglinghandle.disable(disable_timestamp);
+            });
+        } else {
+            bus.enable(disable_timestamp);
+            togglinghandle.disable(disable_timestamp);
+        }
+    }
+
+    timestamp_t LPDDR4::toggling_rate_get_enable_time(timestamp_t timestamp) {
+        timestamp_t busdisabletimestamp = timestamp;
+        busdisabletimestamp = std::max(this->readBus.get_lastburst_timestamp(), busdisabletimestamp);
+        busdisabletimestamp = std::max(this->writeBus.get_lastburst_timestamp(), busdisabletimestamp);
+        return busdisabletimestamp;
+    }
+    timestamp_t LPDDR4::toggling_rate_get_disable_time(timestamp_t timestamp) {
+        timestamp_t busenabletimestamp = timestamp;
+        busenabletimestamp = std::max(this->togglingHandleRead.get_lastburst_timestamp(), busenabletimestamp);
+        busenabletimestamp = std::max(this->togglingHandleWrite.get_lastburst_timestamp(), busenabletimestamp);
+        return busenabletimestamp;
+    }
+
+    timestamp_t LPDDR4::update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleratedefinition)
+    {
+        if (toggleratedefinition) {
+            // Update toggling rate
+            togglingHandleRead.setTogglingRateAndDutyCycle(
+                toggleratedefinition->togglingRateRead,
+                toggleratedefinition->dutyCycleRead,
+                toggleratedefinition->idlePatternRead
+            );
+            togglingHandleWrite.setTogglingRateAndDutyCycle(
+                toggleratedefinition->togglingRateWrite,
+                toggleratedefinition->dutyCycleWrite,
+                toggleratedefinition->idlePatternWrite
+            );
+            // toggling rate already enabled
+            if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
+                return timestamp;
+            }
+            // Enable toggling rate
+            timestamp_t enable_timestamp = toggling_rate_get_enable_time(timestamp);
+            toggling_rate_enable(timestamp, enable_timestamp, readBus, togglingHandleRead);
+            toggling_rate_enable(timestamp, enable_timestamp, writeBus, togglingHandleWrite);
+            return enable_timestamp;
+        } else {
+            // Toggling rate already disabled
+            if (!togglingHandleRead.isEnabled() && !togglingHandleWrite.isEnabled()) {
+                return timestamp;
+            }
+            // Disable toggling rate
+            timestamp_t disable_timestamp = toggling_rate_get_disable_time(timestamp);
+            toggling_rate_disable(timestamp, disable_timestamp, readBus, togglingHandleRead);
+            toggling_rate_disable(timestamp, disable_timestamp, writeBus, togglingHandleWrite);
+            return disable_timestamp;
+        }
+        return timestamp;
+    }
 
     uint64_t LPDDR4::getBankCount() {
         return memSpec.numberOfBanks;
@@ -147,44 +233,63 @@ namespace DRAMPower {
         }
     }
 
-    void LPDDR4::handle_interface(const Command &cmd) {
-        size_t length = 0;
+    void LPDDR4::handle_interface_commandbus(const Command &cmd) {
+        auto pattern = this->getCommandPattern(cmd);
+        auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
+        this->commandBus.load(cmd.timestamp, pattern, ca_length);
+    }
 
-        // Handle data bus and dqs lines
+    void LPDDR4::handle_interface_data_common(const Command &cmd, const size_t length) {
         if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            length = cmd.sz_bits / readBus.get_width();
-            if ( length != 0 )
-            {
-                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            else
-            {
-                length = memSpec.burstLength; // Use default burst length
-                // Cannot load readBus with data. TODO toggling rate
-            }
             readDQS.start(cmd.timestamp);
             readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
             handleInterfaceOverrides(length, true);
         } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            length = cmd.sz_bits / writeBus.get_width();
-            if ( length != 0 )
-            {
-                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            else
-            {
-                length = memSpec.burstLength; // Use default burst length
-                // Cannot load writeBus with data. TODO toggling rate
-            }
             writeDQS.start(cmd.timestamp);
             writeDQS.stop(cmd.timestamp + length / memSpec.dataRate);
             handleInterfaceOverrides(length, false);
         }
+    }
 
-        // Command bus
-        auto pattern = getCommandPattern(cmd);
-        length = getPattern(cmd.type).size() / commandBus.get_width();
-        commandBus.load(cmd.timestamp, pattern, length);
+    void LPDDR4::handle_interface_toggleRate(const Command& cmd) {
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            if (cmd.sz_bits == 0) {
+                // Use default burst length
+                this->togglingHandleRead.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
+            } else {
+                this->togglingHandleRead.incCountBitLength(cmd.timestamp, cmd.sz_bits);
+            }
+            assert(cmd.sz_bits % togglingHandleRead.getWidth() == 0);
+            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleRead.getWidth());
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            if (cmd.sz_bits == 0) {
+                // Use default burst length
+                this->togglingHandleWrite.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
+            } else {
+                this->togglingHandleWrite.incCountBitLength(cmd.timestamp, cmd.sz_bits);
+            }
+            assert(cmd.sz_bits % togglingHandleWrite.getWidth() == 0);
+            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleWrite.getWidth());
+        }
+        handle_interface_commandbus(cmd);
+    }
+
+    void LPDDR4::handle_interface(const Command &cmd) {
+        size_t length = 0;
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            length = cmd.sz_bits / readBus.get_width();
+            if ( cmd.data != nullptr ) {
+                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            handle_interface_data_common(cmd, length);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            length = cmd.sz_bits / writeBus.get_width();
+            if ( cmd.data != nullptr ) {
+                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+            }
+            handle_interface_data_common(cmd, length);
+        }
+        handle_interface_commandbus(cmd);
     }
 
     void LPDDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -383,8 +488,8 @@ namespace DRAMPower {
     }
 
     interface_energy_info_t LPDDR4::calcInterfaceEnergy(timestamp_t timestamp) {
-        InterfacePowerCalculation_LPPDR4 interface_calc(memSpec);
-        return interface_calc.calcEnergy(getWindowStats(timestamp));
+        InterfaceCalculation_LPDDR4 interface_calc(memSpec);
+        return interface_calc.calculateEnergy(getWindowStats(timestamp));
     }
 
     SimulationStats LPDDR4::getWindowStats(timestamp_t timestamp) {
@@ -447,6 +552,10 @@ namespace DRAMPower {
         stats.commandBus = commandBus.get_stats(timestamp);
         stats.readBus = readBus.get_stats(timestamp);
         stats.writeBus = writeBus.get_stats(timestamp);
+        stats.togglingStats = {
+            togglingHandleRead.get_stats(timestamp), // read
+            togglingHandleWrite.get_stats(timestamp) // write
+        };
 
         stats.clockStats = 2 * clock.get_stats_at(timestamp);
         stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);

@@ -6,11 +6,15 @@
 #include <algorithm>
 #include <deque>
 #include <vector>
+#include <stdexcept>
+
+#include <DRAMUtils/config/toggling_rate.h>
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/command/Command.h"
 #include "DRAMPower/data/energy.h"
 #include "DRAMPower/dram/Rank.h"
+#include <DRAMPower/dram/Interface.h>
 #include "DRAMPower/dram/dram_base.h"
 #include "DRAMPower/memspec/MemSpec.h"
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
@@ -35,6 +39,8 @@ private:
     util::Clock readDQS;
     util::Clock wck;
     util::Clock clock;
+    TogglingHandle togglingHandleRead;
+    TogglingHandle togglingHandleWrite;
 
 public:
 
@@ -72,14 +78,26 @@ public:
 private:
     // Calculations
     void handle_interface(const Command& cmd) override;
+    void handle_interface_toggleRate(const Command& cmd) override;
+    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
+    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
+    timestamp_t toggling_rate_get_enable_time(timestamp_t timestamp);
+    timestamp_t toggling_rate_get_disable_time(timestamp_t timestamp);
+    timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
     void handleInterfaceOverrides(size_t length, bool read);
+    void handle_interface_commandbus(const Command& cmd);
+    void handle_interface_data_common(const Command &cmd, const size_t length);
 
 private:
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {
-            auto& rank = this->ranks[command.targetCoordinate.rank];
-            auto& bank = rank.banks[command.targetCoordinate.bank];
+            assert(this->ranks.size()>command.targetCoordinate.rank);
+            auto& rank = this->ranks.at(command.targetCoordinate.rank);
+
+            assert(rank.banks.size()>command.targetCoordinate.bank);
+            auto& bank = rank.banks.at(command.targetCoordinate.bank);
+            
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, bank, command.timestamp);
         });
@@ -88,9 +106,16 @@ private:
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankGroupHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {
-            auto& rank = this->ranks[command.targetCoordinate.rank];
-            rank.commandCounter.inc(command.type);
+            assert(this->ranks.size()>command.targetCoordinate.rank);
+            auto& rank = this->ranks.at(command.targetCoordinate.rank);
+            
+            assert(rank.banks.size()>command.targetCoordinate.bank);
+            if (command.targetCoordinate.bank >= rank.banks.size()) {
+                throw std::invalid_argument("Invalid bank targetcoordinate");
+            }
             auto bank_id = command.targetCoordinate.bank;
+            
+            rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, bank_id, command.timestamp);
         });
     }
@@ -98,7 +123,8 @@ private:
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerRankHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {
-            auto& rank = this->ranks[command.targetCoordinate.rank];
+            assert(this->ranks.size()>command.targetCoordinate.rank);
+            auto& rank = this->ranks.at(command.targetCoordinate.rank);
 
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, command.timestamp);

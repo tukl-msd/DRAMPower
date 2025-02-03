@@ -57,7 +57,7 @@ struct energy_info_t
 struct energy_t
 {
 	std::vector<energy_info_t> bank_energy;
-	energy_info_t total_energy(); // TODO rename
+	energy_info_t total_energy() const; // TODO rename
 	void to_json(json_t &j) const;
 	constexpr inline const char * get_Bank_energy_keyword() const
 	{
@@ -135,7 +135,7 @@ struct interface_energy_info_t
         os << "staticEnergy: " << e.controller.staticEnergy << std::endl;
         os << "DRAM: dynamicEnergy: " << e.dram.dynamicEnergy << " ";
         os << "staticEnergy: " << e.dram.staticEnergy << std::endl;
-        os << "Total: " << e.total() << std::endl;
+        os << "Total: " << e.total();
     	return os;
 	}
 	void to_json(json_t &j) const;

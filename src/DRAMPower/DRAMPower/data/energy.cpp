@@ -111,7 +111,7 @@ void DRAMPower::energy_t::to_json(json_t &j) const
 }
 
 // TODO rename
-energy_info_t DRAMPower::energy_t::total_energy()
+energy_info_t DRAMPower::energy_t::total_energy() const
 {
     energy_info_t total;
 

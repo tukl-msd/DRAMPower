@@ -4,10 +4,13 @@
 #include <DRAMPower/util/bus.h>
 #include <DRAMPower/dram/dram_base.h>
 #include <DRAMPower/dram/Rank.h>
+#include <DRAMPower/dram/Interface.h>
 #include <DRAMPower/Types.h>
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMPower/memspec/MemSpecDDR4.h>
+
+#include <DRAMUtils/config/toggling_rate.h>
 
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/util/cycle_stats.h>
@@ -17,12 +20,13 @@
 #include <algorithm>
 #include <stdint.h>
 #include <vector>
+#include <optional>
 
 namespace DRAMPower {
 
 class DDR4 : public dram_base<CmdType>{
 public:
-    DDR4(const MemSpecDDR4& memSpec);
+    DDR4(const MemSpecDDR4 &memSpec);
     virtual ~DDR4() = default;
 public:
     MemSpecDDR4 memSpec;
@@ -44,16 +48,19 @@ public:
     util::Bus commandBus;
     uint64_t prepostambleReadMinTccd;
     uint64_t prepostambleWriteMinTccd;
+private:
+    TogglingHandle togglingHandleRead;
+    TogglingHandle togglingHandleWrite;
 
 protected:
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func && member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command & command) {
             assert(this->ranks.size()>command.targetCoordinate.rank);
-            auto & rank = this->ranks[command.targetCoordinate.rank];
+            auto & rank = this->ranks.at(command.targetCoordinate.rank);
 
             assert(rank.banks.size()>command.targetCoordinate.bank);
-            auto & bank = rank.banks[command.targetCoordinate.bank];
+            auto & bank = rank.banks.at(command.targetCoordinate.bank);
 
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, bank, command.timestamp);
@@ -64,7 +71,7 @@ protected:
     void registerRankHandler(Func && member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command & command) {
             assert(this->ranks.size()>command.targetCoordinate.rank);
-            auto & rank = this->ranks[command.targetCoordinate.rank];
+            auto & rank = this->ranks.at(command.targetCoordinate.rank);
 
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, command.timestamp);
@@ -94,7 +101,15 @@ public:
         return entryTime;
     };
 private:
+    void handle_interface_data_common(const Command& cmd, size_t length);
+    void handle_interface_commandbus(const Command& cmd);
     void handle_interface(const Command& cmd) override;
+    void handle_interface_toggleRate(const Command& cmd) override;
+    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
+    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
+    timestamp_t toggling_rate_get_enable_time(timestamp_t timestamp);
+    timestamp_t toggling_rate_get_disable_time(timestamp_t timestamp);
+    timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
     void handleInterfaceOverrides(size_t length, bool read);
     uint64_t getInitEncoderPattern() override;
 public:

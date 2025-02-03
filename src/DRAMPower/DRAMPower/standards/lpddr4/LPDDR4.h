@@ -5,14 +5,16 @@
 #include <DRAMPower/util/clock.h>
 #include <DRAMPower/dram/dram_base.h>
 #include <DRAMPower/dram/Rank.h>
+#include <DRAMPower/dram/Interface.h>
 #include <DRAMPower/Types.h>
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMPower/memspec/MemSpecLPDDR4.h>
 
 #include <DRAMPower/data/energy.h>
-
 #include <DRAMPower/util/cycle_stats.h>
+
+#include <DRAMUtils/config/toggling_rate.h>
 
 #include <deque>
 #include <algorithm>
@@ -35,6 +37,9 @@ public:
     util::Clock writeDQS;
 
     util::Clock clock;
+private:
+    TogglingHandle togglingHandleRead;
+    TogglingHandle togglingHandleWrite;
 
 
     //util::Bus dataBus;
@@ -42,8 +47,12 @@ protected:
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func && member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command & command) {
-            auto & rank = this->ranks[command.targetCoordinate.rank];
-            auto & bank = rank.banks[command.targetCoordinate.bank];
+            assert(this->ranks.size()>command.targetCoordinate.rank);
+            auto & rank = this->ranks.at(command.targetCoordinate.rank);
+
+            assert(rank.banks.size()>command.targetCoordinate.bank);
+            auto & bank = rank.banks.at(command.targetCoordinate.bank);
+
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, bank, command.timestamp);
         });
@@ -52,7 +61,8 @@ protected:
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerRankHandler(Func && member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command & command) {
-            auto & rank = this->ranks[command.targetCoordinate.rank];
+            assert(this->ranks.size()>command.targetCoordinate.rank);
+            auto & rank = this->ranks.at(command.targetCoordinate.rank);
 
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, command.timestamp);
@@ -108,7 +118,15 @@ public:
     void endOfSimulation(timestamp_t timestamp);
 private:
     void handle_interface(const Command& cmd) override;
+    void handle_interface_toggleRate(const Command& cmd) override;
+    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
+    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
+    timestamp_t toggling_rate_get_enable_time(timestamp_t timestamp);
+    timestamp_t toggling_rate_get_disable_time(timestamp_t timestamp);
+    timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
     void handleInterfaceOverrides(size_t length, bool read);
+    void handle_interface_commandbus(const Command& cmd);
+    void handle_interface_data_common(const Command &cmd, const size_t length);
 public:
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
     energy_t calcCoreEnergy(timestamp_t timestamp) override;

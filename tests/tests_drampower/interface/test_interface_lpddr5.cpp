@@ -136,10 +136,11 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_0) {
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 15);
 
     // For read the number of clock cycles the strobes stay on is
-    // currently ("size in bits" / bus_size) / bus_rate
-    uint64_t number_of_cycles = (SZ_BITS(wr_data) / 16) / spec->dataRate;
-
-    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    EXPECT_EQ(sizeof(wr_data), sizeof(rd_data));
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
+    uint_fast8_t scale = 1 * 2; // Differential_Pairs * 2(pairs of 2)
+    // f(t) = t / 2;
+    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;
@@ -309,9 +310,11 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_3_BG_Mode) {
     EXPECT_EQ(stats.commandBus.ones_to_zeroes, 21);
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 21);
 
-    uint64_t number_of_cycles = (SZ_BITS(wr_data) / 16) / spec->dataRate;
-
-    uint64_t DQS_ones = number_of_cycles * spec->dataRate;
+    EXPECT_EQ(sizeof(wr_data), sizeof(rd_data));
+    uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
+    uint_fast8_t scale = 1 * 2; // Differential_Pairs * 2(pairs of 2)
+    // f(t) = t / 2;
+    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;
@@ -384,11 +387,11 @@ TEST_F(LPDDR5_Energy_Tests, Clock_Energy) {
     // Clock is differential so there is always going to be one signal that consumes power
     // Calculation is done considering number of ones but could also be zeroes, since clock is
     // a symmetrical signal
-    double expected_static = stats.clockStats.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_ck;
-    expected_static += stats.wClockStats.ones * voltage * voltage * t_WCK / spec->memImpedanceSpec.R_eq_wck;
+    double expected_static = stats.clockStats.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_ck;
+    expected_static += stats.wClockStats.ones * voltage * voltage * 0.5 * t_WCK / spec->memImpedanceSpec.R_eq_wck;
 
-    double expected_dynamic = stats.clockStats.zeroes_to_ones * spec->memImpedanceSpec.C_total_ck * voltage * voltage;
-    expected_dynamic += stats.wClockStats.zeroes_to_ones * spec->memImpedanceSpec.C_total_wck * voltage * voltage;
+    double expected_dynamic = stats.clockStats.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_ck * voltage * voltage;
+    expected_dynamic += stats.wClockStats.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_wck * voltage * voltage;
 
     EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static);  // value itself doesn't matter, only that it matches the formula
     EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic);
@@ -419,7 +422,7 @@ TEST_F(LPDDR5_Energy_Tests, DQS_Energy) {
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = 0;
     double expected_dynamic_dram = stats.readDQSStats.zeroes_to_ones *
-                                   spec->memImpedanceSpec.C_total_dqs / 2.0 * voltage * voltage;
+                                   0.5 * spec->memImpedanceSpec.C_total_dqs * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
     EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
@@ -476,7 +479,8 @@ TEST_F(LPDDR5_Energy_Tests, CA_Energy) {
     stats.commandBus.zeroes_to_ones = 39;
     stats.commandBus.ones_to_zeroes = 49;
 
-    double expected_static_controller = stats.commandBus.zeroes * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_cb;
+    // Data rate 2
+    double expected_static_controller = stats.commandBus.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_cb;
     double expected_dynamic_controller = stats.commandBus.zeroes_to_ones * spec->memImpedanceSpec.C_total_cb / 2.0 * voltage * voltage;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
