@@ -35,7 +35,7 @@
 ###############################################
 ###              DRAMPower 5.0              ###
 ###############################################
-cmake_minimum_required(VERSION 3.13.0)
+cmake_minimum_required(VERSION 3.22.0)
 
 # TODO change for release
 set(DRAMPOWER_VERSION_MAJOR 5)
@@ -46,6 +46,10 @@ set(PROJECT_NAME "DRAMPower ${DRAMPOWER_VERSION_STRING}")
 set(PROJECT_SHORTNAME "DRAMPower")
 
 project(${PROJECT_NAME} VERSION ${DRAMPOWER_VERSION_MAJOR}.${DRAMPOWER_VERSION_MINOR} LANGUAGES CXX)
+
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
 
 ### CMake settings ###
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -80,11 +84,6 @@ option(DRAMPOWER_USE_FETCH_CONTENT "Enable the FetchContent module" ${PROJECT_IS
 option(DRAMPOWER_USE_FETCH_CONTENT_INTERNAL "Enable FetchContent to provide internal dependencies" ${DRAMPOWER_USE_FETCH_CONTENT})
 option(DRAMPOWER_USE_FETCH_CONTENT_CLI11 "Enable FetchContent to provide CLI11" ${DRAMPOWER_USE_FETCH_CONTENT})
 option(DRAMPOWER_USE_FETCH_CONTENT_SPDLOG "Enable FetchContent to provide spdlog" ${DRAMPOWER_USE_FETCH_CONTENT})
-
-### Compiler settings ###
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ### DRAMPower directories ###
 set(DRAMPOWER_SOURCE_DIR      "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -122,9 +121,6 @@ if (DRAMPOWER_USE_FETCH_CONTENT)
         add_subdirectory(${DRAMPOWER_LIBRARY_DIR}/spdlog)
     endif()
 endif()
-
-# find_package(cli11)
-find_package(DRAMUtils REQUIRED)
 
 ###############################################
 ###           Source Directory              ###

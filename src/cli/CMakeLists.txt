@@ -9,6 +9,11 @@ add_executable(drampower_cli
     main.cpp
     util.cpp
 )
+
+target_compile_features(drampower_cli PUBLIC cxx_std_17)
+set_target_properties(drampower_cli PROPERTIES CXX_EXTENSIONS OFF)
+set_target_properties(drampower_cli PROPERTIES CXX_STANDARD_REQUIRED ON)
+
 target_link_libraries(drampower_cli 
     PRIVATE
        DRAMPower::DRAMPower
