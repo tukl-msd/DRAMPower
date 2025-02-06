@@ -32,7 +32,9 @@
 				"dev-mode"
 			],
 			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Release"
+				"CMAKE_BUILD_TYPE": "Release",
+				"DRAMUTILS_USE_FETCH_CONTENT": "ON",
+				"DRAMUTILS_USE_FETCH_CONTENT_NLOHMANN_JSON": "ON"
 			}
 		},
 		{
@@ -55,6 +57,7 @@
 		{
 			"name": "dev-unix",
 			"generator": "Unix Makefiles",
+			"binaryDir": "${sourceDir}/build",
 			"inherits": [
 				"dev-mode"
 			],
