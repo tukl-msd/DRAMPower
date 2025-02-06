@@ -104,7 +104,7 @@ if (DRAMPOWER_USE_FETCH_CONTENT)
     if (DRAMPOWER_USE_FETCH_CONTENT_INTERNAL)
         FetchContent_Declare(
             DRAMUtils
-            URL "https://github.com/tukl-msd/DRAMUtils/archive/refs/tags/v1.1.tar.gz"
+            URL "https://github.com/tukl-msd/DRAMUtils/archive/refs/tags/v1.2.tar.gz"
             OVERRIDE_FIND_PACKAGE
         )
 
