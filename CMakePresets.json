@@ -32,7 +32,9 @@
 				"dev-mode"
 			],
 			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Release"
+				"CMAKE_BUILD_TYPE": "Release",
+				"DRAMUTILS_USE_FETCH_CONTENT": "ON",
+				"DRAMUTILS_USE_FETCH_CONTENT_NLOHMANN_JSON": "ON"
 			}
 		},
 		{
