@@ -100,6 +100,10 @@ public:
 public:
     uint64_t getCommandPattern(const Command& cmd)
     {
+        if (commandPatternMap[static_cast<std::size_t>(cmd.type)].empty()) {
+            // No pattern registered for this command
+            throw std::runtime_error("No pattern registered for this command");
+        }
         const auto& pattern = commandPatternMap[static_cast<std::size_t>(cmd.type)];
         lastPattern = encoder.encode(cmd, pattern, lastPattern);
         return lastPattern;

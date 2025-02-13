@@ -223,6 +223,9 @@ namespace DRAMPower {
         this->registerPattern<CmdType::PDXP>({
             H, H, H, H, H, V, V, V, V, V, V, V, V, V
         });
+        this->registerPattern<CmdType::NOP>({
+            H, H, H, H, H, V, V, V, V, V, V, V, V, V
+        });
     }
 
     void DDR5::handleInterfaceOverrides(size_t length, bool read)

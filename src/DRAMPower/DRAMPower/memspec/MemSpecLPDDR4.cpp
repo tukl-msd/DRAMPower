@@ -189,6 +189,7 @@ MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec)
         prechargeOffsetRD      = 8 + memTimingSpec.tRTP;
     }
     prechargeOffsetWR      =  memTimingSpec.tWL + burstLength/2 + memTimingSpec.tWR + 1;
+    parseImpedanceSpec(memspec);
 
 }
 
