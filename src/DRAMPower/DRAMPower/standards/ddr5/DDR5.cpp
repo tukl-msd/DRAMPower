@@ -222,7 +222,8 @@ namespace DRAMPower {
         });
         this->registerPattern<CmdType::PDXP>({
             H, H, H, H, H, V, V, V, V, V, V, V, V, V
-        });this->registerPattern<CmdType::NOP>({
+        });
+        this->registerPattern<CmdType::NOP>({
             H, H, H, H, H, V, V, V, V, V, V, V, V, V
         });
     }

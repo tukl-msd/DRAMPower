@@ -86,7 +86,6 @@ namespace DRAMPower {
         std::bitset<32> bank_group_bits(cmd.targetCoordinate.bankGroup);
 
         std::size_t n = pattern.size() - 1;
-        static_assert(std::numeric_limits<decltype(n)>::is_signed == false, "std::size_t must be unsigned");
 
         assert(n < 64);
 
