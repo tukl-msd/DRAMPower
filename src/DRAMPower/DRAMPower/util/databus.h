@@ -86,7 +86,7 @@ public:
         busType = BusType::TogglingRate;
     }
 
-    void setTogglingRateAndDutyCycle(DRAMUtils::Config::ToggleRateDefinition toggleratedefinition) {
+    void setTogglingRateDefinition(DRAMUtils::Config::ToggleRateDefinition toggleratedefinition) {
         togglingHandleRead.setTogglingRateAndDutyCycle(toggleratedefinition.togglingRateRead, toggleratedefinition.dutyCycleRead, toggleratedefinition.idlePatternRead);
         togglingHandleWrite.setTogglingRateAndDutyCycle(toggleratedefinition.togglingRateWrite, toggleratedefinition.dutyCycleWrite, toggleratedefinition.idlePatternWrite);
     }
