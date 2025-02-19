@@ -38,7 +38,8 @@ private:
     DRAMUtils::Config::TogglingRateIdlePattern idlepattern = DRAMUtils::Config::TogglingRateIdlePattern::Z;
 
 public:
-    TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, const bool enabled = true);
+TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, const bool enabled = true);
+TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, DRAMUtils::Config::TogglingRateIdlePattern idlepattern, const bool enabled = true);
 
     TogglingHandle() = default;
 public:
