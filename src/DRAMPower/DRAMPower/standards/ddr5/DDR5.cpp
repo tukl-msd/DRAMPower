@@ -25,10 +25,14 @@ namespace DRAMPower {
           })
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-        , writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H}
-        , readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H}
+        , dataBus{
+            memSpec.numberOfDevices,
+            memSpec.bitWidth,
+            memSpec.dataRate,
+            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H,
+            DRAMUtils::Config::TogglingRateIdlePattern::H, 0.0, 0.0,
+            util::DataBus::BusType::Bus
+        }
         , cmdBusWidth(14)
         , cmdBusInitPattern((1<<cmdBusWidth)-1)
         , commandBus(
@@ -39,115 +43,123 @@ namespace DRAMPower {
         , readDQS(memSpec.dataRateSpec.dqsBusRate, true)
         , writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
     {
-        togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
-        togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
-        togglingHandleRead.setDataRate(memSpec.dataRate);
-        togglingHandleWrite.setDataRate(memSpec.dataRate);
-        this->registerPatterns();
+        this->registerCommands();
+    }
 
+    void DDR5::registerCommands() {
+        using namespace pattern_descriptor;
+        // ACT
         this->registerBankHandler<CmdType::ACT>(&DDR5::handleAct);
+        this->registerPattern<CmdType::ACT>({
+            // note: CID3 is mutually exclusive with R17 and depends on usage mode
+            L, L, R0, R1, R2, R3, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, CID3
+        });
+        this->registerInterfaceMember<CmdType::ACT>(&DDR5::handleInterfaceCommandBus);
+        // PRE
         this->registerBankHandler<CmdType::PRE>(&DDR5::handlePre);
+        this->registerPattern<CmdType::PRE>({
+            H, H, L, H, H, CID3, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2
+        });
+        this->registerInterfaceMember<CmdType::PRE>(&DDR5::handleInterfaceCommandBus);
+        // RD
         this->registerBankHandler<CmdType::RD>(&DDR5::handleRead);
+        this->registerPattern<CmdType::RD>({
+            H, L, H, H, H, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            C2, C3, C4, C5, C6, C7, C8, C9, C10, V, H, V, V, CID3
+        });
+        this->routeInterfaceCommand<CmdType::RD>([this](const Command &command){this->handleInterfaceData(command, true);});
+        // RDA
         this->registerBankHandler<CmdType::RDA>(&DDR5::handleReadAuto);
+        this->registerPattern<CmdType::RDA>({
+            H, L, H, H, H, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            C2, C3, C4, C5, C6, C7, C8, C9, C10, V, L, V, V, CID3
+        });
+        this->routeInterfaceCommand<CmdType::RDA>([this](const Command &command){this->handleInterfaceData(command, true);});
+        // WR
         this->registerBankHandler<CmdType::WR>(&DDR5::handleWrite);
+        this->registerPattern<CmdType::WR>({
+            H, L, H, H, L, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            V, C3, C4, C5, C6, C7, C8, C9, C10, V, H, H, V, CID3
+        });
+        this->routeInterfaceCommand<CmdType::WR>([this](const Command &command){this->handleInterfaceData(command, false);});
+        // WRA
         this->registerBankHandler<CmdType::WRA>(&DDR5::handleWriteAuto);
-
+        this->registerPattern<CmdType::WRA>({
+            H, L, H, H, L, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
+            V, C3, C4, C5, C6, C7, C8, C9, C10, V, L, H, V, CID3
+        });
+        this->routeInterfaceCommand<CmdType::WRA>([this](const Command &command){this->handleInterfaceData(command, false);});
+        // PRESB
         this->registerBankGroupHandler<CmdType::PRESB>(&DDR5::handlePreSameBank);
+        this->registerPattern<CmdType::PRESB>({
+            H, H, L, H, L, CID3, BA0, BA1, V, V, H, CID0, CID1, CID2
+        });
+        this->registerInterfaceMember<CmdType::PRESB>(&DDR5::handleInterfaceCommandBus);
+        // REFSB
         this->registerBankGroupHandler<CmdType::REFSB>(&DDR5::handleRefSameBank);
-
+        this->registerPattern<CmdType::REFSB>({
+            H, H, L, L, H, CID3, BA0, BA1, V, V, H, CID0, CID1, CID2
+        });
+        this->registerInterfaceMember<CmdType::REFSB>(&DDR5::handleInterfaceCommandBus);
+        // REFA
         this->registerRankHandler<CmdType::REFA>(&DDR5::handleRefAll);
+        this->registerPattern<CmdType::REFA>({
+            H, H, L, L, H, CID3, V, V, V, V, L, CID0, CID1, CID2
+        });
+        this->registerInterfaceMember<CmdType::REFA>(&DDR5::handleInterfaceCommandBus);
+        // PREA
         this->registerRankHandler<CmdType::PREA>(&DDR5::handlePreAll);
+        this->registerPattern<CmdType::PREA>({
+            H, H, L, H, L, CID3, V, V, V, V, L, CID0, CID1, CID2
+        });
+        this->registerInterfaceMember<CmdType::PREA>(&DDR5::handleInterfaceCommandBus);
+        // SREFEN
         this->registerRankHandler<CmdType::SREFEN>(&DDR5::handleSelfRefreshEntry);
+        this->registerPattern<CmdType::SREFEN>({
+            H, H, H, L, H, V, V, V, V, H, L, V, V, V
+        });
+        this->registerInterfaceMember<CmdType::SREFEN>(&DDR5::handleInterfaceCommandBus);
+        // SREFEX
         this->registerRankHandler<CmdType::SREFEX>(&DDR5::handleSelfRefreshExit);
+        // PDEA
         this->registerRankHandler<CmdType::PDEA>(&DDR5::handlePowerDownActEntry);
+        this->registerPattern<CmdType::PDEA>({
+            H, H, H, L, H, V, V, V, V, V, H, L, V, V
+        });
+        this->registerInterfaceMember<CmdType::PDEA>(&DDR5::handleInterfaceCommandBus);
+        // PDEP
         this->registerRankHandler<CmdType::PDEP>(&DDR5::handlePowerDownPreEntry);
+        this->registerPattern<CmdType::PDEP>({
+            H, H, H, L, H, V, V, V, V, V, H, L, V, V
+        });
+        this->registerInterfaceMember<CmdType::PDEP>(&DDR5::handleInterfaceCommandBus);
+        // PDXA
         this->registerRankHandler<CmdType::PDXA>(&DDR5::handlePowerDownActExit);
+        this->registerPattern<CmdType::PDXA>({
+            H, H, H, H, H, V, V, V, V, V, V, V, V, V
+        });
+        this->registerInterfaceMember<CmdType::PDXA>(&DDR5::handleInterfaceCommandBus);
+        // PDXP
         this->registerRankHandler<CmdType::PDXP>(&DDR5::handlePowerDownPreExit);
+        this->registerPattern<CmdType::PDXP>({
+            H, H, H, H, H, V, V, V, V, V, V, V, V, V
+        });
+        this->registerInterfaceMember<CmdType::PDXP>(&DDR5::handleInterfaceCommandBus);
+        // NOP
+        this->registerPattern<CmdType::NOP>({
+            H, H, H, H, H, V, V, V, V, V, V, V, V, V
+        });
+        this->registerInterfaceMember<CmdType::NOP>(&DDR5::handleInterfaceCommandBus);
+        // EOS
+        routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        // ---------------------------------:
 
-        routeCommand<CmdType::END_OF_SIMULATION>(
-            [this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        // Power-down mode is different in DDR5. There is no distinct PDEA and PDEP but instead it depends on
+        // bank state upon command issue. Check standard
     }
 
-    void DDR5::toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle) {
-        // Change from bus to toggling rate
-        assert(enable_timestamp >= timestamp);
-        if ( enable_timestamp > timestamp ) {
-            // Schedule toggling rate enable
-            this->addImplicitCommand(enable_timestamp, [this, &togglinghandle, &bus, enable_timestamp]() {
-                bus.disable(enable_timestamp);
-                togglinghandle.enable(enable_timestamp);
-            });
-        } else {
-            bus.disable(enable_timestamp);
-            togglinghandle.enable(enable_timestamp);
-        }
-    }
-
-    void DDR5::toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle) {
-        // Change from toggling rate to bus
-        assert(disable_timestamp >= timestamp);
-        if ( disable_timestamp > timestamp ) {
-            // Schedule toggling rate disable
-            this->addImplicitCommand(disable_timestamp, [this, &togglinghandle, &bus, disable_timestamp]() {
-                bus.enable(disable_timestamp);
-                togglinghandle.disable(disable_timestamp);
-            });
-        } else {
-            bus.enable(disable_timestamp);
-            togglinghandle.disable(disable_timestamp);
-        }
-    }
-
-    timestamp_t DDR5::toggling_rate_get_enable_time(timestamp_t timestamp) {
-        timestamp_t busdisabletimestamp = timestamp;
-        busdisabletimestamp = std::max(this->readBus.get_lastburst_timestamp(), busdisabletimestamp);
-        busdisabletimestamp = std::max(this->writeBus.get_lastburst_timestamp(), busdisabletimestamp);
-        return busdisabletimestamp;
-    }
-    timestamp_t DDR5::toggling_rate_get_disable_time(timestamp_t timestamp) {
-        timestamp_t busenabletimestamp = timestamp;
-        busenabletimestamp = std::max(this->togglingHandleRead.get_lastburst_timestamp(), busenabletimestamp);
-        busenabletimestamp = std::max(this->togglingHandleWrite.get_lastburst_timestamp(), busenabletimestamp);
-        return busenabletimestamp;
-    }
-
-    timestamp_t DDR5::update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleratedefinition)
-    {
-        if (toggleratedefinition) {
-            // Update toggling rate
-            togglingHandleRead.setTogglingRateAndDutyCycle(
-                toggleratedefinition->togglingRateRead,
-                toggleratedefinition->dutyCycleRead,
-                toggleratedefinition->idlePatternRead
-            );
-            togglingHandleWrite.setTogglingRateAndDutyCycle(
-                toggleratedefinition->togglingRateWrite,
-                toggleratedefinition->dutyCycleWrite,
-                toggleratedefinition->idlePatternWrite
-            );
-            // toggling rate already enabled
-            if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
-                return timestamp;
-            }
-            // Enable toggling rate
-            timestamp_t enable_timestamp = toggling_rate_get_enable_time(timestamp);
-            toggling_rate_enable(timestamp, enable_timestamp, readBus, togglingHandleRead);
-            toggling_rate_enable(timestamp, enable_timestamp, writeBus, togglingHandleWrite);
-            return enable_timestamp;
-        } else {
-            // Toggling rate already disabled
-            if (!togglingHandleRead.isEnabled() && !togglingHandleWrite.isEnabled()) {
-                return timestamp;
-            }
-            // Disable toggling rate
-            timestamp_t disable_timestamp = toggling_rate_get_disable_time(timestamp);
-            toggling_rate_disable(timestamp, disable_timestamp, readBus, togglingHandleRead);
-            toggling_rate_disable(timestamp, disable_timestamp, writeBus, togglingHandleWrite);
-            return disable_timestamp;
-        }
-        return timestamp;
-    }
-
+// Getters for CLI
     uint64_t DDR5::getBankCount() {
         return memSpec.numberOfBanks;
     }
@@ -160,73 +172,64 @@ namespace DRAMPower {
         return memSpec.numberOfDevices;
     }
 
-    uint64_t DDR5::getInitEncoderPattern()
+// Update toggling rate
+    void DDR5::enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp) {
+        // Change from bus to toggling rate
+        assert(enable_timestamp >= timestamp);
+        if ( enable_timestamp > timestamp ) {
+            // Schedule toggling rate enable
+            this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+                dataBus.enableTogglingRate(enable_timestamp);
+            });
+        } else {
+            dataBus.enableTogglingRate(enable_timestamp);
+        }
+    }
+
+    void DDR5::enableBus(timestamp_t timestamp, timestamp_t enable_timestamp) {
+        // Change from toggling rate to bus
+        assert(enable_timestamp >= timestamp);
+        if ( enable_timestamp > timestamp ) {
+            // Schedule toggling rate disable
+            this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+                dataBus.enableBus(enable_timestamp);
+            });
+        } else {
+            dataBus.enableBus(enable_timestamp);
+        }
+    }
+
+    timestamp_t DDR5::update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleratedefinition)
     {
-        return this->cmdBusInitPattern;
+        if (toggleratedefinition) {
+            dataBus.setTogglingRateDefinition(*toggleratedefinition);
+            if (dataBus.isTogglingRate()) {
+                // toggling rate is already enabled
+                return timestamp;
+            }
+            // Enable toggling rate
+            timestamp_t enable_timestamp = std::max(timestamp, dataBus.lastBurst());
+            enableTogglingHandle(timestamp, enable_timestamp);
+            return enable_timestamp;
+        } else {
+            if (dataBus.isBus()) {
+                // Bus already enabled
+                return timestamp;
+            }
+            // Enable bus
+            timestamp_t enable_timestamp = std::max(timestamp, dataBus.lastBurst());
+            enableBus(timestamp, enable_timestamp);
+            return enable_timestamp;
+        }
+        return timestamp;
     }
 
-    void DDR5::registerPatterns() {
-        using namespace pattern_descriptor;
-
-        // ---------------------------------:
-        this->registerPattern<CmdType::ACT>({
-            // note: CID3 is mutually exclusive with R17 and depends on usage mode
-            L, L, R0, R1, R2, R3, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
-            R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, CID3
-        });
-        this->registerPattern<CmdType::PRE>({
-            H, H, L, H, H, CID3, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2
-        });
-        this->registerPattern<CmdType::PRESB>({
-            H, H, L, H, L, CID3, BA0, BA1, V, V, H, CID0, CID1, CID2
-        });
-        this->registerPattern<CmdType::PREA>({
-            H, H, L, H, L, CID3, V, V, V, V, L, CID0, CID1, CID2
-        });
-        this->registerPattern<CmdType::REFSB>({
-            H, H, L, L, H, CID3, BA0, BA1, V, V, H, CID0, CID1, CID2
-        });
-        this->registerPattern<CmdType::REFA>({
-            H, H, L, L, H, CID3, V, V, V, V, L, CID0, CID1, CID2
-                                             });
-        this->registerPattern<CmdType::RD>({
-            H, L, H, H, H, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
-            C2, C3, C4, C5, C6, C7, C8, C9, C10, V, H, V, V, CID3
-        });
-        this->registerPattern<CmdType::RDA>({
-            H, L, H, H, H, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
-            C2, C3, C4, C5, C6, C7, C8, C9, C10, V, L, V, V, CID3
-        });
-        this->registerPattern<CmdType::WR>({
-            H, L, H, H, L, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
-            V, C3, C4, C5, C6, C7, C8, C9, C10, V, H, H, V, CID3
-        });
-        this->registerPattern<CmdType::WRA>({
-            H, L, H, H, L, H, BA0, BA1, BG0, BG1, BG2, CID0, CID1, CID2,
-            V, C3, C4, C5, C6, C7, C8, C9, C10, V, L, H, V, CID3
-        });
-        this->registerPattern<CmdType::SREFEN>({
-            H, H, H, L, H, V, V, V, V, H, L, V, V, V
-        });
-
-        // Power-down mode is different in DDR5. There is no distinct PDEA and PDEP but instead it depends on
-        // bank state upon command issue. Check standard
-        this->registerPattern<CmdType::PDEA>({
-            H, H, H, L, H, V, V, V, V, V, H, L, V, V
-        });
-        this->registerPattern<CmdType::PDXA>({
-            H, H, H, H, H, V, V, V, V, V, V, V, V, V
-        });
-        this->registerPattern<CmdType::PDEP>({
-            H, H, H, L, H, V, V, V, V, V, H, L, V, V
-        });
-        this->registerPattern<CmdType::PDXP>({
-            H, H, H, H, H, V, V, V, V, V, V, V, V, V
-        });
-        this->registerPattern<CmdType::NOP>({
-            H, H, H, H, H, V, V, V, V, V, V, V, V, V
-        });
-    }
+// Interface
+    // Init pattern for command bus and patter encoder
+    uint64_t DDR5::getInitEncoderPattern()
+{
+    return this->cmdBusInitPattern;
+}
 
     void DDR5::handleInterfaceOverrides(size_t length, bool read)
     {
@@ -297,65 +300,39 @@ namespace DRAMPower {
         }
     }
 
-    void DDR5::handle_interface_commandbus(const Command &cmd) {
+    void DDR5::handleInterfaceCommandBus(const Command& cmd) {
         auto pattern = this->getCommandPattern(cmd);
         auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
         this->commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
-    void DDR5::handle_interface_data_common(const Command &cmd, const size_t length) {
-        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            readDQS.start(cmd.timestamp);
-            readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
-            handleInterfaceOverrides(length, true);
-        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            writeDQS.start(cmd.timestamp);
-            writeDQS.stop(cmd.timestamp + length / memSpec.dataRate);
-            handleInterfaceOverrides(length, false);
-        }
+    void DDR5::handleInterfaceDQs(const Command& cmd, util::Clock &dqs, size_t length) {
+        dqs.start(cmd.timestamp);
+        dqs.stop(cmd.timestamp + length / memSpec.dataRate);
     }
 
-    void DDR5::handle_interface_toggleRate(const Command &cmd) {
-        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            if (cmd.sz_bits == 0) {
-                // Use default burst length
-                this->togglingHandleRead.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
-            } else {
-                this->togglingHandleRead.incCountBitLength(cmd.timestamp, cmd.sz_bits);
-            }
-            assert(cmd.sz_bits % togglingHandleRead.getWidth() == 0);
-            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleRead.getWidth());
-        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            if (cmd.sz_bits == 0) {
-                // Use default burst length
-                this->togglingHandleWrite.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
-            } else {
-                this->togglingHandleWrite.incCountBitLength(cmd.timestamp, cmd.sz_bits);
-            }
-            assert(cmd.sz_bits % togglingHandleWrite.getWidth() == 0);
-            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleWrite.getWidth());
-        }
-        handle_interface_commandbus(cmd);
-    }
-
-    void DDR5::handle_interface(const Command &cmd) {
+    void DDR5::handleInterfaceData(const Command &cmd, bool read) {
+        auto loadfunc = read ? &util::DataBus::loadRead : &util::DataBus::loadWrite;
+        util::Clock &dqs = read ? readDQS : writeDQS;
         size_t length = 0;
-        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            length = cmd.sz_bits / readBus.get_width();
-            if ( cmd.data != nullptr ) {
-                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+        if (0 == cmd.sz_bits) {
+            // No data provided by command
+            // Use default burst length
+            if (dataBus.isTogglingRate()) {
+                length = memSpec.burstLength;
+                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), nullptr);
             }
-            handle_interface_data_common(cmd, length);
-        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            length = cmd.sz_bits / writeBus.get_width();
-            if ( cmd.data != nullptr ) {
-                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            handle_interface_data_common(cmd, length);
+        } else {
+            // Data provided by command
+            length = cmd.sz_bits / dataBus.getWidth();
+            (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
         }
-        handle_interface_commandbus(cmd);
+        handleInterfaceDQs(cmd, dqs, length);
+        handleInterfaceOverrides(length, read);
+        handleInterfaceCommandBus(cmd);
     }
 
+// Core
     void DDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         bank.counter.act++;
 
@@ -561,6 +538,7 @@ namespace DRAMPower {
             std::cout << ("[WARN] End of simulation but still implicit commands left!") << std::endl;
     }
 
+// Calculation
     energy_t DDR5::calcCoreEnergy(timestamp_t timestamp) {
         Calculation_DDR5 calculation;
 
@@ -572,6 +550,7 @@ namespace DRAMPower {
         return calculation.calculateEnergy(getWindowStats(timestamp));
     }
 
+// Stats
     SimulationStats DDR5::getWindowStats(timestamp_t timestamp) {
         // If there are still implicit commands queued up, process them first
         processImplicitCommandQueue(timestamp);
@@ -622,12 +601,13 @@ namespace DRAMPower {
         }
 
         stats.commandBus = commandBus.get_stats(timestamp);
-        stats.readBus = readBus.get_stats(timestamp);
-        stats.writeBus = writeBus.get_stats(timestamp);
-        stats.togglingStats = {
-            togglingHandleRead.get_stats(timestamp), // read
-            togglingHandleWrite.get_stats(timestamp) // write
-        };
+
+        dataBus.get_stats(timestamp, 
+            stats.readBus,
+            stats.writeBus,
+            stats.togglingStats.read,
+            stats.togglingStats.write
+        );
 
         stats.clockStats = 2 * clock.get_stats_at(timestamp);
         stats.readDQSStats = 2 * readDQS.get_stats_at(timestamp);
@@ -647,6 +627,7 @@ namespace DRAMPower {
         return getWindowStats(getLastCommandTime());
     }
 
+// Core helpers
     timestamp_t DDR5::earliestPossiblePowerDownEntryTime(Rank &rank) {
         timestamp_t entryTime = 0;
 

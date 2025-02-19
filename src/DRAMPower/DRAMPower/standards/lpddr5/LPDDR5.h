@@ -19,6 +19,7 @@
 #include "DRAMPower/memspec/MemSpec.h"
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
 #include "DRAMPower/util/bus.h"
+#include "DRAMPower/util/databus.h"
 #include "DRAMPower/util/clock.h"
 #include "DRAMPower/util/cycle_stats.h"
 
@@ -34,13 +35,10 @@ public:
     std::vector<Rank> ranks;
 private:
     util::Bus commandBus;
-    util::Bus readBus;
-    util::Bus writeBus;
+    util::DataBus dataBus;
     util::Clock readDQS;
     util::Clock wck;
     util::Clock clock;
-    TogglingHandle togglingHandleRead;
-    TogglingHandle togglingHandleWrite;
 
 public:
 
@@ -77,18 +75,23 @@ public:
     
 private:
     // Calculations
-    void handle_interface(const Command& cmd) override;
-    void handle_interface_toggleRate(const Command& cmd) override;
-    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
-    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
-    timestamp_t toggling_rate_get_enable_time(timestamp_t timestamp);
-    timestamp_t toggling_rate_get_disable_time(timestamp_t timestamp);
     timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
+    void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
+    void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
+    void handleInterfaceDQs(const Command& cmd, util::Clock &dqs, size_t length, uint64_t datarate);
     void handleInterfaceOverrides(size_t length, bool read);
-    void handle_interface_commandbus(const Command& cmd);
-    void handle_interface_data_common(const Command &cmd, const size_t length);
+    void handleInterfaceCommandBus(const Command& cmd);
+    void handleInterfaceData(const Command &cmd, bool read);
 
 private:
+
+    template<dram_base::commandEnum_t Cmd, typename Func>
+    void registerInterfaceMember(Func && member_func) {
+        this->routeInterfaceCommand<Cmd>([this, member_func](const Command & command) {
+            (this->*member_func)(command);
+        });
+    }
+
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {
@@ -138,7 +141,7 @@ private:
         });
     }
 
-    void registerPatterns();
+    void registerCommands();
     timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
 
 };
