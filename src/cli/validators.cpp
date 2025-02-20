@@ -22,10 +22,7 @@ std::optional<ResolveSymlinkResult> resolve_symlink(const std::string &filepath,
     // Check if path exists and is a symlink
     if (!std::filesystem::is_symlink(filepath)) {
         // File does not exist or is not a symlink
-        return std::make_optional(ResolveSymlinkResult{
-            ResolveSymlinkResult::Type::FILE, // type
-            filepath // path
-        });
+        return std::nullopt;
     }
 
     // The path exists and is a symlink -> resolve the symlink chain
