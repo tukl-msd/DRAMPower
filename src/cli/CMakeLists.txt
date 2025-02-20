@@ -8,6 +8,7 @@ find_package(cli11 REQUIRED)
 add_executable(drampower_cli 
     main.cpp
     util.cpp
+    validators.cpp
 )
 
 target_compile_features(drampower_cli PUBLIC cxx_std_17)
