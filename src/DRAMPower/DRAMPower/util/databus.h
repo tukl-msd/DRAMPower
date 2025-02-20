@@ -114,6 +114,14 @@ public:
         return width;
     }
 
+    size_t getNumberOfDevices() {
+        return numberOfDevices;
+    }
+
+    size_t getCombinedBusWidth() {
+        return width * numberOfDevices;
+    }
+
     size_t getDataRate() {
         return dataRate;
     }

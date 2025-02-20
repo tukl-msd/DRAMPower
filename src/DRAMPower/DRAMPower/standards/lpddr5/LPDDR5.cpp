@@ -362,11 +362,11 @@ namespace DRAMPower {
             // No data provided by command
             if (dataBus.isTogglingRate()) {
                 length = memSpec.burstLength;
-                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), nullptr);
+                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getCombinedBusWidth(), nullptr);
             }
         } else {
             // Data provided by command
-            length = cmd.sz_bits / dataBus.getWidth();
+            length = cmd.sz_bits / dataBus.getCombinedBusWidth();
             (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
         }
         // DQS

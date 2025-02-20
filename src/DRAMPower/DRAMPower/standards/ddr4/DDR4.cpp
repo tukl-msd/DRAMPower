@@ -348,11 +348,11 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
             if (dataBus.isTogglingRate()) {
                 // If bus is enabled skip loading data
                 length = memSpec.burstLength;
-                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), nullptr);
+                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getCombinedBusWidth(), nullptr);
             }
         } else {
             // Data provided by command
-            length = cmd.sz_bits / dataBus.getWidth();
+            length = cmd.sz_bits / (dataBus.getCombinedBusWidth());
             (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
         }
         assert(this->ranks.size()>cmd.targetCoordinate.rank);
