@@ -25,15 +25,17 @@ namespace DRAMPower {
 class DDR5 : public dram_base<CmdType> {
 
 public:
+    using commandbus_t = util::Bus<14>;
+    using databus_8_t = util::Bus<8>;
+    using databus_16_t = util::Bus<16>;
     MemSpecDDR5 memSpec;
     std::vector<Rank> ranks;
-    util::Bus writeBus;
-    util::Bus readBus;
+    std::variant<util::DatabusContainer<4>, util::DatabusContainer<8>, util::DatabusContainer<16>> databus;
 private:
     std::size_t cmdBusWidth;
     uint64_t cmdBusInitPattern;
 public:
-    util::Bus commandBus;
+    commandbus_t commandBus;
 private:
     util::Clock readDQS;
     util::Clock writeDQS;
@@ -54,10 +56,34 @@ public:
 
 
 private:
+    template <size_t N>
+    void handle_interface_impl(const Command &cmd, util::DatabusContainer<N> &databus) {
+        // databus shadows variant databus
+        size_t length = 0;
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            length = cmd.sz_bits / databus.readBus_vec[0].get_width();
+            if ( cmd.data != nullptr ) {
+                for (auto &readBus : databus.readBus_vec) {
+                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+            }
+            handle_interface_data_common(cmd, length);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            length = cmd.sz_bits / databus.writeBus_vec[0].get_width();
+            if ( cmd.data != nullptr ) {
+                for (auto &writeBus : databus.writeBus_vec) {
+                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+            }
+            handle_interface_data_common(cmd, length);
+        }
+        handle_interface_commandbus(cmd);
+    }
+
     void handle_interface(const Command& cmd) override;
     void handle_interface_toggleRate(const Command& cmd) override;
-    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
-    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
+    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite);
+    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite);
     timestamp_t toggling_rate_get_enable_time(timestamp_t timestamp);
     timestamp_t toggling_rate_get_disable_time(timestamp_t timestamp);
     timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;

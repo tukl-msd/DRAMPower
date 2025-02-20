@@ -29,10 +29,10 @@ public:
     DDR4(const MemSpecDDR4 &memSpec);
     virtual ~DDR4() = default;
 public:
+    using commandbus_t = util::Bus<27>;
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
-    util::Bus readBus;
-    util::Bus writeBus;
+    std::variant<util::DatabusContainer<4>, util::DatabusContainer<8>, util::DatabusContainer<16>> databus;
 
 // commandBus dependes on cmdBusInitPattern and cmdBusWidth
 // cmdBusInitPattern must be initialized before commandBus
@@ -45,7 +45,7 @@ private:
     util::Clock writeDQS_;
     util::Clock clock;
 public:
-    util::Bus commandBus;
+    commandbus_t commandBus;
     uint64_t prepostambleReadMinTccd;
     uint64_t prepostambleWriteMinTccd;
 private:
@@ -101,12 +101,35 @@ public:
         return entryTime;
     };
 private:
+    template<size_t N>
+    void handle_interface_impl(const Command &cmd, util::DatabusContainer<N> &databus) {
+        // databus shadows variant databus
+        size_t length = 0;
+        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+            length = cmd.sz_bits / databus.readBus_vec[0].get_width();
+            if ( cmd.data != nullptr ) {
+                for (auto &readBus : databus.readBus_vec) {
+                    readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+            }
+            handle_interface_data_common(cmd, length);
+        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
+            length = cmd.sz_bits / databus.writeBus_vec[0].get_width();
+            if ( cmd.data != nullptr ) {
+                for (auto &writeBus : databus.writeBus_vec) {
+                    writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
+                }
+            }
+            handle_interface_data_common(cmd, length);
+        }
+        handle_interface_commandbus(cmd);
+    }
     void handle_interface_data_common(const Command& cmd, size_t length);
     void handle_interface_commandbus(const Command& cmd);
     void handle_interface(const Command& cmd) override;
     void handle_interface_toggleRate(const Command& cmd) override;
-    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
-    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle);
+    void toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite);
+    void toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite);
     timestamp_t toggling_rate_get_enable_time(timestamp_t timestamp);
     timestamp_t toggling_rate_get_disable_time(timestamp_t timestamp);
     timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;

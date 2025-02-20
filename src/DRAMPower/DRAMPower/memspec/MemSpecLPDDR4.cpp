@@ -22,6 +22,17 @@ MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec)
     memTimingSpec.tRFC     = memspec.memtimingspec.RFCab;
     memTimingSpec.tREFI    = memspec.memtimingspec.REFI;
 
+    switch(memspec.memarchitecturespec.width) {
+        case 8:
+            busConfig = BusConfig::X8;
+            break;
+        case 16:
+            busConfig = BusConfig::X16;
+            break;
+        default:
+            throw std::runtime_error("Invalid bus width");
+    }
+
     auto VDD1 = VoltageDomain::VDD1;
     auto VDD2 = VoltageDomain::VDD2;
 

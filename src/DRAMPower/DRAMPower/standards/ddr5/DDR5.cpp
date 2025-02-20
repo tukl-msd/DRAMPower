@@ -25,20 +25,32 @@ namespace DRAMPower {
           })
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-        , writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H}
-        , readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H}
         , cmdBusWidth(14)
         , cmdBusInitPattern((1<<cmdBusWidth)-1)
         , commandBus(
-            cmdBusWidth, 1,
-            util::Bus::BusIdlePatternSpec::H,
-            util::Bus::burst_t(cmdBusWidth, cmdBusInitPattern)
+            1,
+            commandbus_t::BusIdlePatternSpec::H,
+            commandbus_t::burst_t(cmdBusInitPattern)
         )
         , readDQS(memSpec.dataRateSpec.dqsBusRate, true)
         , writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
     {
+        switch(memSpec.busConfig) {
+            case MemSpecDDR5::BusConfig::X4:
+                databus = util::DatabusContainer<4>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<4>::BusIdlePatternSpec::H, util::Bus<4>::BusInitPatternSpec::H);
+                break;
+            case MemSpecDDR5::BusConfig::X8:
+                databus = util::DatabusContainer<8>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<8>::BusIdlePatternSpec::H, util::Bus<8>::BusInitPatternSpec::H);
+                break;
+            case MemSpecDDR5::BusConfig::X16:
+                databus = util::DatabusContainer<16>(memSpec.numberOfDevices, memSpec.dataRate, util::Bus<16>::BusIdlePatternSpec::H, util::Bus<16>::BusInitPatternSpec::H);
+                break;
+            default:
+                throw std::runtime_error("Invalid bus width");
+        }
+        if (memSpec.numberOfDevices < 1) {
+            throw std::runtime_error("Number of devices must be at least 1");
+        }
         togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
         togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
         togglingHandleRead.setDataRate(memSpec.dataRate);
@@ -68,40 +80,62 @@ namespace DRAMPower {
             [this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     }
 
-    void DDR5::toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle) {
+    void DDR5::toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite) {
         // Change from bus to toggling rate
         assert(enable_timestamp >= timestamp);
+        auto enable_callback = [this, &togglinghandleRead, &togglinghandleWrite, enable_timestamp]() {
+            std::visit([this, &enable_timestamp](auto &databus) {
+                for (auto &b : databus.readBus_vec) {
+                    b.disable(enable_timestamp);
+                }
+                for (auto &b : databus.writeBus_vec) {
+                    b.disable(enable_timestamp);
+                }
+            }, this->databus);
+            togglinghandleRead.enable(enable_timestamp);
+            togglinghandleWrite.enable(enable_timestamp);
+        };
         if ( enable_timestamp > timestamp ) {
             // Schedule toggling rate enable
-            this->addImplicitCommand(enable_timestamp, [this, &togglinghandle, &bus, enable_timestamp]() {
-                bus.disable(enable_timestamp);
-                togglinghandle.enable(enable_timestamp);
-            });
+            this->addImplicitCommand(enable_timestamp, enable_callback);
         } else {
-            bus.disable(enable_timestamp);
-            togglinghandle.enable(enable_timestamp);
+            enable_callback();
         }
     }
 
-    void DDR5::toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle) {
+    void DDR5::toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::TogglingHandle &togglinghandleRead, DRAMPower::TogglingHandle &togglinghandleWrite) {
         // Change from toggling rate to bus
         assert(disable_timestamp >= timestamp);
+        auto disable_callback = [this, &togglinghandleRead, &togglinghandleWrite, disable_timestamp]() {
+            std::visit([this, &disable_timestamp](auto &databus) {
+                for (auto &b : databus.readBus_vec) {
+                    b.enable(disable_timestamp);
+                }
+                for (auto &b : databus.writeBus_vec) {
+                    b.enable(disable_timestamp);
+                }
+            }, this->databus);
+            togglinghandleRead.disable(disable_timestamp);
+            togglinghandleWrite.disable(disable_timestamp);
+        };
         if ( disable_timestamp > timestamp ) {
             // Schedule toggling rate disable
-            this->addImplicitCommand(disable_timestamp, [this, &togglinghandle, &bus, disable_timestamp]() {
-                bus.enable(disable_timestamp);
-                togglinghandle.disable(disable_timestamp);
-            });
+            this->addImplicitCommand(disable_timestamp, disable_callback);
         } else {
-            bus.enable(disable_timestamp);
-            togglinghandle.disable(disable_timestamp);
+            disable_callback();
         }
     }
 
     timestamp_t DDR5::toggling_rate_get_enable_time(timestamp_t timestamp) {
         timestamp_t busdisabletimestamp = timestamp;
-        busdisabletimestamp = std::max(this->readBus.get_lastburst_timestamp(), busdisabletimestamp);
-        busdisabletimestamp = std::max(this->writeBus.get_lastburst_timestamp(), busdisabletimestamp);
+        std::visit([this, &busdisabletimestamp](auto &databus) {
+            for (const auto &b : databus.readBus_vec) {
+                busdisabletimestamp = std::max(b.get_lastburst_timestamp(), busdisabletimestamp);
+            }
+            for (const auto &b : databus.writeBus_vec) {
+                busdisabletimestamp = std::max(b.get_lastburst_timestamp(), busdisabletimestamp);
+            }
+        }, this->databus);
         return busdisabletimestamp;
     }
     timestamp_t DDR5::toggling_rate_get_disable_time(timestamp_t timestamp) {
@@ -131,8 +165,7 @@ namespace DRAMPower {
             }
             // Enable toggling rate
             timestamp_t enable_timestamp = toggling_rate_get_enable_time(timestamp);
-            toggling_rate_enable(timestamp, enable_timestamp, readBus, togglingHandleRead);
-            toggling_rate_enable(timestamp, enable_timestamp, writeBus, togglingHandleWrite);
+            toggling_rate_enable(timestamp, enable_timestamp, togglingHandleRead, togglingHandleWrite);
             return enable_timestamp;
         } else {
             // Toggling rate already disabled
@@ -141,8 +174,7 @@ namespace DRAMPower {
             }
             // Disable toggling rate
             timestamp_t disable_timestamp = toggling_rate_get_disable_time(timestamp);
-            toggling_rate_disable(timestamp, disable_timestamp, readBus, togglingHandleRead);
-            toggling_rate_disable(timestamp, disable_timestamp, writeBus, togglingHandleWrite);
+            toggling_rate_disable(timestamp, disable_timestamp, togglingHandleRead, togglingHandleWrite);
             return disable_timestamp;
         }
         return timestamp;
@@ -339,21 +371,9 @@ namespace DRAMPower {
     }
 
     void DDR5::handle_interface(const Command &cmd) {
-        size_t length = 0;
-        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            length = cmd.sz_bits / readBus.get_width();
-            if ( cmd.data != nullptr ) {
-                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            handle_interface_data_common(cmd, length);
-        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            length = cmd.sz_bits / writeBus.get_width();
-            if ( cmd.data != nullptr ) {
-                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            handle_interface_data_common(cmd, length);
-        }
-        handle_interface_commandbus(cmd);
+        std::visit([this, &cmd](auto &databus) {
+            this->handle_interface_impl(cmd, databus);
+        }, databus);
     }
 
     void DDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -622,8 +642,11 @@ namespace DRAMPower {
         }
 
         stats.commandBus = commandBus.get_stats(timestamp);
-        stats.readBus = readBus.get_stats(timestamp);
-        stats.writeBus = writeBus.get_stats(timestamp);
+
+        std::visit([this, &stats, timestamp](auto &databus) {
+            databus.get_stats(stats.readBus, stats.writeBus, timestamp);
+        }, databus);
+
         stats.togglingStats = {
             togglingHandleRead.get_stats(timestamp), // read
             togglingHandleWrite.get_stats(timestamp) // write

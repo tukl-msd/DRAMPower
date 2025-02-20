@@ -57,7 +57,17 @@ struct bus_stats_t {
 	}
 };
 
-class Bus {
+class BusBase {
+public:
+	BusBase() = default;
+	virtual ~BusBase() = default;
+	virtual void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) = 0;
+	virtual bus_stats_t get_stats(timestamp_t timestamp) const = 0;
+	virtual size_t get_width() const { return 0; };
+};
+
+template <::std::size_t width>
+class Bus : public BusBase {
 
 private:
 	enum class BusInitPatternSpec_
@@ -119,9 +129,8 @@ public:
 		H = 1,
 		Z = 2,
 	};
-	using burst_storage_t = util::burst_storage;
+	using burst_storage_t = util::burst_storage<width>;
 	using burst_t = typename burst_storage_t::burst_t;
-	const std::size_t width;
 	bus_stats_t stats;
 
 private:
@@ -145,10 +154,10 @@ private:
 	std::optional<burst_t> custom_init_pattern;
 
 private:
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec_ init_pattern,
+	Bus(uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec_ init_pattern,
 		std::optional<burst_t> custom_init_pattern = std::nullopt
 	) :
-		width(width), burst_storage(width), datarate(datarate),
+		datarate(datarate),
 		idle_pattern(idle_pattern), init_pattern(init_pattern), custom_init_pattern (custom_init_pattern)
 	{
 		static_assert(std::numeric_limits<decltype(width)>::is_signed == false, "std::size_t must be unsigned");
@@ -156,11 +165,8 @@ private:
 		// Initialize zero and one patterns
 		this->zero_pattern = burst_t();
 		this->one_pattern = burst_t();
-		for(std::size_t i = 0; i < width; i++)
-		{
-			this->zero_pattern.push_back(false);
-			this->one_pattern.push_back(true);
-		}
+		this->zero_pattern.reset();
+		this->one_pattern.set();
 
 		// Initialize last pattern and init stats
 		switch(init_pattern)
@@ -192,11 +198,11 @@ private:
 		}
 	};
 public: // Ensure type safety for init_pattern with 2 seperate constructors
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
-		: Bus(width, datarate, idle_pattern, static_cast<BusInitPatternSpec_>(init_pattern)) {} // TODO alternative to static_cast ??
+	Bus(uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
+		: Bus(datarate, idle_pattern, static_cast<BusInitPatternSpec_>(init_pattern)) {} // TODO alternative to static_cast ??
 	
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
-		: Bus(width, datarate, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern) {}
+	Bus(uint64_t datarate, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
+		: Bus(datarate, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern) {}
 
 	void set_idle_pattern(BusIdlePatternSpec idle_pattern)
 	{
@@ -376,7 +382,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 	size_t get_width() const { return width; };
 
 	// Get stats not including timestamp t
-	auto get_stats(timestamp_t timestamp) const 
+	bus_stats_t get_stats(timestamp_t timestamp) const 
 	{
 
 		timestamp_t t_virtual = timestamp * this->datarate;
@@ -398,8 +404,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		}
 		
 		// Add pending stats from last load
-		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < t_virtual
-		)
+		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < t_virtual)
 		{
 			stats += this->pending_stats.getStats();
 		}
@@ -434,6 +439,31 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 	bus_stats_t diff(std::optional<burst_t> high, burst_t low) const {
 		return diff(high, std::make_optional(low));
 	};
+};
+
+template<size_t N>
+struct DatabusContainer {
+    using Bus_t = Bus<N>;
+    std::vector<Bus_t> writeBus_vec;
+    std::vector<Bus_t> readBus_vec;
+    DatabusContainer() = default;
+    
+    // Forward arguments to Bus constructor
+    template<typename... Args>
+    DatabusContainer(size_t devices, Args&&... args)
+        : writeBus_vec{devices, Bus_t{std::forward<Args>(args)...}}
+        , readBus_vec{devices, Bus_t{std::forward<Args>(args)...}}
+    {}
+
+    void get_stats(util::bus_stats_t &readBusStats, util::bus_stats_t &writeBusStats, timestamp_t timestamp) const
+    {
+        for (const auto &writeBus : writeBus_vec) {
+            writeBusStats += writeBus.get_stats(timestamp);
+        }
+        for (const auto &readBus : readBus_vec) {
+            readBusStats += readBus.get_stats(timestamp);
+        }
+    }
 };
 
 }

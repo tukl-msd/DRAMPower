@@ -69,6 +69,7 @@ class DDR5_WindowStats_Tests : public ::testing::Test {
         spec = std::make_unique<DRAMPower::MemSpecDDR5>(DRAMPower::MemSpecDDR5::from_memspec(*data));
 
         spec->bitWidth = 16;
+        spec->busConfig = MemSpecDDR5::BusConfig::X16;
     }
 
     void runCommands(const std::vector<Command> &commands) {
@@ -116,8 +117,10 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_0) {
 
     // In this example read data and write data are the same size, so stats should be the same
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(ddr->readBus.get_width(), spec->bitWidth);
-    EXPECT_EQ(ddr->writeBus.get_width(), spec->bitWidth);
+    std::visit([this](auto &databus) {
+        EXPECT_EQ(databus.readBus_vec.at(0).get_width(), spec->bitWidth);
+        EXPECT_EQ(databus.writeBus_vec.at(0).get_width(), spec->bitWidth);
+    }, ddr->databus);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
