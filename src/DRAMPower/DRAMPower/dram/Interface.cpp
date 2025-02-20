@@ -17,6 +17,20 @@ TogglingHandle::TogglingHandle(const uint64_t width, const uint64_t datarate, co
     assert(toggling_rate >= 0 && toggling_rate <= 1); // Check bounds
 }
 
+TogglingHandle::TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, DRAMUtils::Config::TogglingRateIdlePattern idlepattern, const bool enabled)
+    : width(width)
+    , datarate(datarate)
+    , toggling_rate(toggling_rate)
+    , duty_cycle(duty_cycle)
+    , enableflag(enabled)
+    , idlepattern(idlepattern)
+{
+    assert(width > 0); // Check bounds
+    assert(datarate > 0); // Check bounds
+    assert(duty_cycle >= 0 && duty_cycle <= 1); // Check bounds
+    assert(toggling_rate >= 0 && toggling_rate <= 1); // Check bounds
+}
+
 void TogglingHandle::disable(timestamp_t timestamp)
 {
     timestamp_t virtualtimestamp = timestamp * this->datarate;

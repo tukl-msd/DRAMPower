@@ -27,7 +27,8 @@ public:
     using commandEnum_t = CommandEnum;
     using commandHandler_t = std::function<void(const Command&)>;
     using commandCount_t = std::vector<std::size_t>;
-    using commandRouter_t = std::vector<commandHandler_t>;
+    using commandCoreRouter_t = std::vector<commandHandler_t>;
+    using commandInterfaceRouter_t = std::vector<commandHandler_t>;
     using commandPattern_t = std::vector<pattern_descriptor::t>;
     using commandPatternMap_t = std::vector<commandPattern_t>;
     using implicitCommand_t = std::function<void(void)>;
@@ -37,7 +38,8 @@ public:
 public:
     commandCount_t commandCount;
 private:
-    commandRouter_t commandRouter;
+    commandCoreRouter_t commandCoreRouter;
+    commandInterfaceRouter_t commandInterfaceRouter;
     commandPatternMap_t commandPatternMap;
 protected:
     PatternEncoder encoder;
@@ -45,12 +47,12 @@ protected:
 private:
     implicitCommandList_t implicitCommandList;
     timestamp_t last_command_time;
-    std::optional<ToggleRateDefinition> toggleRateDefinition = std::nullopt;
 
 public:
     dram_base(PatternEncoderOverrides encoderoverrides)
         : commandCount(static_cast<std::size_t>(CommandEnum::COUNT), 0)
-        , commandRouter(static_cast<std::size_t>(CommandEnum::COUNT), [](const Command&) {})
+        , commandCoreRouter(static_cast<std::size_t>(CommandEnum::COUNT), [](const Command&) {})
+        , commandInterfaceRouter(static_cast<std::size_t>(CommandEnum::COUNT), [](const Command&) {})
         , commandPatternMap(static_cast<std::size_t>(CommandEnum::COUNT), commandPattern_t {})
         , encoder(encoderoverrides)
         , lastPattern(0)
@@ -67,17 +69,6 @@ private:
 public:
     virtual ~dram_base() = 0;
 private:
-    void internal_handle_interface(const Command& cmd) 
-    {
-        if (this->toggleRateDefinition) {
-            handle_interface_toggleRate(cmd);
-        } else {
-            handle_interface(cmd);
-        }
-    }
-private:
-    virtual void handle_interface(const Command& cmd) = 0;
-    virtual void handle_interface_toggleRate(const Command& cmd) = 0;
     virtual timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleRateDefinition) = 0;
     virtual uint64_t getInitEncoderPattern()
     {
@@ -125,13 +116,21 @@ protected:
     template <CommandEnum cmd, typename Func>
     void routeCommand(Func&& func)
     {
-        assert(commandRouter.size() > static_cast<std::size_t>(cmd));
-        this->commandRouter[static_cast<std::size_t>(cmd)] = func;
+        assert(commandCoreRouter.size() > static_cast<std::size_t>(cmd));
+        this->commandCoreRouter[static_cast<std::size_t>(cmd)] = func;
+    }
+
+    template <CommandEnum cmd, typename Func>
+    void routeInterfaceCommand(Func&& func)
+    {
+        assert(commandInterfaceRouter.size() > static_cast<std::size_t>(cmd));
+        this->commandInterfaceRouter[static_cast<std::size_t>(cmd)] = func;
     }
 
     template <CommandEnum cmd_type>
     void registerPattern(std::initializer_list<pattern_descriptor::t> pattern)
     {
+        assert(this->commandPatternMap.size() > static_cast<std::size_t>(cmd_type));
         this->commandPatternMap[static_cast<std::size_t>(cmd_type)] = commandPattern_t(pattern);
     }
 
@@ -165,30 +164,28 @@ public:
     void doCoreCommand(const Command& command)
     {
         assert(commandCount.size() > static_cast<std::size_t>(command.type));
-        assert(commandRouter.size() > static_cast<std::size_t>(command.type));
+        assert(commandCoreRouter.size() > static_cast<std::size_t>(command.type));
 
         // Process implicit command list
         processImplicitCommandQueue(command.timestamp);
 
         this->commandCount[static_cast<std::size_t>(command.type)]++;
-        this->commandRouter[static_cast<std::size_t>(command.type)](command);
+        this->commandCoreRouter[static_cast<std::size_t>(command.type)](command);
 
         this->last_command_time = command.timestamp;
     };
 
     void setToggleRate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleRateDefinition)
     {
-        this->toggleRateDefinition = toggleRateDefinition;
-        update_toggling_rate(timestamp, this->toggleRateDefinition);
+        update_toggling_rate(timestamp, toggleRateDefinition);
     }
 
     void doInterfaceCommand(const Command& command)
     {
-        assert(commandCount.size() > static_cast<std::size_t>(command.type));
-        assert(commandRouter.size() > static_cast<std::size_t>(command.type));
+        assert(commandInterfaceRouter.size() > static_cast<std::size_t>(command.type));
 
-        if (command.type != CmdType::END_OF_SIMULATION)
-            this->internal_handle_interface(command);
+        this->commandInterfaceRouter[static_cast<std::size_t>(command.type)](command);
+
         this->last_command_time = command.timestamp;
     };
 

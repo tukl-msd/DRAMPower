@@ -16,137 +16,24 @@ namespace DRAMPower {
         , ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks })
         , commandBus{7, 2, // modelled with datarate 2
             util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L}
-        , readBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L}
-        , writeBus{memSpec.bitWidth * memSpec.numberOfDevices, memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L}
+        , dataBus{
+            memSpec.numberOfDevices,
+            memSpec.bitWidth,
+            memSpec.dataRate,
+            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L,
+            DRAMUtils::Config::TogglingRateIdlePattern::L, 0.0, 0.0,
+            util::DataBus::BusType::Bus
+        }
         , readDQS(memSpec.dataRate, true)
         , wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
     {
-        togglingHandleRead.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
-        togglingHandleWrite.setWidth(memSpec.bitWidth * memSpec.numberOfDevices);
-        togglingHandleRead.setDataRate(memSpec.dataRate);
-        togglingHandleWrite.setDataRate(memSpec.dataRate);
-        this->registerPatterns();
-
-        this->registerBankHandler<CmdType::ACT>(&LPDDR5::handleAct);
-        this->registerBankHandler<CmdType::PRE>(&LPDDR5::handlePre);
-        this->registerRankHandler<CmdType::PREA>(&LPDDR5::handlePreAll);
-        this->registerBankHandler<CmdType::REFB>(&LPDDR5::handleRefPerBank);
-        this->registerBankHandler<CmdType::RD>(&LPDDR5::handleRead);
-        this->registerBankHandler<CmdType::RDA>(&LPDDR5::handleReadAuto);
-        this->registerBankHandler<CmdType::WR>(&LPDDR5::handleWrite);
-        this->registerBankHandler<CmdType::WRA>(&LPDDR5::handleWriteAuto);
-
-        this->registerBankGroupHandler<CmdType::REFP2B>(&LPDDR5::handleRefPerTwoBanks);
-
-        this->registerRankHandler<CmdType::REFA>(&LPDDR5::handleRefAll);
-        this->registerRankHandler<CmdType::SREFEN>(&LPDDR5::handleSelfRefreshEntry);
-        this->registerRankHandler<CmdType::SREFEX>(&LPDDR5::handleSelfRefreshExit);
-        this->registerRankHandler<CmdType::PDEA>(&LPDDR5::handlePowerDownActEntry);
-        this->registerRankHandler<CmdType::PDEP>(&LPDDR5::handlePowerDownPreEntry);
-        this->registerRankHandler<CmdType::PDXA>(&LPDDR5::handlePowerDownActExit);
-        this->registerRankHandler<CmdType::PDXP>(&LPDDR5::handlePowerDownPreExit);
-        this->registerRankHandler<CmdType::DSMEN>(&LPDDR5::handleDSMEntry);
-        this->registerRankHandler<CmdType::DSMEX>(&LPDDR5::handleDSMExit);
-
-        routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        this->registerCommands();
     }
 
-    void LPDDR5::toggling_rate_enable(timestamp_t timestamp, timestamp_t enable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle) {
-        // Change from bus to toggling rate
-        assert(enable_timestamp >= timestamp);
-        if ( enable_timestamp > timestamp ) {
-            // Schedule toggling rate enable
-            this->addImplicitCommand(enable_timestamp, [this, &togglinghandle, &bus, enable_timestamp]() {
-                bus.disable(enable_timestamp);
-                togglinghandle.enable(enable_timestamp);
-            });
-        } else {
-            bus.disable(enable_timestamp);
-            togglinghandle.enable(enable_timestamp);
-        }
-    }
-
-    void LPDDR5::toggling_rate_disable(timestamp_t timestamp, timestamp_t disable_timestamp, DRAMPower::util::Bus &bus, DRAMPower::TogglingHandle &togglinghandle) {
-        // Change from toggling rate to bus
-        assert(disable_timestamp >= timestamp);
-        if ( disable_timestamp > timestamp ) {
-            // Schedule toggling rate disable
-            this->addImplicitCommand(disable_timestamp, [this, &togglinghandle, &bus, disable_timestamp]() {
-                bus.enable(disable_timestamp);
-                togglinghandle.disable(disable_timestamp);
-            });
-        } else {
-            bus.enable(disable_timestamp);
-            togglinghandle.disable(disable_timestamp);
-        }
-    }
-
-    timestamp_t LPDDR5::toggling_rate_get_enable_time(timestamp_t timestamp) {
-        timestamp_t busdisabletimestamp = timestamp;
-        busdisabletimestamp = std::max(this->readBus.get_lastburst_timestamp(), busdisabletimestamp);
-        busdisabletimestamp = std::max(this->writeBus.get_lastburst_timestamp(), busdisabletimestamp);
-        return busdisabletimestamp;
-    }
-    timestamp_t LPDDR5::toggling_rate_get_disable_time(timestamp_t timestamp) {
-        timestamp_t busenabletimestamp = timestamp;
-        busenabletimestamp = std::max(this->togglingHandleRead.get_lastburst_timestamp(), busenabletimestamp);
-        busenabletimestamp = std::max(this->togglingHandleWrite.get_lastburst_timestamp(), busenabletimestamp);
-        return busenabletimestamp;
-    }
-
-    timestamp_t LPDDR5::update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleratedefinition)
-    {
-        if (toggleratedefinition) {
-            // Update toggling rate
-            togglingHandleRead.setTogglingRateAndDutyCycle(
-                toggleratedefinition->togglingRateRead,
-                toggleratedefinition->dutyCycleRead,
-                toggleratedefinition->idlePatternRead
-            );
-            togglingHandleWrite.setTogglingRateAndDutyCycle(
-                toggleratedefinition->togglingRateWrite,
-                toggleratedefinition->dutyCycleWrite,
-                toggleratedefinition->idlePatternWrite
-            );
-            // toggling rate already enabled
-            if (togglingHandleRead.isEnabled() && togglingHandleWrite.isEnabled()) {
-                return timestamp;
-            }
-            // Enable toggling rate
-            timestamp_t enable_timestamp = toggling_rate_get_enable_time(timestamp);
-            toggling_rate_enable(timestamp, enable_timestamp, readBus, togglingHandleRead);
-            toggling_rate_enable(timestamp, enable_timestamp, writeBus, togglingHandleWrite);
-            return enable_timestamp;
-        } else {
-            // Toggling rate already disabled
-            if (!togglingHandleRead.isEnabled() && !togglingHandleWrite.isEnabled()) {
-                return timestamp;
-            }
-            // Disable toggling rate
-            timestamp_t disable_timestamp = toggling_rate_get_disable_time(timestamp);
-            toggling_rate_disable(timestamp, disable_timestamp, readBus, togglingHandleRead);
-            toggling_rate_disable(timestamp, disable_timestamp, writeBus, togglingHandleWrite);
-            return disable_timestamp;
-        }
-        return timestamp;
-    }
-
-    uint64_t LPDDR5::getBankCount() {
-        return memSpec.numberOfBanks;
-    }
-
-    uint64_t LPDDR5::getRankCount() {
-        return memSpec.numberOfRanks;
-    }
-
-    uint64_t LPDDR5::getDeviceCount() {
-        return memSpec.numberOfDevices;
-    }
-
-    void LPDDR5::registerPatterns() {
+    void LPDDR5::registerCommands() {
         using namespace pattern_descriptor;
+        // ACT
+        this->registerBankHandler<CmdType::ACT>(&LPDDR5::handleAct);
         // LPDDR5 needs 2 commands for activation (ACT-1 and ACT-2)
         // ACT-1 must be followed by ACT-2 in almost every case (CAS, WRITE,
         // MASK WRITE and READ commands can be issued inbetween ACT-1 and ACT-2)
@@ -170,7 +57,9 @@ namespace DRAMPower {
             act_pattern[10] = V;
         }
         this->registerPattern<CmdType::ACT>(act_pattern);
-
+        this->registerInterfaceMember<CmdType::ACT>(&LPDDR5::handleInterfaceCommandBus);
+        // PRE
+        this->registerBankHandler<CmdType::PRE>(&LPDDR5::handlePre);
         commandPattern_t pre_pattern = {
             // R1
             L, L, L, H, H, H, H,
@@ -184,7 +73,9 @@ namespace DRAMPower {
             pre_pattern[10] = V;
         }
         this->registerPattern<CmdType::PRE>(pre_pattern);
-
+        this->registerInterfaceMember<CmdType::PRE>(&LPDDR5::handleInterfaceCommandBus);
+        // PREA
+        this->registerRankHandler<CmdType::PREA>(&LPDDR5::handlePreAll);
         commandPattern_t prea_pattern = {
             // R1
             L, L, L, H, H, H, H,
@@ -198,7 +89,9 @@ namespace DRAMPower {
             prea_pattern[10] = V;
         }
         this->registerPattern<CmdType::PREA>(prea_pattern);
-
+        this->registerInterfaceMember<CmdType::PREA>(&LPDDR5::handleInterfaceCommandBus);
+        // REFB
+        this->registerBankHandler<CmdType::REFB>(&LPDDR5::handleRefPerBank);
         // For refresh commands LPDDR5 has RFM (Refresh Management)
         // Considering RFM is disabled, CA3 is V
         commandPattern_t refb_pattern = {
@@ -211,22 +104,9 @@ namespace DRAMPower {
             refb_pattern[9] = BG0;
         }
         this->registerPattern<CmdType::REFB>(refb_pattern);
-
-        commandPattern_t refa_pattern = {
-            // R1
-            L, L, L, H, H, H, L,
-            // F1
-            V, V, V, V, V, V, H
-        };
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
-            refa_pattern[9] = BG0;
-        }
-        this->registerPattern<CmdType::REFA>(refa_pattern);
-
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG || memSpec.bank_arch == MemSpecLPDDR5::M16B) {
-            this->registerPattern<CmdType::REFP2B>(refb_pattern);
-        }
-
+        this->registerInterfaceMember<CmdType::REFB>(&LPDDR5::handleInterfaceCommandBus);
+        // RD
+        this->registerBankHandler<CmdType::RD>(&LPDDR5::handleRead);
         commandPattern_t rd_pattern = {
             // R1
             H, L, L, C0, C3, C4, C5,
@@ -240,7 +120,9 @@ namespace DRAMPower {
             rd_pattern[10] = L; // B4
         }
         this->registerPattern<CmdType::RD>(rd_pattern);
-
+        this->routeInterfaceCommand<CmdType::RD>([this](const Command &cmd) { this->handleInterfaceData(cmd, true); });
+        // RDA
+        this->registerBankHandler<CmdType::RDA>(&LPDDR5::handleReadAuto);
         commandPattern_t rda_pattern = {
             // R1
             H, L, L, C0, C3, C4, C5,
@@ -254,7 +136,9 @@ namespace DRAMPower {
             rda_pattern[10] = L;
         }
         this->registerPattern<CmdType::RDA>(rda_pattern);
-
+        this->routeInterfaceCommand<CmdType::RDA>([this](const Command &cmd) { this->handleInterfaceData(cmd, true); });
+        // WR
+        this->registerBankHandler<CmdType::WR>(&LPDDR5::handleWrite);
         commandPattern_t wr_pattern = {
             // R1
             L, H, H, C0, C3, C4, C5,
@@ -268,7 +152,9 @@ namespace DRAMPower {
             wr_pattern[10] = V;
         }
         this->registerPattern<CmdType::WR>(wr_pattern);
-
+        this->routeInterfaceCommand<CmdType::WR>([this](const Command &cmd) { this->handleInterfaceData(cmd, false); });
+        // WRA
+        this->registerBankHandler<CmdType::WRA>(&LPDDR5::handleWriteAuto);
         commandPattern_t wra_pattern = {
             // R1
             L, H, H, C0, C3, C4, C5,
@@ -282,57 +168,168 @@ namespace DRAMPower {
             wra_pattern[10] = V;
         }
         this->registerPattern<CmdType::WRA>(wra_pattern);
-
+        this->routeInterfaceCommand<CmdType::WRA>([this](const Command &cmd) { this->handleInterfaceData(cmd, false); });
+        // REFP2B
+        this->registerBankGroupHandler<CmdType::REFP2B>(&LPDDR5::handleRefPerTwoBanks);
+        if (memSpec.bank_arch == MemSpecLPDDR5::MBG || memSpec.bank_arch == MemSpecLPDDR5::M16B) {
+            this->registerPattern<CmdType::REFP2B>(refb_pattern);
+            this->registerInterfaceMember<CmdType::REFP2B>(&LPDDR5::handleInterfaceCommandBus);
+        }
+        // REFA
+        this->registerRankHandler<CmdType::REFA>(&LPDDR5::handleRefAll);
+        commandPattern_t refa_pattern = {
+            // R1
+            L, L, L, H, H, H, L,
+            // F1
+            V, V, V, V, V, V, H
+        };
+        if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
+            refa_pattern[9] = BG0;
+        }
+        this->registerPattern<CmdType::REFA>(refa_pattern);
+        this->registerInterfaceMember<CmdType::REFA>(&LPDDR5::handleInterfaceCommandBus);
+        // SREFEN
+        this->registerRankHandler<CmdType::SREFEN>(&LPDDR5::handleSelfRefreshEntry);
         this->registerPattern<CmdType::SREFEN>({
             // R1
             L, L, L, H, L, H, H,
             // F1
             V, V, V, V, V, L, L
         });
+        this->registerInterfaceMember<CmdType::SREFEN>(&LPDDR5::handleInterfaceCommandBus);
+        // SREFEX
+        this->registerRankHandler<CmdType::SREFEX>(&LPDDR5::handleSelfRefreshExit);
         this->registerPattern<CmdType::SREFEX>({
             // R1
             L, L, L, H, L, H, L,
             // F1
             V, V, V, V, V, V, V
         });
+        this->registerInterfaceMember<CmdType::SREFEX>(&LPDDR5::handleInterfaceCommandBus);
+        // PDEA
+        this->registerRankHandler<CmdType::PDEA>(&LPDDR5::handlePowerDownActEntry);
         this->registerPattern<CmdType::PDEA>({
             // R1
             L, L, L, H, L, H, H,
             // F1
             V, V, V, V, V, L, H
         });
-        this->registerPattern<CmdType::PDXA>({
-            // R1
-            L, L, L, H, L, H, L,
-            // F1
-            V, V, V, V, V, V, V
-        });
+        this->registerInterfaceMember<CmdType::PDEA>(&LPDDR5::handleInterfaceCommandBus);
+        // PDEP
+        this->registerRankHandler<CmdType::PDEP>(&LPDDR5::handlePowerDownPreEntry);
         this->registerPattern<CmdType::PDEP>({
             // R1
             L, L, L, H, L, H, H,
             // F1
             V, V, V, V, V, L, H
         });
+        this->registerInterfaceMember<CmdType::PDEP>(&LPDDR5::handleInterfaceCommandBus);
+        // PDXA
+        this->registerRankHandler<CmdType::PDXA>(&LPDDR5::handlePowerDownActExit);
+        this->registerPattern<CmdType::PDXA>({
+            // R1
+            L, L, L, H, L, H, L,
+            // F1
+            V, V, V, V, V, V, V
+        });
+        this->registerInterfaceMember<CmdType::PDXA>(&LPDDR5::handleInterfaceCommandBus);
+        // PDXP
+        this->registerRankHandler<CmdType::PDXP>(&LPDDR5::handlePowerDownPreExit);
         this->registerPattern<CmdType::PDXP>({
             // R1
             L, L, L, H, L, H, L,
             // F1
             V, V, V, V, V, V, V
         });
+        this->registerInterfaceMember<CmdType::PDXP>(&LPDDR5::handleInterfaceCommandBus);
+        // DSMEN
+        this->registerRankHandler<CmdType::DSMEN>(&LPDDR5::handleDSMEntry);
         this->registerPattern<CmdType::DSMEN>({
             // R1
             L, L, L, H, L, H, H,
             // F1
             V, V, V, V, V, H, L
         });
+        this->registerInterfaceMember<CmdType::DSMEN>(&LPDDR5::handleInterfaceCommandBus);
+        // DSMEX
+        this->registerRankHandler<CmdType::DSMEX>(&LPDDR5::handleDSMExit);
         this->registerPattern<CmdType::DSMEX>({
             // R1
             L, L, L, H, L, H, L,
             // F1
             V, V, V, V, V, V, V
         });
+        this->registerInterfaceMember<CmdType::DSMEX>(&LPDDR5::handleInterfaceCommandBus);
+        // EOS
+        routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     }
 
+// Getters for CLI
+    uint64_t LPDDR5::getBankCount() {
+        return memSpec.numberOfBanks;
+    }
+
+    uint64_t LPDDR5::getRankCount() {
+        return memSpec.numberOfRanks;
+    }
+
+    uint64_t LPDDR5::getDeviceCount() {
+    return memSpec.numberOfDevices;
+}
+
+// Update toggling rate
+    void LPDDR5::enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp) {
+        // Change from bus to toggling rate
+        assert(enable_timestamp >= timestamp);
+        if ( enable_timestamp > timestamp ) {
+            // Schedule toggling rate enable
+            this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+                dataBus.enableTogglingRate(enable_timestamp);
+            });
+        } else {
+            dataBus.enableTogglingRate(enable_timestamp);
+        }
+    }
+
+    void LPDDR5::enableBus(timestamp_t timestamp, timestamp_t enable_timestamp) {
+        // Change from toggling rate to bus
+        assert(enable_timestamp >= timestamp);
+        if ( enable_timestamp > timestamp ) {
+            // Schedule toggling rate disable
+            this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+                dataBus.enableBus(enable_timestamp);
+            });
+        } else {
+            dataBus.enableBus(enable_timestamp);
+        }
+    }
+
+    timestamp_t LPDDR5::update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleratedefinition)
+    {
+        if (toggleratedefinition) {
+            dataBus.setTogglingRateDefinition(*toggleratedefinition);
+            if (dataBus.isTogglingRate()) {
+                // toggling rate already enabled
+                return timestamp;
+            }
+            // Enable toggling rate
+            timestamp_t enable_timestamp = std::max(timestamp, dataBus.lastBurst());
+            enableTogglingHandle(timestamp, enable_timestamp);
+            return enable_timestamp;
+        } else {
+            if (dataBus.isBus()) {
+                // Bus already enabled
+                return timestamp;
+            }
+            // Enable bus
+            timestamp_t enable_timestamp = std::max(timestamp, dataBus.lastBurst());
+            enableBus(timestamp, enable_timestamp);
+            return enable_timestamp;
+        }
+        return timestamp;
+    }
+
+// Interface
     void LPDDR5::handleInterfaceOverrides(size_t length, bool /*read*/)
     {
         // Set command bus pattern overrides
@@ -352,71 +349,47 @@ namespace DRAMPower {
         }
     }
 
-    void LPDDR5::handle_interface_commandbus(const Command &cmd) {
+    void LPDDR5::handleInterfaceCommandBus(const Command &cmd) {
         auto pattern = getCommandPattern(cmd);
         auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
         commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
-    void LPDDR5::handle_interface_data_common(const Command &cmd, const size_t length) {
-        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
+    void LPDDR5::handleInterfaceData(const Command &cmd, bool read) {
+        auto loadfunc = read ? &util::DataBus::loadRead : &util::DataBus::loadWrite;
+        size_t length = 0;
+        if (0 == cmd.sz_bits) {
+            // No data provided by command
+            if (dataBus.isTogglingRate()) {
+                length = memSpec.burstLength;
+                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getCombinedBusWidth(), nullptr);
+            }
+        } else {
+            // Data provided by command
+            length = cmd.sz_bits / dataBus.getCombinedBusWidth();
+            (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
+        }
+        // DQS
+        if (read) {
+            // Read
             readDQS.start(cmd.timestamp);
             readDQS.stop(cmd.timestamp + length / memSpec.dataRate);
             if (!memSpec.wckAlwaysOnMode) {
                 wck.start(cmd.timestamp);
                 wck.stop(cmd.timestamp + length / memSpec.dataRate);
             }
-            handleInterfaceOverrides(length, true);
-        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-             if (!memSpec.wckAlwaysOnMode) {
+        } else {
+            // Write
+            if (!memSpec.wckAlwaysOnMode) {
                 wck.start(cmd.timestamp);
                 wck.stop(cmd.timestamp + length / memSpec.dataRate);
             }
-            handleInterfaceOverrides(length, false);
         }
+        handleInterfaceOverrides(length, read);
+        handleInterfaceCommandBus(cmd);
     }
 
-    void LPDDR5::handle_interface_toggleRate(const Command &cmd) {
-        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            if (cmd.sz_bits == 0) {
-                // Use default burst length
-                this->togglingHandleRead.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
-            } else {
-                this->togglingHandleRead.incCountBitLength(cmd.timestamp, cmd.sz_bits);
-            }
-            assert(cmd.sz_bits % togglingHandleRead.getWidth() == 0);
-            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleRead.getWidth());
-        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            if (cmd.sz_bits == 0) {
-                // Use default burst length
-                this->togglingHandleWrite.incCountBurstLength(cmd.timestamp, memSpec.burstLength);
-            } else {
-                this->togglingHandleWrite.incCountBitLength(cmd.timestamp, cmd.sz_bits);
-            }
-            assert(cmd.sz_bits % togglingHandleWrite.getWidth() == 0);
-            handle_interface_data_common(cmd, cmd.sz_bits / togglingHandleWrite.getWidth());
-        }
-        handle_interface_commandbus(cmd);
-    }
-
-    void LPDDR5::handle_interface(const Command &cmd) {
-        size_t length = 0;
-        if (cmd.type == CmdType::RD || cmd.type == CmdType::RDA) {
-            length = cmd.sz_bits / readBus.get_width();
-            if ( cmd.data != nullptr ) {
-                readBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            handle_interface_data_common(cmd, length);
-        } else if (cmd.type == CmdType::WR || cmd.type == CmdType::WRA) {
-            length = cmd.sz_bits / writeBus.get_width();
-            if ( cmd.data != nullptr ) {
-                writeBus.load(cmd.timestamp, cmd.data, cmd.sz_bits);
-            }
-            handle_interface_data_common(cmd, length);
-        }
-        handle_interface_commandbus(cmd);
-    }
-
+// Core
     void LPDDR5::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         bank.counter.act++;
 
@@ -622,6 +595,7 @@ namespace DRAMPower {
 			std::cout << ("[WARN] End of simulation but still implicit commands left!") << std::endl;
 	}
 
+// Calculation
     energy_t LPDDR5::calcCoreEnergy(timestamp_t timestamp) {
         Calculation_LPDDR5 calculation;
         return calculation.calcEnergy(timestamp, *this);
@@ -632,6 +606,7 @@ namespace DRAMPower {
         return calculation.calculateEnergy(getWindowStats(timestamp));
     }
 
+// Stats
     SimulationStats LPDDR5::getWindowStats(timestamp_t timestamp) {
         // If there are still implicit commands queued up, process them first
         processImplicitCommandQueue(timestamp);
@@ -688,16 +663,17 @@ namespace DRAMPower {
         }
 
         stats.commandBus = commandBus.get_stats(timestamp);
-        stats.readBus = readBus.get_stats(timestamp);
-        stats.writeBus = writeBus.get_stats(timestamp);
+
+        dataBus.get_stats(timestamp,
+            stats.readBus,
+            stats.writeBus,
+            stats.togglingStats.read,
+            stats.togglingStats.write
+        );
 
         stats.clockStats = 2.0 * clock.get_stats_at(timestamp);
         stats.wClockStats = 2.0 * wck.get_stats_at(timestamp);
         stats.readDQSStats = 2.0 * readDQS.get_stats_at(timestamp);
-        stats.togglingStats = {
-            togglingHandleRead.get_stats(timestamp), // read
-            togglingHandleWrite.get_stats(timestamp) // write
-        };
 
         return stats;
     }
@@ -706,6 +682,7 @@ namespace DRAMPower {
         return getWindowStats(getLastCommandTime());
     }
 
+// Core helpers
     timestamp_t LPDDR5::earliestPossiblePowerDownEntryTime(Rank &rank) {
         timestamp_t entryTime = 0;
 
