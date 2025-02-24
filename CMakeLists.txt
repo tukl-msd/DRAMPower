@@ -123,17 +123,6 @@ if (DRAMPOWER_USE_FETCH_CONTENT)
     endif()
 endif()
 
-### spdlog ###
-if(DRAMPOWER_BUILD_CLI)
-    FetchContent_Declare(
-            spdlog
-            GIT_REPOSITORY https://github.com/gabime/spdlog.git
-            GIT_TAG        v1.9.2)
-    FetchContent_MakeAvailable(spdlog)
-    set_target_properties(spdlog PROPERTIES FOLDER lib)
-endif()
-
-
 ###############################################
 ###           Source Directory              ###
 ###############################################
