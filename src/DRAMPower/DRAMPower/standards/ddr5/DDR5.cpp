@@ -29,16 +29,17 @@ namespace DRAMPower {
             memSpec.numberOfDevices,
             memSpec.bitWidth,
             memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::H, util::Bus::BusInitPatternSpec::H,
+            databus_t::Bus_t::BusIdlePatternSpec::H, databus_t::Bus_t::BusInitPatternSpec::H,
             DRAMUtils::Config::TogglingRateIdlePattern::H, 0.0, 0.0,
-            util::DataBus::BusType::Bus
+            databus_t::BusType::Bus
         }
         , cmdBusWidth(14)
         , cmdBusInitPattern((1<<cmdBusWidth)-1)
         , commandBus(
-            cmdBusWidth, 1,
-            util::Bus::BusIdlePatternSpec::H,
-            util::Bus::burst_t(cmdBusWidth, cmdBusInitPattern)
+            cmdBusWidth,
+            1,
+            commandbus_t::BusIdlePatternSpec::H,
+            commandbus_t::burst_t(cmdBusWidth, cmdBusInitPattern)
         )
         , readDQS(memSpec.dataRateSpec.dqsBusRate, true)
         , writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
@@ -312,7 +313,7 @@ namespace DRAMPower {
     }
 
     void DDR5::handleInterfaceData(const Command &cmd, bool read) {
-        auto loadfunc = read ? &util::DataBus::loadRead : &util::DataBus::loadWrite;
+        auto loadfunc = read ? &databus_t::loadRead : &databus_t::loadWrite;
         util::Clock &dqs = read ? readDQS : writeDQS;
         size_t length = 0;
         if (0 == cmd.sz_bits) {

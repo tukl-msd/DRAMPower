@@ -15,14 +15,14 @@ namespace DRAMPower {
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks })
         , commandBus{7, 2, // modelled with datarate 2
-            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L}
+            commandbus_t::BusIdlePatternSpec::L, commandbus_t::BusInitPatternSpec::L}
         , dataBus{
             memSpec.numberOfDevices,
             memSpec.bitWidth,
             memSpec.dataRate,
-            util::Bus::BusIdlePatternSpec::L, util::Bus::BusInitPatternSpec::L,
+            databus_t::Bus_t::BusIdlePatternSpec::L, databus_t::Bus_t::BusInitPatternSpec::L,
             DRAMUtils::Config::TogglingRateIdlePattern::L, 0.0, 0.0,
-            util::DataBus::BusType::Bus
+            databus_t::BusType::Bus
         }
         , readDQS(memSpec.dataRate, true)
         , wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
@@ -356,7 +356,7 @@ namespace DRAMPower {
     }
 
     void LPDDR5::handleInterfaceData(const Command &cmd, bool read) {
-        auto loadfunc = read ? &util::DataBus::loadRead : &util::DataBus::loadWrite;
+        auto loadfunc = read ? &databus_t::loadRead : &databus_t::loadWrite;
         size_t length = 0;
         if (0 == cmd.sz_bits) {
             // No data provided by command

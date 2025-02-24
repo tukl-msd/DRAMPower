@@ -30,6 +30,8 @@ public:
     DDR4(const MemSpecDDR4 &memSpec);
     virtual ~DDR4() = default;
 public:
+    using commandbus_t = util::Bus<27>;
+    using databus_t = util::DataBus<16>;
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
 
@@ -44,11 +46,11 @@ private:
     util::Clock writeDQS_;
     util::Clock clock;
 public:
-    util::Bus commandBus;
+    commandbus_t commandBus;
     uint64_t prepostambleReadMinTccd;
     uint64_t prepostambleWriteMinTccd;
 public:
-    util::DataBus dataBus;
+    databus_t dataBus;
 
 protected:
 

@@ -7,7 +7,6 @@
 
 #include <optional>
 
-#include <bitset>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -57,6 +56,7 @@ struct bus_stats_t {
 	}
 };
 
+template <std::size_t blocksize = 32>
 class Bus {
 
 private:
@@ -119,9 +119,8 @@ public:
 		H = 1,
 		Z = 2,
 	};
-	using burst_storage_t = util::burst_storage;
+	using burst_storage_t = util::burst_storage<blocksize>;
 	using burst_t = typename burst_storage_t::burst_t;
-	const std::size_t width;
 	bus_stats_t stats;
 
 private:
@@ -130,6 +129,7 @@ private:
 	timestamp_t last_load = 0;
 	bool enableflag = true;
 	timestamp_t virtual_disable_timestamp = 0;
+	std::size_t width = 0;
 	uint64_t datarate = 1;
 	bool init_load = false;
 	
@@ -147,20 +147,20 @@ private:
 private:
 	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec_ init_pattern,
 		std::optional<burst_t> custom_init_pattern = std::nullopt
-	) :
-		width(width), burst_storage(width), datarate(datarate),
-		idle_pattern(idle_pattern), init_pattern(init_pattern), custom_init_pattern (custom_init_pattern)
+	) 
+		: burst_storage(width)
+		, width(width)
+		, datarate(datarate)
+		, idle_pattern(idle_pattern)
+		, init_pattern(init_pattern)
+		, custom_init_pattern (custom_init_pattern)
 	{
-		static_assert(std::numeric_limits<decltype(width)>::is_signed == false, "std::size_t must be unsigned");
 		
 		// Initialize zero and one patterns
-		this->zero_pattern = burst_t();
-		this->one_pattern = burst_t();
-		for(std::size_t i = 0; i < width; i++)
-		{
-			this->zero_pattern.push_back(false);
-			this->one_pattern.push_back(true);
-		}
+		this->zero_pattern = burst_t(width);
+		this->one_pattern = burst_t(width);
+		this->zero_pattern.reset();
+		this->one_pattern.set();
 
 		// Initialize last pattern and init stats
 		switch(init_pattern)
@@ -376,7 +376,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 	size_t get_width() const { return width; };
 
 	// Get stats not including timestamp t
-	auto get_stats(timestamp_t timestamp) const 
+	bus_stats_t get_stats(timestamp_t timestamp) const 
 	{
 
 		timestamp_t t_virtual = timestamp * this->datarate;
@@ -398,8 +398,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		}
 		
 		// Add pending stats from last load
-		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < t_virtual
-		)
+		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < t_virtual)
 		{
 			stats += this->pending_stats.getStats();
 		}

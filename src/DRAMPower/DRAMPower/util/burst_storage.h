@@ -10,66 +10,41 @@
 namespace DRAMPower::util
 {
 
+template<::std::size_t blocksize>
 class burst_storage
 {
 public:
-	using burst_t = util::dynamic_bitset;
+	using burst_t = util::dynamic_bitset<blocksize>;
 	using burst_vector_t = std::vector<burst_t>;
-public:
-	class bitset_inserter
-	{
-	public:
-		using bitset_t = burst_t;
-	private:
-		std::size_t pos = 0;
-		bitset_t& bitset;
-		const std::size_t N;
-	public:
-		bitset_inserter(bitset_t& bitset, std::size_t N)
-			: bitset(bitset) , N(N) {};
-	public:
-		void insert(bool bit) {
-			if (full())
-				return;
-
-			bitset.push_back(bit);
-		};
-
-		bool full() {
-			return bitset.size() == N;
-		};
-	};
 private:
-	const std::size_t N;
 	std::size_t count = 0;
+	std::size_t width = 0;
 	burst_vector_t bursts;
-	std::optional<bitset_inserter> inserter;
 public:
-	burst_storage(std::size_t N) : N(N) { };
+	burst_storage(std::size_t width) : width(width) {};
 public:
-	void insert_bit(bool bit) {
-		if (!inserter || inserter->full()) {
-			bursts.emplace_back();
-			inserter.emplace(bursts.back(), N);
-		};
-
-		inserter->insert(bit);
-		++count;
-	};
-
-	void insert_byte(uint8_t byte, std::size_t n_bits) {
-		std::bitset<8> bitset = byte;
-		for (std::size_t i = 0; i < 8 && i < n_bits; ++i) {
-			this->insert_bit(bitset[i]);
-		};
-	};
 
 	void insert_data(const uint8_t* data, std::size_t n_bits) {
-		std::size_t bits_left = n_bits;
-		for (std::size_t i = 0; i < n_bits && count < n_bits; i += 8) {
-			this->insert_byte(data[i/8], bits_left >= 8 ? 8 : bits_left );
-			bits_left -= 8;
-		};
+		size_t n_bursts = n_bits / width;
+
+		size_t burst_offset = 0;
+		size_t byte_index = 0;
+		size_t bit_index = 0;
+		for (std::size_t i = 0; i < n_bursts; ++i) {
+			// Extract bursts
+			burst_t bits{width};
+			burst_offset = i * width;
+			for (std::size_t j = 0; j < width && (burst_offset + j) < n_bits; ++j) {
+				// Extract bit
+				std::size_t bit_position = bit_index % 8;
+				bits.set(j, (data[byte_index] >> bit_position) & 1);
+				bit_index++;
+				if (bit_index % 8 == 0) {
+					++byte_index;
+				}
+			}
+			bursts.push_back(bits);
+		}
 	};
 
 	bool empty() const { return this->bursts.empty(); };
@@ -79,7 +54,6 @@ public:
 
 	void clear() {
 		this->count = 0;
-		this->inserter.reset();
 		this->bursts.clear();
 	};
 };

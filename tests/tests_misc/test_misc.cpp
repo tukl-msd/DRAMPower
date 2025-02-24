@@ -7,6 +7,7 @@
 #include <optional>
 
 #include <DRAMPower/util/burst_storage.h>
+#include <DRAMPower/util/dynamic_bitset.h>
 
 using namespace DRAMPower;	
 
@@ -58,7 +59,7 @@ protected:
     }
 };
 
-#define ASSERT_EQ_BITSET(lhs, rhs) ASSERT_EQ(lhs, util::dynamic_bitset( lhs.size(), rhs))
+#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_EQ(lhs, util::dynamic_bitset<N>(N, rhs))
 
 TEST_F(MiscTest, TestChunking)
 {
@@ -81,28 +82,29 @@ TEST_F(MiscTest, TestChunking)
 	};
 
 	// Test setup
-	util::burst_storage burst_storage(6);
+	constexpr std::size_t width = 6;
+	util::burst_storage<width> burst_storage{width};
 
 	burst_storage.insert_data(data.data(), data.size() * 8);
 
 	// Test assertions
 	ASSERT_EQ(burst_storage.size(), 16);
-	ASSERT_EQ_BITSET(burst_storage.get_burst( 0), 0b111111);
-	ASSERT_EQ_BITSET(burst_storage.get_burst( 1), 0b000000);
-	ASSERT_EQ_BITSET(burst_storage.get_burst( 2), 0b111111);
-	ASSERT_EQ_BITSET(burst_storage.get_burst( 3), 0b000000);
-	ASSERT_EQ_BITSET(burst_storage.get_burst( 4), 0b101010);
-	ASSERT_EQ_BITSET(burst_storage.get_burst( 5), 0b111111);
-	ASSERT_EQ_BITSET(burst_storage.get_burst( 6), 0b000000);
-	ASSERT_EQ_BITSET(burst_storage.get_burst( 7), 0b010101);
-	ASSERT_EQ_BITSET(burst_storage.get_burst( 8), 0b101010);
-	ASSERT_EQ_BITSET(burst_storage.get_burst( 9), 0b111111);
-	ASSERT_EQ_BITSET(burst_storage.get_burst(10), 0b000000);
-	ASSERT_EQ_BITSET(burst_storage.get_burst(11), 0b111111);
-	ASSERT_EQ_BITSET(burst_storage.get_burst(12), 0b000000);
-	ASSERT_EQ_BITSET(burst_storage.get_burst(13), 0b101010);
-	ASSERT_EQ_BITSET(burst_storage.get_burst(14), 0b111111);
-	ASSERT_EQ_BITSET(burst_storage.get_burst(15), 0b000000);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst( 0), 0b111111);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst( 1), 0b000000);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst( 2), 0b111111);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst( 3), 0b000000);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst( 4), 0b101010);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst( 5), 0b111111);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst( 6), 0b000000);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst( 7), 0b010101);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst( 8), 0b101010);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst( 9), 0b111111);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst(10), 0b000000);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst(11), 0b111111);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst(12), 0b000000);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst(13), 0b101010);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst(14), 0b111111);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst(15), 0b000000);
 };
 
 TEST_F(MiscTest, TestBurstLoad_Uneven)
@@ -115,15 +117,15 @@ TEST_F(MiscTest, TestBurstLoad_Uneven)
 
 	// Test setup
 	constexpr std::size_t width = 4;
-	util::burst_storage burst_storage(width);
+	util::burst_storage<width> burst_storage{width};
 
 	burst_storage.insert_data(data.data(), 12);
 
 	// Test assertions
 	ASSERT_EQ(burst_storage.size(), 3);
-	ASSERT_EQ_BITSET(burst_storage.get_burst(0), 0b1111);
-	ASSERT_EQ_BITSET(burst_storage.get_burst(1), 0b0001);
-	ASSERT_EQ_BITSET(burst_storage.get_burst(2), 0b0101);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst(0), 0b1111);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst(1), 0b0001);
+	ASSERT_EQ_BITSET(width, burst_storage.get_burst(2), 0b0101);
 };
 
 TEST_F(MiscTest, BitChanges)
