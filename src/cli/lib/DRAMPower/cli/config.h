@@ -8,7 +8,7 @@
 
 #include <DRAMUtils/config/toggling_rate.h>
 
-namespace DRAMPower::CLI::config {
+namespace DRAMPower::DRAMPowerCLI::config {
 
 struct CLIConfig {
     bool useToggleRate;
@@ -17,7 +17,7 @@ struct CLIConfig {
 
 NLOHMANN_JSONIFY_ALL_THINGS(CLIConfig, useToggleRate, toggleRateConfig)
 
-} // namespace DRAMPower::CLI::config
+} // namespace DRAMPower::DRAMPowerCLI::config
 
 
 #endif /* CLI_CONFIG_H */

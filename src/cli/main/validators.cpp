@@ -96,7 +96,7 @@ std::string createFileInParentDirectory(const std::filesystem::path& filepath)
             // Could not create the file
             return std::string{"Could not create the file"};
         }
-    } catch (const std::exception &e) {
+    } catch (const std::exception&) {
         // Could not create the file
         return std::string{"Could not create the file"};
     }

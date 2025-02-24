@@ -1,6 +1,6 @@
 #include "util.hpp"
 
-namespace DRAMPower::CLI {
+namespace DRAMPower::DRAMPowerCLI {
 
 std::unique_ptr<uint8_t[]> util::hexStringToUint8Array(const csv::string_view data, size_t &size)
 {
@@ -34,4 +34,4 @@ std::unique_ptr<uint8_t[]> util::hexStringToUint8Array(const csv::string_view da
 	return content;
 }
 
-} // namespace DRAMPower::CLI
+} // namespace DRAMPower::DRAMPowerCLI

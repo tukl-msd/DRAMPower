@@ -74,36 +74,36 @@ int main(int argc, char *argv[])
 	spdlog::set_pattern("%v");
 
 	// Read config
-	DRAMPower::CLI::config::CLIConfig config;
-	if (!DRAMPower::CLI::getConfig(configfile, config)) {
+	DRAMPower::DRAMPowerCLI::config::CLIConfig config;
+	if (!DRAMPower::DRAMPowerCLI::getConfig(configfile, config)) {
 		spdlog::info("Invalid config file");
 		return 1;
 	}
 
 	// Parse command list (load command list in memory)
 	std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> commandList;
-	if(!DRAMPower::CLI::parse_command_list(tracefile, commandList))
+	if(!DRAMPower::DRAMPowerCLI::parse_command_list(tracefile, commandList))
 	{
 		spdlog::error("Error while parsing command list. Exiting application");
 		return 1;
 	}
 
 	// Initialize memory / Create memory object
-	std::unique_ptr<dram_base<CmdType>> ddr = DRAMPower::CLI::getMemory(std::string_view(memspec), config.toggleRateConfig);
+	std::unique_ptr<dram_base<CmdType>> ddr = DRAMPower::DRAMPowerCLI::getMemory(std::string_view(memspec), config.toggleRateConfig);
 	if (!ddr) {
 		spdlog::error("Invalid memory specification");
 		return 1;
 	}
 
 	// Execute commands
-	if(!DRAMPower::CLI::runCommands(ddr, commandList))
+	if(!DRAMPower::DRAMPowerCLI::runCommands(ddr, commandList))
 	{
 		spdlog::error("Error while running commands. Exiting application");
 		return 1;
 	}
 
 	// Calculate energy and stats
-	if(!DRAMPower::CLI::makeResult(jsonfile, std::move(ddr)))
+	if(!DRAMPower::DRAMPowerCLI::makeResult(jsonfile, std::move(ddr)))
 	{
 		spdlog::error("Error while creating result. Exiting application");
 		return 1;

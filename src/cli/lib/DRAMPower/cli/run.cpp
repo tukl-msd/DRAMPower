@@ -36,7 +36,7 @@
 #include "util.hpp"
 #include "config.h"
 
-namespace DRAMPower::CLI {
+namespace DRAMPower::DRAMPowerCLI {
 
 using namespace DRAMPower;
 
@@ -284,4 +284,4 @@ bool runCommands(std::unique_ptr<dram_base<CmdType>> &ddr, const std::vector<std
     return true;
 }
 
-} // namespace DRAMPower::CLI
+} // namespace DRAMPower::DRAMPowerCLI

@@ -13,7 +13,7 @@
 
 #include "config.h"
 
-namespace DRAMPower::CLI {
+namespace DRAMPower::DRAMPowerCLI {
 
 std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data, std::optional<DRAMUtils::Config::ToggleRateDefinition> togglingRate = std::nullopt);
 bool parse_command_list(std::string_view csv_file, std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> &commandList);
@@ -24,6 +24,6 @@ bool getConfig(const std::string &configfile, config::CLIConfig &config);
 bool runCommands(std::unique_ptr<dram_base<CmdType>> &ddr, const std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> &commandList);
 
 
-} // namespace DRAMPower::CLI
+} // namespace DRAMPower::DRAMPowerCLI
 
 #endif /* LIB_DRAMPOWERCLI_RUN_H */
