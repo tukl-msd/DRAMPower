@@ -1,7 +1,8 @@
 #include "util.hpp"
 
+namespace DRAMPower::DRAMPowerCLI {
 
-std::unique_ptr<uint8_t[]> CLIutil::hexStringToUint8Array(const csv::string_view data, size_t &size)
+std::unique_ptr<uint8_t[]> util::hexStringToUint8Array(const csv::string_view data, size_t &size)
 {
 	// Check if the string has valid length
 	if ( ( data.length() % 2 ) != 0)
@@ -32,3 +33,5 @@ std::unique_ptr<uint8_t[]> CLIutil::hexStringToUint8Array(const csv::string_view
 	}
 	return content;
 }
+
+} // namespace DRAMPower::DRAMPowerCLI

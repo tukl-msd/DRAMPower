@@ -23,7 +23,8 @@
 			"inherits": "cmake-pedantic",
 			"cacheVariables": {
 				"DRAMPOWER_BUILD_TESTS": "ON",
-				"CMAKE_BUILD_PARALLEL_LEVEL": ""
+				"CMAKE_BUILD_PARALLEL_LEVEL": "",
+				"DRAMPOWER_BUILD_CLI": "ON"
 			}
 		},
 		{
