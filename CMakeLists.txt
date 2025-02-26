@@ -79,6 +79,24 @@ option(DRAMPOWER_BUILD_CLI "Build DRAMPower Command Line Tool" ${PROJECT_IS_TOP_
 option(DRAMPOWER_BUILD_BENCHMARKS "Build DRAMPower Command Line Tool" OFF)
 option(DRAMPOWER_BUILD_TESTS "Build DRAMPower unit tests" OFF)
 
+### Compiler optimization settings ###
+if(PROJECT_IS_TOP_LEVEL)
+    option(OPTIMIZE_FOR_NATIVE "Build with -march=native (overrides CPU_TYPE if enabled)" ON)
+    set(CPU_TYPE "" CACHE STRING "CPU type for -march=CPU_TYPE and -mtune=CPU_TYPE compile options")
+    # Set CPU_TYPE to native if OPTIMIZE_FOR_NATIVE is enabled
+    if(OPTIMIZE_FOR_NATIVE)
+        if(CPU_TYPE)
+            message(NOTICE "OPTIMIZE_FOR_NATIVE is enabled. Overriding CPU_TYPE from \"${CPU_TYPE}\" to \"native\".")
+        endif()
+        set(CPU_TYPE "native")
+    endif()
+
+    # add CPU_TYPE to cmake cxx flags
+    if(CPU_TYPE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_TYPE} -mtune=${CPU_TYPE}")
+    endif()
+endif()
+
 # Use sane defaults for FetchContent:
 # In case we are the top-level project, get everything by default
 # In case we are included in another project, the user might want to provide their own system dependencies
