@@ -37,8 +37,7 @@
 
 #include "MemSpecDDR4.h"
 using namespace DRAMPower;
-using json_t = nlohmann::json;
-    
+
 
 MemSpecDDR4::MemSpecDDR4(const DRAMUtils::MemSpec::MemSpecDDR4 &memspec)
     : MemSpec(memspec)
@@ -86,19 +85,19 @@ MemSpecDDR4::MemSpecDDR4(const DRAMUtils::MemSpec::MemSpecDDR4 &memspec)
 
     vddq = memspec.mempowerspec.vddq;
 
-    if (memspec.memarchitecturespec.RefMode==1) {
-        memPowerSpec[VDD].iXX5X      = memspec.mempowerspec.idd5B;
-        memPowerSpec[VPP].iXX5X      = memspec.mempowerspec.ipp5B;
-        memTimingSpec.tRFC = memspec.memtimingspec.RFC1;
-    }
-    else if (memspec.memarchitecturespec.RefMode==2) {
+    if (DRAMUtils::MemSpec::RefModeTypeDDR4::REF_MODE_2 == memspec.memarchitecturespec.RefMode) {
         memPowerSpec[VDD].iXX5X      = memspec.mempowerspec.idd5F2;
         memPowerSpec[VPP].iXX5X      = memspec.mempowerspec.ipp5F2;
         memTimingSpec.tRFC = memspec.memtimingspec.RFC2;
-    } else {
+    } else if (DRAMUtils::MemSpec::RefModeTypeDDR4::REF_MODE_4 == memspec.memarchitecturespec.RefMode) {
         memPowerSpec[VDD].iXX5X      = memspec.mempowerspec.idd5F4;
         memPowerSpec[VPP].iXX5X      = memspec.mempowerspec.ipp5F4;
         memTimingSpec.tRFC = memspec.memtimingspec.RFC4;
+    } else {
+        // RefModeTypeDDR4::REF_MODE_1 || RefModeTypeDDR4::INVALID
+        memPowerSpec[VDD].iXX5X      = memspec.mempowerspec.idd5B;
+        memPowerSpec[VPP].iXX5X      = memspec.mempowerspec.ipp5B;
+        memTimingSpec.tRFC = memspec.memtimingspec.RFC1;
     }
     memPowerSpec[VDD].iBeta = memspec.mempowerspec.iBeta_vdd.value_or(memspec.mempowerspec.idd0);
     memPowerSpec[VPP].iBeta = memspec.mempowerspec.iBeta_vpp.value_or(memspec.mempowerspec.ipp0);

@@ -1,7 +1,7 @@
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
 
 using namespace DRAMPower;
-using json_t = nlohmann::json;
+
 
 MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec)
         : MemSpec(memspec)
