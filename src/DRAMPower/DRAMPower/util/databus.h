@@ -10,25 +10,22 @@
 
 namespace DRAMPower::util {
 
-template<std::size_t blocksize = 32>
+enum class DataBusMode {
+    Bus = 0,
+    TogglingRate
+};
 class DataBus {
 
 public:
-    using Bus_t = util::Bus<blocksize>;
-    using IdlePattern = typename Bus_t::BusIdlePatternSpec;
-    using InitPattern = typename Bus_t::BusInitPatternSpec;
-
-    enum class BusType {
-        Bus = 0,
-        TogglingRate
-    };
+    using IdlePattern = util::BusIdlePatternSpec;
+    using InitPattern = util::BusInitPatternSpec;
 
 public:
     DataBus(std::size_t numberOfDevices, std::size_t width, std::size_t dataRate,
         IdlePattern idlePattern, InitPattern initPattern,
             DRAMUtils::Config::TogglingRateIdlePattern togglingRateIdlePattern = DRAMUtils::Config::TogglingRateIdlePattern::Z,
             const double togglingRate = 0.0, const double dutyCycle = 0.0,
-            BusType busType = BusType::Bus
+            DataBusMode busType = DataBusMode::Bus
         )
         : busRead(width * numberOfDevices, dataRate, idlePattern, initPattern)
         , busWrite(width * numberOfDevices, dataRate, idlePattern, initPattern)
@@ -40,11 +37,11 @@ public:
         , width(width)
     {
         switch(busType) {
-            case BusType::Bus:
+            case DataBusMode::Bus:
                 busWrite.enable(0);
                 busRead.enable(0);
                 break;
-            case BusType::TogglingRate:
+            case DataBusMode::TogglingRate:
                 togglingHandleRead.enable(0);
                 togglingHandleWrite.enable(0);
                 break;
@@ -54,14 +51,14 @@ public:
 private:
     void load(Bus_t &bus, TogglingHandle &togglingHandle, timestamp_t timestamp, std::size_t n_bits, const uint8_t *data = nullptr) {
         switch(busType) {
-            case BusType::Bus:
+            case DataBusMode::Bus:
                 if (nullptr == data || 0 == n_bits) {
                     // No data to load, skip burst
                     return;
                 }
                 bus.load(timestamp, data, n_bits);
                 break;
-            case BusType::TogglingRate:
+            case DataBusMode::TogglingRate:
                 togglingHandle.incCountBitLength(timestamp, n_bits);
                 break;
         }
@@ -80,7 +77,7 @@ public:
         busWrite.enable(timestamp);
         togglingHandleRead.disable(timestamp);
         togglingHandleWrite.disable(timestamp);
-        busType = BusType::Bus;
+        busType = DataBusMode::Bus;
     }
 
     void enableTogglingRate(timestamp_t timestamp) {
@@ -88,7 +85,7 @@ public:
         busWrite.disable(timestamp);
         togglingHandleRead.enable(timestamp);
         togglingHandleWrite.enable(timestamp);
-        busType = BusType::TogglingRate;
+        busType = DataBusMode::TogglingRate;
     }
 
     void setTogglingRateDefinition(DRAMUtils::Config::ToggleRateDefinition toggleratedefinition) {
@@ -98,9 +95,9 @@ public:
 
     timestamp_t lastBurst() {
         switch(busType) {
-            case BusType::Bus:
+            case DataBusMode::Bus:
                 return std::max(busWrite.get_lastburst_timestamp(), busRead.get_lastburst_timestamp());
-            case BusType::TogglingRate:
+            case DataBusMode::TogglingRate:
                 return std::max(togglingHandleRead.get_lastburst_timestamp(), togglingHandleWrite.get_lastburst_timestamp());
         }
         assert(false);
@@ -108,11 +105,11 @@ public:
     }
 
     bool isBus() {
-        return BusType::Bus == busType;
+        return DataBusMode::Bus == busType;
     }
 
     bool isTogglingRate() {
-        return BusType::TogglingRate == busType;
+        return DataBusMode::TogglingRate == busType;
     }
 
     std::size_t getWidth() {
@@ -148,7 +145,7 @@ private:
     Bus_t busWrite;
     TogglingHandle togglingHandleRead;
     TogglingHandle togglingHandleWrite;
-    BusType busType;
+    DataBusMode busType;
     std::size_t numberOfDevices;
     std::size_t dataRate;
     std::size_t width;

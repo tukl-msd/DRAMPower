@@ -15,14 +15,14 @@ namespace DRAMPower {
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks })
         , commandBus{7, 2, // modelled with datarate 2
-            commandbus_t::BusIdlePatternSpec::L, commandbus_t::BusInitPatternSpec::L}
+            util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
         , dataBus{
             memSpec.numberOfDevices,
             memSpec.bitWidth,
             memSpec.dataRate,
-            databus_t::Bus_t::BusIdlePatternSpec::L, databus_t::Bus_t::BusInitPatternSpec::L,
+            util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L,
             DRAMUtils::Config::TogglingRateIdlePattern::L, 0.0, 0.0,
-            databus_t::BusType::Bus
+            util::DataBusMode::Bus
         }
         , readDQS(memSpec.dataRate, true)
         , wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)

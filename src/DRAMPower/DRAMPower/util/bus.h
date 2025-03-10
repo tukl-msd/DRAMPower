@@ -56,7 +56,21 @@ struct bus_stats_t {
 	}
 };
 
-template <std::size_t blocksize = 32>
+enum class BusIdlePatternSpec
+	{
+	L = 0,
+	H = 1,
+	Z = 2,
+	LAST_PATTERN = 3
+};
+
+enum class BusInitPatternSpec
+{
+	L = 0,
+	H = 1,
+	Z = 2,
+};
+
 class Bus {
 
 private:
@@ -106,20 +120,7 @@ private:
 	};
 
 public:
-	enum class BusIdlePatternSpec
-	{
-		L = 0,
-		H = 1,
-		Z = 2,
-		LAST_PATTERN = 3
-	};
-	enum class BusInitPatternSpec
-	{
-		L = 0,
-		H = 1,
-		Z = 2,
-	};
-	using burst_storage_t = util::burst_storage<blocksize>;
+	
 	using burst_t = typename burst_storage_t::burst_t;
 	bus_stats_t stats;
 

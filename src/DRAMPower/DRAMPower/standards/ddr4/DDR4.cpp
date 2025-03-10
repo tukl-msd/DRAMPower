@@ -25,8 +25,8 @@ namespace DRAMPower {
         , commandBus(
             cmdBusWidth,
             1,
-            commandbus_t::BusIdlePatternSpec::H,
-            commandbus_t::burst_t(cmdBusWidth, cmdBusInitPattern)
+            util::BusIdlePatternSpec::H,
+            util::BusInitPatternSpec::H
         )
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
@@ -34,9 +34,9 @@ namespace DRAMPower {
             memSpec.numberOfDevices,
             memSpec.bitWidth,
             memSpec.dataRate,
-            databus_t::Bus_t::BusIdlePatternSpec::H, databus_t::Bus_t::BusInitPatternSpec::H,
+            util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H,
             DRAMUtils::Config::TogglingRateIdlePattern::H, 0.0, 0.0,
-            databus_t::BusType::Bus)
+            util::DataBusMode::Bus)
     {
         this->registerCommands();
     }

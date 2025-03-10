@@ -29,16 +29,16 @@ namespace DRAMPower {
             memSpec.numberOfDevices,
             memSpec.bitWidth,
             memSpec.dataRate,
-            databus_t::Bus_t::BusIdlePatternSpec::H, databus_t::Bus_t::BusInitPatternSpec::H,
+            util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H,
             DRAMUtils::Config::TogglingRateIdlePattern::H, 0.0, 0.0,
-            databus_t::BusType::Bus
+            util::DataBusMode::Bus
         }
         , cmdBusWidth(14)
         , cmdBusInitPattern((1<<cmdBusWidth)-1)
         , commandBus(
             cmdBusWidth,
             1,
-            commandbus_t::BusIdlePatternSpec::H,
+            util::BusIdlePatternSpec::H,
             commandbus_t::burst_t(cmdBusWidth, cmdBusInitPattern)
         )
         , readDQS(memSpec.dataRateSpec.dqsBusRate, true)
