@@ -134,10 +134,10 @@ public:
         util::bus_stats_t &togglingHandleReadStats,
         util::bus_stats_t &togglingHandleWriteStats) const
     {
-        busReadStats = busRead.get_stats(timestamp);
-        busWriteStats = busWrite.get_stats(timestamp);
-        togglingHandleReadStats = togglingHandleRead.get_stats(timestamp);
-        togglingHandleWriteStats = togglingHandleWrite.get_stats(timestamp);
+        busReadStats += busRead.get_stats(timestamp);
+        busWriteStats += busWrite.get_stats(timestamp);
+        togglingHandleReadStats += togglingHandleRead.get_stats(timestamp);
+        togglingHandleWriteStats += togglingHandleWrite.get_stats(timestamp);
     }
 
 private:
