@@ -14,6 +14,7 @@
 
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/util/cycle_stats.h>
+#include <DRAMPower/util/databus.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
 
@@ -29,8 +30,10 @@ public:
     LPDDR4(const MemSpecLPDDR4& memSpec);
     virtual ~LPDDR4() = default;
 public:
-    using commandbus_t = util::Bus<6>;
-    using databus_t = util::DataBus<16>;
+    using commandbus_t = util::Bus<6, 6>;
+    using databusfallback_t = util::DataBus<64>;
+    using databus_sequence = DRAMPOWER_DATABUS_CREATE_TYPESEQUENCE(64, 64);
+    using databus_t = util::DataBusContainerProxy<databus_sequence, databusfallback_t>;
     MemSpecLPDDR4 memSpec;
     std::vector<Rank> ranks;
     commandbus_t commandBus;
@@ -135,6 +138,6 @@ public:
     SimulationStats getWindowStats(timestamp_t timestamp);
 };
 
-};
+} // namespace DRAMPower
 
 #endif /* DRAMPOWER_STANDARDS_LPDDR4_LPDDR4_H */

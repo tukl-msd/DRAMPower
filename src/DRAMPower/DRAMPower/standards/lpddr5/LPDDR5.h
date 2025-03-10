@@ -22,6 +22,7 @@
 #include "DRAMPower/util/databus.h"
 #include "DRAMPower/util/clock.h"
 #include "DRAMPower/util/cycle_stats.h"
+#include "DRAMPower/util/databus.h"
 
 namespace DRAMPower {
 class LPDDR5 : public dram_base<CmdType> {
@@ -33,8 +34,10 @@ public:
 public:
     MemSpecLPDDR5 memSpec;
     std::vector<Rank> ranks;
-    using commandbus_t = util::Bus<7>;
-    using databus_t = util::DataBus<8>;
+    using commandbus_t = util::Bus<7, 7>;
+    using databusfallback_t = util::DataBus<64>;
+    using databus_sequence = DRAMPOWER_DATABUS_CREATE_TYPESEQUENCE(64, 64);
+    using databus_t = util::DataBusContainerProxy<databus_sequence, databusfallback_t>;
 private:
     commandbus_t commandBus;
     databus_t dataBus;
