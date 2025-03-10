@@ -145,7 +145,7 @@ void TogglingHandle::incCountBitLength(timestamp_t timestamp, uint64_t bitlength
     assert(bitlength % this->width == 0);
     this->incCountBurstLength(timestamp, bitlength / this->width);
 }
-util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp)
+util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp) const
 {
     // Convert to bus timings
     timestamp_t virtual_timestamp = timestamp * this->datarate;

@@ -93,7 +93,7 @@ public:
         togglingHandleWrite.setTogglingRateAndDutyCycle(toggleratedefinition.togglingRateWrite, toggleratedefinition.dutyCycleWrite, toggleratedefinition.idlePatternWrite);
     }
 
-    timestamp_t lastBurst() {
+    timestamp_t lastBurst() const {
         switch(busType) {
             case DataBusMode::Bus:
                 return std::max(busWrite.get_lastburst_timestamp(), busRead.get_lastburst_timestamp());
@@ -104,27 +104,27 @@ public:
         return 0;
     }
 
-    bool isBus() {
+    bool isBus() const {
         return DataBusMode::Bus == busType;
     }
 
-    bool isTogglingRate() {
+    bool isTogglingRate() const {
         return DataBusMode::TogglingRate == busType;
     }
 
-    std::size_t getWidth() {
+    std::size_t getWidth() const {
         return width;
     }
 
-    std::size_t getNumberOfDevices() {
+    std::size_t getNumberOfDevices() const {
         return numberOfDevices;
     }
 
-    std::size_t getCombinedBusWidth() {
+    std::size_t getCombinedBusWidth() const {
         return width * numberOfDevices;
     }
 
-    std::size_t getDataRate() {
+    std::size_t getDataRate() const {
         return dataRate;
     }
 
@@ -132,7 +132,7 @@ public:
         util::bus_stats_t &busReadStats,
         util::bus_stats_t &busWriteStats,
         util::bus_stats_t &togglingHandleReadStats,
-        util::bus_stats_t &togglingHandleWriteStats)
+        util::bus_stats_t &togglingHandleWriteStats) const
     {
         busReadStats = busRead.get_stats(timestamp);
         busWriteStats = busWrite.get_stats(timestamp);
