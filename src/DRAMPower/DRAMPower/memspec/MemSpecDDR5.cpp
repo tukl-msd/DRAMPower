@@ -1,6 +1,5 @@
 #include "MemSpecDDR5.h"
 using namespace DRAMPower;
-using json_t = nlohmann::json;
 
 
 MemSpecDDR5::MemSpecDDR5(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec)
@@ -50,14 +49,15 @@ MemSpecDDR5::MemSpecDDR5(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec)
     vddq = memspec.mempowerspec.vddq;
 
 
-    if (memspec.memarchitecturespec.RefMode == 1) {
-        memPowerSpec[VDD].iXX5X = memspec.mempowerspec.idd5b;
-        memPowerSpec[VPP].iXX5X = memspec.mempowerspec.ipp5b;
-        memTimingSpec.tRFC = memspec.memtimingspec.RFC1_slr;
-    } else {
+    if (DRAMUtils::MemSpec::RefModeTypeDDR5::REF_MODE_2 == memspec.memarchitecturespec.RefMode) {
         memPowerSpec[VDD].iXX5X = memspec.mempowerspec.idd5f;
         memPowerSpec[VPP].iXX5X = memspec.mempowerspec.ipp5f;
         memTimingSpec.tRFC = memspec.memtimingspec.RFC2_slr;
+    } else {
+        // RefModeTypeDDR5::REF_MODE_1 || RefModeTypeDDR5::INVALID
+        memPowerSpec[VDD].iXX5X = memspec.mempowerspec.idd5b;
+        memPowerSpec[VPP].iXX5X = memspec.mempowerspec.ipp5b;
+        memTimingSpec.tRFC = memspec.memtimingspec.RFC1_slr;
     }
 
     memPowerSpec[VDD].iBeta = memspec.mempowerspec.iBeta_vdd.value_or(memspec.mempowerspec.idd0);
