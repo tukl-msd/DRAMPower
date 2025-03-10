@@ -25,20 +25,37 @@ namespace DRAMPower {
         , commandBus(
             cmdBusWidth,
             1,
-            commandbus_t::BusIdlePatternSpec::H,
-            commandbus_t::burst_t(cmdBusWidth, cmdBusInitPattern)
+            util::BusIdlePatternSpec::H,
+            util::BusInitPatternSpec::H
         )
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
         , dataBus(
-            memSpec.numberOfDevices,
-            memSpec.bitWidth,
-            memSpec.dataRate,
-            databus_t::Bus_t::BusIdlePatternSpec::H, databus_t::Bus_t::BusInitPatternSpec::H,
-            DRAMUtils::Config::TogglingRateIdlePattern::H, 0.0, 0.0,
-            databus_t::BusType::Bus)
+            databus_t::Builder_t{}
+            .setNumberOfDevices(memSpec.numberOfDevices)
+            .setWidth(memSpec.bitWidth)
+            .setDataRate(memSpec.dataRate)
+            .setIdlePattern(util::BusIdlePatternSpec::H)
+            .setInitPattern(util::BusInitPatternSpec::H)
+            .setTogglingRateIdlePattern(DRAMUtils::Config::TogglingRateIdlePattern::H)
+            .setTogglingRate(0.0)
+            .setDutyCycle(0.0)
+            .setBusType(util::DataBusMode::Bus)
+            .build<databusfallback_t>()
+        )
     {
         this->registerCommands();
+        auto builder = databus_t::Builder_t{}
+        .setNumberOfDevices(memSpec.numberOfDevices)
+        .setWidth(memSpec.bitWidth)
+        .setDataRate(memSpec.dataRate)
+        .setIdlePattern(util::BusIdlePatternSpec::H)
+        .setInitPattern(util::BusInitPatternSpec::H)
+        .setTogglingRateIdlePattern(DRAMUtils::Config::TogglingRateIdlePattern::H)
+        .setTogglingRate(0.0)
+        .setDutyCycle(0.0)
+        .setBusType(util::DataBusMode::Bus);
+        DRAMPOWER_DATABUS_SELECTOR(this->dataBus, builder, memSpec.bitWidth * memSpec.numberOfDevices, 0, 64, 64)
     }
 
 

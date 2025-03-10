@@ -27,8 +27,10 @@ namespace DRAMPower {
 class DDR5 : public dram_base<CmdType> {
 
 public:
-    using commandbus_t = util::Bus<14>;
-    using databus_t = util::DataBus<16>;
+    using commandbus_t = util::Bus<14, 14>;
+    using databusfallback_t = util::DataBus<64>;
+    using databus_sequence = DRAMPOWER_DATABUS_CREATE_TYPESEQUENCE(64, 64);
+    using databus_t = util::DataBusContainerProxy<databus_sequence, databusfallback_t>;
     MemSpecDDR5 memSpec;
     std::vector<Rank> ranks;
     databus_t dataBus;
