@@ -175,7 +175,6 @@ class DataBusContainer<DRAMUtils::util::type_sequence<Ts...>, Fallback, std::ena
 
 // Public type definitions
 public:
-    using VariantTypeSequence_t = DRAMUtils::util::type_sequence<Ts...>;
     using UnifiedVariantSequence_t = DRAMUtils::util::type_sequence<Ts..., Fallback>;
     using UnifiedVariant_t = std::variant<Ts..., Fallback>;
 
@@ -475,33 +474,30 @@ public:
 
 };
 
+#define __DRAMPOWER_EVAL(X) X
+
 
 // Helper macros for CREATE_DATABUS_TYPESEQUENCE
-#define __DRAMPOWER_DATABUS_ENTRY(INDEX, BASE) util::DataBus<0, (BASE) * (INDEX)>
-#define __DRAMPOWER_DATABUS_EXPAND_ENTRIES(BASE, COUNT) \
-    __DRAMPOWER_DATABUS_EXPAND_COMMA(BASE, COUNT, __DRAMPOWER_DATABUS_ENTRY)
+#define __DRAMPOWER_DATABUS_ENTRY(INDEX, BASE) util::DataBus<0, (INDEX) * (BASE)>
+#define __DRAMPOWER_DATABUS_EXPAND_ENTRIES(COUNT, BASE) \
+    __DRAMPOWER_DATABUS_EXPAND_COMMA(COUNT, __DRAMPOWER_DATABUS_ENTRY, BASE)
 // This macro is used to create a DataBus type sequence with a given base and number of entries.
-#define DRAMPOWER_DATABUS_CREATE_TYPESEQUENCE(BASE, NUM_ENTRIES) \
+#define DRAMPOWER_DATABUS_CREATE_TYPESEQUENCE(NUM_ENTRIES, BASE) \
     DRAMUtils::util::type_sequence< \
-        __DRAMPOWER_DATABUS_EXPAND_ENTRIES(BASE, NUM_ENTRIES) \
+        __DRAMPOWER_DATABUS_EXPAND_ENTRIES(NUM_ENTRIES, BASE) \
     >
 
 // Helper macros for DRAMPOWER_DATABUS_SWITCH
-#define __DRAMPOWER_DATABUS_SWITCH_CASE_ENTRY_0(databus, builder, maxburst_length, BASE) \
-    if (memSpec.bitWidth * memSpec.numberOfDevices <= (BASE)) { \
-        databus = builder.build<util::DataBus<0, (BASE), (maxburst_length)>>(); \
-    }
-#define __DRAMPOWER_DATABUS_SWITCH_CASE_ENTRY_N(databus, builder, maxburst_length, INDEX, BASE) \
-    else if ((INDEX - 1) * (BASE) < memSpec.bitWidth * memSpec.numberOfDevices && \
-        memSpec.bitWidth * memSpec.numberOfDevices <= (INDEX) * (BASE)) { \
+#define __DRAMPOWER_DATABUS_SWITCH_CASE_ENTRY_N(INDEX, databus, builder, TARGET, maxburst_length, BASE) \
+    if ((INDEX - 1) * (BASE) < (TARGET) && (TARGET) <= (INDEX) * (BASE)) \
         databus = builder.build<util::DataBus<0, (INDEX) * (BASE), (maxburst_length)>>(); \
-    }
-#define __DRAMPOWER_DATABUS_EXPAND_SWITCH(databus, builder, maxburst_length, BASE, COUNT) \
-    __DRAMPOWER_DATABUS_EXPAND(databus, builder, maxburst_length, BASE, COUNT, __DRAMPOWER_DATABUS_SWITCH_CASE_ENTRY_N)
+    else
+#define __DRAMPOWER_DATABUS_EXPAND_SWITCH(databus, builder, TARGET, maxburst_length, COUNT, BASE) \
+    __DRAMPOWER_DATABUS_EXPAND(COUNT, __DRAMPOWER_DATABUS_SWITCH_CASE_ENTRY_N, databus, builder, TARGET, maxburst_length, BASE)
 // This macro is used to create a DataBusContainerProxy or a DataBusContainer
-#define DRAMPOWER_DATABUS_SELECTOR(databus, builder, TARGET, maxburst_length, BASE, COUNT) \
-    __DRAMPOWER_DATABUS_SWITCH_CASE_ENTRY_0(databus, builder, maxburst_length, BASE) \
-    __DRAMPOWER_DATABUS_EXPAND_SWITCH(databus, builder, maxburst_length, BASE, COUNT)
+#define DRAMPOWER_DATABUS_SELECTOR(databus, builder, TARGET, maxburst_length, COUNT, BASE) \
+    __DRAMPOWER_DATABUS_EXPAND_SWITCH(databus, builder, TARGET, maxburst_length, COUNT, BASE)
+
 } // namespace DRAMPower
 
 #endif /* DRAMPOWER_UTIL_DATABUS */

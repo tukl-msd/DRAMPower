@@ -44,8 +44,10 @@ namespace DRAMPower {
         .setTogglingRate(0.0)
         .setDutyCycle(0.0)
         .setBusType(util::DataBusMode::Bus);
-        DRAMPOWER_DATABUS_SELECTOR(this->dataBus, builder, memSpec.bitWidth * memSpec.numberOfDevices, 0, 64, 64)
-    };
+        DRAMPOWER_DATABUS_SELECTOR(this->dataBus, builder, memSpec.bitWidth * memSpec.numberOfDevices, 0, 64, 64) {
+            // Fallback already assigned in initializer list
+        }
+    }
 
     void LPDDR4::registerCommands() {
         using namespace pattern_descriptor;
