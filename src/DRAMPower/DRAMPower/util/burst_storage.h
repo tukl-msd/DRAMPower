@@ -6,6 +6,9 @@
 #include <array>
 #include <optional>
 #include <type_traits>
+#include <cassert>
+#include <cstdint>
+
 
 #include <DRAMPower/util/dynamic_bitset.h>
 #include <DRAMPower/util/sub_bitset.h>
@@ -51,7 +54,20 @@ private:
 	std::size_t width = 0;
 	burst_storage_t bursts;
 public:
-	explicit burst_storage(std::size_t width) : width(width) {}
+	explicit burst_storage(std::size_t width) : width(width) 
+	{
+		assert(width > 0);
+		assert(maxburst_length == 0 || maxburst_length >= width);
+		if constexpr (std::is_same_v<burst_storage_t, burst_vector_t>) {
+			bursts.resize(width, createBitset());
+
+		} else {
+			// std::is_same_v<burst_storage_t, burst_array_t>
+			// maxburst_length is known at compile time
+			// no resize needed
+			bursts.fill(createBitset());
+		}
+	}
 public:
 
 	inline burst_t createBitset() {
@@ -63,9 +79,27 @@ public:
 			bursts.push_back(bits);
 		} else {
 			// std::is_same_v<burst_storage_t, burst_array_t>
+			// maxburst_length is known at compile time
+			// no resize needed
+			assert(count < maxburst_length);
 			bursts.at(count) = bits;
 		}
 		count++;
+	}
+
+	inline burst_t& get_or_add(std::size_t index) {
+		if constexpr (std::is_same_v<burst_storage_t, burst_vector_t>) {
+			if (index >= bursts.size()) {
+				bursts.resize(index + 1, createBitset());
+			}
+			return bursts[index];
+		} else {
+			// std::is_same_v<burst_storage_t, burst_array_t>
+			// maxburst_length is known at compile time
+			// no resize needed
+			assert(index < maxburst_length);
+			return bursts[index];
+		}
 	}
 
 	void insert_data(const uint8_t* data, std::size_t n_bits) {
@@ -76,7 +110,7 @@ public:
 		size_t bit_index = 0;
 		for (std::size_t i = 0; i < n_bursts; ++i) {
 			// Extract bursts
-			burst_t bits = createBitset();
+			burst_t &bits = get_or_add(i);
 			burst_offset = i * width;
 			for (std::size_t j = 0; j < width && (burst_offset + j) < n_bits; ++j) {
 				// Extract bit
@@ -87,8 +121,8 @@ public:
 					++byte_index;
 				}
 			}
-			push_back(bits);
 		}
+		count = n_bursts;
 	}
 
 	bool empty() const { return 0 == count; };
@@ -98,9 +132,6 @@ public:
 
 	void clear() {
 		this->count = 0;
-		if constexpr (std::is_same_v<burst_storage_t, burst_vector_t>) {
-			this->bursts.clear();
-		}
 	}
 };
 
