@@ -206,14 +206,6 @@ public:
         std::optional<DataBusMode> busType;
     };
 
-private:
-    template <typename T>
-    struct BuilderResult {
-        uint64_t numberOfDevices;
-        std::size_t width;
-        T variant;
-    };
-
 public:
     /** This Builder class is used to create a DataBusContainer.
      *  The Builder class uses a tag system to ensure that all required parameters are set exactly once.
@@ -316,20 +308,16 @@ public:
             typename = std::enable_if_t<DRAMUtils::util::is_one_of<std::decay_t<T>, UnifiedVariantSequence_t>::value> // For a better error message
         >
         auto build() {
-            return BuilderResult<T>{
+            return T {
                 data.numberOfDevices.value(),
                 data.width.value(),
-                T {
-                    data.numberOfDevices.value(),
-                    data.width.value(),
-                    data.dataRate.value(),
-                    data.idlePattern.value(),
-                    data.initPattern.value(),
-                    data.togglingRateIdlePattern.value(),
-                    data.togglingRate.value(),
-                    data.dutyCycle.value(),
-                    data.busType.value()
-                }
+                data.dataRate.value(),
+                data.idlePattern.value(),
+                data.initPattern.value(),
+                data.togglingRateIdlePattern.value(),
+                data.togglingRate.value(),
+                data.dutyCycle.value(),
+                data.busType.value()
             };
         }
 
@@ -355,14 +343,15 @@ private:
     std::size_t numberOfDevices;
     std::size_t width;
     
-// Constructors using BuilderResult
+// Constructors
 public:
     template <typename T, std::enable_if_t<DRAMUtils::util::is_one_of<std::decay_t<T>, UnifiedVariantSequence_t>::value, int> = 0>
-    explicit DataBusContainer(BuilderResult<T>&& builderresult)
-        : storage(T{std::move(builderresult.variant)})
-        , numberOfDevices(builderresult.numberOfDevices)
-        , width(builderresult.width)
-    {}
+    explicit DataBusContainer(T&& databus)
+        : storage(databus)
+        , numberOfDevices(databus.getNumberOfDevices())
+        , width(databus.getWidth())
+    {
+    }
 
     // No default constructor
     DataBusContainer() = delete;
@@ -473,9 +462,6 @@ public:
     }
 
 };
-
-#define __DRAMPOWER_EVAL(X) X
-
 
 // Helper macros for CREATE_DATABUS_TYPESEQUENCE
 #define __DRAMPOWER_DATABUS_TYPESEQUENCE_ENTRY(INDEX, BASE) util::DataBus<0, (INDEX) * (BASE)>

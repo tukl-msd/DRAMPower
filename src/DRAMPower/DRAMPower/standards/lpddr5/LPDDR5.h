@@ -20,6 +20,7 @@
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus.h"
+#include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
 #include "DRAMPower/util/cycle_stats.h"
 #include "DRAMPower/util/databus.h"
@@ -35,9 +36,9 @@ public:
     MemSpecLPDDR5 memSpec;
     std::vector<Rank> ranks;
     using commandbus_t = util::Bus<7, 7>;
-    using databusfallback_t = util::DataBus<64>;
-    using databus_sequence = DRAMPOWER_DATABUS_CREATE_TYPESEQUENCE(64, 64);
-    using databus_t = util::DataBusContainerProxy<databus_sequence, databusfallback_t>;
+    using databus_sequence_t = util::databus_preset_sequence_t;
+    using databus_fallback_t = util::databus_preset_fallback_t;
+    using databus_t = util::DataBusContainerProxy<databus_sequence_t, databus_fallback_t>;
 private:
     commandbus_t commandBus;
     databus_t dataBus;

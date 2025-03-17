@@ -28,24 +28,30 @@ namespace DRAMPower {
             .setTogglingRate(0.0)
             .setDutyCycle(0.0)
             .setBusType(util::DataBusMode::Bus)
-            .build<databusfallback_t>()
+            .build<databus_fallback_t>()
         }
         , readDQS(memSpec.dataRate, true)
         , writeDQS(memSpec.dataRate, true)
     {
         this->registerCommands();
+
+         // Set databus arguments
         auto builder = databus_t::Builder_t{}
-        .setNumberOfDevices(memSpec.numberOfDevices)
-        .setWidth(memSpec.bitWidth)
-        .setDataRate(memSpec.dataRate)
-        .setIdlePattern(util::BusIdlePatternSpec::L)
-        .setInitPattern(util::BusInitPatternSpec::L)
-        .setTogglingRateIdlePattern(TogglingRateIdlePattern::L)
-        .setTogglingRate(0.0)
-        .setDutyCycle(0.0)
-        .setBusType(util::DataBusMode::Bus);
-        DRAMPOWER_DATABUS_SELECTOR(this->dataBus, builder, memSpec.bitWidth * memSpec.numberOfDevices, 0, 64, 64) {
-            // Fallback already assigned in initializer list
+            .setNumberOfDevices(memSpec.numberOfDevices)
+            .setWidth(memSpec.bitWidth)
+            .setDataRate(memSpec.dataRate)
+            .setIdlePattern(util::BusIdlePatternSpec::L)
+            .setInitPattern(util::BusInitPatternSpec::L)
+            .setTogglingRateIdlePattern(TogglingRateIdlePattern::L)
+            .setTogglingRate(0.0)
+            .setDutyCycle(0.0)
+            .setBusType(util::DataBusMode::Bus);
+        
+        // Get databus from preset
+        auto width = memSpec.bitWidth * memSpec.numberOfDevices;
+        if(!util::getDataBusPreset(width, dataBus, builder)) {
+            std::cout << "[Warning] dyanmic_bitset is used for bus storage. "
+                      << "This may lead to performance issues." << std::endl;
         }
     }
 

@@ -19,6 +19,7 @@
 #include "DRAMPower/memspec/MemSpecDDR5.h"
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus.h"
+#include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
 #include "DRAMPower/util/cycle_stats.h"
 
@@ -28,9 +29,9 @@ class DDR5 : public dram_base<CmdType> {
 
 public:
     using commandbus_t = util::Bus<14, 14>;
-    using databusfallback_t = util::DataBus<64>;
-    using databus_sequence = DRAMPOWER_DATABUS_CREATE_TYPESEQUENCE(64, 64);
-    using databus_t = util::DataBusContainerProxy<databus_sequence, databusfallback_t>;
+    using databus_sequence_t = util::databus_preset_sequence_t;
+    using databus_fallback_t = util::databus_preset_fallback_t;
+    using databus_t = util::DataBusContainerProxy<databus_sequence_t, databus_fallback_t>;
     MemSpecDDR5 memSpec;
     std::vector<Rank> ranks;
     databus_t dataBus;
