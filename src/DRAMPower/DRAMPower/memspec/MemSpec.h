@@ -53,13 +53,13 @@
 namespace DRAMPower {
 
 struct MemImpedanceStaticSpec {
-    DRAMUtils::MemSpec::MemStaticPowerType entry;
+    DRAMUtils::MemSpec::MemImpedanceStaticPowerType entry;
     double equivalent_resistance;
 
     MemImpedanceStaticSpec() = default; // explicit default constructor
 
     // Copy constructor from DRAMUtils entry to DRAMPower entry
-    MemImpedanceStaticSpec(const DRAMUtils::MemSpec::MemStaticPowerType &entry)
+    MemImpedanceStaticSpec(const DRAMUtils::MemSpec::MemImpedanceStaticPowerType &entry)
     : entry(entry) // invokes copy constructor
     {
         switch(entry.termination) {
