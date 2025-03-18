@@ -20,22 +20,22 @@ double InterfaceCalculation_LPDDR4::calc_dynamic_energy(const uint64_t NxBits, c
 double InterfaceCalculation_LPDDR4::calcStaticTermination(const DRAMPower::util::bus_stats_t &stats, const DRAMPower::MemImpedanceStaticSpec &static_container, const double t_CK, const uint64_t datarate, const double voltage)
 {
     switch( static_container.entry.termination ) {
-        case DRAMUtils::MemSpec::TerminationScheme::Invalid:
+        case DRAMUtils::MemSpec::MemImpedanceTerminationScheme::Invalid:
             assert(false);
             // TODO throw error?
             // throw std::runtime_error("Invalid termination");
             return 0; // No energy returned
-        case DRAMUtils::MemSpec::TerminationScheme::PUSH_PULL:
+        case DRAMUtils::MemSpec::MemImpedanceTerminationScheme::PUSH_PULL:
             // E_UP = E_DOWN -> E = 2 * E_UP = 2 * E_DOWN
             return calc_static_energy(stats.ones, static_container.equivalent_resistance, t_CK / datarate, voltage)
                 + calc_static_energy(stats.zeroes, static_container.equivalent_resistance, t_CK / datarate, voltage);
-        case DRAMUtils::MemSpec::TerminationScheme::LWSTL:
+        case DRAMUtils::MemSpec::MemImpedanceTerminationScheme::LWSTL:
             return calc_static_energy(stats.ones, static_container.equivalent_resistance, t_CK / datarate, voltage);
             break;
-        case DRAMUtils::MemSpec::TerminationScheme::PODL:
+        case DRAMUtils::MemSpec::MemImpedanceTerminationScheme::PODL:
             return calc_static_energy(stats.zeroes, static_container.equivalent_resistance, t_CK / datarate, voltage);
             break;
-        case DRAMUtils::MemSpec::TerminationScheme::UNTERMINATED:
+        case DRAMUtils::MemSpec::MemImpedanceTerminationScheme::UNTERMINATED:
             return 0; // No energy returned
             break;
     }

@@ -63,21 +63,21 @@ struct MemImpedanceStaticSpec {
     : entry(entry) // invokes copy constructor
     {
         switch(entry.termination) {
-            case DRAMUtils::MemSpec::TerminationScheme::Invalid:
+            case DRAMUtils::MemSpec::MemImpedanceTerminationScheme::Invalid:
                 assert(false);
-                this->entry.termination = DRAMUtils::MemSpec::TerminationScheme::PUSH_PULL;
+                this->entry.termination = DRAMUtils::MemSpec::MemImpedanceTerminationScheme::PUSH_PULL;
                 // TODO throw runtime error?
                 // throw std::runtime_error("Invalid termination");
                 equivalent_resistance = 4 * (entry.R_ON + entry.R_TT);
                 break;
-            case DRAMUtils::MemSpec::TerminationScheme::PUSH_PULL:
+            case DRAMUtils::MemSpec::MemImpedanceTerminationScheme::PUSH_PULL:
                 equivalent_resistance = 4 * (entry.R_ON + entry.R_TT);
                 break;
-            case DRAMUtils::MemSpec::TerminationScheme::LWSTL:
-            case DRAMUtils::MemSpec::TerminationScheme::PODL:
+            case DRAMUtils::MemSpec::MemImpedanceTerminationScheme::LWSTL:
+            case DRAMUtils::MemSpec::MemImpedanceTerminationScheme::PODL:
                 equivalent_resistance = entry.R_ON + entry.R_TT;
                 break;
-            case DRAMUtils::MemSpec::TerminationScheme::UNTERMINATED:
+            case DRAMUtils::MemSpec::MemImpedanceTerminationScheme::UNTERMINATED:
                 equivalent_resistance = 0;
                 break;
         }
