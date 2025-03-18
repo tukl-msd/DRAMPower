@@ -284,12 +284,14 @@ TEST_F(LPDDR4_TogglingRateEnergy_Tests, DQ_Energy) {
 
     // Controller -> write power
     // Dram -> read power
-    double expected_static_controller = 0;
-    double expected_static_dram = 0;
+    double expected_static_controller =
+        stats.togglingStats.write.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.static_wb.equivalent_resistance;
+    double expected_static_dram =
+        stats.togglingStats.read.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.static_rb.equivalent_resistance;
 
     // Dynamic power is consumed on 0 -> 1 transition
-    double expected_dynamic_controller = 0;
-    double expected_dynamic_dram = 0;
+    double expected_dynamic_controller = stats.togglingStats.write.zeroes_to_ones * spec->memImpedanceSpec.dynamicEnergy_wb;
+    double expected_dynamic_dram = stats.togglingStats.read.zeroes_to_ones * spec->memImpedanceSpec.dynamicEnergy_rb;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
     EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
