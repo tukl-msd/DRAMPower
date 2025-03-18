@@ -29,9 +29,7 @@ class DDR5 : public dram_base<CmdType> {
 
 public:
     using commandbus_t = util::Bus<14, 14>;
-    using databus_sequence_t = util::databus_preset_sequence_t;
-    using databus_fallback_t = util::databus_preset_fallback_t;
-    using databus_t = util::DataBusContainerProxy<databus_sequence_t, databus_fallback_t>;
+    using databus_t = util::databus_presets::databus_preset_t;
     MemSpecDDR5 memSpec;
     std::vector<Rank> ranks;
     databus_t dataBus;

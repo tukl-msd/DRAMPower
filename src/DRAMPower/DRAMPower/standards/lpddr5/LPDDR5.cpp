@@ -17,41 +17,25 @@ namespace DRAMPower {
         , commandBus{7, 2, // modelled with datarate 2
             util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
         , dataBus{
-            databus_t::Builder_t{}
-            .setNumberOfDevices(memSpec.numberOfDevices)
-            .setWidth(memSpec.bitWidth)
-            .setDataRate(memSpec.dataRate)
-            .setIdlePattern(util::BusIdlePatternSpec::L)
-            .setInitPattern(util::BusInitPatternSpec::L)
-            .setTogglingRateIdlePattern(DRAMUtils::Config::TogglingRateIdlePattern::L)
-            .setTogglingRate(0.0)
-            .setDutyCycle(0.0)
-            .setBusType(util::DataBusMode::Bus)
-            .build<databus_fallback_t>()
+            util::databus_presets::getDataBusPreset(
+                memSpec.bitWidth * memSpec.numberOfDevices,
+                databus_t::Builder_t{}
+                    .setNumberOfDevices(memSpec.numberOfDevices)
+                    .setWidth(memSpec.bitWidth)
+                    .setDataRate(memSpec.dataRate)
+                    .setIdlePattern(util::BusIdlePatternSpec::L)
+                    .setInitPattern(util::BusInitPatternSpec::L)
+                    .setTogglingRateIdlePattern(DRAMUtils::Config::TogglingRateIdlePattern::L)
+                    .setTogglingRate(0.0)
+                    .setDutyCycle(0.0)
+                    .setBusType(util::DataBusMode::Bus),
+                true
+            )
         }
         , readDQS(memSpec.dataRate, true)
         , wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
     {
         this->registerCommands();
-
-        // Set databus arguments
-        auto builder = databus_t::Builder_t{}
-            .setNumberOfDevices(memSpec.numberOfDevices)
-            .setWidth(memSpec.bitWidth)
-            .setDataRate(memSpec.dataRate)
-            .setIdlePattern(util::BusIdlePatternSpec::L)
-            .setInitPattern(util::BusInitPatternSpec::L)
-            .setTogglingRateIdlePattern(DRAMUtils::Config::TogglingRateIdlePattern::L)
-            .setTogglingRate(0.0)
-            .setDutyCycle(0.0)
-            .setBusType(util::DataBusMode::Bus);
-        
-        // Get databus from preset
-        auto width = memSpec.bitWidth * memSpec.numberOfDevices;
-        if(!util::getDataBusPreset(width, dataBus, builder)) {
-            std::cout << "[Warning] dyanmic_bitset is used for bus storage. "
-                      << "This may lead to performance issues." << std::endl;
-        }
     }
 
     void LPDDR5::registerCommands() {
