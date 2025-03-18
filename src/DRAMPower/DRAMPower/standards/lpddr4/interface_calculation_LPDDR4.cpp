@@ -24,10 +24,10 @@ double InterfaceCalculation_LPDDR4::calcStaticTermination(const DRAMPower::util:
             assert(false);
             // TODO throw error?
             // throw std::runtime_error("Invalid termination");
-            return 0;
+            return 0; // No energy returned
         case DRAMUtils::MemSpec::TerminationScheme::PUSH_PULL:
             // E_UP = E_DOWN -> E = 2 * E_UP = 2 * E_DOWN
-            return  calc_static_energy(stats.ones, static_container.equivalent_resistance, t_CK / datarate, voltage)
+            return calc_static_energy(stats.ones, static_container.equivalent_resistance, t_CK / datarate, voltage)
                 + calc_static_energy(stats.zeroes, static_container.equivalent_resistance, t_CK / datarate, voltage);
         case DRAMUtils::MemSpec::TerminationScheme::LWSTL:
             return calc_static_energy(stats.ones, static_container.equivalent_resistance, t_CK / datarate, voltage);
@@ -36,7 +36,7 @@ double InterfaceCalculation_LPDDR4::calcStaticTermination(const DRAMPower::util:
             return calc_static_energy(stats.zeroes, static_container.equivalent_resistance, t_CK / datarate, voltage);
             break;
         case DRAMUtils::MemSpec::TerminationScheme::UNTERMINATED:
-            return 0;
+            return 0; // No energy returned
             break;
     }
     return 0;
