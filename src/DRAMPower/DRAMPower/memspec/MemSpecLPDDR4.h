@@ -77,38 +77,6 @@ public:
 
 	};
 
-	struct MemStaticSpecContainer {
-		DRAMUtils::MemSpec::MemStaticPowerType entry;
-		double equivalent_resistance;
-
-		MemStaticSpecContainer() = default; // explicit default constructor
-
-		// Copy constructor from DRAMUtils entry to DRAMPower entry
-		MemStaticSpecContainer(const DRAMUtils::MemSpec::MemStaticPowerType &entry)
-		: entry(entry) // invokes copy constructor
-		{
-			switch(entry.termination) {
-				case DRAMUtils::MemSpec::TerminationScheme::Invalid:
-					assert(false);
-					this->entry.termination = DRAMUtils::MemSpec::TerminationScheme::PUSH_PULL;
-					// TODO throw runtime error?
-					// throw std::runtime_error("Invalid termination");
-					equivalent_resistance = 4 * (entry.R_ON + entry.R_TT);
-					break;
-				case DRAMUtils::MemSpec::TerminationScheme::PUSH_PULL:
-					equivalent_resistance = 4 * (entry.R_ON + entry.R_TT);
-					break;
-				case DRAMUtils::MemSpec::TerminationScheme::LWSTL:
-				case DRAMUtils::MemSpec::TerminationScheme::PODL:
-					equivalent_resistance = entry.R_ON + entry.R_TT;
-					break;
-				case DRAMUtils::MemSpec::TerminationScheme::UNTERMINATED:
-					equivalent_resistance = 0;
-					break;
-			}
-		}
-	};
-
 	struct MemImpedanceSpec {
 		double dynamicEnergy_ck;
 		double dynamicEnergy_cb;
@@ -116,11 +84,11 @@ public:
 		double dynamicEnergy_wb;
 		double dynamicEnergy_dqs;
 
-		MemStaticSpecContainer static_ck;
-		MemStaticSpecContainer static_cb;
-		MemStaticSpecContainer static_rb;
-		MemStaticSpecContainer static_wb;
-		MemStaticSpecContainer static_dqs;
+		MemImpedanceStaticSpec static_ck;
+		MemImpedanceStaticSpec static_cb;
+		MemImpedanceStaticSpec static_rb;
+		MemImpedanceStaticSpec static_wb;
+		MemImpedanceStaticSpec static_dqs;
 	};
 
 	struct BankWiseParams

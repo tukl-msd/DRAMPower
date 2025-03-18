@@ -17,7 +17,7 @@ double InterfaceCalculation_LPDDR4::calc_dynamic_energy(const uint64_t NxBits, c
     return NxBits * energy;
 }
 
-double InterfaceCalculation_LPDDR4::calcStaticTermination(const DRAMPower::util::bus_stats_t &stats, const DRAMPower::MemSpecLPDDR4::MemStaticSpecContainer &static_container, const double t_CK, const uint64_t datarate, const double voltage)
+double InterfaceCalculation_LPDDR4::calcStaticTermination(const DRAMPower::util::bus_stats_t &stats, const DRAMPower::MemImpedanceStaticSpec &static_container, const double t_CK, const uint64_t datarate, const double voltage)
 {
     switch( static_container.entry.termination ) {
         case DRAMUtils::MemSpec::TerminationScheme::Invalid:
