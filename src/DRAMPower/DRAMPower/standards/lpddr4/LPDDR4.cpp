@@ -16,21 +16,28 @@ namespace DRAMPower {
           }) 
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-        , commandBus{6, 1, commandbus_t::BusIdlePatternSpec::L, commandbus_t::BusInitPatternSpec::L}
+        , commandBus{6, 1, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
         , dataBus{
-            memSpec.numberOfDevices,
-            memSpec.bitWidth,
-            memSpec.dataRate,
-            databus_t::Bus_t::BusIdlePatternSpec::L,
-            databus_t::Bus_t::BusInitPatternSpec::L,
-            TogglingRateIdlePattern::L, 0.0, 0.0,
-            databus_t::BusType::Bus
+            util::databus_presets::getDataBusPreset(
+                memSpec.bitWidth * memSpec.numberOfDevices,
+                databus_t::Builder_t{}
+                    .setNumberOfDevices(memSpec.numberOfDevices)
+                    .setWidth(memSpec.bitWidth)
+                    .setDataRate(memSpec.dataRate)
+                    .setIdlePattern(util::BusIdlePatternSpec::L)
+                    .setInitPattern(util::BusInitPatternSpec::L)
+                    .setTogglingRateIdlePattern(TogglingRateIdlePattern::L)
+                    .setTogglingRate(0.0)
+                    .setDutyCycle(0.0)
+                    .setBusType(util::DataBusMode::Bus),
+                true
+            )
         }
         , readDQS(memSpec.dataRate, true)
         , writeDQS(memSpec.dataRate, true)
     {
         this->registerCommands();
-    };
+    }
 
     void LPDDR4::registerCommands() {
         using namespace pattern_descriptor;

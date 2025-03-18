@@ -26,19 +26,27 @@ namespace DRAMPower {
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
         , dataBus{
-            memSpec.numberOfDevices,
-            memSpec.bitWidth,
-            memSpec.dataRate,
-            databus_t::Bus_t::BusIdlePatternSpec::H, databus_t::Bus_t::BusInitPatternSpec::H,
-            DRAMUtils::Config::TogglingRateIdlePattern::H, 0.0, 0.0,
-            databus_t::BusType::Bus
+            util::databus_presets::getDataBusPreset(
+                memSpec.bitWidth * memSpec.numberOfDevices,
+                databus_t::Builder_t{}
+                    .setNumberOfDevices(memSpec.numberOfDevices)
+                    .setWidth(memSpec.bitWidth)
+                    .setDataRate(memSpec.dataRate)
+                    .setIdlePattern(util::BusIdlePatternSpec::H)
+                    .setInitPattern(util::BusInitPatternSpec::H)
+                    .setTogglingRateIdlePattern(DRAMUtils::Config::TogglingRateIdlePattern::H)
+                    .setTogglingRate(0.0)
+                    .setDutyCycle(0.0)
+                    .setBusType(util::DataBusMode::Bus),
+                true
+            )
         }
         , cmdBusWidth(14)
         , cmdBusInitPattern((1<<cmdBusWidth)-1)
         , commandBus(
             cmdBusWidth,
             1,
-            commandbus_t::BusIdlePatternSpec::H,
+            util::BusIdlePatternSpec::H,
             commandbus_t::burst_t(cmdBusWidth, cmdBusInitPattern)
         )
         , readDQS(memSpec.dataRateSpec.dqsBusRate, true)

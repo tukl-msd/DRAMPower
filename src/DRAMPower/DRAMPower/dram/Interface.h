@@ -60,7 +60,7 @@ public:
 public:
     void incCountBurstLength(timestamp_t timestamp, uint64_t burstlength);
     void incCountBitLength(timestamp_t timestamp, uint64_t bitlength);
-    util::bus_stats_t get_stats(timestamp_t timestamp);
+    util::bus_stats_t get_stats(timestamp_t timestamp) const;
 
 };
 
