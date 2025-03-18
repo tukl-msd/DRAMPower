@@ -86,114 +86,35 @@
     },
     "memimpedancespec": {
 
-        "dynamic_ck": {
-          "capacities" : [
-            {
-              "capacity": 1e-6,
-              "swing": 230e-3
-            },
-            {
-              "capacity": 2e-6,
-              "swing": 250e-3
-            }
-          ],
-          "lineImpedance": 50,
-          "riseTime": 50e-12,
-          "flightTime": 50e-12,
-          "lineSwing": 230e-3
-        },
+        "dynamicEnergy_ck": 1e-9,
+        "dynamicEnergy_cb": 1e-9,
+        "dynamicEnergy_rb": 1e-9,
+        "dynamicEnergy_wb": 1e-9,
+        "dynamicEnergy_dqs": 1e-9,
         "static_ck": {
-          "R_ON": 50,
-          "R_TT": 100,
-          "termination": "LWSTL"
-        },
-
-        "dynamic_cb": {
-          "capacities" : [
-            {
-              "capacity": 1e-6,
-              "swing": 230e-3
-            },
-            {
-              "capacity": 2e-6,
-              "swing": 250e-3
-            }
-          ],
-          "lineImpedance": 50,
-          "riseTime": 50e-12,
-          "flightTime": 50e-12,
-          "lineSwing": 230e-3
+          "R_ON": 1e6,
+          "R_TT": 1e6,
+          "termination": "PODL"
         },
         "static_cb": {
-          "R_ON": 50,
-          "R_TT": 100,
-          "termination": "LWSTL"
-        },
-
-        "dynamic_rb": {
-          "capacities" : [
-            {
-              "capacity": 1e-6,
-              "swing": 230e-3
-            },
-            {
-              "capacity": 2e-6,
-              "swing": 250e-3
-            }
-          ],
-          "lineImpedance": 50,
-          "riseTime": 50e-12,
-          "flightTime": 50e-12,
-          "lineSwing": 230e-3
+          "R_ON": 1e6,
+          "R_TT": 1e6,
+          "termination": "PODL"
         },
         "static_rb": {
-          "R_ON": 50,
-          "R_TT": 100,
-          "termination": "LWSTL"
-        },
-
-        "dynamic_wb": {
-          "capacities" : [
-            {
-              "capacity": 1e-6,
-              "swing": 230e-3
-            },
-            {
-              "capacity": 2e-6,
-              "swing": 250e-3
-            }
-          ],
-          "lineImpedance": 50,
-          "riseTime": 50e-12,
-          "flightTime": 50e-12,
-          "lineSwing": 230e-3
+          "R_ON": 1e6,
+          "R_TT": 1e6,
+          "termination": "PODL"
         },
         "static_wb": {
-          "R_ON": 50,
-          "R_TT": 100,
-          "termination": "LWSTL"
-        },
-
-        "dynamic_dqs": {
-          "capacities" : [
-            {
-              "capacity": 1e-6,
-              "swing": 230e-3
-            },
-            {
-              "capacity": 2e-6,
-              "swing": 250e-3
-            }
-          ],
-          "lineImpedance": 50,
-          "riseTime": 50e-12,
-          "flightTime": 50e-12,
-          "lineSwing": 230e-3
+          "R_ON": 1e6,
+          "R_TT": 1e6,
+          "termination": "PODL"
         },
         "static_dqs": {
-          "R_ON": 50,
-          "R_TT": 100,
-          "termination": "LWSTL"
+          "R_ON": 1e6,
+          "R_TT": 1e6,
+          "termination": "PODL"
         }
     }
   }
