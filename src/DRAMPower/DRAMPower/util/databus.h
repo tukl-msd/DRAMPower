@@ -2,9 +2,13 @@
 #define DRAMPOWER_UTIL_DATABUS
 
 #include <cstddef>
+#include <type_traits>
+
 
 #include <DRAMPower/util/bus.h>
 #include <DRAMPower/util/databus_types.h>
+#include <DRAMPower/util/extension_manager_static.h>
+#include <DRAMPower/util/databus_extensions.h>
 #include <DRAMPower/dram/Interface.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
@@ -13,13 +17,20 @@
 namespace DRAMPower::util {
 
 // DataBus class
-template<std::size_t max_bitset_size = 0>
+template<std::size_t max_bitset_size = 0,
+    template<typename> class... Extensions
+>
 class DataBus {
 
 public:
+    using Self = DataBus<max_bitset_size, Extensions...>;
     using Bus_t = util::Bus<max_bitset_size>;
     using IdlePattern_t = util::BusIdlePatternSpec;
     using InitPattern_t = util::BusInitPatternSpec;
+    using ExtensionManager_t = extension_manager_static::StaticExtensionManager<DataBus, DRAMUtils::util::type_sequence<
+        Extensions<Self>...
+        >, databus_extensions::DataBusHook
+    >;
 
 public:
     DataBus(std::size_t width, std::size_t dataRate,
@@ -35,6 +46,7 @@ public:
         , busType(busType)
         , dataRate(dataRate)
         , width(width)
+        , extensionManager(this)
     {
         switch(busType) {
             case DataBusMode::Bus:
@@ -54,6 +66,13 @@ public:
 
 private:
     void load(Bus_t &bus, TogglingHandle &togglingHandle, timestamp_t timestamp, std::size_t n_bits, const uint8_t *data = nullptr) {
+        extensionManager.template callHook<databus_extensions::DataBusHook::OnLoad>([timestamp, n_bits, &data](auto& ext) {
+            uint8_t *dataout = nullptr;
+            ext.onLoad(timestamp, n_bits, data, &dataout);
+            if (nullptr != dataout) {
+                data = dataout;
+            }
+        });
         switch(busType) {
             case DataBusMode::Bus:
                 if (nullptr == data || 0 == n_bits) {
@@ -136,6 +155,13 @@ public:
         togglingHandleWriteStats += togglingHandleWrite.get_stats(timestamp);
     }
 
+    constexpr ExtensionManager_t& getExtensionManager() {
+        return extensionManager;
+    }
+    constexpr const ExtensionManager_t& getExtensionManager() const {
+        return extensionManager;
+    }
+
 private:
     Bus_t busRead;
     Bus_t busWrite;
@@ -144,6 +170,7 @@ private:
     DataBusMode busType;
     std::size_t dataRate;
     std::size_t width;
+    ExtensionManager_t extensionManager;
 };
 
 /** DataBusContainer class
@@ -284,6 +311,29 @@ public:
     void get_stats(timestamp_t timestamp, util::bus_stats_t &busReadStats, util::bus_stats_t &busWriteStats, util::bus_stats_t &togglingReadState, util::bus_stats_t &togglingWriteState) const {
         std::visit([timestamp, &busReadStats, &busWriteStats, &togglingReadState, &togglingWriteState](auto && arg) {
             arg.get_stats(timestamp, busReadStats, busWriteStats, togglingReadState, togglingWriteState);
+        }, m_dataBusContainer.getVariant());
+    }
+
+    bool getDataBusInversion() {
+        return std::visit([](auto && arg) {
+            using ArgType = std::decay_t<decltype(arg)>;
+            using ExtensionType = databus_extensions::DataBusExtensionDBI<ArgType>;
+            if (arg.getExtensionManager().template hasExtension<ExtensionType>()) {
+                auto &ext = arg.getExtensionManager().template getExtension<ExtensionType>();
+                return ext.getState();
+            }
+            return false;
+        }, m_dataBusContainer.getVariant());
+    }
+
+    void setDataBusInversion(bool state) {
+        std::visit([state](auto && arg) {
+            using ArgType = std::decay_t<decltype(arg)>;
+            using ExtensionType = databus_extensions::DataBusExtensionDBI<ArgType>;
+            if (arg.getExtensionManager().template hasExtension<ExtensionType>()) {
+                auto &ext = arg.getExtensionManager().template getExtension<ExtensionType>();
+                ext.setState(state);
+            }
         }, m_dataBusContainer.getVariant());
     }
 

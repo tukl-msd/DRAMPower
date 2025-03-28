@@ -5,6 +5,7 @@
 #include <DRAMPower/standards/ddr4/interface_calculation_DDR4.h>
 #include <iostream>
 #include <functional>
+#include <DRAMPower/util/extensions.h>
 
 
 namespace DRAMPower {
@@ -47,6 +48,7 @@ namespace DRAMPower {
         )
     {
         this->registerCommands();
+        this->extensionManager.registerExtension<extensions::DRAMPowerExtensionDBI>(dataBus);
     }
 
 

@@ -10,6 +10,8 @@ add_executable(tests_misc
 	test_interval.cpp
 	test_misc.cpp
 	test_pattern.cpp
+	test_static_extension_manager.cpp
+	test_dynamic_extension_manager.cpp
 )
 
 target_link_libraries(tests_misc

@@ -27,6 +27,7 @@ add_library(DRAMPower
     DRAMPower/standards/lpddr5/LPDDR5.cpp
     DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.cpp
     DRAMPower/util/binary_ops.cpp
+    DRAMPower/util/extensions.cpp
 )
 
 target_include_directories(DRAMPower PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
