@@ -20,8 +20,7 @@ namespace DRAMPower {
             util::databus_presets::getDataBusPreset(
                 memSpec.bitWidth * memSpec.numberOfDevices,
                 databus_t::Builder_t{}
-                    .setNumberOfDevices(memSpec.numberOfDevices)
-                    .setWidth(memSpec.bitWidth)
+                    .setWidth(memSpec.bitWidth * memSpec.numberOfDevices)
                     .setDataRate(memSpec.dataRate)
                     .setIdlePattern(util::BusIdlePatternSpec::L)
                     .setInitPattern(util::BusInitPatternSpec::L)
@@ -370,11 +369,11 @@ namespace DRAMPower {
             // No data provided by command
             if (dataBus.isTogglingRate()) {
                 length = memSpec.burstLength;
-                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getCombinedBusWidth(), nullptr);
+                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), nullptr);
             }
         } else {
             // Data provided by command
-            length = cmd.sz_bits / dataBus.getCombinedBusWidth();
+            length = cmd.sz_bits / dataBus.getWidth();
             (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
         }
         // DQS

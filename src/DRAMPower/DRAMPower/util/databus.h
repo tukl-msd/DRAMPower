@@ -26,18 +26,17 @@ public:
     using InitPattern = util::BusInitPatternSpec;
 
 public:
-    DataBus(std::size_t numberOfDevices, std::size_t width, std::size_t dataRate,
+    DataBus(std::size_t width, std::size_t dataRate,
         IdlePattern idlePattern, InitPattern initPattern,
             DRAMUtils::Config::TogglingRateIdlePattern togglingRateIdlePattern = DRAMUtils::Config::TogglingRateIdlePattern::Z,
             const double togglingRate = 0.0, const double dutyCycle = 0.0,
             DataBusMode busType = DataBusMode::Bus
         )
-        : busRead(width * numberOfDevices, dataRate, idlePattern, initPattern)
-        , busWrite(width * numberOfDevices, dataRate, idlePattern, initPattern)
-        , togglingHandleRead(width * numberOfDevices, dataRate, togglingRate, dutyCycle, togglingRateIdlePattern, false)
-        , togglingHandleWrite(width * numberOfDevices, dataRate, togglingRate, dutyCycle, togglingRateIdlePattern, false)
+        : busRead(width, dataRate, idlePattern, initPattern)
+        , busWrite(width, dataRate, idlePattern, initPattern)
+        , togglingHandleRead(width, dataRate, togglingRate, dutyCycle, togglingRateIdlePattern, false)
+        , togglingHandleWrite(width, dataRate, togglingRate, dutyCycle, togglingRateIdlePattern, false)
         , busType(busType)
-        , numberOfDevices(numberOfDevices)
         , dataRate(dataRate)
         , width(width)
     {
@@ -121,14 +120,6 @@ public:
         return width;
     }
 
-    std::size_t getNumberOfDevices() const {
-        return numberOfDevices;
-    }
-
-    std::size_t getCombinedBusWidth() const {
-        return width * numberOfDevices;
-    }
-
     std::size_t getDataRate() const {
         return dataRate;
     }
@@ -151,7 +142,6 @@ private:
     TogglingHandle togglingHandleRead;
     TogglingHandle togglingHandleWrite;
     DataBusMode busType;
-    std::size_t numberOfDevices;
     std::size_t dataRate;
     std::size_t width;
 };
@@ -194,7 +184,6 @@ private:
 // Builder
 public:
     struct BuilderData {
-        std::optional<uint64_t> numberOfDevices;
         std::optional<std::size_t> width;
         std::optional<std::size_t> dataRate;
         std::optional<IdlePattern> idlePattern;
@@ -223,27 +212,27 @@ public:
             std::size_t Tag = BuilderTag_t::value,
             typename = std::enable_if_t<0 == (Tag & 1)>
         >
-        auto setNumberOfDevices(const uint64_t numberOfDevices) {
-            this->data.numberOfDevices = numberOfDevices;
+        auto setWidth(std::size_t width) {
+            this->data.width = width;
             return Builder<BuilderTag<Tag | 1>>{std::move(data)};
         }
+
 
         template <
             std::size_t Tag = BuilderTag_t::value,
             typename = std::enable_if_t<0 == (Tag & 2)>
         >
-        auto setWidth(std::size_t width) {
-            this->data.width = width;
+        auto setDataRate(std::size_t dataRate) {
+            this->data.dataRate = dataRate;
             return Builder<BuilderTag<Tag | 2>>{std::move(data)};
         }
-
 
         template <
             std::size_t Tag = BuilderTag_t::value,
             typename = std::enable_if_t<0 == (Tag & 4)>
         >
-        auto setDataRate(std::size_t dataRate) {
-            this->data.dataRate = dataRate;
+        auto setIdlePattern(IdlePattern idlePattern) {
+            this->data.idlePattern = idlePattern;
             return Builder<BuilderTag<Tag | 4>>{std::move(data)};
         }
 
@@ -251,8 +240,8 @@ public:
             std::size_t Tag = BuilderTag_t::value,
             typename = std::enable_if_t<0 == (Tag & 8)>
         >
-        auto setIdlePattern(IdlePattern idlePattern) {
-            this->data.idlePattern = idlePattern;
+        auto setInitPattern(InitPattern initPattern) {
+            this->data.initPattern = initPattern;
             return Builder<BuilderTag<Tag | 8>>{std::move(data)};
         }
 
@@ -260,8 +249,8 @@ public:
             std::size_t Tag = BuilderTag_t::value,
             typename = std::enable_if_t<0 == (Tag & 16)>
         >
-        auto setInitPattern(InitPattern initPattern) {
-            this->data.initPattern = initPattern;
+        auto setTogglingRateIdlePattern(DRAMUtils::Config::TogglingRateIdlePattern togglingRateIdlePattern) {
+            this->data.togglingRateIdlePattern = togglingRateIdlePattern;
             return Builder<BuilderTag<Tag | 16>>{std::move(data)};
         }
 
@@ -269,8 +258,8 @@ public:
             std::size_t Tag = BuilderTag_t::value,
             typename = std::enable_if_t<0 == (Tag & 32)>
         >
-        auto setTogglingRateIdlePattern(DRAMUtils::Config::TogglingRateIdlePattern togglingRateIdlePattern) {
-            this->data.togglingRateIdlePattern = togglingRateIdlePattern;
+        auto setTogglingRate(double togglingRate) {
+            this->data.togglingRate = togglingRate;
             return Builder<BuilderTag<Tag | 32>>{std::move(data)};
         }
 
@@ -278,8 +267,8 @@ public:
             std::size_t Tag = BuilderTag_t::value,
             typename = std::enable_if_t<0 == (Tag & 64)>
         >
-        auto setTogglingRate(double togglingRate) {
-            this->data.togglingRate = togglingRate;
+        auto setDutyCycle(double dutyCycle) {
+            this->data.dutyCycle = dutyCycle;
             return Builder<BuilderTag<Tag | 64>>{std::move(data)};
         }
 
@@ -287,28 +276,18 @@ public:
             std::size_t Tag = BuilderTag_t::value,
             typename = std::enable_if_t<0 == (Tag & 128)>
         >
-        auto setDutyCycle(double dutyCycle) {
-            this->data.dutyCycle = dutyCycle;
-            return Builder<BuilderTag<Tag | 128>>{std::move(data)};
-        }
-
-        template <
-            std::size_t Tag = BuilderTag_t::value,
-            typename = std::enable_if_t<0 == (Tag & 256)>
-        >
         auto setBusType(DataBusMode busType) {
             this->data.busType = busType;
-            return Builder<BuilderTag<Tag | 256>>{std::move(data)};
+            return Builder<BuilderTag<Tag | 128>>{std::move(data)};
         }
 
         template<typename T,
             std::size_t Tag = BuilderTag_t::value,
-            typename = std::enable_if_t<511 == Tag>,
+            typename = std::enable_if_t<255 == Tag>,
             typename = std::enable_if_t<DRAMUtils::util::is_one_of<std::decay_t<T>, UnifiedVariantSequence_t>::value> // For a better error message
         >
         auto build() {
             return T {
-                data.numberOfDevices.value(),
                 data.width.value(),
                 data.dataRate.value(),
                 data.idlePattern.value(),
@@ -332,14 +311,13 @@ public:
 // public Builder Types
 public:
     using Builder_t = Builder<>;
-    using BuilderReadyTag_t = BuilderTag<511>;
+    using BuilderReadyTag_t = BuilderTag<255>;
     using ReadyBuilder_t = Builder<BuilderReadyTag_t>;
     using BuilderData_t = BuilderData;
 
 // Internal storage
 private:
     UnifiedVariant_t storage;
-    std::size_t numberOfDevices;
     std::size_t width;
     
 // Constructors
@@ -347,7 +325,6 @@ public:
     template <typename T, std::enable_if_t<DRAMUtils::util::is_one_of<std::decay_t<T>, UnifiedVariantSequence_t>::value, int> = 0>
     explicit DataBusContainer(T&& databus)
         : storage(databus)
-        , numberOfDevices(databus.getNumberOfDevices())
         , width(databus.getWidth())
     {
     }
@@ -357,10 +334,6 @@ public:
 
 // Member functions
 public:
-    std::size_t getNumberOfDevices() const {
-        return numberOfDevices;
-    }
-
     std::size_t getWidth() const {
         return width;
     }
@@ -444,10 +417,6 @@ public:
         return std::visit([](auto && arg) {
             return arg.lastBurst();
         }, dataBusContainer.getVariant());
-    }
-
-    std::size_t getCombinedBusWidth() const {
-        return dataBusContainer.getWidth() * dataBusContainer.getNumberOfDevices();
     }
 
     std::size_t getWidth() const {
