@@ -6,6 +6,8 @@
 
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/data/stats.h>
+#include <DRAMPower/util/extension_manager.h>
+#include <DRAMPower/util/extensions.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
 
@@ -34,6 +36,9 @@ public:
     using implicitCommand_t = std::function<void(void)>;
     using implicitCommandListEntry_t = std::pair<timestamp_t, implicitCommand_t>;
     using implicitCommandList_t = std::deque<implicitCommandListEntry_t>;
+    using extension_manager_t = util::extension_manager::ExtensionManager<
+        extensions::DRAMPowerExtensionBase
+    >;
 
 public:
     commandCount_t commandCount;
@@ -44,6 +49,7 @@ private:
 protected:
     PatternEncoder encoder;
     uint64_t lastPattern;
+    extension_manager_t extensionManager;
 private:
     implicitCommandList_t implicitCommandList;
     timestamp_t last_command_time;
@@ -89,6 +95,10 @@ public:
     };
 
 public:
+    // get ExtensionManager
+    extension_manager_t& getExtensionManager() { return this->extensionManager; };
+    const extension_manager_t& getExtensionManager() const { return this->extensionManager; };
+
     uint64_t getCommandPattern(const Command& cmd)
     {
         if (commandPatternMap[static_cast<std::size_t>(cmd.type)].empty()) {
