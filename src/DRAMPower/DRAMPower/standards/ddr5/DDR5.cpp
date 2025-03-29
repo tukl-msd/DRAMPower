@@ -28,7 +28,7 @@ namespace DRAMPower {
         , dataBus{
             util::databus_presets::getDataBusPreset(
                 memSpec.bitWidth * memSpec.numberOfDevices,
-                databus_t::Builder_t{}
+                util::DataBusBuilder{}
                     .setWidth(memSpec.bitWidth * memSpec.numberOfDevices)
                     .setDataRate(memSpec.dataRate)
                     .setIdlePattern(util::BusIdlePatternSpec::H)

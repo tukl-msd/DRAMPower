@@ -20,10 +20,11 @@ namespace DRAMPower::util::databus_presets {
         databus_64_t,
         databus_256_t,
         databus_1024_t,
-        databus_4096_t
+        databus_4096_t,
+        databus_preset_fallback_t
     >;
 
-    using databus_preset_t = util::DataBusContainerProxy<databus_preset_sequence_t, databus_preset_fallback_t>;
+    using databus_preset_t = util::DataBusContainerProxy<databus_preset_sequence_t>;
 
     template <typename Builder>
     static databus_preset_t getDataBusPreset(
