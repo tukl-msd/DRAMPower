@@ -6,6 +6,7 @@
 #include "DRAMPower/command/Pattern.h"
 #include "DRAMPower/standards/ddr5/core_calculation_DDR5.h"
 #include "DRAMPower/standards/ddr5/interface_calculation_DDR5.h"
+#include <DRAMPower/util/extensions.h>
 
 namespace DRAMPower {
 
@@ -52,6 +53,7 @@ namespace DRAMPower {
         , writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
     {
         this->registerCommands();
+        this->extensionManager.registerExtension<extensions::DRAMPowerExtensionDBI>(dataBus);
     }
 
     void DDR5::registerCommands() {

@@ -27,7 +27,7 @@ public:
     using Bus_t = util::Bus<max_bitset_size>;
     using IdlePattern_t = util::BusIdlePatternSpec;
     using InitPattern_t = util::BusInitPatternSpec;
-    using ExtensionManager_t = extension_manager_static::StaticExtensionManager<DataBus, DRAMUtils::util::type_sequence<
+    using ExtensionManager_t = extension_manager_static::StaticExtensionManager<Self, DRAMUtils::util::type_sequence<
         Extensions<Self>...
         >, databus_extensions::DataBusHook
     >;
@@ -66,7 +66,7 @@ public:
 
 private:
     void load(Bus_t &bus, TogglingHandle &togglingHandle, timestamp_t timestamp, std::size_t n_bits, const uint8_t *data = nullptr) {
-        extensionManager.template callHook<databus_extensions::DataBusHook::OnLoad>([timestamp, n_bits, &data](auto& ext) {
+        extensionManager.template callHook<databus_extensions::DataBusHook::onLoad>([timestamp, n_bits, &data](auto& ext) {
             uint8_t *dataout = nullptr;
             ext.onLoad(timestamp, n_bits, data, &dataout);
             if (nullptr != dataout) {
@@ -162,6 +162,29 @@ public:
         return extensionManager;
     }
 
+    // Proxy getExtension
+    template<typename Extension>
+    constexpr auto& getExtension() {
+        return extensionManager.template getExtension<Extension>();
+    }
+
+    // Proxy getExtension
+    template<typename Extension>
+    constexpr const auto& getExtension() const {
+        return extensionManager.template getExtension<Extension>();
+    }
+
+    template<typename Extension, typename Func>
+    constexpr decltype(auto) withExtension(Func&& func) {
+        return std::forward<Func>(func)(getExtension<Extension>());
+    }
+
+    // Proxy hasExtension
+    template<typename Extension>
+    constexpr static bool hasExtension() {
+        return (std::is_same_v<Extension, Extensions<Self>> || ...);
+    }
+
 private:
     Bus_t busRead;
     Bus_t busWrite;
@@ -228,6 +251,19 @@ public:
         return m_databusVariant;
     }
 
+};
+
+namespace detail {
+    // Compile time check for extensions in DataBus
+    template <template<typename> class Extension, typename T>
+    struct has_extension : std::false_type {};
+
+    template <template<typename> class Extension, 
+              std::size_t blocksize, std::size_t max_bitset_size, std::size_t maxburst_length, 
+              template<typename> class... Exts>
+    struct has_extension<Extension, DataBus<blocksize, max_bitset_size, maxburst_length, Exts...>>
+        : std::bool_constant<(std::is_same_v<Extension<DataBus<blocksize, max_bitset_size, maxburst_length, Exts...>>, 
+                             Exts<DataBus<blocksize, max_bitset_size, maxburst_length, Exts...>>> || ...)> {};
 };
 
 template <typename Seq>
@@ -314,26 +350,27 @@ public:
         }, m_dataBusContainer.getVariant());
     }
 
-    bool getDataBusInversion() {
-        return std::visit([](auto && arg) {
+    template<template <typename> class Extension, typename Func>
+    decltype(auto) withExtension(Func&& func) {
+        return std::visit([&func](auto && arg) {
             using ArgType = std::decay_t<decltype(arg)>;
-            using ExtensionType = databus_extensions::DataBusExtensionDBI<ArgType>;
-            if (arg.getExtensionManager().template hasExtension<ExtensionType>()) {
-                auto &ext = arg.getExtensionManager().template getExtension<ExtensionType>();
-                return ext.getState();
-            }
-            return false;
+            using ExtensionType = Extension<ArgType>;
+            return arg.template withExtension<ExtensionType>(std::forward<Func>(func));
         }, m_dataBusContainer.getVariant());
     }
 
-    void setDataBusInversion(bool state) {
-        std::visit([state](auto && arg) {
+    template<template <typename> class Extension>
+    static constexpr bool hasExtension() {
+        // For constexpr evaluation, every type in the sequence must support the extension
+        return (detail::has_extension<Extension, Tss>::value && ...);
+    }
+
+    template<template <typename> class Extension>
+    bool hasExtensionRuntime() const {
+        return std::visit([](auto && arg) {
             using ArgType = std::decay_t<decltype(arg)>;
-            using ExtensionType = databus_extensions::DataBusExtensionDBI<ArgType>;
-            if (arg.getExtensionManager().template hasExtension<ExtensionType>()) {
-                auto &ext = arg.getExtensionManager().template getExtension<ExtensionType>();
-                ext.setState(state);
-            }
+            using ExtensionType = Extension<ArgType>;
+            return arg.template hasExtension<ExtensionType>();
         }, m_dataBusContainer.getVariant());
     }
 

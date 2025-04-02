@@ -3,6 +3,7 @@
 #include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/standards/lpddr4/core_calculation_LPDDR4.h>
 #include <DRAMPower/standards/lpddr4/interface_calculation_LPDDR4.h>
+#include <DRAMPower/util/extensions.h>
 
 
 namespace DRAMPower {
@@ -36,6 +37,7 @@ namespace DRAMPower {
         , writeDQS(memSpec.dataRate, true)
     {
         this->registerCommands();
+        this->extensionManager.registerExtension<extensions::DRAMPowerExtensionDBI>(dataBus);
     }
 
     void LPDDR4::registerCommands() {

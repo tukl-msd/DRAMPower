@@ -159,8 +159,8 @@ public:
             return; // Invalid hook
         }
 
-        for (const auto& extension : m_hookCache[bitPosition]) {
-            std::invoke(func, extension);
+        for (const auto& extension_ptr : m_hookCache[bitPosition]) {
+            std::forward<Func>(func)(*extension_ptr);
         }
     }
 

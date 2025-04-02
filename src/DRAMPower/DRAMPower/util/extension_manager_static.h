@@ -44,7 +44,7 @@ private:
 private:
 // Private member functions
     template <Hook_t hook, typename Func, std::size_t... Is>
-    void callHookImpl(Func&& func, std::index_sequence<Is...>) {
+    constexpr void callHookImpl(Func&& func, std::index_sequence<Is...>) {
         // use index_sequence to loop over callHookIfSupported
         // example: callHookIfSupported<0>(...), callHookIfSupported<1>(...), ...
         if constexpr (sizeof...(Is) > 0) {
@@ -57,14 +57,13 @@ private:
     }
 
     template <Hook_t hook, std::size_t I, typename Func>
-    void callHookIfSupported(Func&& func) {
+    constexpr void callHookIfSupported(Func&& func) {
         // Use index from callHookImpl to get the tuple elementtype to query for the supported hooks
         using ExtensionType = std::tuple_element_t<I, Extension_tuple_t>;
         constexpr Hook_t supportedHooks = ExtensionType::getSupportedHooks();
         if constexpr ((static_cast<Hook_value_t>(supportedHooks) & static_cast<Hook_value_t>(hook)) != 0) {
             // retrieve the extension from the tuple and call the function
-            auto& ext = std::get<I>(m_extensions);
-            std::invoke(func, ext);
+            std::forward<Func>(func)(std::get<I>(m_extensions));
         }
     }
 
@@ -76,7 +75,7 @@ public:
     {}
 // Public member functions
     template <Hook_t hook, typename Func>
-    void callHook(Func&& func) {
+    constexpr void callHook(Func&& func) {
         // Call Hook implementation with integer sequence of length sizeof...(StaticExtensions)
         callHookImpl<hook>(std::forward<Func>(func), Extension_index_sequence_t{});
     }
