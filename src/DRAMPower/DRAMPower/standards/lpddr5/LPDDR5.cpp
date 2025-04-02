@@ -3,6 +3,8 @@
 #include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/standards/lpddr5/core_calculation_LPDDR5.h>
 #include <DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.h>
+#include <DRAMPower/util/extensions.h>
+
 #include <iostream>
 
 
@@ -35,6 +37,7 @@ namespace DRAMPower {
         , wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
     {
         this->registerCommands();
+        this->extensionManager.registerExtension<extensions::DRAMPowerExtensionDBI>(dataBus);
     }
 
     void LPDDR5::registerCommands() {

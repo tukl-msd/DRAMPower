@@ -79,9 +79,9 @@ public:
 
     // Hook functions with default implementation
     virtual void Hook_0(int&) {}
-    virtual void Hook_1(int&) {}
+    virtual void Hook_1(int&) const {}
     virtual void Hook_2(int&) {}
-    virtual void Hook_3(int&) {}
+    virtual void Hook_3(int&) const {}
     virtual void Hook_4(int&) {}
 
 private:
@@ -115,7 +115,7 @@ class DynamicExtensionWithHooksExample : public DynamicExtensionWithHooksBase {
             i = 0;
             m_captured_int = 10;
         }
-        void Hook_3(int& i) override {
+        void Hook_3(int& i) const override{
             i = 3;
             m_captured_int = 30;
         }
@@ -165,27 +165,27 @@ public:
 // Member functions
     void testhook0(int &i) {
         m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_0, [this, &i](auto& ext) {
-            (*ext).Hook_0(i);
+            ext.Hook_0(i);
         });
     }
     void testhook1(int &i) {
-        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_1, [this, &i](auto& ext) {
-            (*ext).Hook_1(i);
+        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_1, [this, &i](const auto& ext) {
+            ext.Hook_1(i);
         });
     }
     void testhook2(int &i) {
         m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_2, [this, &i](auto& ext) {
-            (*ext).Hook_2(i);
+            ext.Hook_2(i);
         });
     }
     void testhook3(int &i) {
-        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_3, [this, &i](auto& ext) {
-            (*ext).Hook_3(i);
+        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_3, [this, &i](const auto& ext) {
+            ext.Hook_3(i);
         });
     }
     void testhook4(int &i) {
         m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_4, [this, &i](auto& ext) {
-            (*ext).Hook_4(i);
+            ext.Hook_4(i);
         });
     }
 };
