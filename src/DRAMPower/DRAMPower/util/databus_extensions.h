@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <limits>
 #include <type_traits>
+#include <functional>
 
 namespace DRAMPower::util::databus_extensions {
 
@@ -28,6 +29,10 @@ constexpr bool operator!=(DataBusHook lhs, size_t rhs) {
 template <typename Parent>
 class DataBusExtensionDBI {
 public:
+    using StateChangeCallback_t = std::function<void(bool)>;
+
+
+public:
     explicit DataBusExtensionDBI(Parent *parent) : m_parent(parent) {}
 
     // supported hooks
@@ -47,6 +52,13 @@ public:
             m_newTimestamp = timestamp;
             m_pendingState = true;
         }
+        if (m_stateChangeCallback) {
+            m_stateChangeCallback(state);
+        }
+    }
+
+    void setStateChangeCallback(StateChangeCallback_t&& callback) {
+        m_stateChangeCallback = std::move(callback);
     }
 
     bool getState() const {
@@ -77,6 +89,8 @@ private:
     std::vector<uint8_t> invertedData;
 
     bool m_currentState = false;
+
+    StateChangeCallback_t m_stateChangeCallback = nullptr;
 
     bool m_newState = false;
     bool m_pendingState = false;

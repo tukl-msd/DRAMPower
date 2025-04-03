@@ -98,6 +98,13 @@ public:
         static_assert(hasExtension<T>(), "Extension not found");
         return std::get<T>(m_extensions);
     }
+
+    // visitor
+    template <typename Extension, typename Func>
+    constexpr decltype(auto) withExtension(Func&& func) {
+        static_assert(hasExtension<Extension>(), "Extension not found");
+        return std::forward<Func>(func)(getExtension<Extension>());
+    }
 };
 
 } // namespace DRAMPower::util::extension_manager_static

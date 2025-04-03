@@ -39,10 +39,18 @@ void TogglingHandle::disable(timestamp_t timestamp)
     }
     if (this->last_burst) {
         if(virtualtimestamp >= this->last_burst.last_length + this->last_burst.last_load) {
-            this->count += this->last_burst.last_length;
+            if (this->last_burst.dbi) {
+                this->count_dbi += this->last_burst.last_length;
+            } else {
+                this->count += this->last_burst.last_length;
+            }
         } else {
             // Partial burst is lost
-            this->count += virtualtimestamp - this->last_burst.last_load;
+            if (this->last_burst.dbi) {
+                this->count_dbi += virtualtimestamp - this->last_burst.last_load;
+            } else {
+                this->count += virtualtimestamp - this->last_burst.last_load;
+            }
         }
         this->last_burst.handled = true;
     }
@@ -89,6 +97,15 @@ void TogglingHandle::setDataRate(const uint64_t datarate)
 {
     this->datarate = datarate;
 }
+
+void TogglingHandle::setDBI(const bool dbi) {
+    this->dbi = dbi;
+}
+
+bool TogglingHandle::getDBI() const {
+    return this->dbi;
+}
+
 void TogglingHandle::setTogglingRateAndDutyCycle(const double toggling_rate, const double duty_cycle, const TogglingRateIdlePattern idlepattern)
 {
     this->toggling_rate = toggling_rate;
@@ -98,6 +115,11 @@ void TogglingHandle::setTogglingRateAndDutyCycle(const double toggling_rate, con
 uint64_t TogglingHandle::getCount() const
 {
     return this->count;
+}
+
+uint64_t TogglingHandle::getCountDBI() const
+{
+    return this->count_dbi;
 }
 
 // Returns timestamp of last burst
@@ -125,7 +147,13 @@ void TogglingHandle::incCountBurstLength(timestamp_t timestamp, uint64_t burstle
     );
     // Add last burst
     if (!this->last_burst.handled) {
-        this->count += this->last_burst.last_length;
+        if (this->last_burst.dbi) {
+            // Add last burst to count_dbi
+            this->count_dbi += this->last_burst.last_length;
+        } else {
+            // Add last burst to count
+            this->count += this->last_burst.last_length;
+        }
     }
     // Store burst in last_length and last_load if enabled
     if (this->enableflag) {
@@ -133,6 +161,7 @@ void TogglingHandle::incCountBurstLength(timestamp_t timestamp, uint64_t burstle
         this->last_burst = TogglingHandleLastBurst {
             burstlength, // last_length
             virtual_timestamp,   // last_load
+            this->dbi, // dbi
             false // handled
         };
     } else {
@@ -154,6 +183,7 @@ util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp) const
     util::bus_stats_t stats;
 
     uint64_t count = this->count;
+    uint64_t count_dbi = this->count_dbi;
     timestamp_t disable_time = this->disable_time;
     if(this->enableflag) {
         // Check if last burst is finished
@@ -161,25 +191,36 @@ util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp) const
             && (virtual_timestamp < this->last_burst.last_length + this->last_burst.last_load)
         ) {
             // last burst not finished
-            count += virtual_timestamp - this->last_burst.last_load;
+            if (this->last_burst.dbi) {
+                count_dbi += virtual_timestamp - this->last_burst.last_load;
+            } else {
+                count += virtual_timestamp - this->last_burst.last_load;
+            }
         } else if (this->last_burst) {
             // last burst finished
-            count += this->last_burst.last_length;
+            if (this->last_burst.dbi) {
+                count_dbi += this->last_burst.last_length;
+            } else {
+                count += this->last_burst.last_length;
+            }
         }
     } else {
         disable_time += virtual_timestamp - this->disable_timestamp;
     }
+    uint64_t totalcount = count + count_dbi;
     // Compute toggles
     stats.ones = count * this->duty_cycle;
+    stats.ones += count_dbi * (1 - this->duty_cycle);
     stats.zeroes = count * (1 - this->duty_cycle);
-    stats.ones_to_zeroes = count * this->toggling_rate / 2; // Round down
+    stats.zeroes += count_dbi * this->duty_cycle;
+    stats.ones_to_zeroes = totalcount * this->toggling_rate / 2; // Round down
     // Compute idle
     switch (this->idlepattern) {
         case TogglingRateIdlePattern::L:
-            stats.zeroes += virtual_timestamp - disable_time - count;
+            stats.zeroes += virtual_timestamp - disable_time - totalcount;
             break;
         case TogglingRateIdlePattern::H:
-            stats.ones += virtual_timestamp - disable_time - count;
+            stats.ones += virtual_timestamp - disable_time - totalcount;
             break;
         case TogglingRateIdlePattern::Invalid:
             assert(false); // Fallback to Z
