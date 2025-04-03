@@ -20,6 +20,7 @@ class TogglingHandle
 struct TogglingHandleLastBurst {
     uint64_t last_length = 0;
     timestamp_t last_load = 0;
+    bool dbi = false;
     bool handled = true;
     TogglingHandleLastBurst() = default;
     operator bool() const { return !this->handled; }
@@ -33,6 +34,8 @@ private:
     TogglingHandleLastBurst last_burst;
     bool enableflag = false; // default disabled if default constructor is used
     uint64_t count = 0;
+    uint64_t count_dbi = 0;
+    bool dbi = false;
     timestamp_t disable_timestamp = 0;
     timestamp_t disable_time = 0;
     DRAMUtils::Config::TogglingRateIdlePattern idlepattern = DRAMUtils::Config::TogglingRateIdlePattern::Z;
@@ -57,6 +60,10 @@ public:
     void setWidth(const uint64_t width);
     void setDataRate(const uint64_t datarate);
     uint64_t getCount() const;
+    uint64_t getCountDBI() const;
+
+    void setDBI(const bool dbi);
+    bool getDBI() const;
 public:
     void incCountBurstLength(timestamp_t timestamp, uint64_t burstlength);
     void incCountBitLength(timestamp_t timestamp, uint64_t bitlength);

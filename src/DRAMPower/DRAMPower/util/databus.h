@@ -58,6 +58,15 @@ public:
                 togglingHandleWrite.enable(0);
                 break;
         }
+        // Set DBI Callback for togglingHandles to DataBusExtensionDBI
+        if constexpr (hasExtension<databus_extensions::DataBusExtensionDBI<Self>>()) {
+            withExtension<databus_extensions::DataBusExtensionDBI<Self>>([this](auto& ext) {
+                ext.setStateChangeCallback([this](bool dbi) {
+                    togglingHandleRead.setDBI(dbi);
+                    togglingHandleWrite.setDBI(dbi);
+                });
+            });
+        }
     }
     DataBus(DataBusConfig&& config)
     : DataBus(config.width, config.dataRate, config.idlePattern, config.initPattern,
@@ -176,7 +185,7 @@ public:
 
     template<typename Extension, typename Func>
     constexpr decltype(auto) withExtension(Func&& func) {
-        return std::forward<Func>(func)(getExtension<Extension>());
+        return extensionManager.template withExtension<Extension>(std::forward<Func>(func));
     }
 
     // Proxy hasExtension
