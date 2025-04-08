@@ -8,6 +8,10 @@
 #include <type_traits>
 #include <functional>
 
+#include <DRAMPower/util/databus_types.h>
+#include <DRAMPower/util/bus_types.h>
+#include <DRAMPower/util/binary_ops.h>
+
 namespace DRAMPower::util::databus_extensions {
 
 enum class DataBusHook : uint64_t {
@@ -28,9 +32,10 @@ constexpr bool operator!=(DataBusHook lhs, size_t rhs) {
 
 template <typename Parent>
 class DataBusExtensionDBI {
+    friend Parent; // Parent can access private members
 public:
     using StateChangeCallback_t = std::function<void(bool)>;
-
+    using IdlePattern_t = util::BusIdlePatternSpec;
 
 public:
     explicit DataBusExtensionDBI(Parent *parent) : m_parent(parent) {}
@@ -40,61 +45,67 @@ public:
         return DataBusHook::onLoad;
     }
 
-    void setState(timestamp_t timestamp, bool state) {
-        // Case 1: timestamp < m_newTimestamp
-        // Is not supported in DRAMPower. The timestamp is always increasing.
-        // Case 2: timestamp == m_newTimestamp
-        // just update the m_newState
-        // Case 3: timestamp > m_newTimestamp
-        // update the m_newState and m_newTimestamp
-        if (!m_pendingState || (m_pendingState && timestamp <= m_newTimestamp)) {
-            m_newState = state;
-            m_newTimestamp = timestamp;
-            m_pendingState = true;
-        }
-        if (m_stateChangeCallback) {
-            m_stateChangeCallback(state);
-        }
+    void enable(bool enable) {
+        m_enable = enable;
     }
 
-    void setStateChangeCallback(StateChangeCallback_t&& callback) {
-        m_stateChangeCallback = std::move(callback);
+    bool isEnabled() const {
+        return m_enable;
     }
 
-    bool getState() const {
-        return m_currentState;
+// Private member functions
+private:
+
+    void setIdlePattern(IdlePattern_t pattern) {
+        m_idlePattern = pattern;
     }
 
 // Hook functions
-    void onLoad(timestamp_t timestamp, std::size_t n_bits, const uint8_t *datain, uint8_t **dataout) {
-        if (!datain || n_bits == 0) return;
+    void onLoad(timestamp_t, util::DataBusMode mode, std::size_t n_bits, const uint8_t *data, bool &invert) {
+        if (!data || n_bits == 0 || util::DataBusMode::Bus != mode || !m_enable) return;
 
-        if (m_pendingState && timestamp >= m_newTimestamp) {
-            m_currentState = m_newState;
-            m_pendingState = false;
+        // Count Transistions and check what is cheaper
+        // 1. Invert the data
+        // 2. Not invert the data
+
+        uint64_t count_0 = 0;
+        uint64_t count_1 = 0;
+        size_t n_bytes = (n_bits + 7) / 8;
+        for (size_t i = 0; i < n_bytes; ++i) {
+            count_0 += util::BinaryOps::popcount(static_cast<uint64_t>(data[i]));
+            count_1 += util::BinaryOps::popcount(static_cast<uint64_t>(~data[i]));
         }
-
-        if (!m_currentState) return;
-
-        size_t byteCount = (n_bits + 7) / 8;
-        invertedData.resize(byteCount);
-
-        for (std::size_t i = 0; i < byteCount; ++i) {
-            invertedData[i] = ~datain[i];
+        // Correct count_0, count_1 if the last byte is not full
+        if (n_bits % 8 != 0) {
+            uint8_t mask = (1 << (n_bits % 8)) - 1;
+            count_0 -= util::BinaryOps::popcount(static_cast<uint64_t>(data[n_bytes - 1] & ~mask));
+            count_1 -= util::BinaryOps::popcount(static_cast<uint64_t>(~data[n_bytes - 1] & ~mask));
         }
-        *dataout = invertedData.data();
+        switch(m_idlePattern)
+        {
+            case IdlePattern_t::L:
+                if (count_0 < count_1) {
+                    invert = true;
+                }
+                break;
+            case IdlePattern_t::H:
+                if (count_1 < count_0) {
+                    invert = true;
+                }
+                break;
+            case IdlePattern_t::Z:
+                // No action needed
+                break;
+            default:
+                assert(false);
+        }
     }
 private:
     Parent *m_parent;
-    std::vector<uint8_t> invertedData;
 
-    bool m_currentState = false;
+    bool m_enable = false;
 
-    StateChangeCallback_t m_stateChangeCallback = nullptr;
-
-    bool m_newState = false;
-    bool m_pendingState = false;
-    timestamp_t m_newTimestamp = 0;
+    IdlePattern_t m_idlePattern = IdlePattern_t::Z;
 };
 
 } // namespace DRAMPower::util::databus_extensions

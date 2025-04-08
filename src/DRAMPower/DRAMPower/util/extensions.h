@@ -20,8 +20,8 @@ class DRAMPowerExtensionDBI : public DRAMPowerExtensionBase {
 // Public type definitions
 public:
     using databus_preset_t = DRAMPower::util::databus_presets::databus_preset_t;
-    // void(timestamp_t timestamp, bool previousState, bool newState)
-    using interface_callback_t = std::function<void(timestamp_t, bool, bool)>;
+    // void(const timestamp_t timestamp, const bool enable)
+    using interface_callback_t = std::function<void(const timestamp_t, const bool)>;
     using timestamp_t = DRAMPower::timestamp_t;
 
 // Constructors
@@ -30,12 +30,12 @@ public:
 
 // Public member functions
 public:
-    void set(timestamp_t timestamp, bool dbi);
-    bool get() const;
+    void enable(timestamp_t timestamp, bool enable);
+    bool isEnabled() const;
 
 // Private member variables
 private:
-    bool m_dbi = false;
+    bool m_enabled = false;
     databus_preset_t& m_dataBus;
     std::optional<interface_callback_t> m_callback;
 };

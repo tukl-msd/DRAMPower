@@ -18,6 +18,7 @@ namespace pattern_descriptor {
         CID0, CID1, CID2, CID3,
         AP,
         BL,
+        OPCODE,
     };
 }
 
@@ -68,9 +69,27 @@ private:
         bool default_bit
     );
 
+public:
+    void setOpcode(uint64_t opcode, uint16_t opcodeLength) {
+        m_opcode = opcode;
+        m_opcodeLength = opcodeLength;
+    }
+    uint64_t getOpcode() const {
+        return m_opcode;
+    }
+    uint16_t getOpcodeLength() const {
+        return m_opcodeLength;
+    }
+
 // TODO test shift direction for LAST_BIT
 public:
     uint64_t encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern);
+    uint64_t encode(const TargetCoordinate& coordinate, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern);
+
+// Private member variables
+private:
+    uint64_t m_opcode = 0;
+    uint16_t m_opcodeLength = 0;
 };
 
 } // namespace DRAMPower

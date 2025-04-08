@@ -108,7 +108,17 @@ public:
         const auto& pattern = commandPatternMap[static_cast<std::size_t>(cmd.type)];
         lastPattern = encoder.encode(cmd, pattern, lastPattern);
         return lastPattern;
-    };
+    }
+
+    uint64_t getCoordinatePattern(const TargetCoordinate& coordinate, const commandPattern_t& pattern)
+    {
+        if (pattern.empty()) {
+            // No pattern provided
+            throw std::runtime_error("No pattern provided for this coordinate");
+        }
+        lastPattern = encoder.encode(coordinate, pattern, lastPattern);
+        return lastPattern;
+    }
 
 protected:
     template <typename Func>

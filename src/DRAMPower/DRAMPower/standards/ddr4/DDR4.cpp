@@ -6,6 +6,7 @@
 #include <iostream>
 #include <functional>
 #include <DRAMPower/util/extensions.h>
+#include <DRAMPower/util/databus_extensions.h>
 
 
 namespace DRAMPower {
@@ -48,7 +49,44 @@ namespace DRAMPower {
         )
     {
         this->registerCommands();
-        this->extensionManager.registerExtension<extensions::DRAMPowerExtensionDBI>(dataBus);
+        this->registerExtensions();
+    }
+
+    void DDR4::registerExtensions() {
+        using namespace pattern_descriptor;
+        // DRAMPowerExtensionDBI
+        const static uint16_t opcodeLength = 15;
+        const static commandPattern_t MRSPattern = {
+            L, H, L, L, L, BG0, BG1, BA0, BA1,
+            V, V, V, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE,
+            OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE
+        };
+        const static uint64_t DEFAULT_MODE_REGISTER_5 = 0b00'00'0'0'000'1'0'0'000; // TODO set correct default values
+        this->extensionManager.registerExtension<extensions::DRAMPowerExtensionDBI>(dataBus,
+            [this](const timestamp_t timestamp, const bool enable) {
+                // Set the DBI state for the rank
+                TargetCoordinate coordinate;
+                coordinate.bankGroup = 0b01;
+                coordinate.bank = 0b01;
+                // SET MRS opcode in encoder
+                uint64_t opcode = DEFAULT_MODE_REGISTER_5;
+                if (enable) {
+                    // Set the DBI bits
+                    opcode |= 1 << 12;
+                    opcode |= 1 << 11;
+                } else {
+                    // Clear the DBI bits
+                    opcode &= ~(1 << 12);
+                    opcode &= ~(1 << 11);
+                }
+                this->encoder.setOpcode(opcode, opcodeLength);
+                // Encode the pattern
+                auto pattern = this->getCoordinatePattern(coordinate, MRSPattern);
+                // Load the pattern into the command bus
+                auto ca_length = MRSPattern.size() / commandBus.get_width();
+                this->commandBus.load(timestamp, pattern, ca_length);
+            }
+        );
     }
 
 

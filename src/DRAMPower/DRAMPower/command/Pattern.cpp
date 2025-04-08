@@ -77,15 +77,22 @@ namespace DRAMPower {
 
     uint64_t PatternEncoder::encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern)
     {
+        return encode(cmd.targetCoordinate, pattern, lastpattern);
+    }
+
+    uint64_t PatternEncoder::encode(const TargetCoordinate& targetCoordinate, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern)
+    {
         using namespace pattern_descriptor;
 
         std::bitset<64> bitset(0);
-        std::bitset<32> bank_bits(cmd.targetCoordinate.bank);
-        std::bitset<32> row_bits(cmd.targetCoordinate.row);
-        std::bitset<32> column_bits(cmd.targetCoordinate.column);
-        std::bitset<32> bank_group_bits(cmd.targetCoordinate.bankGroup);
+        std::bitset<32> bank_bits(targetCoordinate.bank);
+        std::bitset<32> row_bits(targetCoordinate.row);
+        std::bitset<32> column_bits(targetCoordinate.column);
+        std::bitset<32> bank_group_bits(targetCoordinate.bankGroup);
 
         std::size_t n = pattern.size() - 1;
+        uint64_t opcodeshifter = 1;
+        uint16_t opcodecount = 0;
 
         assert(n < 64);
 
@@ -262,12 +269,20 @@ namespace DRAMPower {
             case R17:
                 bitset[n] = row_bits[17];
                 break;
+            case OPCODE:
+                // TODO: Check shift direction
+                assert(m_opcodeLength > opcodecount);
+                bitset[n] = m_opcode & opcodeshifter;
+                opcodeshifter <<= 1;
+                ++opcodecount;
+                break;
+            
             default:
                 break;
             }
 
             --n;
-        };
+        }
 
         return bitset.to_ullong();
     }
