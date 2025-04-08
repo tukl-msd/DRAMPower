@@ -24,6 +24,7 @@ inline std::string to_string(const T& bitset)
 };
 
 struct BinaryOps {
+    static std::size_t popcount(uint8_t n);
     static std::size_t popcount(uint64_t n);
     static std::size_t zero_to_ones(uint64_t p, uint64_t q);
     static std::size_t one_to_zeroes(uint64_t p, uint64_t q);

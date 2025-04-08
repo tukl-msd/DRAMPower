@@ -4,6 +4,7 @@
 #include <cstddef>
 
 #include <DRAMPower/util/bus.h>
+#include <DRAMPower/util/databus_types.h>
 #include <DRAMPower/dram/Interface.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
@@ -11,155 +12,23 @@
 
 namespace DRAMPower::util {
 
-enum class DataBusMode {
-    Bus = 0,
-    TogglingRate
-};
-
-namespace detail {
-    template <size_t N>
-    struct DataBusBuilderTag {
-        static constexpr size_t value = N;
-    };
-    struct DataBusBuilderData {
-        std::optional<std::size_t> width;
-        std::optional<std::size_t> dataRate;
-        std::optional<util::BusIdlePatternSpec> idlePattern;
-        std::optional<util::BusInitPatternSpec> initPattern;
-        std::optional<DRAMUtils::Config::TogglingRateIdlePattern> togglingRateIdlePattern;
-        std::optional<double> togglingRate;
-        std::optional<double> dutyCycle;
-        std::optional<DataBusMode> busType;
-    };
-} // namespace detail
-
-/** This Builder class is used to create a DataBus.
- *  The Builder class uses a tag system to ensure that all required parameters are set exactly once.
- */
-template <typename BuilderTag_t = detail::DataBusBuilderTag<0>>
-class DataBusBuilder {
-// Private type definitions
-private:
-    template <size_t N>
-    using Tag_t = detail::DataBusBuilderTag<N>;
-    using BuilderData_t = detail::DataBusBuilderData;
-
-// Private member variables
-private:
-    BuilderData_t m_data;
-
-public:
-// Public Constructors
-    DataBusBuilder(const BuilderData_t& data) : m_data(data) {}
-    DataBusBuilder(BuilderData_t&& data) : m_data(std::move(data)) {}
-    DataBusBuilder() = default;
-
-// Public build member functions
-    template <
-        std::size_t Tag_v = BuilderTag_t::value,
-        typename = std::enable_if_t<0 == (Tag_v & 1)>
-    >
-    auto setWidth(std::size_t width) {
-        m_data.width = width;
-        return DataBusBuilder<Tag_t<Tag_v | 1>>{std::move(m_data)};
-    }
-
-
-    template <
-        std::size_t Tag_v = BuilderTag_t::value,
-        typename = std::enable_if_t<0 == (Tag_v & 2)>
-    >
-    auto setDataRate(std::size_t dataRate) {
-        m_data.dataRate = dataRate;
-        return DataBusBuilder<Tag_t<Tag_v | 2>>{std::move(m_data)};
-    }
-
-    template <
-        std::size_t Tag_v = BuilderTag_t::value,
-        typename = std::enable_if_t<0 == (Tag_v & 4)>
-    >
-    auto setIdlePattern(util::BusIdlePatternSpec idlePattern) {
-        m_data.idlePattern = idlePattern;
-        return DataBusBuilder<Tag_t<Tag_v | 4>>{std::move(m_data)};
-    }
-
-    template <
-        std::size_t Tag_v = BuilderTag_t::value,
-        typename = std::enable_if_t<0 == (Tag_v & 8)>
-    >
-    auto setInitPattern(util::BusInitPatternSpec initPattern) {
-        m_data.initPattern = initPattern;
-        return DataBusBuilder<Tag_t<Tag_v | 8>>{std::move(m_data)};
-    }
-
-    template <
-        std::size_t Tag_v = BuilderTag_t::value,
-        typename = std::enable_if_t<0 == (Tag_v & 16)>
-    >
-    auto setTogglingRateIdlePattern(DRAMUtils::Config::TogglingRateIdlePattern togglingRateIdlePattern) {
-        m_data.togglingRateIdlePattern = togglingRateIdlePattern;
-        return DataBusBuilder<Tag_t<Tag_v | 16>>{std::move(m_data)};
-    }
-
-    template <
-        std::size_t Tag_v = BuilderTag_t::value,
-        typename = std::enable_if_t<0 == (Tag_v & 32)>
-    >
-    auto setTogglingRate(double togglingRate) {
-        m_data.togglingRate = togglingRate;
-        return DataBusBuilder<Tag_t<Tag_v | 32>>{std::move(m_data)};
-    }
-
-    template <
-        std::size_t Tag_v = BuilderTag_t::value,
-        typename = std::enable_if_t<0 == (Tag_v & 64)>
-    >
-    auto setDutyCycle(double dutyCycle) {
-        m_data.dutyCycle = dutyCycle;
-        return DataBusBuilder<Tag_t<Tag_v | 64>>{std::move(m_data)};
-    }
-
-    template <
-        std::size_t Tag_v = BuilderTag_t::value,
-        typename = std::enable_if_t<0 == (Tag_v & 128)>
-    >
-    auto setBusType(DataBusMode busType) {
-        m_data.busType = busType;
-        return DataBusBuilder<Tag_t<Tag_v | 128>>{std::move(m_data)};
-    }
-
-    template<typename T,
-        std::size_t Tag_v = BuilderTag_t::value,
-        typename = std::enable_if_t<255 == Tag_v>
-    >
-    auto build() {
-        return T {
-            m_data.width.value(),
-            m_data.dataRate.value(),
-            m_data.idlePattern.value(),
-            m_data.initPattern.value(),
-            m_data.togglingRateIdlePattern.value(),
-            m_data.togglingRate.value(),
-            m_data.dutyCycle.value(),
-            m_data.busType.value()
-        };
-    }
-
-    const BuilderData_t& getData() const {
-        return m_data;
-    }
-
-    BuilderData_t consumeData() {
-        return std::move(m_data);
-    }
+struct DataBusConfig {
+    std::size_t width;
+    std::size_t dataRate;
+    util::BusIdlePatternSpec idlePattern;
+    util::BusInitPatternSpec initPattern;
+    DRAMUtils::Config::TogglingRateIdlePattern togglingRateIdlePattern;
+    double togglingRate;
+    double dutyCycle;
+    DataBusMode busType;
 };
 
 // DataBus class
-template<std::size_t blocksize = 64, std::size_t max_bitset_size = 0, std::size_t maxburst_length = 0>
+template<std::size_t max_bitset_size = 0>
 class DataBus {
 
 public:
-    using Bus_t = util::Bus<blocksize, max_bitset_size, maxburst_length>;
+    using Bus_t = util::Bus<max_bitset_size>;
     using IdlePattern_t = util::BusIdlePatternSpec;
     using InitPattern_t = util::BusInitPatternSpec;
 
@@ -189,6 +58,10 @@ public:
                 break;
         }
     }
+    DataBus(DataBusConfig&& config)
+    : DataBus(config.width, config.dataRate, config.idlePattern, config.initPattern,
+        config.togglingRateIdlePattern, config.togglingRate, config.dutyCycle, config.busType
+    ) {}
 
 private:
     void load(Bus_t &bus, TogglingHandle &togglingHandle, timestamp_t timestamp, std::size_t n_bits, const uint8_t *data = nullptr) {
@@ -293,11 +166,12 @@ private:
 template <typename Seq, typename = void>
 class DataBusContainer
 {
-    static_assert(DRAMUtils::util::always_false<Seq>::value, "DataBusContainer cannot be initialized. Check the DataBus type_sequence and the fallback type.");
+    static_assert(DRAMUtils::util::always_false<Seq>::value, "DataBusContainer cannot be initialized. Check the DataBus type_sequence.");
 };
 
 template <typename... Ts>
 class DataBusContainer<DRAMUtils::util::type_sequence<Ts...>,
+    // Types must be unique and the sequence length must be greater than 0
     std::enable_if_t<DRAMUtils::util::unique_types<Ts...>::value && sizeof...(Ts) != 0>
 > {
 
@@ -313,6 +187,7 @@ private:
     
 // Constructors
 public:
+    // The constructor is only valid if T is in the valid variant types Ts... / in the type sequence of the variant
     template <typename T, std::enable_if_t<DRAMUtils::util::is_one_of<std::decay_t<T>, UnifiedVariantSequence_t>::value, int> = 0>
     explicit DataBusContainer(T&& databus)
         : m_width(databus.getWidth())
@@ -342,7 +217,7 @@ public:
 template <typename Seq>
 class DataBusContainerProxy
 {
-    static_assert(DRAMUtils::util::always_false<Seq>::value, "DataBusContainerProxy cannot be initialized. Check the DataBus type_sequence and the fallback type.");
+    static_assert(DRAMUtils::util::always_false<Seq>::value, "DataBusContainerProxy cannot be initialized. Check the DataBus type_sequence.");
 };
 
 template <typename... Tss>

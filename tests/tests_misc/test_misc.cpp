@@ -59,7 +59,7 @@ protected:
     }
 };
 
-#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_EQ(lhs, util::dynamic_bitset<N>(N, rhs))
+#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_EQ(lhs, util::sub_bitset<N>(N, rhs))
 
 TEST_F(MiscTest, TestChunking)
 {

@@ -35,7 +35,7 @@ public:
 public:
     MemSpecLPDDR5 memSpec;
     std::vector<Rank> ranks;
-    using commandbus_t = util::Bus<7, 7>;
+    using commandbus_t = util::Bus<7>;
     using databus_t =  util::databus_presets::databus_preset_t;
 private:
     commandbus_t commandBus;

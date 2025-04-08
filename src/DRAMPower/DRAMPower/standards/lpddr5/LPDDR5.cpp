@@ -19,16 +19,16 @@ namespace DRAMPower {
         , dataBus{
             util::databus_presets::getDataBusPreset(
                 memSpec.bitWidth * memSpec.numberOfDevices,
-                util::DataBusBuilder{}
-                    .setWidth(memSpec.bitWidth * memSpec.numberOfDevices)
-                    .setDataRate(memSpec.dataRate)
-                    .setIdlePattern(util::BusIdlePatternSpec::L)
-                    .setInitPattern(util::BusInitPatternSpec::L)
-                    .setTogglingRateIdlePattern(DRAMUtils::Config::TogglingRateIdlePattern::L)
-                    .setTogglingRate(0.0)
-                    .setDutyCycle(0.0)
-                    .setBusType(util::DataBusMode::Bus),
-                true
+                util::DataBusConfig {
+                    memSpec.bitWidth * memSpec.numberOfDevices,
+                    memSpec.dataRate,
+                    util::BusIdlePatternSpec::L,
+                    util::BusInitPatternSpec::L,
+                    DRAMUtils::Config::TogglingRateIdlePattern::L,
+                    0.0,
+                    0.0,
+                    util::DataBusMode::Bus
+                }
             )
         }
         , readDQS(memSpec.dataRate, true)

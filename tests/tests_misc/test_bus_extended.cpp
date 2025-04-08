@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <bitset>
 
 #include <DRAMPower/util/bus.h>
 #include <DRAMPower/util/dynamic_bitset.h>
@@ -22,11 +23,14 @@ protected:
 		typename util::Bus<N>::burst_t& burst_zeroes,
 		typename util::Bus<N>::burst_t& burst_custom
 	) {
+		burst_ones = typename util::Bus<N>::burst_t{N};
+		burst_ones.set();
+		burst_zeroes = typename util::Bus<N>::burst_t{N};
+		burst_zeroes.reset();
+		burst_custom = typename util::Bus<N>::burst_t{N};
 		for(size_t i = 0; i < N; i++)
 		{
-			burst_ones.push_back(true);
-			burst_zeroes.push_back(false);
-			burst_custom.push_back((i % 3 ? true : false));
+			burst_custom.set(i, (i % 3) ? true : false);
 		}
 	}
 
@@ -41,7 +45,7 @@ protected:
 
 #define ASSERT_HAS_DATA(lhs) ASSERT_TRUE(lhs.has_value())
 #define ASSERT_NO_DATA(lhs) ASSERT_FALSE(!lhs.has_value())
-#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), util::dynamic_bitset<N>(N, rhs))
+#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), util::sub_bitset<N>(N, rhs))
 #define ASSERT_EQ_BURST(lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), rhs)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_1)

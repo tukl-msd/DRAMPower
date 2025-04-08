@@ -3,6 +3,7 @@
 
 #include <DRAMPower/util/binary_ops.h>
 #include <DRAMPower/util/burst_storage.h>
+#include <DRAMPower/util/bus_types.h>
 #include <DRAMPower/Types.h>
 
 #include <optional>
@@ -56,22 +57,7 @@ struct bus_stats_t {
 	}
 };
 
-enum class BusIdlePatternSpec
-	{
-	L = 0,
-	H = 1,
-	Z = 2,
-	LAST_PATTERN = 3
-};
-
-enum class BusInitPatternSpec
-{
-	L = 0,
-	H = 1,
-	Z = 2,
-};
-
-template <std::size_t blocksize = 64, std::size_t max_bitset_size = 0, std::size_t maxburst_length = 0>
+template <std::size_t max_bitset_size = 0>
 class Bus {
 
 private:
@@ -122,7 +108,7 @@ private:
 
 public:
 	
-	using burst_storage_t = util::burst_storage<blocksize, max_bitset_size, maxburst_length>;
+	using burst_storage_t = util::burst_storage<max_bitset_size>;
 	using burst_t = typename burst_storage_t::burst_t;
 	bus_stats_t stats;
 

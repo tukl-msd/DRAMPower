@@ -31,7 +31,7 @@ public:
     LPDDR4(const MemSpecLPDDR4& memSpec);
     virtual ~LPDDR4() = default;
 public:
-    using commandbus_t = util::Bus<6, 6>;
+    using commandbus_t = util::Bus<6>;
     using databus_t =  util::databus_presets::databus_preset_t;
     MemSpecLPDDR4 memSpec;
     std::vector<Rank> ranks;

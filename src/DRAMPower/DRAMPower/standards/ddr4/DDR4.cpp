@@ -33,16 +33,16 @@ namespace DRAMPower {
         , dataBus(
             util::databus_presets::getDataBusPreset(
                 memSpec.bitWidth * memSpec.numberOfDevices, 
-                util::DataBusBuilder{}
-                    .setWidth(memSpec.bitWidth * memSpec.numberOfDevices)
-                    .setDataRate(memSpec.dataRate)
-                    .setIdlePattern(util::BusIdlePatternSpec::H)
-                    .setInitPattern(util::BusInitPatternSpec::H)
-                    .setTogglingRateIdlePattern(DRAMUtils::Config::TogglingRateIdlePattern::H)
-                    .setTogglingRate(0.0)
-                    .setDutyCycle(0.0)
-                    .setBusType(util::DataBusMode::Bus),
-                true
+                util::DataBusConfig {
+                    memSpec.bitWidth * memSpec.numberOfDevices,
+                    memSpec.dataRate,
+                    util::BusIdlePatternSpec::H,
+                    util::BusInitPatternSpec::H,
+                    DRAMUtils::Config::TogglingRateIdlePattern::H,
+                    0.0,
+                    0.0,
+                    util::DataBusMode::Bus
+                }
             )
         )
     {

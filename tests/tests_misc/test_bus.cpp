@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <bitset>
 
 #include <DRAMPower/util/bus.h>
 #include <DRAMPower/util/dynamic_bitset.h>
@@ -26,7 +27,7 @@ protected:
 
 #define ASSERT_HAS_DATA(lhs) ASSERT_TRUE(lhs.has_value())
 #define ASSERT_NO_DATA(lhs) ASSERT_FALSE(lhs.has_value())
-#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), util::dynamic_bitset<N>(N, rhs))
+#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), util::sub_bitset<N>(N, rhs))
 
 TEST_F(BusTest, EmptyTest)
 {
