@@ -16,22 +16,24 @@ DRAMPowerExtensionDBI::DRAMPowerExtensionDBI(databus_preset_t& dataBus, std::opt
         throw std::runtime_error("DRAMPowerExtensionDBI requires databus with DataBusExtensionDBI");
     }
     // Ensure Extension and databus have the same state
-    m_dbi = m_dataBus.withExtension<databus_extensions::DataBusExtensionDBI>([this](const auto& ext) {
-        return ext.getState();
+    m_enabled = m_dataBus.withExtension<databus_extensions::DataBusExtensionDBI>([this](const auto& ext) {
+        return ext.isEnabled();
     });
 }
 
-void DRAMPowerExtensionDBI::set(timestamp_t timestamp, bool dbi) {
-    m_dataBus.withExtension<databus_extensions::DataBusExtensionDBI>([timestamp, dbi](auto& ext) {
-        ext.setState(timestamp, dbi);
+void DRAMPowerExtensionDBI::enable(timestamp_t timestamp, bool enable) {
+    m_dataBus.withExtension<databus_extensions::DataBusExtensionDBI>([enable](auto& ext) {
+        ext.enable(enable);
     });
+    // Dispatch callback if set
     if (m_callback) {
-        (*m_callback)(timestamp, m_dbi, dbi);
+        (*m_callback)(timestamp, enable);
     }
-    m_dbi = dbi;
+    // Update member
+    m_enabled = enable;
 }
-bool DRAMPowerExtensionDBI::get() const {
-    return m_dbi;
+bool DRAMPowerExtensionDBI::isEnabled() const {
+    return m_enabled;
 }
 
 } // namespace DRAMPower::extensions

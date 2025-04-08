@@ -118,6 +118,7 @@ private:
     void handleInterfaceOverrides(size_t length, bool read);
     uint64_t getInitEncoderPattern() override;
     void registerCommands();
+    void registerExtensions();
 public:
     energy_t calcCoreEnergy(timestamp_t timestamp) override;
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
