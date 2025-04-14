@@ -9,6 +9,7 @@
 #include <functional>
 
 #include <DRAMPower/util/databus_types.h>
+#include <DRAMPower/Types.h>
 #include <DRAMPower/util/bus_types.h>
 #include <DRAMPower/util/binary_ops.h>
 
@@ -30,15 +31,13 @@ constexpr bool operator!=(DataBusHook lhs, size_t rhs) {
     return static_cast<std::underlying_type_t<DataBusHook>>(lhs) != rhs;
 }
 
-template <typename Parent>
 class DataBusExtensionDBI {
-    friend Parent; // Parent can access private members
 public:
     using StateChangeCallback_t = std::function<void(bool)>;
     using IdlePattern_t = util::BusIdlePatternSpec;
 
 public:
-    explicit DataBusExtensionDBI(Parent *parent) : m_parent(parent) {}
+    explicit DataBusExtensionDBI() = default;
 
     // supported hooks
     static constexpr DataBusHook getSupportedHooks() {
@@ -53,16 +52,17 @@ public:
         return m_enable;
     }
 
-// Private member functions
-private:
-
+// Public member functions
+public:
     void setIdlePattern(IdlePattern_t pattern) {
         m_idlePattern = pattern;
     }
 
 // Hook functions
+public:
     void onLoad(timestamp_t, util::DataBusMode mode, std::size_t n_bits, const uint8_t *data, bool &invert) {
         if (!data || n_bits == 0 || util::DataBusMode::Bus != mode || !m_enable) return;
+        if (IdlePattern_t::Z == m_idlePattern) return;
 
         // Count Transistions and check what is cheaper
         // 1. Invert the data
@@ -93,16 +93,11 @@ private:
                     invert = true;
                 }
                 break;
-            case IdlePattern_t::Z:
-                // No action needed
-                break;
             default:
                 assert(false);
         }
     }
 private:
-    Parent *m_parent;
-
     bool m_enable = false;
 
     IdlePattern_t m_idlePattern = IdlePattern_t::Z;

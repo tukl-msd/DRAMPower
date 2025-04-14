@@ -18,18 +18,15 @@
 namespace DRAMPower::util {
 
 // DataBus class
-template<std::size_t max_bitset_size = 0,
-    template<typename> class... Extensions
->
+template<std::size_t max_bitset_size = 0, typename... Extensions>
 class DataBus {
 
 public:
-    using Self = DataBus<max_bitset_size, Extensions...>;
     using Bus_t = util::Bus<max_bitset_size>;
     using IdlePattern_t = util::BusIdlePatternSpec;
     using InitPattern_t = util::BusInitPatternSpec;
-    using ExtensionManager_t = extension_manager_static::StaticExtensionManager<Self, DRAMUtils::util::type_sequence<
-        Extensions<Self>...
+    using ExtensionManager_t = extension_manager_static::StaticExtensionManager<DRAMUtils::util::type_sequence<
+        Extensions...
         >, databus_extensions::DataBusHook
     >;
 
@@ -47,7 +44,6 @@ public:
         , busType(busType)
         , dataRate(dataRate)
         , width(width)
-        , extensionManager(this)
     {
         switch(busType) {
             case DataBusMode::Bus:
@@ -180,7 +176,7 @@ public:
     // Proxy hasExtension
     template<typename Extension>
     constexpr static bool hasExtension() {
-        return (std::is_same_v<Extension, Extensions<Self>> || ...);
+        return (std::is_same_v<Extension, Extensions> || ...);
     }
 
 private:
@@ -249,19 +245,6 @@ public:
         return m_databusVariant;
     }
 
-};
-
-namespace detail {
-    // Compile time check for extensions in DataBus
-    template <template<typename> class Extension, typename T>
-    struct has_extension : std::false_type {};
-
-    template <template<typename> class Extension, 
-              std::size_t max_bitset_size, 
-              template<typename> class... Exts>
-    struct has_extension<Extension, DataBus<max_bitset_size, Exts...>>
-        : std::bool_constant<(std::is_same_v<Extension<DataBus<max_bitset_size, Exts...>>, 
-                             Exts<DataBus<max_bitset_size, Exts...>>> || ...)> {};
 };
 
 template <typename Seq>
@@ -348,30 +331,28 @@ public:
         }, m_dataBusContainer.getVariant());
     }
 
-    template<template <typename> class Extension, typename Func>
+    template<typename Extension, typename Func>
     decltype(auto) withExtension(Func&& func) {
         return std::visit([&func](auto && arg) {
-            using ArgType = std::decay_t<decltype(arg)>;
-            using ExtensionType = Extension<ArgType>;
-            return arg.template withExtension<ExtensionType>(std::forward<Func>(func));
+            return arg.template withExtension<Extension>(std::forward<Func>(func));
         }, m_dataBusContainer.getVariant());
     }
 
-    template<template <typename> class Extension>
+    // All databus types must support the given Extension for this to be true
+    template<typename Extension>
     static constexpr bool hasExtension() {
-        // For constexpr evaluation, every type in the sequence must support the extension
-        return (detail::has_extension<Extension, Tss>::value && ...);
+        // Check if all DataBus types support the given extension
+        return (Tss::template hasExtension<Extension>() && ...);
     }
 
-    template<template <typename> class Extension>
+    // The active databus must support the given Extension for this to be true
+    template<typename Extension>
     bool hasExtensionRuntime() const {
         return std::visit([](auto && arg) {
-            using ArgType = std::decay_t<decltype(arg)>;
-            using ExtensionType = Extension<ArgType>;
-            return arg.template hasExtension<ExtensionType>();
+            return arg.template hasExtension<Extension>();
         }, m_dataBusContainer.getVariant());
     }
-
+    
 };
 
 } // namespace DRAMPower::util

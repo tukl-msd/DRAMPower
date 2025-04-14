@@ -11,17 +11,7 @@
 using namespace DRAMPower;
 
 // static extension example
-template <typename Parent>
-class StaticExtensionExample {
-protected:
-    Parent *parent;
-public:
-    explicit StaticExtensionExample(Parent *parent) : parent(parent) {}
-
-    Parent* getParent() const {
-        return parent;
-    }
-};
+class StaticExtensionExample {};
 
 // Hook example
 enum class StaticExtensionHookExample : uint64_t {
@@ -46,12 +36,8 @@ constexpr bool operator!=(StaticExtensionHookExample lhs, size_t rhs) {
 }
 
 // static extension with hook example
-template <typename Parent>
 class StaticExtensionWithHookExample {
-protected:
-    Parent *parent;
 public:
-    explicit StaticExtensionWithHookExample(Parent *parent) : parent(parent) {}
 
     static constexpr StaticExtensionHookExample getSupportedHooks() {
         return StaticExtensionHookExample::Hook_0
@@ -64,28 +50,19 @@ public:
     void Hook_3(int& i) {i = 3;}
     void Hook_4(int& i) {i = 4;}
 
-    Parent* getParent() const {
-        return parent;
-    }
 };
 
 
-template <template<typename> class... Extensions>
+template <typename... Extensions>
 class StaticExtensionExampleType {
 public:
 // Type definitions
-    using Self = StaticExtensionExampleType<Extensions...>;
     using Extension_manager_t = util::extension_manager_static::StaticExtensionManager<
-        Self,
-        DRAMUtils::util::type_sequence<Extensions<Self>...>,
+        DRAMUtils::util::type_sequence<Extensions...>,
         StaticExtensionHookExample
     >;
 // Member variables
     Extension_manager_t extensionManager;
-// Constructor
-    StaticExtensionExampleType()
-        : extensionManager(this)
-    {}
 // Hook helper
     template <StaticExtensionHookExample hook, typename... Args>
     void invokeHook(Args&&... args) {
