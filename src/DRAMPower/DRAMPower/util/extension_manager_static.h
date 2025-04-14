@@ -22,12 +22,12 @@ namespace DRAMPower::util::extension_manager_static {
  * - Seq: DRAMUtils::util::type_sequence of the StaticExtensions
  * - Hook: enum for retrieving the extensions supportting the given hook in callHook
  */ 
-template <typename Parent, typename Seq, typename Hook>
+template <typename Seq, typename Hook>
 class StaticExtensionManager{
     static_assert(DRAMUtils::util::always_false<Seq>::value, "Cannot construct StaticExtensionManager.");
 };
-template <typename Parent, typename Hook, typename... StaticExtensions>
-class StaticExtensionManager<Parent, DRAMUtils::util::type_sequence<StaticExtensions...>, Hook> {
+template <typename Hook, typename... StaticExtensions>
+class StaticExtensionManager<DRAMUtils::util::type_sequence<StaticExtensions...>, Hook> {
 private:
 // Type definitions
     using Extension_type_sequence_t = DRAMUtils::util::type_sequence<StaticExtensions...>;
@@ -38,7 +38,6 @@ private:
 // Constexpr helpers
     constexpr static std::size_t m_numExtensions = sizeof...(StaticExtensions);
 // Members
-    Parent* m_parent;
     Extension_tuple_t m_extensions;
 
 private:
@@ -69,9 +68,8 @@ private:
 
 public:
 // Constructor
-    explicit StaticExtensionManager(Parent* parent)
-    : m_parent(parent)
-    , m_extensions(StaticExtensions(parent)...)
+    StaticExtensionManager()
+    : m_extensions(StaticExtensions{}...)
     {}
 // Public member functions
     template <Hook_t hook, typename Func>
