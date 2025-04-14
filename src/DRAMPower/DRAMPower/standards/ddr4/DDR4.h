@@ -1,6 +1,7 @@
 #ifndef DRAMPOWER_STANDARDS_DDR4_DDR4_H
 #define DRAMPOWER_STANDARDS_DDR4_DDR4_H
 
+#include <DRAMPower/util/pin.h>
 #include <DRAMPower/util/bus.h>
 #include <DRAMPower/util/databus.h>
 #include <DRAMPower/util/databus_presets.h>
@@ -52,6 +53,8 @@ public:
     uint64_t prepostambleWriteMinTccd;
 public:
     databus_t dataBus;
+private:
+    util::Pin dbi;
 
 protected:
 

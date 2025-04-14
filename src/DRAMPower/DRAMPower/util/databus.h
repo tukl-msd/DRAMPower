@@ -55,6 +55,9 @@ public:
                 togglingHandleWrite.enable(0);
                 break;
         }
+        extensionManager.template callHook<databus_extensions::DataBusHook::onInit>([this](auto& ext) {
+            ext.onInit(this->width);
+        });
     }
     DataBus(DataBusConfig&& config)
     : DataBus(config.width, config.dataRate, config.idlePattern, config.initPattern,
@@ -63,18 +66,19 @@ public:
 
 private:
     void load(Bus_t &bus, TogglingHandle &togglingHandle, timestamp_t timestamp, std::size_t n_bits, const uint8_t *data = nullptr) {
-        bool invert = false;
-        extensionManager.template callHook<databus_extensions::DataBusHook::onLoad>([this, timestamp, n_bits, &data, &invert](auto& ext) {
-            ext.onLoad(timestamp, this->busType, n_bits, data, invert);
-        });
         switch(busType) {
-            case DataBusMode::Bus:
+            case DataBusMode::Bus: {
                 if (nullptr == data || 0 == n_bits) {
                     // No data to load, skip burst
                     return;
                 }
+                bool invert = false;
+                extensionManager.template callHook<databus_extensions::DataBusHook::onLoad>([this, timestamp, n_bits, &data, &invert](auto& ext) {
+                    ext.onLoad(timestamp, this->busType, n_bits, data, invert);
+                });
                 bus.load(timestamp, data, n_bits, invert);
                 break;
+            }
             case DataBusMode::TogglingRate:
                 togglingHandle.incCountBitLength(timestamp, n_bits);
                 break;

@@ -71,6 +71,8 @@ public:
     // Retrieve an extension (returns an empty weak_ptr if not found)
     template <typename T>
     std::weak_ptr<T> getExtension() {
+        static_assert(std::is_base_of_v<BaseExtension, T>,
+            "T must derive from BaseExtension");
         if (m_extensions.empty()) {
             return std::weak_ptr<T>{};
         }
@@ -84,10 +86,25 @@ public:
     // Check if an extension is registered
     template <typename T>
     bool hasExtension() const {
+        static_assert(std::is_base_of_v<BaseExtension, T>,
+            "T must derive from BaseExtension");
         if (m_extensions.empty()) {
             return false;
         }
         return m_extensions.find(std::type_index(typeid(T))) != m_extensions.end();
+    }
+
+    // Visitor pattern for extensions
+    template <typename T, typename Func>
+    void withExtension(Func&& func) {
+        static_assert(std::is_base_of_v<BaseExtension, T>,
+            "T must derive from BaseExtension");
+        if (!m_extensions.empty()) {
+            auto it = m_extensions.find(std::type_index(typeid(T)));
+            if (it != m_extensions.end()) {
+                std::forward<Func>(func)(*std::static_pointer_cast<T>(it->second));
+            }
+        }
     }
 };
 

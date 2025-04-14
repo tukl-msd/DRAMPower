@@ -47,6 +47,7 @@ namespace DRAMPower {
                 }
             )
         )
+        , dbi(1, util::PinState::L)
     {
         this->registerCommands();
         this->registerExtensions();
@@ -70,23 +71,31 @@ namespace DRAMPower {
                 coordinate.bank = 0b01;
                 // SET MRS opcode in encoder
                 uint64_t opcode = DEFAULT_MODE_REGISTER_5;
-                if (enable) {
-                    // Set the DBI bits
-                    opcode |= 1 << 12;
-                    opcode |= 1 << 11;
-                } else {
-                    // Clear the DBI bits
-                    opcode &= ~(1 << 12);
-                    opcode &= ~(1 << 11);
+                if (enable) { // Set the DBI bits
+                    opcode |= 1 << 12; opcode |= 1 << 11;
+                } else { // Clear the DBI bits
+                    opcode &= ~(1 << 12); opcode &= ~(1 << 11);
                 }
                 this->encoder.setOpcode(opcode, opcodeLength);
                 // Encode the pattern
                 auto pattern = this->getCoordinatePattern(coordinate, MRSPattern);
-                // Load the pattern into the command bus
+                // Load the pattern on the command bus
                 auto ca_length = MRSPattern.size() / commandBus.get_width();
                 this->commandBus.load(timestamp, pattern, ca_length);
+                // Toggle the DBI databus extension
+                this->dataBus.withExtension<util::databus_extensions::DataBusExtensionDBI>([enable](auto& ext) {
+                    ext.enable(enable);
+                });
             }
         );
+        // DRAMPowerExtensionDBI -- DataBusExtensionDBI
+        this->dataBus.withExtension<util::databus_extensions::DataBusExtensionDBI>([this](auto& ext) {
+            ext.setIdlePattern(util::BusIdlePatternSpec::H)
+                .setChangeCallback([this](timestamp_t timestamp, bool invert) {
+                    this->dbi.set(timestamp, invert ? util::PinState::H : util::PinState::L);
+                })
+                .enable(false); // DBI is disabled by default
+        });
     }
 
 
@@ -697,6 +706,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         stats.clockStats = 2u * clock.get_stats_at(timestamp);
         stats.readDQSStats = NumDQsPairs * 2u * readDQS_.get_stats_at(timestamp);
         stats.writeDQSStats = NumDQsPairs * 2u * writeDQS_.get_stats_at(timestamp);
+        stats.dbiStats = dbi.get_stats_at(timestamp);
 
         return stats;
     }

@@ -10,9 +10,6 @@
 
 using namespace DRAMPower;
 
-// static extension example
-class StaticExtensionExample {};
-
 // Hook example
 enum class StaticExtensionHookExample : uint64_t {
     Hook_0 = 1 << 0,
@@ -50,11 +47,19 @@ public:
     void Hook_3(int& i) {i = 3;}
     void Hook_4(int& i) {i = 4;}
 
+// Member functions
+    void setState(int state) {
+        m_state = state;
+    }
+    int getState() const {
+        return m_state;
+    }
+private:
+    int m_state = -1;
 };
 
-
 template <typename... Extensions>
-class StaticExtensionExampleType {
+class StaticExtensionHookExampleType {
 public:
 // Type definitions
     using Extension_manager_t = util::extension_manager_static::StaticExtensionManager<
@@ -97,10 +102,10 @@ public:
     }
 };
 
-class MiscTestStaticExtension : public ::testing::Test {
+class MiscTestStaticExtensionHook : public ::testing::Test {
 protected:
     // Test variables
-    using testclass_t = StaticExtensionExampleType<StaticExtensionWithHookExample>;
+    using testclass_t = StaticExtensionHookExampleType<StaticExtensionWithHookExample>;
 
     std::unique_ptr<testclass_t> dut;
 
@@ -114,9 +119,24 @@ protected:
     }
 };
 
-#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_EQ(lhs, util::dynamic_bitset<N>(N, rhs))
+TEST_F(MiscTestStaticExtensionHook, StaticExtensionManager0)
+{
+    // Extension registered
+    ASSERT_TRUE(dut->extensionManager.hasExtension<StaticExtensionWithHookExample>());
 
-TEST_F(MiscTestStaticExtension, StaticExtensionManager0)
+    // Set Extension directly
+    ASSERT_EQ(dut->extensionManager.getExtension<StaticExtensionWithHookExample>().getState(), -1);
+    dut->extensionManager.getExtension<StaticExtensionWithHookExample>().setState(1);
+    ASSERT_EQ(dut->extensionManager.getExtension<StaticExtensionWithHookExample>().getState(), 1);
+
+    // Set Extension with a visitor lambda
+    dut->extensionManager.withExtension<StaticExtensionWithHookExample>([this](auto& ext) {
+        ext.setState(2);
+    });
+    ASSERT_EQ(dut->extensionManager.getExtension<StaticExtensionWithHookExample>().getState(), 2);
+}
+
+TEST_F(MiscTestStaticExtensionHook, StaticExtensionManager1)
 {
     // Test assertions
     int i = -1;

@@ -2,7 +2,7 @@
 #define DRAMPOWER_UTIL_CLOCK_H
 
 #include <DRAMPower/Types.h>
-#include <DRAMPower/util/bus.h>
+#include <DRAMPower/util/bus_types.h>
 
 #include <optional>
 
