@@ -14,8 +14,6 @@ namespace DRAMPower::util::databus_presets {
     using databus_1024_t = DataBus<1024, databus_extensions::DataBusExtensionDBI>;
     using databus_4096_t = DataBus<4096, databus_extensions::DataBusExtensionDBI>;
 
-    using databus_preset_fallback_t = DataBus<64, 0, 0, databus_extensions::DataBusExtensionDBI>;
-
     using databus_preset_sequence_t = DRAMUtils::util::type_sequence<
         databus_64_t,
         databus_256_t,
