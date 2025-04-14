@@ -9,6 +9,7 @@
 #include <DRAMPower/util/databus_types.h>
 #include <DRAMPower/util/extension_manager_static.h>
 #include <DRAMPower/util/databus_extensions.h>
+#include <DRAMPower/util/databus_types.h>
 #include <DRAMPower/dram/Interface.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
@@ -58,15 +59,6 @@ public:
                 togglingHandleWrite.enable(0);
                 break;
         }
-        // Set DBI Callback for togglingHandles to DataBusExtensionDBI
-        if constexpr (hasExtension<databus_extensions::DataBusExtensionDBI<Self>>()) {
-            withExtension<databus_extensions::DataBusExtensionDBI<Self>>([this](auto& ext) {
-                ext.setStateChangeCallback([this](bool dbi) {
-                    togglingHandleRead.setDBI(dbi);
-                    togglingHandleWrite.setDBI(dbi);
-                });
-            });
-        }
     }
     DataBus(DataBusConfig&& config)
     : DataBus(config.width, config.dataRate, config.idlePattern, config.initPattern,
@@ -75,12 +67,9 @@ public:
 
 private:
     void load(Bus_t &bus, TogglingHandle &togglingHandle, timestamp_t timestamp, std::size_t n_bits, const uint8_t *data = nullptr) {
-        extensionManager.template callHook<databus_extensions::DataBusHook::onLoad>([timestamp, n_bits, &data](auto& ext) {
-            uint8_t *dataout = nullptr;
-            ext.onLoad(timestamp, n_bits, data, &dataout);
-            if (nullptr != dataout) {
-                data = dataout;
-            }
+        bool invert = false;
+        extensionManager.template callHook<databus_extensions::DataBusHook::onLoad>([this, timestamp, n_bits, &data, &invert](auto& ext) {
+            ext.onLoad(timestamp, this->busType, n_bits, data, invert);
         });
         switch(busType) {
             case DataBusMode::Bus:
@@ -88,7 +77,7 @@ private:
                     // No data to load, skip burst
                     return;
                 }
-                bus.load(timestamp, data, n_bits);
+                bus.load(timestamp, data, n_bits, invert);
                 break;
             case DataBusMode::TogglingRate:
                 togglingHandle.incCountBitLength(timestamp, n_bits);
@@ -268,11 +257,11 @@ namespace detail {
     struct has_extension : std::false_type {};
 
     template <template<typename> class Extension, 
-              std::size_t blocksize, std::size_t max_bitset_size, std::size_t maxburst_length, 
+              std::size_t max_bitset_size, 
               template<typename> class... Exts>
-    struct has_extension<Extension, DataBus<blocksize, max_bitset_size, maxburst_length, Exts...>>
-        : std::bool_constant<(std::is_same_v<Extension<DataBus<blocksize, max_bitset_size, maxburst_length, Exts...>>, 
-                             Exts<DataBus<blocksize, max_bitset_size, maxburst_length, Exts...>>> || ...)> {};
+    struct has_extension<Extension, DataBus<max_bitset_size, Exts...>>
+        : std::bool_constant<(std::is_same_v<Extension<DataBus<max_bitset_size, Exts...>>, 
+                             Exts<DataBus<max_bitset_size, Exts...>>> || ...)> {};
 };
 
 template <typename Seq>

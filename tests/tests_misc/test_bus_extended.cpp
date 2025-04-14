@@ -22,11 +22,8 @@ protected:
 		typename util::Bus<N>::burst_t& burst_zeroes,
 		typename util::Bus<N>::burst_t& burst_custom
 	) {
-		burst_ones = typename util::Bus<N>::burst_t{N};
 		burst_ones.set();
-		burst_zeroes = typename util::Bus<N>::burst_t{N};
 		burst_zeroes.reset();
-		burst_custom = typename util::Bus<N>::burst_t{N};
 		for(size_t i = 0; i < N; i++)
 		{
 			burst_custom.set(i, (i % 3) ? true : false);
