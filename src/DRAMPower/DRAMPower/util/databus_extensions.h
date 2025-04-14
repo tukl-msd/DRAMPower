@@ -34,7 +34,6 @@ constexpr bool operator!=(DataBusHook lhs, size_t rhs) {
 
 class DataBusExtensionDBI {
 public:
-    using Self = DataBusExtensionDBI;
     using IdlePattern_t = util::BusIdlePatternSpec;
     using InvertChangeCallback_t = std::function<void(timestamp_t, bool)>;
 
@@ -49,37 +48,32 @@ public:
 
 // Public member functions
 public:
-    Self& setWidth(std::size_t width) {
+    void setWidth(std::size_t width) {
         m_width = width;
-        return *this;
     }
 
-    Self& enable(bool enable) {
+    void enable(bool enable) {
         m_enable = enable;
-        return *this;
     }
 
     bool isEnabled() const {
         return m_enable;
     }
 
-    Self& setIdlePattern(IdlePattern_t pattern) {
+    void setIdlePattern(IdlePattern_t pattern) {
         m_idlePattern = pattern;
-        return *this;
     }
 
     template <typename Func>
-    Self& setChangeCallback(Func&& callback) {
+    void setChangeCallback(Func&& callback) {
         m_invertChangeCallback = std::forward<Func>(callback);
-        return *this;
     }
 
 // Hook functions
 public:
-    Self& onInit(std::size_t width) {
+    void onInit(std::size_t width) {
         m_width = width;
         m_lastInvert = false;
-        return *this;
     }
 
     void onLoad(timestamp_t timestamp, util::DataBusMode mode, std::size_t n_bits, const uint8_t *data, bool &invert) {
