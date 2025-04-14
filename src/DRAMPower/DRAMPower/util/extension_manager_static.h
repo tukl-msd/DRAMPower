@@ -20,7 +20,7 @@ namespace DRAMPower::util::extension_manager_static {
  * Template arguments:
  * - Parent: Parent type of the type which holds the StaticExtensionManager
  * - Seq: DRAMUtils::util::type_sequence of the StaticExtensions
- * - Hook: enum for retrieving the extensions supportting the given hook in callHook
+ * - Hook: enum for retrieving the extensions supporting the given hook in callHook
  */ 
 template <typename Seq, typename Hook>
 class StaticExtensionManager{

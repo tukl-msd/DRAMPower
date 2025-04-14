@@ -271,6 +271,15 @@ TEST_F(MiscTestExtension, DynamicExtensionHooks0)
     ASSERT_EQ(captured_int, 1);
     ASSERT_EQ(dut_hook->getExtensionManager().getExtension<DynamicExtensionWithHooksExample>().lock()->getState(), true);
 
+    // Test visitor
+    dut_hook->getExtensionManager().withExtension<DynamicExtensionWithHooksExample>([this](auto& ext) {
+        ext.setState(false);
+    });
+    ASSERT_EQ(dut_hook->getExtensionManager().getExtension<DynamicExtensionWithHooksExample>().lock()->getState(), false);
+    dut_hook->getExtensionManager().withExtension<DynamicExtensionWithHooksExample>([this](auto& ext) {
+        ext.setState(true);
+    });
+
     // Test hooks
     ASSERT_EQ(captured_int, 1);
     int i = -1;

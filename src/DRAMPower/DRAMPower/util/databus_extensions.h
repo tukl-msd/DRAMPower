@@ -17,7 +17,8 @@ namespace DRAMPower::util::databus_extensions {
 
 enum class DataBusHook : uint64_t {
     None        = 0,
-    onLoad      = 1 << 0
+    onInit      = 1 << 0,
+    onLoad      = 1 << 1,
 };
 constexpr DataBusHook operator|(DataBusHook lhs, DataBusHook rhs) {
     return static_cast<DataBusHook>(static_cast<std::underlying_type_t<DataBusHook>>(lhs) |
@@ -33,36 +34,59 @@ constexpr bool operator!=(DataBusHook lhs, size_t rhs) {
 
 class DataBusExtensionDBI {
 public:
-    using StateChangeCallback_t = std::function<void(bool)>;
+    using Self = DataBusExtensionDBI;
     using IdlePattern_t = util::BusIdlePatternSpec;
+    using InvertChangeCallback_t = std::function<void(timestamp_t, bool)>;
 
 public:
     explicit DataBusExtensionDBI() = default;
 
     // supported hooks
     static constexpr DataBusHook getSupportedHooks() {
-        return DataBusHook::onLoad;
+        return DataBusHook::onLoad
+            | DataBusHook::onInit;
     }
 
-    void enable(bool enable) {
+// Public member functions
+public:
+    Self& setWidth(std::size_t width) {
+        m_width = width;
+        return *this;
+    }
+
+    Self& enable(bool enable) {
         m_enable = enable;
+        return *this;
     }
 
     bool isEnabled() const {
         return m_enable;
     }
 
-// Public member functions
-public:
-    void setIdlePattern(IdlePattern_t pattern) {
+    Self& setIdlePattern(IdlePattern_t pattern) {
         m_idlePattern = pattern;
+        return *this;
+    }
+
+    template <typename Func>
+    Self& setChangeCallback(Func&& callback) {
+        m_invertChangeCallback = std::forward<Func>(callback);
+        return *this;
     }
 
 // Hook functions
 public:
-    void onLoad(timestamp_t, util::DataBusMode mode, std::size_t n_bits, const uint8_t *data, bool &invert) {
+    Self& onInit(std::size_t width) {
+        m_width = width;
+        m_lastInvert = false;
+        return *this;
+    }
+
+    void onLoad(timestamp_t timestamp, util::DataBusMode mode, std::size_t n_bits, const uint8_t *data, bool &invert) {
+        // TODO upper and lower dbi signal
         if (!data || n_bits == 0 || util::DataBusMode::Bus != mode || !m_enable) return;
         if (IdlePattern_t::Z == m_idlePattern) return;
+        invert = false;
 
         // Count Transistions and check what is cheaper
         // 1. Invert the data
@@ -72,14 +96,18 @@ public:
         uint64_t count_1 = 0;
         size_t n_bytes = (n_bits + 7) / 8;
         for (size_t i = 0; i < n_bytes; ++i) {
-            count_0 += util::BinaryOps::popcount(static_cast<uint64_t>(data[i]));
-            count_1 += util::BinaryOps::popcount(static_cast<uint64_t>(~data[i]));
+            size_t ones_in_byte = util::BinaryOps::popcount(data[i]);
+            count_1 += ones_in_byte;
+            count_0 += 8 - ones_in_byte;
         }
         // Correct count_0, count_1 if the last byte is not full
         if (n_bits % 8 != 0) {
-            uint8_t mask = (1 << (n_bits % 8)) - 1;
-            count_0 -= util::BinaryOps::popcount(static_cast<uint64_t>(data[n_bytes - 1] & ~mask));
-            count_1 -= util::BinaryOps::popcount(static_cast<uint64_t>(~data[n_bytes - 1] & ~mask));
+            uint8_t unused_bits = 8 - (n_bits % 8);
+            uint8_t mask = (1u << (n_bits % 8)) - 1;
+            uint8_t unused_portion = data[n_bytes - 1] & ~mask;
+            size_t ones_in_unused = util::BinaryOps::popcount(unused_portion);
+            count_1 -= ones_in_unused;
+            count_0 -= unused_bits - ones_in_unused;
         }
         switch(m_idlePattern)
         {
@@ -96,9 +124,18 @@ public:
             default:
                 assert(false);
         }
+        // Signal a change in the invert state
+        if (nullptr != m_invertChangeCallback && invert != m_lastInvert) {
+            m_invertChangeCallback(timestamp, invert);
+        }
+        m_lastInvert = invert;
     }
 private:
     bool m_enable = false;
+    bool m_lastInvert = false;
+    std::size_t m_width = 0;
+
+    InvertChangeCallback_t m_invertChangeCallback = nullptr;
 
     IdlePattern_t m_idlePattern = IdlePattern_t::Z;
 };

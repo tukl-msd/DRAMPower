@@ -4,6 +4,7 @@
 #include <DRAMPower/util/binary_ops.h>
 #include <DRAMPower/util/burst_storage.h>
 #include <DRAMPower/util/bus_types.h>
+#include <DRAMPower/util/pending_stats.h>
 #include <DRAMPower/Types.h>
 
 #include <optional>
@@ -29,43 +30,6 @@ private:
 		H = 1,
 		Z = 2,
 		CUSTOM = 3
-	};
-
-	class PendingStats
-	{
-		private:
-		timestamp_t timestamp;
-		bus_stats_t stats;
-		bool 		pending;
-
-		public:
-		PendingStats() : timestamp(0), stats(), pending(false) {}
-		void setPendingStats(timestamp_t timestamp, bus_stats_t stats)
-		{
-			this->timestamp = timestamp;
-			this->stats = stats;
-			this->pending = true;
-		}
-
-		bool isPending() const
-		{
-			return this->pending;
-		}
-
-		void clear()
-		{
-			this->pending = false;
-		}
-
-		timestamp_t getTimestamp() const
-		{
-			return this->timestamp;
-		}
-
-		bus_stats_t getStats() const
-		{
-			return this->stats;
-		}
 	};
 
 public:
