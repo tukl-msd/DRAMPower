@@ -12,17 +12,6 @@
 
 namespace DRAMPower::util {
 
-struct DataBusConfig {
-    std::size_t width;
-    std::size_t dataRate;
-    util::BusIdlePatternSpec idlePattern;
-    util::BusInitPatternSpec initPattern;
-    DRAMUtils::Config::TogglingRateIdlePattern togglingRateIdlePattern;
-    double togglingRate;
-    double dutyCycle;
-    DataBusMode busType;
-};
-
 // DataBus class
 template<std::size_t max_bitset_size = 0>
 class DataBus {

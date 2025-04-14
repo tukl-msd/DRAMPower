@@ -2,7 +2,6 @@
 #include <bitset>
 
 #include <DRAMPower/util/bus.h>
-#include <DRAMPower/util/dynamic_bitset.h>
 
 using namespace DRAMPower;
 
@@ -27,7 +26,7 @@ protected:
 
 #define ASSERT_HAS_DATA(lhs) ASSERT_TRUE(lhs.has_value())
 #define ASSERT_NO_DATA(lhs) ASSERT_FALSE(lhs.has_value())
-#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), util::sub_bitset<N>(N, rhs))
+#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), std::bitset<N>(rhs))
 
 TEST_F(BusTest, EmptyTest)
 {
@@ -36,7 +35,7 @@ TEST_F(BusTest, EmptyTest)
 	// auto [hasData, data] = bus.at(0);
 
 	ASSERT_HAS_DATA(bus.at(0));
-	ASSERT_EQ(bus.at(0).value(), Bus_8::burst_t(8, 0b0000'0000));
+	ASSERT_EQ(bus.at(0).value(), Bus_8::burst_t(0b0000'0000));
 	ASSERT_EQ_BITSET(8, bus.at(1), 0b0000'0000);
 };
 

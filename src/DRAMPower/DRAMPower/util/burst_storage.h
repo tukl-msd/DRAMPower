@@ -10,9 +10,6 @@
 #include <cstdint>
 
 
-#include <DRAMPower/util/dynamic_bitset.h>
-#include <DRAMPower/util/sub_bitset.h>
-
 namespace DRAMPower::util
 {
 
@@ -24,7 +21,7 @@ template<std::size_t bitset_size = 64>
 class burst_storage
 {
 public:
-	using burst_t = util::sub_bitset<bitset_size>;
+	using burst_t = std::bitset<bitset_size>;
 	using burst_storage_t = std::vector<burst_t>;
 
 private:
@@ -40,7 +37,7 @@ public:
 public:
 
 	inline burst_t createBitset() {
-		burst_t burst{width};
+		burst_t burst;
 		burst.reset();
 		return burst;
 	}

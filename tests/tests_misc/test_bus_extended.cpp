@@ -2,7 +2,6 @@
 #include <bitset>
 
 #include <DRAMPower/util/bus.h>
-#include <DRAMPower/util/dynamic_bitset.h>
 #include <array>
 #include <optional>
 #include <algorithm>
@@ -45,7 +44,7 @@ protected:
 
 #define ASSERT_HAS_DATA(lhs) ASSERT_TRUE(lhs.has_value())
 #define ASSERT_NO_DATA(lhs) ASSERT_FALSE(!lhs.has_value())
-#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), util::sub_bitset<N>(N, rhs))
+#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), std::bitset<N>(rhs))
 #define ASSERT_EQ_BURST(lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), rhs)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_1)
@@ -243,9 +242,9 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_512)
 class ExtendedBusStatsTest : public ::testing::Test {
 protected:
 
-	util::dynamic_bitset<128> burst_ones{128};
-	util::dynamic_bitset<128> burst_zeroes{128};
-	util::dynamic_bitset<128> burst_custom{128};
+	std::bitset<128> burst_ones{128};
+	std::bitset<128> burst_zeroes{128};
+	std::bitset<128> burst_custom{128};
 	const static constexpr size_t buswidth = 128; // test bus width greater than 64
 	const static constexpr size_t bus_array_size = (buswidth + 7) / 8;
 

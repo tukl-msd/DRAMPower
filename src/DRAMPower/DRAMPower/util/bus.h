@@ -19,44 +19,6 @@
 namespace DRAMPower::util 
 {
 
-struct bus_stats_t {
-	uint64_t ones = 0;
-	uint64_t zeroes = 0;
-	uint64_t bit_changes = 0;
-	uint64_t ones_to_zeroes = 0;
-	uint64_t zeroes_to_ones = 0;
-
-	bus_stats_t& operator+=(const bus_stats_t& rhs) {
-		this->bit_changes += rhs.bit_changes;
-		this->ones += rhs.ones;
-		this->zeroes += rhs.zeroes;
-		this->ones_to_zeroes += rhs.ones_to_zeroes;
-		this->zeroes_to_ones += rhs.zeroes_to_ones;
-		return *this;
-	};
-
-	bus_stats_t& operator*=(const uint64_t rhs) {
-		this->bit_changes *= rhs;
-		this->ones *= rhs;
-		this->zeroes *= rhs;
-		this->ones_to_zeroes *= rhs;
-		this->zeroes_to_ones *= rhs;
-		return *this;
-	};
-
-	friend bus_stats_t operator+(bus_stats_t lhs, const bus_stats_t& rhs) {
-		return lhs += rhs;
-	}
-
-	friend bus_stats_t operator*(bus_stats_t lhs, const uint64_t rhs) {
-		return lhs *= rhs;
-	}
-
-	friend bus_stats_t operator*(const uint64_t lhs, bus_stats_t rhs) {
-		return rhs *= lhs;
-	}
-};
-
 template <std::size_t max_bitset_size = 0>
 class Bus {
 
@@ -146,10 +108,13 @@ private:
 	{
 		
 		// Initialize zero and one patterns
-		this->zero_pattern = burst_t(width);
-		this->one_pattern = burst_t(width);
+		this->zero_pattern = burst_t();
+		this->one_pattern = burst_t();
 		this->zero_pattern.reset();
-		this->one_pattern.set();
+		for (std::size_t i = 0; i < width; i++)
+		{
+			this->one_pattern.set(i, true);
+		}
 
 		// Initialize last pattern and init stats
 		switch(init_pattern)
