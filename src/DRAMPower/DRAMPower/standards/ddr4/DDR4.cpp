@@ -90,11 +90,11 @@ namespace DRAMPower {
         );
         // DRAMPowerExtensionDBI -- DataBusExtensionDBI
         this->dataBus.withExtension<util::databus_extensions::DataBusExtensionDBI>([this](auto& ext) {
-            ext.setIdlePattern(util::BusIdlePatternSpec::H)
-                .setChangeCallback([this](timestamp_t timestamp, bool invert) {
-                    this->dbi.set(timestamp, invert ? util::PinState::H : util::PinState::L);
-                })
-                .enable(false); // DBI is disabled by default
+            ext.setIdlePattern(util::BusIdlePatternSpec::H);
+            ext.setChangeCallback([this](timestamp_t timestamp, bool invert) {
+                this->dbi.set(timestamp, invert ? util::PinState::H : util::PinState::L);
+            });
+            ext.enable(false); // DBI is disabled by default
         });
     }
 
