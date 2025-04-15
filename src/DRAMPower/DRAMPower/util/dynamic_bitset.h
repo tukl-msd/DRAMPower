@@ -202,6 +202,6 @@ inline dynamic_bitset<blocksize> operator&(dynamic_bitset<blocksize> lhs, const 
 template<std::size_t blocksize>
 inline dynamic_bitset<blocksize> operator|(dynamic_bitset<blocksize> lhs, const dynamic_bitset<blocksize>& rhs) { return lhs |= rhs; };
 
-}
+} // namespace DRAMPower::util
 
 #endif /* DRAMPOWER_UTIL_DYNAMIC_BITSET_H */

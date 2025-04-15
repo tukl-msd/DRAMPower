@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
+#include <bitset>
 
 #include <DRAMPower/util/bus.h>
-#include <DRAMPower/util/dynamic_bitset.h>
 #include <array>
 #include <optional>
 #include <algorithm>
@@ -22,11 +22,14 @@ protected:
 		typename util::Bus<N>::burst_t& burst_zeroes,
 		typename util::Bus<N>::burst_t& burst_custom
 	) {
+		burst_ones = typename util::Bus<N>::burst_t{N};
+		burst_ones.set();
+		burst_zeroes = typename util::Bus<N>::burst_t{N};
+		burst_zeroes.reset();
+		burst_custom = typename util::Bus<N>::burst_t{N};
 		for(size_t i = 0; i < N; i++)
 		{
-			burst_ones.push_back(true);
-			burst_zeroes.push_back(false);
-			burst_custom.push_back((i % 3 ? true : false));
+			burst_custom.set(i, (i % 3) ? true : false);
 		}
 	}
 
@@ -41,7 +44,7 @@ protected:
 
 #define ASSERT_HAS_DATA(lhs) ASSERT_TRUE(lhs.has_value())
 #define ASSERT_NO_DATA(lhs) ASSERT_FALSE(!lhs.has_value())
-#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), util::dynamic_bitset<N>(N, rhs))
+#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), std::bitset<N>(rhs))
 #define ASSERT_EQ_BURST(lhs, rhs) ASSERT_HAS_DATA(lhs); ASSERT_EQ(lhs.value(), rhs)
 
 TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_1)
@@ -50,7 +53,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_1)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::L, Bus_8::BusInitPatternSpec::L);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
 	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
@@ -62,7 +65,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_2)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::L, Bus_8::BusInitPatternSpec::H);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::H);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
 	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
@@ -74,7 +77,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_3)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::L, burst_custom);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::L, burst_custom);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
 	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
@@ -86,7 +89,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_1)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::H, Bus_8::BusInitPatternSpec::L);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::H, util::BusInitPatternSpec::L);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_ones);
 	ASSERT_EQ_BURST(bus.at(1), burst_ones);
@@ -98,7 +101,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_2)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::H, Bus_8::BusInitPatternSpec::H);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_ones);
 	ASSERT_EQ_BURST(bus.at(1), burst_ones);
@@ -110,7 +113,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_3)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::H, burst_custom);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::H, burst_custom);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_ones);
 	ASSERT_EQ_BURST(bus.at(1), burst_ones);
@@ -122,7 +125,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_1)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::LAST_PATTERN, Bus_8::BusInitPatternSpec::L);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::LAST_PATTERN, util::BusInitPatternSpec::L);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
 	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
@@ -134,7 +137,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_2)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::LAST_PATTERN, Bus_8::BusInitPatternSpec::H);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::LAST_PATTERN, util::BusInitPatternSpec::H);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_ones);
 	ASSERT_EQ_BURST(bus.at(1), burst_ones);
@@ -146,7 +149,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_3)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_custom);
 	ASSERT_EQ_BURST(bus.at(1), burst_custom);
@@ -158,7 +161,7 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_8)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, Bus_8::BusIdlePatternSpec::L, Bus_8::BusInitPatternSpec::L);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L);
 
 	// Init load overrides init pattern
 	bus.load(0, 0b0010'1010'1001'0110, 2);
@@ -175,7 +178,7 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_64)
 	const uint32_t buswidth = 8 * 8;
 	const uint32_t number_bytes = (buswidth + 7) / 8;
 
-	Bus_64 bus(64, 1, Bus_64::BusIdlePatternSpec::L, Bus_64::BusInitPatternSpec::L);
+	Bus_64 bus(64, 1, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L);
 	std::array<uint8_t, number_bytes> data = { 0 }; 
 	
 	auto expected = Bus_64::burst_t(64);
@@ -208,7 +211,7 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_512)
 	const uint32_t buswidth = 64 * 8;
 	const uint32_t number_bytes = (buswidth + 7) / 8;
 
-	Bus_512 bus(512, 1, Bus_512::BusIdlePatternSpec::L, Bus_512::BusInitPatternSpec::L);
+	Bus_512 bus(512, 1, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L);
 	std::array<uint8_t, number_bytes> data = { 0 }; 
 	
 	auto expected = Bus_512::burst_t(512);
@@ -239,9 +242,9 @@ TEST_F(ExtendedBusIdlePatternTest, Load_Width_512)
 class ExtendedBusStatsTest : public ::testing::Test {
 protected:
 
-	util::dynamic_bitset<128> burst_ones{128};
-	util::dynamic_bitset<128> burst_zeroes{128};
-	util::dynamic_bitset<128> burst_custom{128};
+	std::bitset<128> burst_ones{128};
+	std::bitset<128> burst_zeroes{128};
+	std::bitset<128> burst_custom{128};
 	const static constexpr size_t buswidth = 128; // test bus width greater than 64
 	const static constexpr size_t bus_array_size = (buswidth + 7) / 8;
 
@@ -273,7 +276,7 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_Datarate_1)
 {
 	uint_fast8_t datarate = 2;
 	timestamp_t timestamp = 3;
-	Bus_128 bus(128, datarate, Bus_128::BusIdlePatternSpec::L, Bus_128::BusInitPatternSpec::L);
+	Bus_128 bus(128, datarate, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L);
 
 	auto stats = bus.get_stats(timestamp); // 3 cycles with double data rate
 	ASSERT_EQ(stats.ones, 0);
@@ -287,7 +290,7 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_Datarate_2)
 {
 	uint_fast8_t datarate = 13;
 	timestamp_t timestamp = 47;
-	Bus_128 bus(128, datarate, Bus_128::BusIdlePatternSpec::L, Bus_128::BusInitPatternSpec::L);
+	Bus_128 bus(128, datarate, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L);
 
 
 	auto stats = bus.get_stats(timestamp); // 3 cycles with double data rate
@@ -305,7 +308,7 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_1)
 	Bus_128::burst_t burst_custom{128};
 	Init<128>(burst_ones, burst_zeroes, burst_custom);
 
-	Bus_128 bus(128, 1, Bus_128::BusIdlePatternSpec::L, burst_custom);
+	Bus_128 bus(128, 1, util::BusIdlePatternSpec::L, burst_custom);
 	std::size_t custom_ones = burst_custom.count();
 	std::size_t custom_zeroes = buswidth - custom_ones;
 	uint8_t burst_ones_data[bus_array_size];
@@ -369,7 +372,7 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_2)
 	Bus_128::burst_t burst_custom{128};
 	Init<128>(burst_ones, burst_zeroes, burst_custom);
 
-	Bus_128 bus(128, 1, Bus_128::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
+	Bus_128 bus(128, 1, util::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
 	std::size_t custom_ones = burst_custom.count();
 	std::size_t custom_zeroes = buswidth - custom_ones;
 	uint8_t burst_ones_data[bus_array_size];

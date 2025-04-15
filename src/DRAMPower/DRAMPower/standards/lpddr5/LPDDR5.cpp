@@ -15,14 +15,21 @@ namespace DRAMPower {
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks })
         , commandBus{7, 2, // modelled with datarate 2
-            commandbus_t::BusIdlePatternSpec::L, commandbus_t::BusInitPatternSpec::L}
+            util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
         , dataBus{
-            memSpec.numberOfDevices,
-            memSpec.bitWidth,
-            memSpec.dataRate,
-            databus_t::Bus_t::BusIdlePatternSpec::L, databus_t::Bus_t::BusInitPatternSpec::L,
-            DRAMUtils::Config::TogglingRateIdlePattern::L, 0.0, 0.0,
-            databus_t::BusType::Bus
+            util::databus_presets::getDataBusPreset(
+                memSpec.bitWidth * memSpec.numberOfDevices,
+                util::DataBusConfig {
+                    memSpec.bitWidth * memSpec.numberOfDevices,
+                    memSpec.dataRate,
+                    util::BusIdlePatternSpec::L,
+                    util::BusInitPatternSpec::L,
+                    DRAMUtils::Config::TogglingRateIdlePattern::L,
+                    0.0,
+                    0.0,
+                    util::DataBusMode::Bus
+                }
+            )
         }
         , readDQS(memSpec.dataRate, true)
         , wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
@@ -362,11 +369,11 @@ namespace DRAMPower {
             // No data provided by command
             if (dataBus.isTogglingRate()) {
                 length = memSpec.burstLength;
-                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getCombinedBusWidth(), nullptr);
+                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), nullptr);
             }
         } else {
             // Data provided by command
-            length = cmd.sz_bits / dataBus.getCombinedBusWidth();
+            length = cmd.sz_bits / dataBus.getWidth();
             (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
         }
         // DQS

@@ -3,6 +3,7 @@
 
 #include <DRAMPower/util/bus.h>
 #include <DRAMPower/util/databus.h>
+#include <DRAMPower/util/databus_presets.h>
 #include <DRAMPower/dram/dram_base.h>
 #include <DRAMPower/dram/Rank.h>
 #include <DRAMPower/dram/Interface.h>
@@ -31,7 +32,7 @@ public:
     virtual ~DDR4() = default;
 public:
     using commandbus_t = util::Bus<27>;
-    using databus_t = util::DataBus<16>;
+    using databus_t =  util::databus_presets::databus_preset_t;
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
 

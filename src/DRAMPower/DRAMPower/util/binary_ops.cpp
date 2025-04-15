@@ -25,6 +25,11 @@ std::size_t BinaryOps::popcount(uint64_t n)
     return POPCOUNT(n);
 }
 
+std::size_t BinaryOps::popcount(uint8_t n)
+{
+    return POPCOUNT(n);
+}
+
 std::size_t BinaryOps::zero_to_ones(uint64_t p, uint64_t q)
 {
     return popcount(~p & q);

@@ -16,21 +16,27 @@ namespace DRAMPower {
           }) 
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-        , commandBus{6, 1, commandbus_t::BusIdlePatternSpec::L, commandbus_t::BusInitPatternSpec::L}
+        , commandBus{6, 1, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
         , dataBus{
-            memSpec.numberOfDevices,
-            memSpec.bitWidth,
-            memSpec.dataRate,
-            databus_t::Bus_t::BusIdlePatternSpec::L,
-            databus_t::Bus_t::BusInitPatternSpec::L,
-            TogglingRateIdlePattern::L, 0.0, 0.0,
-            databus_t::BusType::Bus
+            util::databus_presets::getDataBusPreset(
+                memSpec.bitWidth * memSpec.numberOfDevices,
+                util::DataBusConfig {
+                    memSpec.bitWidth * memSpec.numberOfDevices,
+                    memSpec.dataRate,
+                    util::BusIdlePatternSpec::L,
+                    util::BusInitPatternSpec::L,
+                    TogglingRateIdlePattern::L,
+                    0.0,
+                    0.0,
+                    util::DataBusMode::Bus
+                }
+            )
         }
         , readDQS(memSpec.dataRate, true)
         , writeDQS(memSpec.dataRate, true)
     {
         this->registerCommands();
-    };
+    }
 
     void LPDDR4::registerCommands() {
         using namespace pattern_descriptor;
@@ -248,11 +254,11 @@ namespace DRAMPower {
             // Use default burst length
             if (dataBus.isTogglingRate()) {
                 length = memSpec.burstLength;
-                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getCombinedBusWidth(), nullptr);
+                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), nullptr);
             }
         } else {
             // Data provided by command
-            length = cmd.sz_bits / dataBus.getCombinedBusWidth();
+            length = cmd.sz_bits / dataBus.getWidth();
             (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
         }
         handleInterfaceDQs(cmd, dqs, length);

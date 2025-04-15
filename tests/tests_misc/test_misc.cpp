@@ -7,7 +7,6 @@
 #include <optional>
 
 #include <DRAMPower/util/burst_storage.h>
-#include <DRAMPower/util/dynamic_bitset.h>
 
 using namespace DRAMPower;	
 
@@ -59,7 +58,7 @@ protected:
     }
 };
 
-#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_EQ(lhs, util::dynamic_bitset<N>(N, rhs))
+#define ASSERT_EQ_BITSET(N, lhs, rhs) ASSERT_EQ(lhs, std::bitset<N>(rhs))
 
 TEST_F(MiscTest, TestChunking)
 {

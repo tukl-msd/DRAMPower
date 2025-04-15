@@ -25,18 +25,26 @@ namespace DRAMPower {
         , commandBus(
             cmdBusWidth,
             1,
-            commandbus_t::BusIdlePatternSpec::H,
-            commandbus_t::burst_t(cmdBusWidth, cmdBusInitPattern)
+            util::BusIdlePatternSpec::H,
+            util::BusInitPatternSpec::H
         )
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
         , dataBus(
-            memSpec.numberOfDevices,
-            memSpec.bitWidth,
-            memSpec.dataRate,
-            databus_t::Bus_t::BusIdlePatternSpec::H, databus_t::Bus_t::BusInitPatternSpec::H,
-            DRAMUtils::Config::TogglingRateIdlePattern::H, 0.0, 0.0,
-            databus_t::BusType::Bus)
+            util::databus_presets::getDataBusPreset(
+                memSpec.bitWidth * memSpec.numberOfDevices, 
+                util::DataBusConfig {
+                    memSpec.bitWidth * memSpec.numberOfDevices,
+                    memSpec.dataRate,
+                    util::BusIdlePatternSpec::H,
+                    util::BusInitPatternSpec::H,
+                    DRAMUtils::Config::TogglingRateIdlePattern::H,
+                    0.0,
+                    0.0,
+                    util::DataBusMode::Bus
+                }
+            )
+        )
     {
         this->registerCommands();
     }
@@ -349,11 +357,11 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
             if (dataBus.isTogglingRate()) {
                 // If bus is enabled skip loading data
                 length = memSpec.burstLength;
-                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getCombinedBusWidth(), nullptr);
+                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), nullptr);
             }
         } else {
             // Data provided by command
-            length = cmd.sz_bits / (dataBus.getCombinedBusWidth());
+            length = cmd.sz_bits / (dataBus.getWidth());
             (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
         }
         assert(this->ranks.size()>cmd.targetCoordinate.rank);

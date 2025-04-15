@@ -26,20 +26,27 @@ namespace DRAMPower {
         , memSpec(memSpec)
         , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
         , dataBus{
-            memSpec.numberOfDevices,
-            memSpec.bitWidth,
-            memSpec.dataRate,
-            databus_t::Bus_t::BusIdlePatternSpec::H, databus_t::Bus_t::BusInitPatternSpec::H,
-            DRAMUtils::Config::TogglingRateIdlePattern::H, 0.0, 0.0,
-            databus_t::BusType::Bus
+            util::databus_presets::getDataBusPreset(
+                memSpec.bitWidth * memSpec.numberOfDevices,
+                util::DataBusConfig {
+                    memSpec.bitWidth * memSpec.numberOfDevices,
+                    memSpec.dataRate,
+                    util::BusIdlePatternSpec::H,
+                    util::BusInitPatternSpec::H,
+                    DRAMUtils::Config::TogglingRateIdlePattern::H,
+                    0.0,
+                    0.0,
+                    util::DataBusMode::Bus
+                }
+            )
         }
         , cmdBusWidth(14)
         , cmdBusInitPattern((1<<cmdBusWidth)-1)
         , commandBus(
             cmdBusWidth,
             1,
-            commandbus_t::BusIdlePatternSpec::H,
-            commandbus_t::burst_t(cmdBusWidth, cmdBusInitPattern)
+            util::BusIdlePatternSpec::H,
+            util::BusInitPatternSpec::H
         )
         , readDQS(memSpec.dataRateSpec.dqsBusRate, true)
         , writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
@@ -321,11 +328,11 @@ namespace DRAMPower {
             // Use default burst length
             if (dataBus.isTogglingRate()) {
                 length = memSpec.burstLength;
-                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getCombinedBusWidth(), nullptr);
+                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), nullptr);
             }
         } else {
             // Data provided by command
-            length = cmd.sz_bits / dataBus.getCombinedBusWidth();
+            length = cmd.sz_bits / dataBus.getWidth();
             (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
         }
         handleInterfaceDQs(cmd, dqs, length);
