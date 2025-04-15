@@ -20,26 +20,56 @@ The last official release can be found here: https://github.com/tukl-msd/DRAMPow
 The master branch of the repository should be regarded as the bleeding-edge version, which has all the latest features, but also all the latest bugs. Use at your own discretion.
 
 ## Installation of the DRAMPower library
-CMake is required for the building of DRAMPower. 
-Clone the repository, or download the zip file of the release you would like to use and use CMake to generate the build files, e.g.
+CMake is required for the building of DRAMPower. If DRAMPower is the top level project DRAMPower fetches the required dependencies.
+If DRAMPower is not the top level project, the dependencies have to be fetched manually, provided by the top level project or the DRAMPower library can fetch the dependencies by
+using the following cmake flags:
+
+```console
+$ -D DRAMPOWER_USE_FETCH_CONTENT=Y -D DRAMPOWER_USE_FETCH_CONTENT_INTERNAL=Y -D DRAMPOWER_USE_FETCH_CONTENT_SPDLOG=Y -D DRAMPOWER_USE_FETCH_CONTENT_CLI11=Y
+```
+
+DRAMPower depends on DRAMUtils. In this scenario DRAMUtils is not the top level project, the depedencies for DRAMUtils have to be fetched manually, provided by the top level project or the DRAMUtils library can fetch the dependencies by using the following cmake flags:
+
+```console
+$ -D DRAMUTILS_USE_FETCH_CONTENT=Y -D DRAMUTILS_USE_FETCH_CONTENT_NLOHMANN_JSON=Y
+```
+
+For building DRAMPower clone the repository, or download the zip file of the release you would like to use and use CMake to generate the build files, e.g.
 
 ```console
 $ cd DRAMPower
 $ cmake -S . -B build
-$ cmake --build build
+$ cmake --build build --parallel
+```
+
+If you want DRAMPower and DRAMUtils to fetch the dependencies automatically even if they are not the top level project, you can use the following command:
+
+```console
+$ cd DRAMPower
+$ cmake -S . -B build -D DRAMPOWER_USE_FETCH_CONTENT=Y -D DRAMPOWER_USE_FETCH_CONTENT_INTERNAL=Y -D DRAMPOWER_USE_FETCH_CONTENT_SPDLOG=Y -D DRAMPOWER_USE_FETCH_CONTENT_CLI11=Y -D DRAMUTILS_USE_FETCH_CONTENT=Y -D DRAMUTILS_USE_FETCH_CONTENT_NLOHMANN_JSON=Y
+$ cmake --build build --parallel
 ```
 
 Optionally, test cases can be built by toggling the DRAMPOWER_BUILD_TESTS flag with CMake.
-The command line tool can be built by setting the DRAMPOWER_BUILD_CLI flag.
+The command line tool is automatically build if DRAMPower is the top level project. Alternatively, the DRAMPOWER_BUILD_CLI flag can be set to Y to build the command line tool.
 
 ## Installation of the DRAMPower Command Line application
-CMake is required for the building of DRAMPower Command Line application.
-Clone the repository, or download the zip file of the release you would like to use and use CMake to generate the build files, e.g.
+The command line application is automatically build if DRAMPower is the top level project (see [Installation of the DRAMPower library](#installation-of-the-drampower-library)).
+Alternatively, the DRAMPOWER_BUILD_CLI flag can be set to Y to build the command line tool.
+Clone the repository, or download the zip file of the release you would like to use and use CMake to generate the build files. The following commands force the build of the command line application:
 
 ```console
 $ cd DRAMPower
 $ cmake -S . -B build -D DRAMPOWER_BUILD_CLI=Y
 $ cmake --build build
+```
+
+If you want DRAMPower and DRAMUtils to fetch the dependencies automatically, you can use the following command:
+
+```console
+$ cd DRAMPower
+$ cmake -S . -B build -D DRAMPOWER_USE_FETCH_CONTENT=Y -D DRAMPOWER_USE_FETCH_CONTENT_INTERNAL=Y -D DRAMPOWER_USE_FETCH_CONTENT_SPDLOG=Y -D DRAMPOWER_USE_FETCH_CONTENT_CLI11=Y -D DRAMUTILS_USE_FETCH_CONTENT=Y -D DRAMUTILS_USE_FETCH_CONTENT_NLOHMANN_JSON=Y -D DRAMPOWER_BUILD_CLI=Y
+$ cmake --build build --parallel
 ```
 
 ## Project structure
@@ -84,7 +114,7 @@ The library target DRAMPower is then available to the rest of the project and ca
 
 ```cmake
 add_executable(drampower_app ${SOURCE_FILES})
-target_link_libraries(drampower_app PRIVATE DRAMSys::DRAMPower)
+target_link_libraries(drampower_app PRIVATE DRAMPower::DRAMPower)
 ```
 
 All constructs inside DRAMPower are exposed through the DRAMPower namespace.
