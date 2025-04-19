@@ -115,18 +115,6 @@ protected:
 		memSpec.memPowerSpec[1].iDD4RX = 72;
 		memSpec.memPowerSpec[1].iDD4WX = 72;
 
-
-		// Impedance specs
-		memSpec.memImpedanceSpec.C_total_ck = 5.0;
-		memSpec.memImpedanceSpec.C_total_cb = 5.0;
-		memSpec.memImpedanceSpec.C_total_rb = 5.0;
-		memSpec.memImpedanceSpec.C_total_wb = 5.0;
-
-		memSpec.memImpedanceSpec.R_eq_ck = 2.0;
-		memSpec.memImpedanceSpec.R_eq_cb = 2.0;
-		memSpec.memImpedanceSpec.R_eq_rb = 2.0;
-		memSpec.memImpedanceSpec.R_eq_wb = 2.0;
-
 		memSpec.bwParams.bwPowerFactRho = 0.333333333;
 	
 		spec = std::make_unique<MemSpecLPDDR4>(memSpec);
@@ -198,7 +186,8 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestDQS)
     EXPECT_EQ(sizeof(wr_data), sizeof(rd_data));
     EXPECT_EQ(ddr->dataBus.getWidth(), spec->bitWidth);
     int number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
-    uint_fast8_t scale = 1 * 2; // Differential_Pairs * 2(pairs of 2)
+	uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
+    uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
     // f(t) = t / 2;
     int DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
     int DQS_zeros = DQS_ones;
@@ -374,17 +363,19 @@ class LPDDR4_Energy_Tests : public ::testing::Test {
 		voltage = spec->vddq;
 
 		// Change impedances to different values from each other
-		spec->memImpedanceSpec.R_eq_cb = 2;
-		spec->memImpedanceSpec.R_eq_ck = 3;
-		spec->memImpedanceSpec.R_eq_dqs = 4;
-		spec->memImpedanceSpec.R_eq_rb = 5;
-		spec->memImpedanceSpec.R_eq_wb = 6;
+		spec->memImpedanceSpec.cb_R_eq = 2;
+        spec->memImpedanceSpec.ck_R_eq = 3;
+        spec->memImpedanceSpec.rdqs_R_eq = 4;
+        spec->memImpedanceSpec.wdqs_R_eq = 5;
+		spec->memImpedanceSpec.rb_R_eq = 6;
+		spec->memImpedanceSpec.wb_R_eq = 7;
 
-		spec->memImpedanceSpec.C_total_cb = 2;
-		spec->memImpedanceSpec.C_total_ck = 3;
-		spec->memImpedanceSpec.C_total_dqs = 4;
-		spec->memImpedanceSpec.C_total_rb = 5;
-		spec->memImpedanceSpec.C_total_wb = 6;
+        spec->memImpedanceSpec.cb_dyn_E = 8;
+		spec->memImpedanceSpec.ck_dyn_E = 9;
+		spec->memImpedanceSpec.rdqs_dyn_E = 10;
+		spec->memImpedanceSpec.wdqs_dyn_E = 11;
+		spec->memImpedanceSpec.rb_dyn_E = 12;
+		spec->memImpedanceSpec.wb_dyn_E = 13;
 
 		io_calc = std::make_unique<InterfaceCalculation_LPDDR4>(*spec);
 	}
@@ -401,6 +392,7 @@ TEST_F(LPDDR4_Energy_Tests, Parameters) {
 }
 
 TEST_F(LPDDR4_Energy_Tests, Clock_Energy) {
+	// TODO implement test with new interface model
 	SimulationStats stats;
 	stats.clockStats.ones = 43;
 	stats.clockStats.zeroes_to_ones = 47;
@@ -418,9 +410,11 @@ TEST_F(LPDDR4_Energy_Tests, Clock_Energy) {
 	// f(t) = t / 2
 	// Differential pair 2 limes in N = 2 * N_single
 	// E = f(N * t_CK) * U^2/R
-	double expected_static = stats.clockStats.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_ck;
+	double expected_static =
+		stats.clockStats.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.ck_R_eq;
 	// E = N * 1/2 * C * U^2
-	double expected_dynamic = stats.clockStats.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_ck * voltage * voltage;
+	double expected_dynamic =
+		stats.clockStats.zeroes_to_ones * spec->memImpedanceSpec.ck_dyn_E;
 
 	EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static);  // value itself doesn't matter, only that it matches the formula
 	EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic);
@@ -429,6 +423,7 @@ TEST_F(LPDDR4_Energy_Tests, Clock_Energy) {
 }
 
 TEST_F(LPDDR4_Energy_Tests, DQS_Energy) {
+	// TODO implement test with new interface model
 	SimulationStats stats;
 	stats.readDQSStats.ones = 200;
 	stats.readDQSStats.zeroes = 400;
@@ -443,17 +438,13 @@ TEST_F(LPDDR4_Energy_Tests, DQS_Energy) {
 	// Term power if consumed by 1's
 	// Controller -> write power
 	// Dram -> read power
-	double expected_static_controller =
-		0.5 * stats.writeDQSStats.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_dqs;
-	double expected_static_dram =
-		0.5 * stats.readDQSStats.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_dqs;
+	double expected_static_controller = stats.writeDQSStats.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.wdqs_R_eq;
+	double expected_static_dram = stats.readDQSStats.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.rdqs_R_eq;
 
 
 	// Dynamic power is consumed on 0 -> 1 transition
-	double expected_dynamic_controller = stats.writeDQSStats.zeroes_to_ones *
-									spec->memImpedanceSpec.C_total_dqs / 2.0 * voltage * voltage;
-	double expected_dynamic_dram = stats.readDQSStats.zeroes_to_ones *
-									spec->memImpedanceSpec.C_total_dqs / 2.0 * voltage * voltage;
+	double expected_dynamic_controller = stats.writeDQSStats.zeroes_to_ones * spec->memImpedanceSpec.wdqs_dyn_E;
+	double expected_dynamic_dram = stats.readDQSStats.zeroes_to_ones * spec->memImpedanceSpec.rdqs_dyn_E;
 
 	interface_energy_info_t result = io_calc->calculateEnergy(stats);
 	EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
@@ -466,6 +457,7 @@ TEST_F(LPDDR4_Energy_Tests, DQS_Energy) {
 }
 
 TEST_F(LPDDR4_Energy_Tests, DQ_Energy) {
+	// TODO implement test with new interface model
 	SimulationStats stats;
 	stats.readBus.ones = 7;
 	stats.readBus.zeroes = 11;
@@ -481,15 +473,13 @@ TEST_F(LPDDR4_Energy_Tests, DQ_Energy) {
 	// Controller -> write power
 	// Dram -> read power
 	double expected_static_controller =
-		stats.writeBus.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_wb;
+		stats.writeBus.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.wb_R_eq;
 	double expected_static_dram =
-		stats.readBus.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_rb;
+		stats.readBus.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.rb_R_eq;
 
 	// Dynamic power is consumed on 0 -> 1 transition
-	double expected_dynamic_controller =
-		stats.writeBus.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_wb * voltage * voltage;
-	double expected_dynamic_dram =
-		stats.readBus.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_rb * voltage * voltage;
+	double expected_dynamic_controller = stats.writeBus.zeroes_to_ones * spec->memImpedanceSpec.wb_dyn_E;
+	double expected_dynamic_dram = stats.readBus.zeroes_to_ones * spec->memImpedanceSpec.rb_dyn_E;
 
 	interface_energy_info_t result = io_calc->calculateEnergy(stats);
 	EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
@@ -504,14 +494,16 @@ TEST_F(LPDDR4_Energy_Tests, DQ_Energy) {
 }
 
 TEST_F(LPDDR4_Energy_Tests, CA_Energy) {
+	// TODO implement test with new interface model
 	SimulationStats stats;
 	stats.commandBus.ones = 11;
 	stats.commandBus.zeroes = 29;
 	stats.commandBus.zeroes_to_ones = 39;
 	stats.commandBus.ones_to_zeroes = 49;
 
-	double expected_static_controller = stats.commandBus.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_cb;
-	double expected_dynamic_controller = stats.commandBus.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_cb * voltage * voltage;
+	double expected_static_controller =
+		stats.commandBus.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.cb_R_eq;
+	double expected_dynamic_controller = stats.commandBus.zeroes_to_ones * spec->memImpedanceSpec.cb_dyn_E;
 
 	interface_energy_info_t result = io_calc->calculateEnergy(stats);
 

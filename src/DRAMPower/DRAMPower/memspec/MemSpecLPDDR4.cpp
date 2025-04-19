@@ -189,7 +189,6 @@ MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec)
     }
     prechargeOffsetWR      =  memTimingSpec.tWL + burstLength/2 + memTimingSpec.tWR + 1;
     parseImpedanceSpec(memspec);
-
 }
 
 bool MemSpecLPDDR4::BankWiseParams::isBankActiveInPasr(const unsigned bankIdx) const
@@ -218,17 +217,7 @@ uint64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::CmdType type)
 } // MemSpecLPDDR4::timeToCompletion
 
 void MemSpecLPDDR4::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec) {
-    memImpedanceSpec.C_total_cb = memspec.memimpedancespec.C_total_cb;
-    memImpedanceSpec.C_total_ck = memspec.memimpedancespec.C_total_ck;
-    memImpedanceSpec.C_total_dqs = memspec.memimpedancespec.C_total_dqs;
-    memImpedanceSpec.C_total_rb = memspec.memimpedancespec.C_total_rb;
-    memImpedanceSpec.C_total_wb = memspec.memimpedancespec.C_total_wb;
-
-    memImpedanceSpec.R_eq_cb = memspec.memimpedancespec.R_eq_cb;
-    memImpedanceSpec.R_eq_ck = memspec.memimpedancespec.R_eq_ck;
-    memImpedanceSpec.R_eq_dqs = memspec.memimpedancespec.R_eq_dqs;
-    memImpedanceSpec.R_eq_rb = memspec.memimpedancespec.R_eq_rb;
-    memImpedanceSpec.R_eq_wb = memspec.memimpedancespec.R_eq_wb;
+    memImpedanceSpec = memspec.memimpedancespec;
 }
 
 MemSpecLPDDR4 MemSpecLPDDR4::from_memspec(const DRAMUtils::MemSpec::MemSpecVariant& memSpec)
