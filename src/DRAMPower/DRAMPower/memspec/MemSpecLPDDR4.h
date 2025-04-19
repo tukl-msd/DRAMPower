@@ -11,6 +11,7 @@ namespace DRAMPower {
 class MemSpecLPDDR4 final : public MemSpec<DRAMUtils::MemSpec::MemSpecLPDDR4>
 {
 public:
+	using MemImpedanceSpec = DRAMUtils::MemSpec::MemImpedanceSpecTypeLPDDR4;
 
     enum VoltageDomain {
         VDD1 = 0,
@@ -75,20 +76,6 @@ public:
         double iDD6X;
         double iBeta;
 
-	};
-
-	struct MemImpedanceSpec {
-		double dynamicEnergy_ck;
-		double dynamicEnergy_cb;
-		double dynamicEnergy_rb;
-		double dynamicEnergy_wb;
-		double dynamicEnergy_dqs;
-
-		MemImpedanceStaticSpec static_ck;
-		MemImpedanceStaticSpec static_cb;
-		MemImpedanceStaticSpec static_rb;
-		MemImpedanceStaticSpec static_wb;
-		MemImpedanceStaticSpec static_dqs;
 	};
 
 	struct BankWiseParams

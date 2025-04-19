@@ -242,22 +242,19 @@ class LPDDR4_TogglingRateEnergy_Tests : public ::testing::Test {
         voltage = spec->vddq;
 
         // Change impedances to different values from each other
-        spec->memImpedanceSpec.static_cb.equivalent_resistance = 2;
-        spec->memImpedanceSpec.static_cb.entry.termination = DRAMUtils::MemSpec::MemImpedanceTerminationScheme::LWSTL;
-        spec->memImpedanceSpec.static_ck.equivalent_resistance = 3;
-        spec->memImpedanceSpec.static_ck.entry.termination = DRAMUtils::MemSpec::MemImpedanceTerminationScheme::LWSTL;
-        spec->memImpedanceSpec.static_dqs.equivalent_resistance = 4;
-        spec->memImpedanceSpec.static_dqs.entry.termination = DRAMUtils::MemSpec::MemImpedanceTerminationScheme::LWSTL;
-        spec->memImpedanceSpec.static_rb.equivalent_resistance = 5;
-        spec->memImpedanceSpec.static_rb.entry.termination = DRAMUtils::MemSpec::MemImpedanceTerminationScheme::LWSTL;
-        spec->memImpedanceSpec.static_wb.equivalent_resistance = 6;
-        spec->memImpedanceSpec.static_wb.entry.termination = DRAMUtils::MemSpec::MemImpedanceTerminationScheme::LWSTL;
+		spec->memImpedanceSpec.cb_R_eq = 2;
+        spec->memImpedanceSpec.ck_R_eq = 3;
+        spec->memImpedanceSpec.rdqs_R_eq = 4;
+        spec->memImpedanceSpec.wdqs_R_eq = 5;
+		spec->memImpedanceSpec.rb_R_eq = 6;
+		spec->memImpedanceSpec.wb_R_eq = 7;
 
-        spec->memImpedanceSpec.dynamicEnergy_cb = 7;
-        spec->memImpedanceSpec.dynamicEnergy_ck = 8;
-        spec->memImpedanceSpec.dynamicEnergy_dqs = 9;
-        spec->memImpedanceSpec.dynamicEnergy_rb = 10;
-        spec->memImpedanceSpec.dynamicEnergy_wb = 11;
+        spec->memImpedanceSpec.cb_dyn_E = 8;
+		spec->memImpedanceSpec.ck_dyn_E = 9;
+		spec->memImpedanceSpec.rdqs_dyn_E = 10;
+		spec->memImpedanceSpec.wdqs_dyn_E = 11;
+		spec->memImpedanceSpec.rb_dyn_E = 12;
+		spec->memImpedanceSpec.wb_dyn_E = 13;
 
         io_calc = std::make_unique<InterfaceCalculation_LPDDR4>(*spec);
     }
@@ -285,13 +282,13 @@ TEST_F(LPDDR4_TogglingRateEnergy_Tests, DQ_Energy) {
     // Controller -> write power
     // Dram -> read power
     double expected_static_controller =
-        stats.togglingStats.write.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.static_wb.equivalent_resistance;
+        stats.togglingStats.write.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.wb_R_eq;
     double expected_static_dram =
-        stats.togglingStats.read.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.static_rb.equivalent_resistance;
+        stats.togglingStats.read.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.rb_R_eq;
 
     // Dynamic power is consumed on 0 -> 1 transition
-    double expected_dynamic_controller = stats.togglingStats.write.zeroes_to_ones * spec->memImpedanceSpec.dynamicEnergy_wb;
-    double expected_dynamic_dram = stats.togglingStats.read.zeroes_to_ones * spec->memImpedanceSpec.dynamicEnergy_rb;
+    double expected_dynamic_controller = stats.togglingStats.write.zeroes_to_ones * spec->memImpedanceSpec.wb_dyn_E;
+    double expected_dynamic_dram = stats.togglingStats.read.zeroes_to_ones * spec->memImpedanceSpec.rb_dyn_E;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
     EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);

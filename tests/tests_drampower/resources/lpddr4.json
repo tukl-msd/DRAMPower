@@ -85,37 +85,27 @@
       "hasPASR": false
     },
     "memimpedancespec": {
+      "ck_termination": true,
+      "ck_R_eq": 1e6,
+      "ck_dyn_E": 1e-9,
 
-        "dynamicEnergy_ck": 1e-9,
-        "dynamicEnergy_cb": 1e-9,
-        "dynamicEnergy_rb": 1e-9,
-        "dynamicEnergy_wb": 1e-9,
-        "dynamicEnergy_dqs": 1e-9,
-        "static_ck": {
-          "R_ON": 1e6,
-          "R_TT": 1e6,
-          "termination": "PODL"
-        },
-        "static_cb": {
-          "R_ON": 1e6,
-          "R_TT": 1e6,
-          "termination": "PODL"
-        },
-        "static_rb": {
-          "R_ON": 1e6,
-          "R_TT": 1e6,
-          "termination": "PODL"
-        },
-        "static_wb": {
-          "R_ON": 1e6,
-          "R_TT": 1e6,
-          "termination": "PODL"
-        },
-        "static_dqs": {
-          "R_ON": 1e6,
-          "R_TT": 1e6,
-          "termination": "PODL"
-        }
+      "cb_termination": true,
+      "cb_R_eq": 1e6,
+      "cb_dyn_E": 1e-9,
+
+      "rb_termination": true,
+      "rb_R_eq": 1e6,
+      "rb_dyn_E": 1e-9,
+      "wb_termination": true,
+      "wb_R_eq": 1e6,
+      "wb_dyn_E": 1e-9,
+
+      "wdqs_termination": true,
+      "wdqs_R_eq": 1e6,
+      "wdqs_dyn_E": 1e-9,
+      "rdqs_termination": true,
+      "rdqs_R_eq": 1e6,
+      "rdqs_dyn_E": 1e-9
     }
   }
 }

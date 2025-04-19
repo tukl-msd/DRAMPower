@@ -29,7 +29,7 @@ private:
 public:
 	InterfaceCalculation_LPDDR4(const MemSpecLPDDR4 & memspec);
 private:
-	double calcStaticTermination(const DRAMPower::util::bus_stats_t &stats, const DRAMPower::MemImpedanceStaticSpec &static_container, const double t, const uint64_t datarate, const double voltage);
+	double calcStaticTermination(const bool termination, const DRAMPower::util::bus_stats_t &stats, const double &R_eq, const double t_CK, const uint64_t datarate, const double voltage);
 	double calc_static_energy(const uint64_t NxBits, const double R_eq, const double t_CK, const double voltage);
 	double calc_dynamic_energy(const uint64_t NxBits, const double energy);
 

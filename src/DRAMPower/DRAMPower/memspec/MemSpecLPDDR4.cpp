@@ -217,17 +217,7 @@ uint64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::CmdType type)
 } // MemSpecLPDDR4::timeToCompletion
 
 void MemSpecLPDDR4::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec) {
-    memImpedanceSpec.dynamicEnergy_ck = memspec.memimpedancespec.dynamicEnergy_ck;
-    memImpedanceSpec.dynamicEnergy_cb = memspec.memimpedancespec.dynamicEnergy_cb;
-    memImpedanceSpec.dynamicEnergy_dqs = memspec.memimpedancespec.dynamicEnergy_dqs;
-    memImpedanceSpec.dynamicEnergy_rb = memspec.memimpedancespec.dynamicEnergy_rb;
-    memImpedanceSpec.dynamicEnergy_wb = memspec.memimpedancespec.dynamicEnergy_wb;
-
-    memImpedanceSpec.static_ck = memspec.memimpedancespec.static_ck;
-    memImpedanceSpec.static_cb = memspec.memimpedancespec.static_cb;
-    memImpedanceSpec.static_rb = memspec.memimpedancespec.static_rb;
-    memImpedanceSpec.static_wb = memspec.memimpedancespec.static_wb;
-    memImpedanceSpec.static_dqs = memspec.memimpedancespec.static_dqs;
+    memImpedanceSpec = memspec.memimpedancespec;
 }
 
 MemSpecLPDDR4 MemSpecLPDDR4::from_memspec(const DRAMUtils::MemSpec::MemSpecVariant& memSpec)
