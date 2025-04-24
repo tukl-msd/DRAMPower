@@ -15,29 +15,16 @@ namespace DRAMPower {
     LPDDR6::LPDDR6(const MemSpecLPDDR5 &memSpec)
         : dram_base<CmdType>(PatternEncoderOverrides{})
         , memSpec(memSpec)
-        , ranks(memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks })
-        , commandBus{7, 2, // modelled with datarate 2
-            util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
-        , dataBus{
-            util::databus_presets::getDataBusPreset(
-                memSpec.bitWidth * memSpec.numberOfDevices,
-                util::DataBusConfig {
-                    memSpec.bitWidth * memSpec.numberOfDevices,
-                    memSpec.dataRate,
-                    util::BusIdlePatternSpec::L,
-                    util::BusInitPatternSpec::L,
-                    DRAMUtils::Config::TogglingRateIdlePattern::L,
-                    0.0,
-                    0.0,
-                    util::DataBusMode::Bus
-                }
-            )
-        }
-        , readDQS(memSpec.dataRate, true)
-        , wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
+        , ranks(memSpec.numberOfChannels * memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks })
+        , interface(memSpec.numberOfChannels, memSpec)
+        , efficiencyMode(false)
     {
         this->registerCommands();
-        this->extensionManager.registerExtension<extensions::DBI>(dataBus);
+        // this->extensionManager.registerExtension<extensions::DBI>(dataBus);
+        this->extensionManager.registerExtension<extensions::LPDDR6EfficiencyMode>(efficiencyMode, [this](const timestamp_t, const bool enabled){
+            this->efficiencyMode = enabled;
+        });
+        
     }
 
     void LPDDR6::registerCommands() {
@@ -294,10 +281,14 @@ namespace DRAMPower {
         if ( enable_timestamp > timestamp ) {
             // Schedule toggling rate enable
             this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-                dataBus.enableTogglingRate(enable_timestamp);
+                for(auto& interface_entry : interface) {
+                    interface_entry.m_dataBus.enableTogglingRate(enable_timestamp);
+                }
             });
         } else {
-            dataBus.enableTogglingRate(enable_timestamp);
+            for(auto& interface_entry : interface) {
+                interface_entry.m_dataBus.enableTogglingRate(enable_timestamp);
+            }
         }
     }
 
@@ -307,36 +298,45 @@ namespace DRAMPower {
         if ( enable_timestamp > timestamp ) {
             // Schedule toggling rate disable
             this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-                dataBus.enableBus(enable_timestamp);
+                for(auto& interface_entry : interface) {
+                    interface_entry.m_dataBus.enableBus(enable_timestamp);
+                }
             });
         } else {
-            dataBus.enableBus(enable_timestamp);
+            for(auto& interface_entry : interface) {
+                interface_entry.m_dataBus.enableBus(enable_timestamp);
+            }
         }
     }
 
     timestamp_t LPDDR6::update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleratedefinition)
     {
+        timestamp_t enable_timestamp = timestamp;
         if (toggleratedefinition) {
-            dataBus.setTogglingRateDefinition(*toggleratedefinition);
-            if (dataBus.isTogglingRate()) {
-                // toggling rate already enabled
-                return timestamp;
+            for(auto& interface_entry : interface) {
+                auto& dataBus = interface_entry.m_dataBus;
+                dataBus.setTogglingRateDefinition(*toggleratedefinition);
+                if (dataBus.isTogglingRate()) {
+                    // toggling rate already enabled
+                    return timestamp;
+                }
+                // Enable toggling rate
+                enableTogglingHandle(enable_timestamp, std::max(timestamp, dataBus.lastBurst()));
             }
-            // Enable toggling rate
-            timestamp_t enable_timestamp = std::max(timestamp, dataBus.lastBurst());
-            enableTogglingHandle(timestamp, enable_timestamp);
             return enable_timestamp;
         } else {
-            if (dataBus.isBus()) {
-                // Bus already enabled
-                return timestamp;
+            for(auto& interface_entry : interface) {
+                auto& dataBus = interface_entry.m_dataBus;
+                if (dataBus.isBus()) {
+                    // Bus already enabled
+                    return timestamp;
+                }
+                // Enable bus
+                enableBus(enable_timestamp, std::max(timestamp, dataBus.lastBurst()));
             }
-            // Enable bus
-            timestamp_t enable_timestamp = std::max(timestamp, dataBus.lastBurst());
-            enableBus(timestamp, enable_timestamp);
             return enable_timestamp;
         }
-        return timestamp;
+        return enable_timestamp;
     }
 
 // Interface
@@ -360,12 +360,20 @@ namespace DRAMPower {
     }
 
     void LPDDR6::handleInterfaceCommandBus(const Command &cmd) {
+        assert(efficiencyMode || cmd.targetCoordinate.channel < interface.size());
+        assert(!efficiencyMode || interface.size() >= 1);
+        auto &commandBus = efficiencyMode ? interface[0].m_commandBus : interface[cmd.targetCoordinate.channel].m_commandBus;
         auto pattern = getCommandPattern(cmd);
         auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
         commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
     void LPDDR6::handleInterfaceData(const Command &cmd, bool read) {
+        assert(efficiencyMode || cmd.targetCoordinate.channel < interface.size());
+        assert(!efficiencyMode || interface.size() >= 1);
+        auto &dataBus = efficiencyMode ? interface[0].m_dataBus : interface[cmd.targetCoordinate.channel].m_dataBus;
+        auto &wck = efficiencyMode ? interface[0].m_wck : interface[cmd.targetCoordinate.channel].m_wck;
+        auto &readDQS = efficiencyMode ? interface[0].m_readDQS : interface[cmd.targetCoordinate.channel].m_readDQS;
         auto loadfunc = read ? &databus_t::loadRead : &databus_t::loadWrite;
         size_t length = 0;
         if (0 == cmd.sz_bits) {
@@ -672,18 +680,25 @@ namespace DRAMPower {
                 rank.cycles.deepSleepMode.get_count_at(timestamp);
         }
 
-        stats.commandBus = commandBus.get_stats(timestamp);
+        for (const auto &interface_entry : interface) {
+            const auto& commandBus = interface_entry.m_commandBus;
+            const auto& dataBus = interface_entry.m_dataBus;
+            const auto& clock = interface_entry.m_clock;
+            const auto& wck = interface_entry.m_wck;
+            const auto& readDQS = interface_entry.m_readDQS;
+            stats.commandBus += commandBus.get_stats(timestamp);
 
-        dataBus.get_stats(timestamp,
-            stats.readBus,
-            stats.writeBus,
-            stats.togglingStats.read,
-            stats.togglingStats.write
-        );
+            dataBus.get_stats(timestamp,
+                stats.readBus,
+                stats.writeBus,
+                stats.togglingStats.read,
+                stats.togglingStats.write
+            );
 
-        stats.clockStats = 2.0 * clock.get_stats_at(timestamp);
-        stats.wClockStats = 2.0 * wck.get_stats_at(timestamp);
-        stats.readDQSStats = 2.0 * readDQS.get_stats_at(timestamp);
+            stats.clockStats += 2.0 * clock.get_stats_at(timestamp);
+            stats.wClockStats += 2.0 * wck.get_stats_at(timestamp);
+            stats.readDQSStats += 2.0 * readDQS.get_stats_at(timestamp);
+        }
 
         return stats;
     }
