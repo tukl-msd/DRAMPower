@@ -11,11 +11,11 @@
 
 namespace DRAMPower::extensions {
 
-class DRAMPowerExtensionBase {
+class Base {
 
 };
 
-class DRAMPowerExtensionDBI : public DRAMPowerExtensionBase {
+class DBI : public Base {
 
 // Public type definitions
 public:
@@ -26,7 +26,7 @@ public:
 
 // Constructors
 public:
-    explicit DRAMPowerExtensionDBI(databus_preset_t& dataBus, std::optional<interface_callback_t>&& callback = std::nullopt);
+    explicit DBI(databus_preset_t& dataBus, std::optional<interface_callback_t>&& callback = std::nullopt);
 
 // Public member functions
 public:

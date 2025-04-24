@@ -37,7 +37,7 @@ public:
     using implicitCommandListEntry_t = std::pair<timestamp_t, implicitCommand_t>;
     using implicitCommandList_t = std::deque<implicitCommandListEntry_t>;
     using extension_manager_t = util::extension_manager::ExtensionManager<
-        extensions::DRAMPowerExtensionBase
+        extensions::Base
     >;
 
 public:
@@ -96,8 +96,8 @@ public:
 
 public:
     // get ExtensionManager
-    extension_manager_t& getExtensionManager() { return this->extensionManager; };
-    const extension_manager_t& getExtensionManager() const { return this->extensionManager; };
+    extension_manager_t& getExtensionManager() { return this->extensionManager; }
+    const extension_manager_t& getExtensionManager() const { return this->extensionManager; }
 
     uint64_t getCommandPattern(const Command& cmd)
     {

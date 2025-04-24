@@ -6,7 +6,7 @@ namespace DRAMPower::extensions {
 
 using namespace DRAMPower::util;
 
-DRAMPowerExtensionDBI::DRAMPowerExtensionDBI(databus_preset_t& dataBus, std::optional<interface_callback_t>&& callback)
+DBI::DBI(databus_preset_t& dataBus, std::optional<interface_callback_t>&& callback)
 : m_dataBus(dataBus) 
 , m_callback(std::move(callback))
 {
@@ -21,7 +21,8 @@ DRAMPowerExtensionDBI::DRAMPowerExtensionDBI(databus_preset_t& dataBus, std::opt
     });
 }
 
-void DRAMPowerExtensionDBI::enable(timestamp_t timestamp, bool enable) {
+void DBI::enable(timestamp_t timestamp, bool enable) {
+    // Update bus
     m_dataBus.withExtension<databus_extensions::DataBusExtensionDBI>([enable](auto& ext) {
         ext.enable(enable);
     });
@@ -32,7 +33,8 @@ void DRAMPowerExtensionDBI::enable(timestamp_t timestamp, bool enable) {
     // Update member
     m_enabled = enable;
 }
-bool DRAMPowerExtensionDBI::isEnabled() const {
+
+bool DBI::isEnabled() const {
     return m_enabled;
 }
 
