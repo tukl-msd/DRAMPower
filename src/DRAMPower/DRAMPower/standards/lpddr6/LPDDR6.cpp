@@ -630,11 +630,11 @@ namespace DRAMPower {
         processImplicitCommandQueue(timestamp);
 
         SimulationStats stats;
-        stats.bank.resize(memSpec.numberOfBanks * memSpec.numberOfRanks);
-        stats.rank_total.resize(memSpec.numberOfRanks);
+        stats.bank.resize(memSpec.numberOfBanks * memSpec.numberOfRanks * memSpec.numberOfChannels);
+        stats.rank_total.resize(memSpec.numberOfRanks * memSpec.numberOfChannels);
 
         auto simulation_duration = timestamp;
-        for (size_t i = 0; i < memSpec.numberOfRanks; ++i) {
+        for (size_t i = 0; i < memSpec.numberOfRanks * memSpec.numberOfChannels; ++i) {
             Rank &rank = ranks[i];
             size_t bank_offset = i * memSpec.numberOfBanks;
 

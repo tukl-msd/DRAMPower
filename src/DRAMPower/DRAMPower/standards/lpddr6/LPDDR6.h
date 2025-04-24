@@ -137,8 +137,8 @@ private:
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {
-            assert(this->ranks.size()>command.targetCoordinate.rank);
-            auto& rank = this->ranks.at(command.targetCoordinate.rank);
+            assert(this->ranks.size()>command.targetCoordinate.rank + memSpec.numberOfRanks * command.targetCoordinate.channel);
+            auto& rank = this->ranks.at(command.targetCoordinate.rank + memSpec.numberOfRanks * command.targetCoordinate.channel);
 
             assert(rank.banks.size()>command.targetCoordinate.bank);
             auto& bank = rank.banks.at(command.targetCoordinate.bank);
@@ -151,8 +151,8 @@ private:
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankGroupHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {
-            assert(this->ranks.size()>command.targetCoordinate.rank);
-            auto& rank = this->ranks.at(command.targetCoordinate.rank);
+            assert(this->ranks.size()>command.targetCoordinate.rank + memSpec.numberOfRanks * command.targetCoordinate.channel);
+            auto& rank = this->ranks.at(command.targetCoordinate.rank + memSpec.numberOfRanks * command.targetCoordinate.channel);
             
             assert(rank.banks.size()>command.targetCoordinate.bank);
             if (command.targetCoordinate.bank >= rank.banks.size()) {
@@ -168,8 +168,8 @@ private:
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerRankHandler(Func&& member_func) {
         this->routeCommand<Cmd>([this, member_func](const Command& command) {
-            assert(this->ranks.size()>command.targetCoordinate.rank);
-            auto& rank = this->ranks.at(command.targetCoordinate.rank);
+            assert(this->ranks.size()>command.targetCoordinate.rank + memSpec.numberOfRanks * command.targetCoordinate.channel);
+            auto& rank = this->ranks.at(command.targetCoordinate.rank + memSpec.numberOfRanks * command.targetCoordinate.channel);
 
             rank.commandCounter.inc(command.type);
             (this->*member_func)(rank, command.timestamp);
