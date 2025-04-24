@@ -37,42 +37,42 @@ class DDR4_WindowStats_Tests : public ::testing::Test {
    public:
     DDR4_WindowStats_Tests() {
         test_patterns.push_back({
-            {0, CmdType::ACT, {1, 0, 0, 2}},
-            {4, CmdType::WR, {1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
-            {11, CmdType::RD, {1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
-            {16, CmdType::PRE, {1, 0, 0, 2}},
+            {0,  CmdType::ACT, {0, 1, 0, 0, 2}},
+            {4,  CmdType::WR,  {0, 1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
+            {11, CmdType::RD,  {0, 1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
+            {16, CmdType::PRE, {0, 1, 0, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 
         test_patterns.push_back({
-            {0, CmdType::ACT, {1, 0, 0, 2}},
-            {4, CmdType::WR, {1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
-            {8, CmdType::WR, {1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
-            {16, CmdType::PRE, {1, 0, 0, 2}},
+            {0,  CmdType::ACT, {0, 1, 0, 0, 2}},
+            {4,  CmdType::WR,  {0, 1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
+            {8,  CmdType::WR,  {0, 1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
+            {16, CmdType::PRE, {0, 1, 0, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 
         test_patterns.push_back({
-            {0, CmdType::ACT, {1, 0, 0, 2}},
-            {4, CmdType::RD, {1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
-            {8, CmdType::RD, {1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
-            {16, CmdType::PRE, {1, 0, 0, 2}},
+            {0,  CmdType::ACT, {0, 1, 0, 0, 2}},
+            {4,  CmdType::RD,  {0, 1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
+            {8,  CmdType::RD,  {0, 1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
+            {16, CmdType::PRE, {0, 1, 0, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 
         test_patterns.push_back({
-            {0, CmdType::ACT, {1, 0, 0, 2}},
-            {4, CmdType::WR, {1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
-            {10, CmdType::WR, {1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
-            {15, CmdType::PRE, {1, 0, 0, 2}},
+            {0,  CmdType::ACT, {0, 1, 0, 0, 2}},
+            {4,  CmdType::WR,  {0, 1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
+            {10, CmdType::WR,  {0, 1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
+            {15, CmdType::PRE, {0, 1, 0, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 
         test_patterns.push_back({
-            {0, CmdType::ACT, {1, 0, 0, 2}},
-            {4, CmdType::RD, {1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
-            {11, CmdType::RD, {1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
-            {16, CmdType::PRE, {1, 0, 0, 2}},
+            {0,  CmdType::ACT, {0, 1, 0, 0, 2}},
+            {4,  CmdType::RD,  {0, 1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
+            {11, CmdType::RD,  {0, 1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
+            {16, CmdType::PRE, {0, 1, 0, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 

@@ -33,10 +33,10 @@ class LPDDR4_TogglingRate_Tests : public ::testing::Test {
     LPDDR4_TogglingRate_Tests() {
         test_patterns.push_back(
         { // Pattern 1
-            {0, CmdType::ACT, {1, 0, 0, 2}},
-            {5, CmdType::WR, {1, 0, 0, 0, 16}, nullptr, datasize_bits},
-            {14, CmdType::RD, {1, 0, 0, 0, 16}, nullptr, datasize_bits},
-            {23, CmdType::PRE, {1, 0, 0, 2}},
+            {0,  CmdType::ACT, {0, 1, 0, 0, 2}},
+            {5,  CmdType::WR,  {0, 1, 0, 0, 0, 16}, nullptr, datasize_bits},
+            {14, CmdType::RD,  {0, 1, 0, 0, 0, 16}, nullptr, datasize_bits},
+            {23, CmdType::PRE, {0, 1, 0, 0, 2}},
             {26, CmdType::END_OF_SIMULATION},
         });
         initSpec();
@@ -307,9 +307,9 @@ TEST_F(LPDDR4_TogglingRate_Tests, Pattern_1) {
     TogglingRateIdlePattern idlePatternWrite = TogglingRateIdlePattern::H;
     // Run commands
     ddr->setToggleRate(0, std::nullopt);
-    ddr->doCoreInterfaceCommand({0, CmdType::ACT, {1, 0, 0, 2}});
-    ddr->doCoreInterfaceCommand({5, CmdType::WR, {1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)});
-    ddr->doCoreInterfaceCommand({14, CmdType::RD, {1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)});
+    ddr->doCoreInterfaceCommand({0, CmdType::ACT, {0, 1, 0, 0, 2}});
+    ddr->doCoreInterfaceCommand({5, CmdType::WR,  {0, 1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)});
+    ddr->doCoreInterfaceCommand({14, CmdType::RD, {0, 1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)});
     // Enable toggling rate at beginning of read
     // The toggling rate should be enabled at t=22
     ddr->setToggleRate(14, ToggleRateDefinition {
@@ -320,14 +320,14 @@ TEST_F(LPDDR4_TogglingRate_Tests, Pattern_1) {
         idlePatternRead, // idlePatternRead
         idlePatternWrite  // idlePatternWrite
     });
-    ddr->doCoreInterfaceCommand({23, CmdType::PRE, {1, 0, 0, 2}});
-    ddr->doCoreInterfaceCommand({30, CmdType::ACT, {1, 0, 0, 2}});
-    ddr->doCoreInterfaceCommand({35, CmdType::WR, {1, 0, 0, 0, 16}, nullptr, 16*8}); // burst length = 16
-    ddr->doCoreInterfaceCommand({44, CmdType::RD, {1, 0, 0, 0, 16}, nullptr, 16*8}); // burst length = 16
+    ddr->doCoreInterfaceCommand({23, CmdType::PRE, {0, 1, 0, 0, 2}});
+    ddr->doCoreInterfaceCommand({30, CmdType::ACT, {0, 1, 0, 0, 2}});
+    ddr->doCoreInterfaceCommand({35, CmdType::WR,  {0, 1, 0, 0, 0, 16}, nullptr, 16*8}); // burst length = 16
+    ddr->doCoreInterfaceCommand({44, CmdType::RD,  {0, 1, 0, 0, 0, 16}, nullptr, 16*8}); // burst length = 16
     // Disable toggling rate during read
     // The toggling rate should be disabled at t=52
     ddr->setToggleRate(46, std::nullopt);
-    ddr->doCoreInterfaceCommand({53, CmdType::PRE, {1, 0, 0, 2}});
+    ddr->doCoreInterfaceCommand({53, CmdType::PRE, {0, 1, 0, 0, 2}});
     ddr->doCoreInterfaceCommand({56, CmdType::END_OF_SIMULATION});
 
 

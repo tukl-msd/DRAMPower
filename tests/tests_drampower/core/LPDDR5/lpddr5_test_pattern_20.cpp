@@ -14,11 +14,12 @@ class DramPowerTest_LPDDR5_20 : public ::testing::Test {
 protected:
     // Test pattern
 	std::vector<Command> testPattern = {
+		// Timestamp,   Cmd,  { Channel, Bank, BG, Rank }
 		{  0, CmdType::REFA },
 		{  5, CmdType::PDEP },
 		{ 15, CmdType::PDXP },
-		{ 30, CmdType::REFB, { 0,0,0} },
-		{ 40, CmdType::ACT, { 1,0,0,}},
+		{ 30, CmdType::REFB, {0,0,0,0} },
+		{ 40, CmdType::ACT,  {0,1,0,0}},
 		{ 45, CmdType::PDEA },
 		{ 75, CmdType::PDXA },
 		{125, CmdType::END_OF_SIMULATION },

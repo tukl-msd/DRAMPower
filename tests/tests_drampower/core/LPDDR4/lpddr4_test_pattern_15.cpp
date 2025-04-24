@@ -14,18 +14,19 @@ class DramPowerTest_LPDDR4_15 : public ::testing::Test {
 protected:
     // Test pattern
 	std::vector<Command> testPattern = {
-		{  0, CmdType::ACT,  { 0, 0, 0}},
-		{  0, CmdType::ACT,  { 1, 0, 0}},
-		{  0, CmdType::ACT,  { 2, 0, 0}},
-		{ 15, CmdType::PRE,  { 0, 0, 0}},
-		{ 20, CmdType::REFB, { 0, 0, 0}},
-		{ 25, CmdType::PRE,  { 1, 0, 0}},
-		{ 30, CmdType::RDA,  { 2, 0, 0}},
-		{ 50, CmdType::REFB, { 2, 0, 0}},
-		{ 60, CmdType::ACT,  { 1, 0, 0}},
-		{ 80, CmdType::PRE,  { 1, 0, 0}},
-		{ 85, CmdType::REFB, { 1, 0, 0}},
-		{ 85, CmdType::REFB, { 0, 0, 0}},
+		// Timestamp,   Cmd,  { Channel, Bank, BG, Rank }
+		{  0, CmdType::ACT,  { 0, 0, 0, 0}},
+		{  0, CmdType::ACT,  { 0, 1, 0, 0}},
+		{  0, CmdType::ACT,  { 0, 2, 0, 0}},
+		{ 15, CmdType::PRE,  { 0, 0, 0, 0}},
+		{ 20, CmdType::REFB, { 0, 0, 0, 0}},
+		{ 25, CmdType::PRE,  { 0, 1, 0, 0}},
+		{ 30, CmdType::RDA,  { 0, 2, 0, 0}},
+		{ 50, CmdType::REFB, { 0, 2, 0, 0}},
+		{ 60, CmdType::ACT,  { 0, 1, 0, 0}},
+		{ 80, CmdType::PRE,  { 0, 1, 0, 0}},
+		{ 85, CmdType::REFB, { 0, 1, 0, 0}},
+		{ 85, CmdType::REFB, { 0, 0, 0, 0}},
 		{ 125, CmdType::END_OF_SIMULATION },
 	};
 

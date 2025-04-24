@@ -12,21 +12,21 @@ class DramPowerTest_DDR5_12 : public ::testing::Test {
 protected:
     // Test pattern
     std::vector<Command> testPattern = {
-    // Timestamp,   Cmd,  { Bank, BG, Rank}
-        {   0, CmdType::ACT, { 0, 0, 0 } },
-        {  10, CmdType::ACT, { 1, 0, 0 } },
-        {  15, CmdType::PRE, { 0, 0, 0 } },
-        {  25, CmdType::ACT, { 3, 0, 0 } },
-        {  25, CmdType::PRE, { 1, 0, 0 } },
-        {  30, CmdType::ACT, { 0, 0, 0 } },
-        {  35, CmdType::ACT, { 2, 0, 0 } },
-        {  40, CmdType::PRE, { 1, 0, 0 } },
-        {  40, CmdType::PRE, { 3, 0, 0 } },
-        {  45, CmdType::PRE, { 0, 0, 0 } },
-        {  50, CmdType::PRE, { 2, 0, 0 } },
-        {  85, CmdType::ACT, { 7, 0, 0 } },
-        { 100, CmdType::PRE, { 7, 0, 0 } },
-        { 120, CmdType::ACT, { 6, 0, 0 } },
+	// Timestamp,   Cmd,  { Channel, Bank, BG, Rank }
+        {   0, CmdType::ACT, { 0, 0, 0, 0 } },
+        {  10, CmdType::ACT, { 0, 1, 0, 0 } },
+        {  15, CmdType::PRE, { 0, 0, 0, 0 } },
+        {  25, CmdType::ACT, { 0, 3, 0, 0 } },
+        {  25, CmdType::PRE, { 0, 1, 0, 0 } },
+        {  30, CmdType::ACT, { 0, 0, 0, 0 } },
+        {  35, CmdType::ACT, { 0, 2, 0, 0 } },
+        {  40, CmdType::PRE, { 0, 1, 0, 0 } },
+        {  40, CmdType::PRE, { 0, 3, 0, 0 } },
+        {  45, CmdType::PRE, { 0, 0, 0, 0 } },
+        {  50, CmdType::PRE, { 0, 2, 0, 0 } },
+        {  85, CmdType::ACT, { 0, 7, 0, 0 } },
+        { 100, CmdType::PRE, { 0, 7, 0, 0 } },
+        { 120, CmdType::ACT, { 0, 6, 0, 0 } },
         { 125, CmdType::END_OF_SIMULATION},
     };
 

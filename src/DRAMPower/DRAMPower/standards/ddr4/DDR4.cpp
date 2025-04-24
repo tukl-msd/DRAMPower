@@ -72,55 +72,25 @@ namespace DRAMPower {
 
     void DDR4::registerExtensions() {
         using namespace pattern_descriptor;
-        // DRAMPowerExtensionDBI
-        const static uint16_t opcodeLength = 15;
-        const static commandPattern_t MRSPattern = {
-            L, H, L, L, L, BG0, BG1, BA0, BA1,
-            V, V, V, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE,
-            OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE
-        };
-        const static uint64_t DEFAULT_MODE_REGISTER_5 = 0b00'00'0'0'000'1'0'0'000; // TODO set correct default values
-        this->extensionManager.registerExtension<extensions::DBI>(dataBus,
-            [this](const timestamp_t timestamp, const bool enable) {
-                // Set the DBI state for the rank
-                TargetCoordinate coordinate;
-                coordinate.bankGroup = 0b01;
-                coordinate.bank = 0b01;
-                // SET MRS opcode in encoder
-                uint64_t opcode = DEFAULT_MODE_REGISTER_5;
-                if (enable) { // Set the DBI bits
-                    opcode |= 1 << 12; opcode |= 1 << 11;
-                } else { // Clear the DBI bits
-                    opcode &= ~(1 << 12); opcode &= ~(1 << 11);
+        if (memSpec.bitWidth != 4) {
+            // DRAMPowerExtensionDBI for x16 and x8 devices
+            this->extensionManager.registerExtension<extensions::DBI>(dataBus,
+                [this](const timestamp_t timestamp, const bool enable) {
+                    // Toggle the DBI databus extension
+                    this->dataBus.withExtension<util::databus_extensions::DataBusExtensionDBI>([enable](auto& ext) {
+                        ext.enable(enable);
+                    });
                 }
-                this->encoder.setOpcode(opcode, opcodeLength);
-                // Encode the pattern
-                auto pattern = this->getCoordinatePattern(coordinate, MRSPattern);
-                // Load the pattern on the command bus
-                auto ca_length = MRSPattern.size() / commandBus.get_width();
-                this->commandBus.load(timestamp, pattern, ca_length);
-                // Toggle the DBI databus extension
-                this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>([enable](auto& ext) {
-                    ext.enable(enable);
+            );
+            // DRAMPowerExtensionDBI -- DataBusExtensionDBI
+            this->dataBus.withExtension<util::databus_extensions::DataBusExtensionDBI>([this](auto& ext) {
+                ext.setIdlePattern(util::BusIdlePatternSpec::H);
+                ext.setChangeCallback([this](timestamp_t timestamp, bool invert) {
+                    this->dbi.set(timestamp, invert ? util::PinState::H : util::PinState::L);
                 });
-                this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>([enable](auto& ext) {
-                    ext.enable(enable);
-                });
-            }
-        );
-        // DRAMPowerExtensionDBI -- DataBusExtensionDBI
-        this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>([this](auto& ext) {
-            ext.setChangeCallback([this](timestamp_t timestamp, std::size_t pinnumber, bool invert) {
-                assert(pinnumber < this->dbiread.size());
-                this->dbiread[pinnumber].set_with_datarate(timestamp, invert ? util::PinState::H : util::PinState::L);
+                ext.enable(false); // DBI is disabled by default
             });
-        });
-        this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>([this](auto& ext) {
-            ext.setChangeCallback([this](timestamp_t timestamp, std::size_t pinnumber, bool invert) {
-                assert(pinnumber < this->dbiwrite.size());
-                this->dbiwrite[pinnumber].set_with_datarate(timestamp, invert ? util::PinState::H : util::PinState::L);
-            });
-        });
+        }
     }
 
 

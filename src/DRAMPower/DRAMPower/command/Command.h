@@ -9,16 +9,12 @@
 namespace DRAMPower {
 
 struct TargetCoordinate {
+    std::size_t channel = 0;
     std::size_t bank = 0;
     std::size_t bankGroup = 0;
     std::size_t rank = 0;
-	std::size_t row = 0;
-	std::size_t column = 0;
-
-	TargetCoordinate() = default;
-	TargetCoordinate(std::size_t bank_id, std::size_t bank_group_id, std::size_t rank_id);
-	TargetCoordinate(std::size_t bank_id, std::size_t bank_group_id, std::size_t rank_id, std::size_t row_id);
-	TargetCoordinate(std::size_t bank_id, std::size_t bank_group_id, std::size_t rank_id, std::size_t row_id, std::size_t column_id);
+    std::size_t row = 0;
+    std::size_t column = 0;
 };
 
 class Command {

@@ -15,13 +15,13 @@ protected:
 	// Test pattern
 	// TODO invalid state transitions
 	std::vector<Command> testPattern = {
-		// Timestamp,   Cmd,  { Bank, BG, Rank}
-			{   0, CmdType::ACT,  { 0, 0, 0 } },
-			{  30, CmdType::PDEA, { 0, 0, 0 } },
-			{  40, CmdType::PDXA, { 0, 0, 0 } },
-			{  70, CmdType::PRE,  { 0, 0, 0 } },
-			{  80, CmdType::ACT,  { 1, 0, 0 } },
-			{  90, CmdType::PRE,  { 1, 0, 0 } },
+		// Timestamp,   Cmd,  { Channel, Bank, BG, Rank}
+			{   0, CmdType::ACT,  { 0, 0, 0, 0 } },
+			{  30, CmdType::PDEA, { 0, 0, 0, 0 } },
+			{  40, CmdType::PDXA, { 0, 0, 0, 0 } },
+			{  70, CmdType::PRE,  { 0, 0, 0, 0 } },
+			{  80, CmdType::ACT,  { 0, 1, 0, 0 } },
+			{  90, CmdType::PRE,  { 0, 1, 0, 0 } },
 			{ 100,  CmdType::END_OF_SIMULATION },
 	};
 

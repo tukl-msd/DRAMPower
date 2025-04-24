@@ -40,34 +40,34 @@ class LPDDR5_WindowStats_Tests : public ::testing::Test {
     LPDDR5_WindowStats_Tests() {
 		// Timestamp,   Cmd,  { Bank, BG, Rank, Row, Co-lumn}
         test_patterns.push_back({
-            {0, CmdType::ACT, {1, 0, 0, 2}},
-            {3, CmdType::WR, {1, 0, 0, 0, 8}, wr_data, SZ_BITS(wr_data)},
-            {12, CmdType::RD, {1, 0, 0, 0, 8}, rd_data, SZ_BITS(rd_data)},
-            {21, CmdType::PRE, {1, 0, 0, 2}},
+            {0,  CmdType::ACT, {0, 1, 0, 0, 2}},
+            {3,  CmdType::WR,  {0, 1, 0, 0, 0, 8}, wr_data, SZ_BITS(wr_data)},
+            {12, CmdType::RD,  {0, 1, 0, 0, 0, 8}, rd_data, SZ_BITS(rd_data)},
+            {21, CmdType::PRE, {0, 1, 0, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 
         test_patterns.push_back({
-            {0, CmdType::ACT, {2, 0, 0, 372}},
-            {3, CmdType::WRA, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
+            {0,  CmdType::ACT, {0, 2, 0, 0, 372}},
+            {3,  CmdType::WRA, {0, 2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
             {18, CmdType::SREFEN},
             {45, CmdType::SREFEX},
             {48, CmdType::END_OF_SIMULATION}
         });
 
         test_patterns.push_back({
-            {0, CmdType::ACT, {2, 0, 0, 372}},
-            {3, CmdType::WR, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
-            {12, CmdType::RDA, {2, 0, 0, 372, 27}, rd_data, SZ_BITS(rd_data)},
+            {0,  CmdType::ACT, {0, 2, 0, 0, 372}},
+            {3,  CmdType::WR,  {0, 2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
+            {12, CmdType::RDA, {0, 2, 0, 0, 372, 27}, rd_data, SZ_BITS(rd_data)},
             {24, CmdType::END_OF_SIMULATION}  // RD needs time to finish fully
         });
 
         // With BG != 0 for testing BG mode
         test_patterns.push_back({
-            {0, CmdType::ACT, {1, 1, 0, 2}},
-            {3, CmdType::WR, {1, 1, 0, 0, 19}, wr_data, SZ_BITS(wr_data)},
-            {12, CmdType::RD, {1, 1, 0, 0, 19}, rd_data, SZ_BITS(rd_data)},
-            {21, CmdType::PRE, {1, 1, 0, 2}},
+            {0,  CmdType::ACT, {0, 1, 1, 0, 2}},
+            {3,  CmdType::WR,  {0, 1, 1, 0, 0, 19}, wr_data, SZ_BITS(wr_data)},
+            {12, CmdType::RD,  {0, 1, 1, 0, 0, 19}, rd_data, SZ_BITS(rd_data)},
+            {21, CmdType::PRE, {0, 1, 1, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 
