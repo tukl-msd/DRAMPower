@@ -29,8 +29,9 @@ private:
 public:
 	InterfaceCalculation_LPDDR4(const MemSpecLPDDR4 & memspec);
 private:
-	double calc_static_energy(uint64_t NxBits, double R_eq, double t_CK, double voltage, double factor);
-	double calc_dynamic_energy(uint64_t transitions, double C_total, double voltage);
+	double calcStaticTermination(const bool termination, const DRAMPower::util::bus_stats_t &stats, const double &R_eq, const double t_CK, const uint64_t datarate, const double voltage);
+	double calc_static_energy(const uint64_t NxBits, const double R_eq, const double t_CK, const double voltage);
+	double calc_dynamic_energy(const uint64_t NxBits, const double energy);
 
 	interface_energy_info_t calcClockEnergy(const SimulationStats &stats);
 	interface_energy_info_t calcDQSEnergy(const SimulationStats & stats);
