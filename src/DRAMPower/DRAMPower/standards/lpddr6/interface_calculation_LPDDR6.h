@@ -3,20 +3,20 @@
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/data/energy.h"
-#include "DRAMPower/memspec/MemSpecLPDDR5.h"
+#include "DRAMPower/memspec/MemSpecLPDDR6.h"
 #include "DRAMPower/data/stats.h"
 
 namespace DRAMPower {
 
 class InterfaceCalculation_LPDDR6 {
    public:
-    InterfaceCalculation_LPDDR6(const MemSpecLPDDR5 &memspec);
+    InterfaceCalculation_LPDDR6(const MemSpecLPDDR6 &memspec);
 
     interface_energy_info_t calculateEnergy(const SimulationStats &stats);
 
    private:
-    const MemSpecLPDDR5 &memspec_;
-    const MemSpecLPDDR5::MemImpedanceSpec &impedances_;
+    const MemSpecLPDDR6 &memspec_;
+    const MemSpecLPDDR6::MemImpedanceSpec &impedances_;
     double t_CK_;
     double t_WCK_;
     double VDDQ_;

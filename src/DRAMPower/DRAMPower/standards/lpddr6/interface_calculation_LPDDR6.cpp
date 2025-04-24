@@ -19,7 +19,7 @@ static double calcStaticTermination(const bool termination, const DRAMPower::uti
     return calc_static_energy(stats.ones, R_eq, t_CK / datarate, voltage);
 }
 
-InterfaceCalculation_LPDDR6::InterfaceCalculation_LPDDR6(const MemSpecLPDDR5 &memspec)
+InterfaceCalculation_LPDDR6::InterfaceCalculation_LPDDR6(const MemSpecLPDDR6 &memspec)
     : memspec_(memspec), impedances_(memspec_.memImpedanceSpec) {
     t_CK_ = memspec_.memTimingSpec.tCK;
     t_WCK_ = memspec_.memTimingSpec.tWCK;
