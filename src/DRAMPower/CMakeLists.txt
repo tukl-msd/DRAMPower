@@ -26,6 +26,9 @@ add_library(DRAMPower
     DRAMPower/standards/lpddr5/core_calculation_LPDDR5.cpp
     DRAMPower/standards/lpddr5/LPDDR5.cpp
     DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.cpp
+    DRAMPower/standards/lpddr6/core_calculation_LPDDR6.cpp
+    DRAMPower/standards/lpddr6/LPDDR6.cpp
+    DRAMPower/standards/lpddr6/interface_calculation_LPDDR6.cpp
     DRAMPower/util/binary_ops.cpp
     DRAMPower/util/extensions.cpp
     DRAMPower/util/pin.cpp
