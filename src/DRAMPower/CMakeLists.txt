@@ -14,6 +14,7 @@ add_library(DRAMPower
     DRAMPower/memspec/MemSpecDDR5.cpp
     DRAMPower/memspec/MemSpecLPDDR4.cpp
     DRAMPower/memspec/MemSpecLPDDR5.cpp
+    DRAMPower/memspec/MemSpecLPDDR6.cpp
     DRAMPower/standards/ddr4/core_calculation_DDR4.cpp
     DRAMPower/standards/ddr4/DDR4.cpp
     DRAMPower/standards/ddr4/interface_calculation_DDR4.cpp
