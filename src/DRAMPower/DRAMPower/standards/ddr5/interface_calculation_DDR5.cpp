@@ -2,13 +2,22 @@
 
 namespace DRAMPower {
 
-static double calc_static_energy(uint64_t NxBits, double R_eq, double t_CK, double voltage) {
+static double calc_static_energy(uint64_t NxBits, const double R_eq, const double t_CK, const double voltage) {
     return NxBits * (voltage * voltage) * t_CK / R_eq;
 };
 
-static double calc_dynamic_energy(uint64_t transitions, double C_total, double voltage) {
-    return transitions * C_total * 0.5 * (voltage * voltage);
+static double calc_dynamic_energy(const uint64_t transitions, const double energy) {
+    return transitions * energy;
 };
+
+static double calcStaticTermination(const bool termination, const DRAMPower::util::bus_stats_t &stats, const double R_eq, const double t_CK, const uint64_t datarate, const double voltage)
+{
+    if (termination == false) {
+        return 0; // No static termination
+    }
+    // zeroes 
+    return calc_static_energy(stats.zeroes, R_eq, t_CK / datarate, voltage);
+}
 
 InterfaceCalculation_DDR5::InterfaceCalculation_DDR5(const MemSpecDDR5 &memspec)
     : memspec_(memspec), impedances_(memspec_.memImpedanceSpec) {
@@ -37,9 +46,9 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy(const Simulat
     interface_energy_info_t result;
 
     result.controller.staticEnergy =
-       calc_static_energy(stats.clockStats.zeroes, impedances_.R_eq_ck, 0.5 * t_CK_, VDDQ_);
+        calcStaticTermination(impedances_.ck_termination, stats.clockStats, impedances_.ck_R_eq, t_CK_, 2, VDDQ_); // datarate 2 -> half the time low other half high
     result.controller.dynamicEnergy =
-       calc_dynamic_energy(stats.clockStats.zeroes_to_ones, impedances_.C_total_ck, VDDQ_);
+       calc_dynamic_energy(stats.clockStats.zeroes_to_ones, impedances_.ck_dyn_E);
 
     return result;
 }
@@ -47,14 +56,14 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy(const Simulat
 interface_energy_info_t InterfaceCalculation_DDR5::calcDQSEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
     result.dram.staticEnergy +=
-        calc_static_energy(stats.readDQSStats.zeroes, impedances_.R_eq_dqs, t_CK_ / memspec_.dataRateSpec.dqsBusRate, VDDQ_);
+        calcStaticTermination(impedances_.rdqs_termination, stats.readDQSStats, impedances_.rdqs_R_eq, t_CK_, memspec_.dataRateSpec.dqsBusRate, VDDQ_);
     result.controller.staticEnergy +=
-        calc_static_energy(stats.writeDQSStats.zeroes, impedances_.R_eq_dqs, t_CK_ / memspec_.dataRateSpec.dqsBusRate, VDDQ_);
+        calcStaticTermination(impedances_.wdqs_termination, stats.writeDQSStats, impedances_.wdqs_R_eq, t_CK_, memspec_.dataRateSpec.dqsBusRate, VDDQ_);
 
     result.dram.dynamicEnergy +=
-        calc_dynamic_energy(stats.readDQSStats.zeroes_to_ones, impedances_.C_total_dqs, VDDQ_);
+        calc_dynamic_energy(stats.readDQSStats.zeroes_to_ones, impedances_.rdqs_dyn_E);
     result.controller.dynamicEnergy +=
-        calc_dynamic_energy(stats.writeDQSStats.zeroes_to_ones, impedances_.C_total_dqs, VDDQ_);
+        calc_dynamic_energy(stats.writeDQSStats.zeroes_to_ones, impedances_.wdqs_dyn_E);
 
     return result;
 }
@@ -65,30 +74,33 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcDQEnergyTogglingRate(cons
 
     // Read
     result.dram.staticEnergy +=
-        calc_static_energy(stats.read.zeroes, impedances_.R_eq_rb, t_CK_ / memspec_.dataRate, VDDQ_);
+        calcStaticTermination(impedances_.rb_R_eq, stats.read, impedances_.rb_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
     result.dram.dynamicEnergy +=
-        calc_dynamic_energy(stats.read.zeroes_to_ones, impedances_.C_total_rb, VDDQ_);
+        calc_dynamic_energy(stats.read.zeroes_to_ones, impedances_.rb_dyn_E);
 
     // Write
     result.controller.staticEnergy +=
-        calc_static_energy(stats.write.zeroes, impedances_.R_eq_wb, t_CK_ / memspec_.dataRate, VDDQ_);
+        calcStaticTermination(impedances_.wb_R_eq, stats.write, impedances_.wb_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
     result.controller.dynamicEnergy +=
-        calc_dynamic_energy(stats.write.zeroes_to_ones, impedances_.C_total_wb, VDDQ_);
+        calc_dynamic_energy(stats.write.zeroes_to_ones, impedances_.wb_dyn_E);
     
     return result;
 }
 
 interface_energy_info_t InterfaceCalculation_DDR5::calcDQEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
-    result.dram.staticEnergy +=
-        calc_static_energy(stats.readBus.zeroes, impedances_.R_eq_rb, t_CK_ / memspec_.dataRate , VDDQ_);
-    result.controller.staticEnergy +=
-        calc_static_energy(stats.writeBus.zeroes, impedances_.R_eq_wb, t_CK_ / memspec_.dataRate, VDDQ_);
 
+    // Read
+    result.dram.staticEnergy +=
+        calcStaticTermination(impedances_.rb_termination, stats.readBus, impedances_.rb_R_eq, t_CK_, memspec_.dataRate , VDDQ_);
     result.dram.dynamicEnergy +=
-        calc_dynamic_energy(stats.readBus.zeroes_to_ones, impedances_.C_total_rb, VDDQ_);
+        calc_dynamic_energy(stats.readBus.zeroes_to_ones, impedances_.rb_dyn_E);
+
+    // Write
+    result.controller.staticEnergy +=
+        calcStaticTermination(impedances_.wb_termination, stats.writeBus, impedances_.wb_R_eq, t_CK_, memspec_.dataRate , VDDQ_);
     result.controller.dynamicEnergy +=
-        calc_dynamic_energy(stats.writeBus.zeroes_to_ones, impedances_.C_total_wb, VDDQ_);
+        calc_dynamic_energy(stats.writeBus.zeroes_to_ones, impedances_.wb_dyn_E);
 
     return result;
 }
@@ -96,10 +108,10 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcDQEnergy(const Simulation
 interface_energy_info_t InterfaceCalculation_DDR5::calcCAEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
     result.controller.staticEnergy =
-        calc_static_energy(stats.commandBus.zeroes, impedances_.R_eq_cb, t_CK_, VDDQ_);
+        calcStaticTermination(impedances_.cb_termination, stats.commandBus, impedances_.cb_R_eq, t_CK_, 1, VDDQ_);
 
     result.controller.dynamicEnergy =
-        calc_dynamic_energy(stats.commandBus.zeroes_to_ones, impedances_.C_total_cb, VDDQ_);
+        calc_dynamic_energy(stats.commandBus.zeroes_to_ones, impedances_.cb_dyn_E);
 
     return result;
 }

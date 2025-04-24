@@ -17,7 +17,7 @@ double InterfaceCalculation_LPDDR4::calc_dynamic_energy(const uint64_t NxBits, c
     return NxBits * energy;
 }
 
-double InterfaceCalculation_LPDDR4::calcStaticTermination(const bool termination, const DRAMPower::util::bus_stats_t &stats, const double &R_eq, const double t_CK, const uint64_t datarate, const double voltage)
+double InterfaceCalculation_LPDDR4::calcStaticTermination(const bool termination, const DRAMPower::util::bus_stats_t &stats, const double R_eq, const double t_CK, const uint64_t datarate, const double voltage)
 {
     if (termination == false) {
         return 0; // No static termination

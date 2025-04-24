@@ -8,8 +8,9 @@
 
 namespace DRAMPower {
 
-    class MemSpecDDR5 final : public MemSpec<DRAMUtils::MemSpec::MemSpecDDR5> {
+class MemSpecDDR5 final : public MemSpec<DRAMUtils::MemSpec::MemSpecDDR5> {
     public:
+	    using MemImpedanceSpec = DRAMUtils::MemSpec::MemImpedanceSpecTypeDDR5;
 
         enum VoltageDomain {
             VDD = 0,
@@ -76,21 +77,6 @@ namespace DRAMPower {
             double iXX5C;
             double iXX6N;
             double iBeta;
-        };
-
-        struct MemImpedanceSpec
-        {
-            double C_total_ck;
-            double C_total_cb;
-            double C_total_rb;
-            double C_total_wb;
-            double C_total_dqs;
-
-            double R_eq_ck;
-            double R_eq_cb;
-            double R_eq_rb;
-            double R_eq_wb;
-            double R_eq_dqs;
         };
 
         struct DataRateSpec {

@@ -50,6 +50,7 @@ namespace DRAMPower {
 class MemSpecDDR4 final : public MemSpec<DRAMUtils::MemSpec::MemSpecDDR4>
 {
 public:
+	using MemImpedanceSpec = DRAMUtils::MemSpec::MemImpedanceSpecTypeDDR4;
 
     enum VoltageDomain {
         VDD = 0,
@@ -114,22 +115,6 @@ public:
 		double iXX3P;
         double iBeta;
 	};
-
-	struct MemImpedanceSpec
-	{
-		double C_total_ck;
-		double C_total_cb;
-		double C_total_rb;
-		double C_total_wb;
-		double C_total_dqs;
-
-		double R_eq_ck;
-		double R_eq_cb;
-		double R_eq_rb;
-		double R_eq_wb;
-		double R_eq_dqs;
-	};
-
 
 	struct BankWiseParams 
 	{
