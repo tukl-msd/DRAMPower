@@ -26,6 +26,47 @@
 #include "DRAMPower/util/databus.h"
 
 namespace DRAMPower {
+
+class LPDDR6Interface {
+// Public type definitions
+public:
+    using commandbus_t = util::Bus<7>;
+    using databus_t = util::databus_presets::databus_preset_t;
+
+// Public constructor
+public:
+    LPDDR6Interface(const MemSpecLPDDR5 &memSpec)
+    : m_commandBus{7, 2, // modelled with datarate 2
+        util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
+    , m_dataBus{
+        util::databus_presets::getDataBusPreset(
+            memSpec.bitWidth * memSpec.numberOfDevices,
+            util::DataBusConfig {
+                memSpec.bitWidth * memSpec.numberOfDevices,
+                memSpec.dataRate,
+                util::BusIdlePatternSpec::L,
+                util::BusInitPatternSpec::L,
+                DRAMUtils::Config::TogglingRateIdlePattern::L,
+                0.0,
+                0.0,
+                util::DataBusMode::Bus
+            }
+        )
+    }
+    , m_readDQS(memSpec.dataRate, true)
+    , m_wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
+    , m_clock(2, false)
+    {}
+
+// Public members
+public:
+    commandbus_t m_commandBus;
+    databus_t m_dataBus;
+    util::Clock m_readDQS;
+    util::Clock m_wck;
+    util::Clock m_clock;
+};
+
 class LPDDR6 : public dram_base<CmdType> {
 
 public:
@@ -38,11 +79,8 @@ public:
     using commandbus_t = util::Bus<7>;
     using databus_t =  util::databus_presets::databus_preset_t;
 private:
-    commandbus_t commandBus;
-    databus_t dataBus;
-    util::Clock readDQS;
-    util::Clock wck;
-    util::Clock clock;
+    std::vector<LPDDR6Interface> interface;
+    bool efficiencyMode;
 
 public:
 
