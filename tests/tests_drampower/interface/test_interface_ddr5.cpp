@@ -37,25 +37,25 @@ class DDR5_WindowStats_Tests : public ::testing::Test {
    public:
     DDR5_WindowStats_Tests() {
         test_patterns.push_back({
-            {0, CmdType::ACT, {1, 0, 0, 2}},
-            {3, CmdType::WR, {1, 0, 0, 0, 4}, wr_data, SZ_BITS(wr_data)},
-            {12, CmdType::RD, {1, 0, 0, 0, 4}, rd_data, SZ_BITS(rd_data)},
-            {21, CmdType::PRE, {1, 0, 0, 2}},
+            {0,  CmdType::ACT, {0, 1, 0, 0, 2}},
+            {3,  CmdType::WR,  {0, 1, 0, 0, 0, 4}, wr_data, SZ_BITS(wr_data)},
+            {12, CmdType::RD,  {0, 1, 0, 0, 0, 4}, rd_data, SZ_BITS(rd_data)},
+            {21, CmdType::PRE, {0, 1, 0, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 
         test_patterns.push_back({
-            {0, CmdType::ACT, {2, 0, 0, 372}},
-            {3, CmdType::WR, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
-            {12, CmdType::PRE, {2, 0, 0, 372}},
+            {0,  CmdType::ACT, {0, 2, 0, 0, 372}},
+            {3,  CmdType::WR,  {0, 2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
+            {12, CmdType::PRE, {0, 2, 0, 0, 372}},
             {15, CmdType::SREFEN},
             {42, CmdType::END_OF_SIMULATION}
         });
 
         test_patterns.push_back({
-            {0, CmdType::ACT, {2, 0, 0, 372}},
-            {3, CmdType::RD, {2, 0, 0, 372, 27}, rd_data, SZ_BITS(rd_data)},
-            {12, CmdType::WRA, {2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
+            {0,  CmdType::ACT, {0, 2, 0, 0, 372}},
+            {3,  CmdType::RD,  {0, 2, 0, 0, 372, 27}, rd_data, SZ_BITS(rd_data)},
+            {12, CmdType::WRA, {0, 2, 0, 0, 372, 27}, wr_data, SZ_BITS(wr_data)},
             {28, CmdType::SREFEN},
             {55, CmdType::END_OF_SIMULATION}
         });

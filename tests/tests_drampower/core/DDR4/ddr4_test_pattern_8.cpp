@@ -21,12 +21,13 @@ class DramPowerTest_DDR4_8 : public ::testing::Test {
 protected:
     // Test pattern
     std::vector<Command> testPattern = {
-            //{   0, CmdType::ACT,    { 0, 0, 0 }},
-            {   0, CmdType::PDEA,   { 0, 0, 0 }}, // Keep in mind earliest power down (entry 13 cycles)
-            {   30, CmdType::PDXA,  { 0, 0, 0 }},
-            //{   30, CmdType::PRE,   { 0, 0, 0 }},
-            {   45, CmdType::PDEP,  { 0, 0, 0 }},
-            {   70, CmdType::PDXP,  { 0, 0, 0 }},
+        // Timestamp,   Cmd,  { Channel, Bank, BG, Rank }
+            //{   0, CmdType::ACT,    { 0, 0, 0, 0 }},
+            {   0, CmdType::PDEA,   { 0, 0, 0, 0 }}, // Keep in mind earliest power down (entry 13 cycles)
+            {   30, CmdType::PDXA,  { 0, 0, 0, 0 }},
+            //{   30, CmdType::PRE,   { 0, 0, 0, 0 }},
+            {   45, CmdType::PDEP,  { 0, 0, 0, 0 }},
+            {   70, CmdType::PDXP,  { 0, 0, 0, 0 }},
             { 85, CmdType::END_OF_SIMULATION },
     };
 

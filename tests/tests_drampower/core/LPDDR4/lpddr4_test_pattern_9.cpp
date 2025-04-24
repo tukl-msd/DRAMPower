@@ -20,16 +20,17 @@ class DramPowerTest_LPDDR4_9 : public ::testing::Test {
 protected:
     // Test pattern
     std::vector<Command> testPattern = {
-            {   5, CmdType::ACT,  { 0, 0, 0 }},
-            {   15, CmdType::ACT,  { 5, 0, 0 }},
-            {   20, CmdType::RD,  { 0, 0, 0 }},
-            {   30, CmdType::PDEA,  { 0, 0, 0 }},
-            {   50, CmdType::PDXA,  { 0, 0, 0 }},
-            {   55, CmdType::RD,  { 5, 0, 0 }},
-            {   60, CmdType::RD,  { 0, 0, 0 }},
-            {   70, CmdType::PREA,  { 0, 0, 0 }},
-            {   80, CmdType::PDEP,  { 0, 0, 0 }},
-            {   95, CmdType::PDXP,  { 0, 0, 0 }},
+        // Timestamp,   Cmd,  { Channel, Bank, BG, Rank }
+            { 5,   CmdType::ACT,  { 0, 0, 0, 0 }},
+            { 15,  CmdType::ACT,  { 0, 5, 0, 0 }},
+            { 20,  CmdType::RD,   { 0, 0, 0, 0 }},
+            { 30,  CmdType::PDEA, { 0, 0, 0, 0 }},
+            { 50,  CmdType::PDXA, { 0, 0, 0, 0 }},
+            { 55,  CmdType::RD,   { 0, 5, 0, 0 }},
+            { 60,  CmdType::RD,   { 0, 0, 0, 0 }},
+            { 70,  CmdType::PREA, { 0, 0, 0, 0 }},
+            { 80,  CmdType::PDEP, { 0, 0, 0, 0 }},
+            { 95,  CmdType::PDXP, { 0, 0, 0, 0 }},
             { 100, CmdType::END_OF_SIMULATION },
     };
 

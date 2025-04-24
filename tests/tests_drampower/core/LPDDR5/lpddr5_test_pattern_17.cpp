@@ -14,12 +14,13 @@ class DramPowerTest_LPDDR5_17 : public ::testing::Test {
 protected:
     // Test pattern
 	std::vector<Command> testPattern = {
-		{  0, CmdType::REFP2B, { 0, 0, 0 }},
-		{  5, CmdType::REFP2B, { 1, 0, 0 }},
-		{ 40, CmdType::REFP2B, { 4, 0, 0 }},
-		{ 45, CmdType::ACT,    { 0, 0, 0 }},
-		{ 70, CmdType::PRE,    { 0, 0, 0 }},
-		{ 80, CmdType::REFP2B, { 0, 0, 0 }},
+		// Timestamp,   Cmd,  { Channel, Bank, BG, Rank }
+		{  0, CmdType::REFP2B, { 0, 0, 0, 0 }},
+		{  5, CmdType::REFP2B, { 0, 1, 0, 0 }},
+		{ 40, CmdType::REFP2B, { 0, 4, 0, 0 }},
+		{ 45, CmdType::ACT,    { 0, 0, 0, 0 }},
+		{ 70, CmdType::PRE,    { 0, 0, 0, 0 }},
+		{ 80, CmdType::REFP2B, { 0, 0, 0, 0 }},
 		{125, CmdType::END_OF_SIMULATION },
 	};
 

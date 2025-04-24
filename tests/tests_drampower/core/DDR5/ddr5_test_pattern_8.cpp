@@ -20,10 +20,11 @@ class DramPowerTest_DDR5_8 : public ::testing::Test {
 protected:
     // Test pattern
     std::vector<Command> testPattern = {
-            {   0, CmdType::PDEA,  { 0, 0, 0 }},
-            {   30, CmdType::PDXA,  { 0, 0, 0 }},
-            {   45, CmdType::PDEP,  { 0, 0, 0 }},
-            {   70, CmdType::PDXP,  { 0, 0, 0 }},
+        // Timestamp,   Cmd,  { Channel, Bank, BG, Rank }
+            { 0,  CmdType::PDEA,  { 0, 0, 0, 0 }},
+            { 30, CmdType::PDXA,  { 0, 0, 0, 0 }},
+            { 45, CmdType::PDEP,  { 0, 0, 0, 0 }},
+            { 70, CmdType::PDXP,  { 0, 0, 0, 0 }},
             { 85, CmdType::END_OF_SIMULATION },
     };
 

@@ -46,8 +46,8 @@ TEST_F(PatternTest, Test_Override_Low)
 		{BL, PatternEncoderBitSpec::L},
 	});
 
-	// Bank, Bank Group, Rank, Row, Column
-	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, 0);
+	// Channel, Bank, Bank Group, Rank, Row, Column
+	auto result = encoder.encode(Command{0, CmdType::ACT, { 0,1,2,3,4,17} }, pattern, 0);
 	ASSERT_EQ(result, 2189443209);
 };
 
@@ -64,8 +64,8 @@ TEST_F(PatternTest, Test_Override_High)
 		{BL, PatternEncoderBitSpec::H},
 	});
 
-	// Bank, Bank Group, Rank, Row, Column
-	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, 0);
+	// Channel, Bank, Bank Group, Rank, Row, Column
+	auto result = encoder.encode(Command{0, CmdType::ACT, { 0,1,2,3,4,17} }, pattern, 0);
 	ASSERT_EQ(result, 3196084105);
 };
 
@@ -85,8 +85,8 @@ TEST_F(PatternTest, Test_Override_Last)
 	// last_pattern
 	uint64_t init_pattern = 0xAA'AA'AA'AA'AA'AA'AA'AA; // 0b10101010...
 
-	// Bank, Bank Group, Rank, Row, Column
-	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, init_pattern);
+	// Channel, Bank, Bank Group, Rank, Row, Column
+	auto result = encoder.encode(Command{0, CmdType::ACT, { 0,1,2,3,4,17} }, pattern, init_pattern);
 	ASSERT_EQ(result, 2860534409);
 };
 
@@ -109,9 +109,9 @@ TEST_F(PatternTest, Test_Override_2_Patterns)
 	// Set X after BG2 to one
 	init_pattern |= 0b1111100000000;
 
-	// Bank, Bank Group, Rank, Row, Column
-	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, init_pattern);
+	// Channel, Bank, Bank Group, Rank, Row, Column
+	auto result = encoder.encode(Command{0, CmdType::ACT, { 0,1,2,3,4,17} }, pattern, init_pattern);
 	ASSERT_EQ(result, 2860539785);
-	result = encoder.encode(Command{0, CmdType::ACT, { 7,3,3,7,17} }, pattern, result);
+	result = encoder.encode(Command{0, CmdType::ACT, { 0,7,3,3,7,17} }, pattern, result);
 	ASSERT_EQ(result, 2866864015);
 };

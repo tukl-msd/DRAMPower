@@ -61,12 +61,12 @@ class DDR5_MultirankTests : public ::testing::Test {
 
 TEST_F(DDR5_MultirankTests, Pattern_1) {
     runCommands({
-        {0, CmdType::ACT, {1, 0, 0}},
-        {2, CmdType::ACT, {1, 0, 1}},  // rank 1
-        {4, CmdType::WR, {1, 0, 0, 0, 4}, wr_data, SZ_BITS(wr_data)},
-        {6, CmdType::RD, {1, 0, 1, 0, 4}, rd_data, SZ_BITS(rd_data)},  // rank 1
-        {10, CmdType::PRE, {1, 0, 1}},  // rank 1
-        {15, CmdType::PRE, {1, 0, 0}},
+        {0,  CmdType::ACT, {0, 1, 0, 0}},
+        {2,  CmdType::ACT, {0, 1, 0, 1}},  // rank 1
+        {4,  CmdType::WR,  {0, 1, 0, 0, 0, 4}, wr_data, SZ_BITS(wr_data)},
+        {6,  CmdType::RD,  {0, 1, 0, 1, 0, 4}, rd_data, SZ_BITS(rd_data)},  // rank 1
+        {10, CmdType::PRE, {0, 1, 0, 1}},  // rank 1
+        {15, CmdType::PRE, {0, 1, 0, 0}},
         {20, CmdType::END_OF_SIMULATION}
     });
 
@@ -83,16 +83,16 @@ TEST_F(DDR5_MultirankTests, Pattern_1) {
 
 TEST_F(DDR5_MultirankTests, Pattern_2) {
     runCommands({
-        {0, CmdType::ACT, {0, 0, 0}},
-        {5, CmdType::ACT, {0, 0, 1}},  // r1
-        {15, CmdType::RDA, {0, 0, 0, 0, 4}, rd_data, SZ_BITS(rd_data)},
-        {20, CmdType::ACT, {3, 0, 1}},  // r1
-        {35, CmdType::RD, {3, 0, 1, 0, 0}, rd_data, SZ_BITS(rd_data)},  // r1
-        {40, CmdType::RD, {0, 0, 0, 0, 3}, rd_data, SZ_BITS(rd_data)},
-        {50, CmdType::PREA, {0, 0, 0}},
-        {55, CmdType::PREA, {0, 0, 1}},  // r1
-        {65, CmdType::REFA, {0, 0, 0}},
-        {70, CmdType::REFA, {0, 0, 1}},  // r1
+        {0,   CmdType::ACT,  {0, 0, 0, 0}},
+        {5,   CmdType::ACT,  {0, 0, 0, 1}},  // r1
+        {15,  CmdType::RDA,  {0, 0, 0, 0, 0, 4}, rd_data, SZ_BITS(rd_data)},
+        {20,  CmdType::ACT,  {0, 3, 0, 1}},  // r1
+        {35,  CmdType::RD,   {0, 3, 0, 1, 0, 0}, rd_data, SZ_BITS(rd_data)},  // r1
+        {40,  CmdType::RD,   {0, 0, 0, 0, 0, 3}, rd_data, SZ_BITS(rd_data)},
+        {50,  CmdType::PREA, {0, 0, 0, 0}},
+        {55,  CmdType::PREA, {0, 0, 0, 1}},  // r1
+        {65,  CmdType::REFA, {0, 0, 0, 0}},
+        {70,  CmdType::REFA, {0, 0, 0, 1}},  // r1
         {100, CmdType::END_OF_SIMULATION},
     });
 

@@ -20,8 +20,9 @@ class DramPowerTest_DDR4_7 : public ::testing::Test {
 protected:
     // Test pattern
     std::vector<Command> testPattern = {
-            {   0, CmdType::SREFEN,  { 0, 0, 0 }},
-            {   40, CmdType::SREFEX,  { 0, 0, 0 }},
+        // Timestamp,   Cmd,  { Channel, Bank, BG, Rank }
+            { 0,   CmdType::SREFEN,  { 0, 0, 0, 0 }},
+            { 40,  CmdType::SREFEX,  { 0, 0, 0, 0 }},
             { 100, CmdType::END_OF_SIMULATION },
     };
 

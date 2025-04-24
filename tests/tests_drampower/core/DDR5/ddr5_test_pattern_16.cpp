@@ -14,15 +14,16 @@ class DramPowerTest_DDR5_16 : public ::testing::Test {
 protected:
     // Test pattern
 	std::vector<Command> testPattern = {
-		{  0, CmdType::REFSB, {0, 0, 0 }},
-		{ 10, CmdType::REFSB, {1, 0, 0 }},
-		{ 45, CmdType::REFSB, {2, 0, 0 }},
-		{ 50, CmdType::ACT  , {7, 0, 0 }},
-		{ 55, CmdType::ACT  , {3, 0, 0 }},
-		{ 70, CmdType::PRE  , {7, 0, 0 }},
-		{ 80, CmdType::PRESB, {3, 0, 0 }},
-		{ 95, CmdType::REFSB, {3, 0, 0 }},
-		{100, CmdType::REFSB, {0, 0, 0 }},
+		// Timestamp,   Cmd,  { Channel, Bank, BG, Rank }
+		{  0, CmdType::REFSB, { 0, 0, 0, 0 }},
+		{ 10, CmdType::REFSB, { 0, 1, 0, 0 }},
+		{ 45, CmdType::REFSB, { 0, 2, 0, 0 }},
+		{ 50, CmdType::ACT  , { 0, 7, 0, 0 }},
+		{ 55, CmdType::ACT  , { 0, 3, 0, 0 }},
+		{ 70, CmdType::PRE  , { 0, 7, 0, 0 }},
+		{ 80, CmdType::PRESB, { 0, 3, 0, 0 }},
+		{ 95, CmdType::REFSB, { 0, 3, 0, 0 }},
+		{100, CmdType::REFSB, { 0, 0, 0, 0 }},
 		{125, CmdType::END_OF_SIMULATION },
 	};
 

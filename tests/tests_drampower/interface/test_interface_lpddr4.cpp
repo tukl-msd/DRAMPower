@@ -44,25 +44,25 @@ protected:
 
 	// Test pattern #1
 	std::vector<Command> testPattern = {
-		// Timestamp,   Cmd,  { Bank, BG, Rank, Row, Co-lumn}
-			{  0, CmdType::ACT, { 1, 0, 0, 2 } },
-			{  5, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
-			{ 14, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
-			{ 23, CmdType::PRE, { 1, 0, 0, 2 } },
-			{ 26,  CmdType::END_OF_SIMULATION },
+		// Timestamp,   Cmd,  { Channel, Bank, BG, Rank, Row, Column}
+			{  0, CmdType::ACT, { 0, 1, 0, 0, 2 } },
+			{  5, CmdType::WR,  { 0, 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
+			{ 14, CmdType::RD,  { 0, 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
+			{ 23, CmdType::PRE, { 0, 1, 0, 0, 2 } },
+			{ 26, CmdType::END_OF_SIMULATION },
 	};
 
 	// Test pattern #2
 	std::vector<Command> testPattern_2 = {
-		// Timestamp,   Cmd,  { Bank, BG, Rank, Row, Co-lumn}
-			{  0, CmdType::ACT, { 1, 0, 0, 2 } },
-			{  5, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
-			{ 14, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
-			{ 23, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
-			{ 31, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
-			{ 40, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
-			{ 49, CmdType::WR,  { 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
-			{ 57, CmdType::RD,  { 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
+		// Timestamp,   Cmd,  { Channel, Bank, BG, Rank, Row, Column}
+			{  0, CmdType::ACT, { 0, 1, 0, 0, 2 } },
+			{  5, CmdType::WR,  { 0, 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
+			{ 14, CmdType::RD,  { 0, 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
+			{ 23, CmdType::WR,  { 0, 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
+			{ 31, CmdType::WR,  { 0, 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
+			{ 40, CmdType::RD,  { 0, 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
+			{ 49, CmdType::WR,  { 0, 1, 0, 0, 0, 16 }, wr_data, SZ_BITS(wr_data) },
+			{ 57, CmdType::RD,  { 0, 1, 0, 0, 0, 16 }, rd_data, SZ_BITS(rd_data) },
 			{ 70,  CmdType::END_OF_SIMULATION },
 	};
 

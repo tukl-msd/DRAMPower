@@ -98,7 +98,7 @@ bool parse_command_list(std::string_view csv_file, std::vector<std::pair<Command
 	
 	// loop variables
 	uint64_t rowcounter = 0;
-	std::size_t rowidx, size, rank_id, bank_group_id, bank_id, row_id, column_id = 0;
+	std::size_t rowidx, size, channel_id, rank_id, bank_group_id, bank_id, row_id, column_id = 0;
 
 	timestamp_t timestamp = 0;
 	csv::string_view cmdType;
@@ -106,8 +106,8 @@ bool parse_command_list(std::string_view csv_file, std::vector<std::pair<Command
 	CmdType cmd;
 
 	// Parse csv file
-	// timestamp, command, rank, bank_group, bank, row, column, [data]
-	constexpr std::size_t MINCSVSIZE = 7;
+	// timestamp, command, channel, rank, bank_group, bank, row, column, [data]
+	constexpr std::size_t MINCSVSIZE = 8;
 	for ( csv::CSVRow& row : reader ) {
 		rowidx = 0;
 
@@ -119,6 +119,7 @@ bool parse_command_list(std::string_view csv_file, std::vector<std::pair<Command
 			
 		timestamp = row[rowidx++].get<timestamp_t>();
 		cmdType = row[rowidx++].get_sv();
+		channel_id = row[rowidx++].get<std::size_t>();
 		rank_id = row[rowidx++].get<std::size_t>();
 		bank_group_id = row[rowidx++].get<std::size_t>();
 		bank_id = row[rowidx++].get<std::size_t>();
@@ -144,10 +145,10 @@ bool parse_command_list(std::string_view csv_file, std::vector<std::pair<Command
 			{
                 return false;
 			}
-			commandList.emplace_back(Command{ timestamp, cmd, { bank_id, bank_group_id, rank_id, row_id, column_id}, arr.get(), size * 8}, std::move(arr));
+			commandList.emplace_back(Command{ timestamp, cmd, {channel_id, bank_id, bank_group_id, rank_id, row_id, column_id}, arr.get(), size * 8}, std::move(arr));
 		}
 		else {
-			commandList.emplace_back(Command{ timestamp, cmd, { bank_id, bank_group_id, rank_id, row_id, column_id} }, nullptr);
+			commandList.emplace_back(Command{ timestamp, cmd, {channel_id, bank_id, bank_group_id, rank_id, row_id, column_id} }, nullptr);
 		}
 		// Increment row counter
 		++rowcounter;

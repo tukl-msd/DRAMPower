@@ -19,9 +19,9 @@ class DramPowerTest_DDR4_1 : public ::testing::Test {
 protected:
     // Test pattern
     std::vector<Command> testPattern = {
-            {   0, CmdType::ACT,  { 0, 0, 0 }},
-            {   15, CmdType::RD,  { 0, 0, 0 }},
-            {   35, CmdType::PRE,  { 0, 0, 0 }},
+            {   0, CmdType::ACT},
+            {   15, CmdType::RD},
+            {   35, CmdType::PRE},
             { 35, CmdType::END_OF_SIMULATION },
     };
 

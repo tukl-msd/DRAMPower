@@ -42,6 +42,28 @@ private:
     std::optional<enable_callback_t> m_callback;
 };
 
+
+class LPDDR6EfficiencyMode : public Base {
+
+// Public type definitions
+public:
+    using interface_callback_t = std::function<void(const timestamp_t, const bool enabled)>;
+
+// Constructors
+public:
+    explicit LPDDR6EfficiencyMode(const bool enabled, interface_callback_t&& callback);
+
+public:
+    void enable(timestamp_t timestamp, bool enable);
+    bool isEnabled() const;
+
+// Private member variables
+private:
+    interface_callback_t m_callback;
+    bool m_enabled = false;
+};
+
+
 } // namespace DRAMPower::extensions
 
 #endif /* DRAMPOWER_UTIL_EXTENSIONS */
