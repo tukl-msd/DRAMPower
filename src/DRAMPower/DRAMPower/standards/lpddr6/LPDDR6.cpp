@@ -12,7 +12,7 @@ namespace DRAMPower {
 
     using namespace DRAMUtils::Config;
 
-    LPDDR6::LPDDR6(const MemSpecLPDDR5 &memSpec)
+    LPDDR6::LPDDR6(const MemSpecLPDDR6 &memSpec)
         : dram_base<CmdType>(PatternEncoderOverrides{})
         , memSpec(memSpec)
         , ranks(memSpec.numberOfChannels * memSpec.numberOfRanks, { (std::size_t)memSpec.numberOfBanks })
@@ -47,10 +47,10 @@ namespace DRAMPower {
             // F2
             R0, R1, R2, R3, R4, R5, R6
         };
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
+        if (memSpec.bank_arch == MemSpecLPDDR6::MBG) {
             act_pattern[9] = BG0;
             act_pattern[10] = BG1;
-        } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
+        } else if (memSpec.bank_arch == MemSpecLPDDR6::M8B) {
             act_pattern[10] = V;
         }
         this->registerPattern<CmdType::ACT>(act_pattern);
@@ -63,10 +63,10 @@ namespace DRAMPower {
             // F1
             BA0, BA1, BA2, BA3, V, V, L
         };
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
+        if (memSpec.bank_arch == MemSpecLPDDR6::MBG) {
             pre_pattern[9] = BG0;
             pre_pattern[10] = BG1;
-        } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
+        } else if (memSpec.bank_arch == MemSpecLPDDR6::M8B) {
             pre_pattern[10] = V;
         }
         this->registerPattern<CmdType::PRE>(pre_pattern);
@@ -79,10 +79,10 @@ namespace DRAMPower {
             // F1
             V, V, V, V, V, V, H
         };
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
+        if (memSpec.bank_arch == MemSpecLPDDR6::MBG) {
             prea_pattern[9] = BG0;
             prea_pattern[10] = BG1;
-        } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
+        } else if (memSpec.bank_arch == MemSpecLPDDR6::M8B) {
             prea_pattern[10] = V;
         }
         this->registerPattern<CmdType::PREA>(prea_pattern);
@@ -97,7 +97,7 @@ namespace DRAMPower {
             // F1
             BA0, BA1, BA2, V, V, V, L
         };
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
+        if (memSpec.bank_arch == MemSpecLPDDR6::MBG) {
             refb_pattern[9] = BG0;
         }
         this->registerPattern<CmdType::REFB>(refb_pattern);
@@ -110,10 +110,10 @@ namespace DRAMPower {
             // F1
             BA0, BA1, BA2, BA3, C1, C2, L
         };
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
+        if (memSpec.bank_arch == MemSpecLPDDR6::MBG) {
             rd_pattern[9] = BG0;
             rd_pattern[10] = BG1;
-        } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
+        } else if (memSpec.bank_arch == MemSpecLPDDR6::M8B) {
             rd_pattern[10] = L; // B4
         }
         this->registerPattern<CmdType::RD>(rd_pattern);
@@ -126,10 +126,10 @@ namespace DRAMPower {
             // F1
             BA0, BA1, BA2, BA3, C1, C2, H
         };
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
+        if (memSpec.bank_arch == MemSpecLPDDR6::MBG) {
             rda_pattern[9] = BG0;
             rda_pattern[10] = BG1;
-        } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
+        } else if (memSpec.bank_arch == MemSpecLPDDR6::M8B) {
             rda_pattern[10] = L;
         }
         this->registerPattern<CmdType::RDA>(rda_pattern);
@@ -142,10 +142,10 @@ namespace DRAMPower {
             // F1
             BA0, BA1, BA2, BA3, C1, C2, L
         };
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
+        if (memSpec.bank_arch == MemSpecLPDDR6::MBG) {
             wr_pattern[9] = BG0;
             wr_pattern[10] = BG1;
-        } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
+        } else if (memSpec.bank_arch == MemSpecLPDDR6::M8B) {
             wr_pattern[10] = V;
         }
         this->registerPattern<CmdType::WR>(wr_pattern);
@@ -158,17 +158,17 @@ namespace DRAMPower {
             // F1
             BA0, BA1, BA2, BA3, C1, C2, H
         };
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
+        if (memSpec.bank_arch == MemSpecLPDDR6::MBG) {
             wra_pattern[9] = BG0;
             wra_pattern[10] = BG1;
-        } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
+        } else if (memSpec.bank_arch == MemSpecLPDDR6::M8B) {
             wra_pattern[10] = V;
         }
         this->registerPattern<CmdType::WRA>(wra_pattern);
         this->routeInterfaceCommand<CmdType::WRA>([this](const Command &cmd) { this->handleInterfaceData(cmd, false); });
         // REFP2B
         this->registerBankGroupHandler<CmdType::REFP2B>(&LPDDR6::handleRefPerTwoBanks);
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG || memSpec.bank_arch == MemSpecLPDDR5::M16B) {
+        if (memSpec.bank_arch == MemSpecLPDDR6::MBG || memSpec.bank_arch == MemSpecLPDDR6::M16B) {
             this->registerPattern<CmdType::REFP2B>(refb_pattern);
             this->registerInterfaceMember<CmdType::REFP2B>(&LPDDR6::handleInterfaceCommandBus);
         }
@@ -180,7 +180,7 @@ namespace DRAMPower {
             // F1
             V, V, V, V, V, V, H
         };
-        if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
+        if (memSpec.bank_arch == MemSpecLPDDR6::MBG) {
             refa_pattern[9] = BG0;
         }
         this->registerPattern<CmdType::REFA>(refa_pattern);
