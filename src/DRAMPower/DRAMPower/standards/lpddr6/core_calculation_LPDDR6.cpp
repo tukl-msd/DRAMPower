@@ -62,7 +62,7 @@ namespace DRAMPower {
 
         energy_t energy(dram.memSpec.numberOfBanks * dram.memSpec.numberOfRanks * dram.memSpec.numberOfDevices);
 
-        for (auto vd : {MemSpecLPDDR5::VoltageDomain::VDD1, MemSpecLPDDR5::VoltageDomain::VDD2H, MemSpecLPDDR5::VoltageDomain::VDD2L}) {
+        for (auto vd : {MemSpecLPDDR6::VoltageDomain::VDD1, MemSpecLPDDR6::VoltageDomain::VDD2H, MemSpecLPDDR6::VoltageDomain::VDD2L}) {
             auto VDD = dram.memSpec.memPowerSpec[vd].vDDX;
             auto IDD_0 = dram.memSpec.memPowerSpec[vd].iDD0X;
             auto IDD2N = dram.memSpec.memPowerSpec[vd].iDD2NX;
@@ -103,7 +103,7 @@ namespace DRAMPower {
                                         stats.bank[bank_offset + b].cycles.activeTime() * t_CK);
                         energy.bank_energy[energy_offset + b].E_bg_pre +=
                             E_BG_pre(B, VDD, IDD2N, stats.rank_total[i].cycles.pre * t_CK);
-                        if (dram.memSpec.bank_arch == MemSpecLPDDR5::MBG) {
+                        if (dram.memSpec.bank_arch == MemSpecLPDDR6::MBG) {
                             energy.bank_energy[energy_offset + b].E_RD +=
                                 E_RD(VDD, IDD4R, I_2, BL, DR, t_WCK, bank.counter.reads);
                             energy.bank_energy[energy_offset + b].E_WR +=
