@@ -8,6 +8,7 @@ namespace DRAMPower {
 
     class MemSpecLPDDR5 final : public MemSpec<DRAMUtils::MemSpec::MemSpecLPDDR5> {
     public:
+        using MemImpedanceSpec = DRAMUtils::MemSpec::MemImpedanceSpecTypeLPDDR5;
         enum VoltageDomain {
             VDD1 = 0,
             VDD2H,
@@ -87,22 +88,6 @@ namespace DRAMPower {
             double iDD6X;
             double iDD6DSX;
             double iBeta;
-        };
-
-        struct MemImpedanceSpec {
-            double C_total_ck;
-            double C_total_wck;
-            double C_total_cb;
-            double C_total_rb;
-            double C_total_wb;
-            double C_total_dqs;
-
-            double R_eq_ck;
-            double R_eq_wck;
-            double R_eq_cb;
-            double R_eq_rb;
-            double R_eq_wb;
-            double R_eq_dqs;
         };
 
         struct BankWiseParams {

@@ -337,19 +337,19 @@ class LPDDR5_Energy_Tests : public ::testing::Test {
         voltage = spec->vddq;
 
         // Change impedances to different values from each other
-        spec->memImpedanceSpec.R_eq_cb = 2;
-        spec->memImpedanceSpec.R_eq_ck = 3;
-        spec->memImpedanceSpec.R_eq_dqs = 4;
-        spec->memImpedanceSpec.R_eq_rb = 5;
-        spec->memImpedanceSpec.R_eq_wb = 6;
-        spec->memImpedanceSpec.R_eq_wck = 7;
+		spec->memImpedanceSpec.ca_R_eq = 2;
+        spec->memImpedanceSpec.ck_R_eq = 3;
+        spec->memImpedanceSpec.rdqs_R_eq = 4;
+        spec->memImpedanceSpec.wck_R_eq = 5;
+		spec->memImpedanceSpec.rdq_R_eq = 6;
+		spec->memImpedanceSpec.wdq_R_eq = 7;
 
-        spec->memImpedanceSpec.C_total_cb = 2;
-        spec->memImpedanceSpec.C_total_ck = 3;
-        spec->memImpedanceSpec.C_total_dqs = 4;
-        spec->memImpedanceSpec.C_total_rb = 5;
-        spec->memImpedanceSpec.C_total_wb = 6;
-        spec->memImpedanceSpec.C_total_wck = 7;
+        spec->memImpedanceSpec.ca_dyn_E = 8;
+		spec->memImpedanceSpec.ck_dyn_E = 9;
+		spec->memImpedanceSpec.rdqs_dyn_E = 10;
+		spec->memImpedanceSpec.wck_dyn_E = 11;
+		spec->memImpedanceSpec.rdq_dyn_E = 12;
+		spec->memImpedanceSpec.wdq_dyn_E = 13;
 
         io_calc = std::make_unique<InterfaceCalculation_LPDDR5>(*spec);
     }
@@ -387,11 +387,11 @@ TEST_F(LPDDR5_Energy_Tests, Clock_Energy) {
     // Clock is differential so there is always going to be one signal that consumes power
     // Calculation is done considering number of ones but could also be zeroes, since clock is
     // a symmetrical signal
-    double expected_static = stats.clockStats.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_ck;
-    expected_static += stats.wClockStats.ones * voltage * voltage * 0.5 * t_WCK / spec->memImpedanceSpec.R_eq_wck;
+    double expected_static = stats.clockStats.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.ck_R_eq;
+    expected_static += stats.wClockStats.ones * voltage * voltage * 0.5 * t_WCK / spec->memImpedanceSpec.wck_R_eq;
 
-    double expected_dynamic = stats.clockStats.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_ck * voltage * voltage;
-    expected_dynamic += stats.wClockStats.zeroes_to_ones * 0.5 * spec->memImpedanceSpec.C_total_wck * voltage * voltage;
+    double expected_dynamic = stats.clockStats.zeroes_to_ones * spec->memImpedanceSpec.ck_dyn_E;
+    expected_dynamic += stats.wClockStats.zeroes_to_ones * spec->memImpedanceSpec.wck_dyn_E;
 
     EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static);  // value itself doesn't matter, only that it matches the formula
     EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic);
@@ -417,12 +417,12 @@ TEST_F(LPDDR5_Energy_Tests, DQS_Energy) {
     // Dram -> read power
     double expected_static_controller = 0.0;
     double expected_static_dram =
-        0.5 * stats.readDQSStats.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_dqs;
+        0.5 * stats.readDQSStats.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.rdqs_R_eq;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = 0;
     double expected_dynamic_dram = stats.readDQSStats.zeroes_to_ones *
-                                   0.5 * spec->memImpedanceSpec.C_total_dqs * voltage * voltage;
+                                   spec->memImpedanceSpec.rdqs_dyn_E;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
     EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
@@ -450,15 +450,15 @@ TEST_F(LPDDR5_Energy_Tests, DQ_Energy) {
     // Controller -> write power
     // Dram -> read power
     double expected_static_controller =
-        0.5 * stats.writeBus.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_wb;
+        0.5 * stats.writeBus.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.wdq_R_eq;
     double expected_static_dram =
-        0.5 * stats.readBus.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.R_eq_rb;
+        0.5 * stats.readBus.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.rdq_R_eq;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller =
-        stats.writeBus.zeroes_to_ones * spec->memImpedanceSpec.C_total_wb / 2.0 * voltage * voltage;
+        stats.writeBus.zeroes_to_ones * spec->memImpedanceSpec.wdq_dyn_E;
     double expected_dynamic_dram =
-        stats.readBus.zeroes_to_ones * spec->memImpedanceSpec.C_total_rb / 2.0 * voltage * voltage;
+        stats.readBus.zeroes_to_ones * spec->memImpedanceSpec.rdq_dyn_E;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
     EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
@@ -480,8 +480,8 @@ TEST_F(LPDDR5_Energy_Tests, CA_Energy) {
     stats.commandBus.ones_to_zeroes = 49;
 
     // Data rate 2
-    double expected_static_controller = stats.commandBus.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.R_eq_cb;
-    double expected_dynamic_controller = stats.commandBus.zeroes_to_ones * spec->memImpedanceSpec.C_total_cb / 2.0 * voltage * voltage;
+    double expected_static_controller = stats.commandBus.ones * voltage * voltage * 0.5 * t_CK / spec->memImpedanceSpec.ca_R_eq;
+    double expected_dynamic_controller = stats.commandBus.zeroes_to_ones * spec->memImpedanceSpec.ca_dyn_E;
 
     interface_energy_info_t result = io_calc->calculateEnergy(stats);
 

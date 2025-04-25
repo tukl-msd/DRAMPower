@@ -149,19 +149,7 @@ uint64_t MemSpecLPDDR5::timeToCompletion(DRAMPower::CmdType type)
 
 void MemSpecLPDDR5::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec) {
 
-    memImpedanceSpec.C_total_cb = memspec.memimpedancespec.C_total_cb;
-    memImpedanceSpec.C_total_ck = memspec.memimpedancespec.C_total_ck;
-    memImpedanceSpec.C_total_wck = memspec.memimpedancespec.C_total_wck;
-    memImpedanceSpec.C_total_dqs = memspec.memimpedancespec.C_total_dqs;
-    memImpedanceSpec.C_total_rb = memspec.memimpedancespec.C_total_rb;
-    memImpedanceSpec.C_total_wb = memspec.memimpedancespec.C_total_wb;
-
-    memImpedanceSpec.R_eq_cb = memspec.memimpedancespec.R_eq_cb;
-    memImpedanceSpec.R_eq_ck = memspec.memimpedancespec.R_eq_ck;
-    memImpedanceSpec.R_eq_wck = memspec.memimpedancespec.R_eq_wck;
-    memImpedanceSpec.R_eq_dqs = memspec.memimpedancespec.R_eq_dqs;
-    memImpedanceSpec.R_eq_rb = memspec.memimpedancespec.R_eq_rb;
-    memImpedanceSpec.R_eq_wb = memspec.memimpedancespec.R_eq_wb;
+    memImpedanceSpec = memspec.memimpedancespec;
 }
 
 MemSpecLPDDR5 MemSpecLPDDR5::from_memspec(const DRAMUtils::MemSpec::MemSpecVariant& memSpec)

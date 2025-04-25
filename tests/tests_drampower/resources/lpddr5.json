@@ -100,18 +100,27 @@
       "factRho":0.5
     },
     "memimpedancespec": {
-        "C_total_ck": 1.0e-12,
-        "C_total_cb": 1.0e-12,
-        "C_total_wck": 1.0e-12,
-        "C_total_rb": 1.0e-12,
-        "C_total_wb": 1.0e-12,
-        "C_total_dqs": 1.0e-12,
-        "R_eq_ck": 1.0e6,
-        "R_eq_cb": 1.0e6,
-        "R_eq_wck": 1.0e6,
-        "R_eq_rb": 1.0e6,
-        "R_eq_wb": 1.0e6,
-        "R_eq_dqs": 1.0e6
+      "ck_termination": true,
+      "ck_R_eq": 1e6,
+      "ck_dyn_E": 1e-12,
+
+      "ca_termination": true,
+      "ca_R_eq": 1e6,
+      "ca_dyn_E": 1e-12,
+
+      "rdq_termination": true,
+      "rdq_R_eq": 1e6,
+      "rdq_dyn_E": 1e-12,
+      "wdq_termination": true,
+      "wdq_R_eq": 1e6,
+      "wdq_dyn_E": 1e-12,
+
+      "wck_termination": true,
+      "wck_R_eq": 1e6,
+      "wck_dyn_E": 1e-12,
+      "rdqs_termination": true,
+      "rdqs_R_eq": 1e6,
+      "rdqs_dyn_E": 1e-12
     }
   }
 }
