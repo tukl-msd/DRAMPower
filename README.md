@@ -21,17 +21,21 @@ The master branch of the repository should be regarded as the bleeding-edge vers
 
 ## Installation of the DRAMPower library
 CMake is required for the building of DRAMPower. If DRAMPower is the top level project DRAMPower fetches the required dependencies.
-If DRAMPower is not the top level project, the dependencies have to be fetched manually, provided by the top level project or the DRAMPower library can fetch the dependencies by
-using the following cmake flags:
+If DRAMPower is not the top level project, the dependencies have to be fetched manually, provided by the top level project or the DRAMPower library can fetch the dependencies. Fetching content is enabled by the following cmake flag:
 
 ```console
-$ -D DRAMPOWER_USE_FETCH_CONTENT=Y -D DRAMPOWER_USE_FETCH_CONTENT_INTERNAL=Y -D DRAMPOWER_USE_FETCH_CONTENT_SPDLOG=Y -D DRAMPOWER_USE_FETCH_CONTENT_CLI11=Y
+$ -D DRAMPOWER_USE_FETCH_CONTENT=Y
 ```
 
-DRAMPower depends on DRAMUtils. In this scenario DRAMUtils is not the top level project, the depedencies for DRAMUtils have to be fetched manually, provided by the top level project or the DRAMUtils library can fetch the dependencies by using the following cmake flags:
+By default DRAMPower fetches all dependencies. If you want to disable the fetching of a specific dependency, you can set the respective flag to N. The following flags are available:
+- DRAMPOWER_USE_FETCH_CONTENT_INTERNAL: Fetches the internal dependencies of DRAMPower (DRAMUtils)
+- DRAMPOWER_USE_FETCH_CONTENT_SPDLOG: Fetches the spdlog library used by the command line application
+- DRAMPOWER_USE_FETCH_CONTENT_CLI11: Fetches the CLI11 library used by the command line application
+- DRAMPOWER_USE_FETCH_CONTENT_NLOHMANN_JSON: Fetches the nlohmann_json library used by DRAMUtils
 
+The following cmake flags show an example of how to disable the fetching of the spdlog and CLI11 libraries:
 ```console
-$ -D DRAMUTILS_USE_FETCH_CONTENT=Y -D DRAMUTILS_USE_FETCH_CONTENT_NLOHMANN_JSON=Y
+$ -D DRAMPOWER_USE_FETCH_CONTENT=Y -D DRAMPOWER_USE_FETCH_CONTENT_SPDLOG=N -D DRAMPOWER_USE_FETCH_CONTENT_CLI11=N
 ```
 
 For building DRAMPower clone the repository, or download the zip file of the release you would like to use and use CMake to generate the build files, e.g.
@@ -42,34 +46,17 @@ $ cmake -S . -B build
 $ cmake --build build --parallel
 ```
 
-If you want DRAMPower and DRAMUtils to fetch the dependencies automatically even if they are not the top level project, you can use the following command:
-
-```console
-$ cd DRAMPower
-$ cmake -S . -B build -D DRAMPOWER_USE_FETCH_CONTENT=Y -D DRAMPOWER_USE_FETCH_CONTENT_INTERNAL=Y -D DRAMPOWER_USE_FETCH_CONTENT_SPDLOG=Y -D DRAMPOWER_USE_FETCH_CONTENT_CLI11=Y -D DRAMUTILS_USE_FETCH_CONTENT=Y -D DRAMUTILS_USE_FETCH_CONTENT_NLOHMANN_JSON=Y
-$ cmake --build build --parallel
-```
-
-Optionally, test cases can be built by toggling the DRAMPOWER_BUILD_TESTS flag with CMake.
-The command line tool is automatically build if DRAMPower is the top level project. Alternatively, the DRAMPOWER_BUILD_CLI flag can be set to Y to build the command line tool.
+Optionally, test cases can be built by toggling the `DRAMPOWER_BUILD_TESTS` flag with CMake.
 
 ## Installation of the DRAMPower Command Line application
 The command line application is automatically build if DRAMPower is the top level project (see [Installation of the DRAMPower library](#installation-of-the-drampower-library)).
-Alternatively, the DRAMPOWER_BUILD_CLI flag can be set to Y to build the command line tool.
+Alternatively, the `DRAMPOWER_BUILD_CLI` flag can be set to Y to build the command line tool.
 Clone the repository, or download the zip file of the release you would like to use and use CMake to generate the build files. The following commands force the build of the command line application:
 
 ```console
 $ cd DRAMPower
 $ cmake -S . -B build -D DRAMPOWER_BUILD_CLI=Y
 $ cmake --build build
-```
-
-If you want DRAMPower and DRAMUtils to fetch the dependencies automatically, you can use the following command:
-
-```console
-$ cd DRAMPower
-$ cmake -S . -B build -D DRAMPOWER_USE_FETCH_CONTENT=Y -D DRAMPOWER_USE_FETCH_CONTENT_INTERNAL=Y -D DRAMPOWER_USE_FETCH_CONTENT_SPDLOG=Y -D DRAMPOWER_USE_FETCH_CONTENT_CLI11=Y -D DRAMUTILS_USE_FETCH_CONTENT=Y -D DRAMUTILS_USE_FETCH_CONTENT_NLOHMANN_JSON=Y -D DRAMPOWER_BUILD_CLI=Y
-$ cmake --build build --parallel
 ```
 
 ## Project structure
