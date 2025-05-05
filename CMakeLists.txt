@@ -104,6 +104,7 @@ option(DRAMPOWER_USE_FETCH_CONTENT "Enable the FetchContent module" ${PROJECT_IS
 option(DRAMPOWER_USE_FETCH_CONTENT_INTERNAL "Enable FetchContent to provide internal dependencies" ${DRAMPOWER_USE_FETCH_CONTENT})
 option(DRAMPOWER_USE_FETCH_CONTENT_CLI11 "Enable FetchContent to provide CLI11" ${DRAMPOWER_USE_FETCH_CONTENT})
 option(DRAMPOWER_USE_FETCH_CONTENT_SPDLOG "Enable FetchContent to provide spdlog" ${DRAMPOWER_USE_FETCH_CONTENT})
+option(DRAMPOWER_USE_FETCH_CONTENT_NLOHMANN_JSON "Enable FetchContent to provide nlohmann json" ${DRAMPOWER_USE_FETCH_CONTENT})
 
 ### DRAMPower directories ###
 set(DRAMPOWER_SOURCE_DIR      "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -119,6 +120,16 @@ find_package(Threads)
 
 if (DRAMPOWER_USE_FETCH_CONTENT)
     include(FetchContent)
+
+    # nlohmann_json for DRAMUtils
+    if (DRAMPOWER_USE_FETCH_CONTENT_NLOHMANN_JSON)
+            FetchContent_Declare(nlohmann_json
+            URL "https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz"
+            OVERRIDE_FIND_PACKAGE
+        )
+
+        FetchContent_MakeAvailable(nlohmann_json)
+    endif()
 
     # DRAMUtils
     if (DRAMPOWER_USE_FETCH_CONTENT_INTERNAL)
