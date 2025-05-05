@@ -55,9 +55,9 @@ public:
                 togglingHandleWrite.enable(0);
                 break;
         }
-        extensionManager.template callHook<databus_extensions::DataBusHook::onInit>([this](auto& ext) {
-            ext.onInit(this->width);
-        });
+        // extensionManager.template callHook<databus_extensions::DataBusHook::onInit>([this](auto& ext) {
+        //     ext.onInit(this->width);
+        // });
     }
     DataBus(DataBusConfig&& config)
     : DataBus(config.width, config.dataRate, config.idlePattern, config.initPattern,

@@ -47,10 +47,25 @@ namespace DRAMPower {
                 }
             )
         )
-        , dbi(1, util::PinState::L)
     {
-        this->registerCommands();
-        this->registerExtensions();
+        std::size_t n_dbi_pins = 0;
+        if (memSpec.bitWidth > 4) {
+            // Only x8 and x16 devices have DBI
+            this->dataBus.withExtension<util::databus_extensions::DataBusExtensionDBI>([&n_dbi_pins, &memSpec](auto& ext) {
+                ext.setWidth(memSpec.bitWidth);
+                ext.setDataRate(memSpec.dataRate);
+                ext.setNumberOfDevices(memSpec.numberOfDevices);
+                ext.setChunkSize(8);
+                ext.setIdlePattern(util::BusIdlePatternSpec::H);
+                
+                ext.enable(false); // DBI is disabled by default
+                
+                n_dbi_pins = ext.getDBIPinNumber();
+            });
+            this->dbi.resize(n_dbi_pins, {1, util::PinState::L});
+            this->registerCommands();
+            this->registerExtensions();
+        }
     }
 
     void DDR4::registerExtensions() {
@@ -63,7 +78,7 @@ namespace DRAMPower {
             OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE, OPCODE
         };
         const static uint64_t DEFAULT_MODE_REGISTER_5 = 0b00'00'0'0'000'1'0'0'000; // TODO set correct default values
-        this->extensionManager.registerExtension<extensions::DRAMPowerExtensionDBI>(dataBus,
+        this->extensionManager.registerExtension<extensions::DBI>(dataBus,
             [this](const timestamp_t timestamp, const bool enable) {
                 // Set the DBI state for the rank
                 TargetCoordinate coordinate;
@@ -90,11 +105,10 @@ namespace DRAMPower {
         );
         // DRAMPowerExtensionDBI -- DataBusExtensionDBI
         this->dataBus.withExtension<util::databus_extensions::DataBusExtensionDBI>([this](auto& ext) {
-            ext.setIdlePattern(util::BusIdlePatternSpec::H);
-            ext.setChangeCallback([this](timestamp_t timestamp, bool invert) {
-                this->dbi.set(timestamp, invert ? util::PinState::H : util::PinState::L);
+            ext.setChangeCallback([this](timestamp_t timestamp, std::size_t pinnumber, bool invert) {
+                assert(pinnumber < this->dbi.size());
+                this->dbi[pinnumber].set(timestamp, invert ? util::PinState::H : util::PinState::L);
             });
-            ext.enable(false); // DBI is disabled by default
         });
     }
 
@@ -706,7 +720,9 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         stats.clockStats = 2u * clock.get_stats_at(timestamp);
         stats.readDQSStats = NumDQsPairs * 2u * readDQS_.get_stats_at(timestamp);
         stats.writeDQSStats = NumDQsPairs * 2u * writeDQS_.get_stats_at(timestamp);
-        stats.dbiStats = dbi.get_stats_at(timestamp);
+        for (const auto &dbi_pin : dbi) {
+            stats.dbiStats += dbi_pin.get_stats_at(timestamp);
+        }
 
         return stats;
     }

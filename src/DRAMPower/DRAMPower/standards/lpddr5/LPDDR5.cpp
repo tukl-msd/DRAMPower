@@ -37,7 +37,7 @@ namespace DRAMPower {
         , wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
     {
         this->registerCommands();
-        this->extensionManager.registerExtension<extensions::DRAMPowerExtensionDBI>(dataBus);
+        this->extensionManager.registerExtension<extensions::DBI>(dataBus);
     }
 
     void LPDDR5::registerCommands() {

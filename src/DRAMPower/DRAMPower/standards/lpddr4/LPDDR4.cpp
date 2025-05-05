@@ -37,7 +37,7 @@ namespace DRAMPower {
         , writeDQS(memSpec.dataRate, true)
     {
         this->registerCommands();
-        this->extensionManager.registerExtension<extensions::DRAMPowerExtensionDBI>(dataBus);
+        this->extensionManager.registerExtension<extensions::DBI>(dataBus);
     }
 
     void LPDDR4::registerCommands() {

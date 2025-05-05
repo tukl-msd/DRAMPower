@@ -22,12 +22,14 @@ public:
 
 // Private member functions
 private:
-    pin_stats_t count(timestamp_t timestamp, PinState newState);
+    void addPendingStats(timestamp_t timestamp, pin_stats_t &stats) const;
+    pin_stats_t getPinChangeStats(PinState &newState) const;
+    void count(timestamp_t timestamp, pin_stats_t &stats) const;
 
 // Public member functions
 public:
     void set(timestamp_t t, PinState state);
-    pin_stats_t get_stats_at(timestamp_t t);
+    pin_stats_t get_stats_at(timestamp_t t) const;
 
 // Private member variables
 private:

@@ -35,7 +35,8 @@ constexpr bool operator!=(DataBusHook lhs, size_t rhs) {
 class DataBusExtensionDBI {
 public:
     using IdlePattern_t = util::BusIdlePatternSpec;
-    using InvertChangeCallback_t = std::function<void(timestamp_t, bool)>;
+    using PinNumber_t = std::size_t;
+    using InvertChangeCallback_t = std::function<void(timestamp_t, PinNumber_t, bool)>;
 
 public:
     explicit DataBusExtensionDBI() = default;
@@ -60,6 +61,22 @@ public:
         return m_enable;
     }
 
+    void setNumberOfDevices(std::size_t devices) {
+        m_devices = devices;
+    }
+
+    void setChunkSize(std::size_t chunkSize) {
+        m_chunkSize = chunkSize;
+    }
+
+    void setDataRate(std::size_t dataRate) {
+        m_datarate = dataRate;
+    }
+
+    std::size_t getDBIPinNumber() const {
+        return (m_devices * m_width) / m_chunkSize;
+    }
+
     void setIdlePattern(IdlePattern_t pattern) {
         m_idlePattern = pattern;
     }
@@ -71,63 +88,96 @@ public:
 
 // Hook functions
 public:
-    void onInit(std::size_t width) {
+    void onInit(std::size_t width, std::size_t devices, std::size_t datarate, std::size_t chunkSize, IdlePattern_t idlePattern, bool enable) {
         m_width = width;
-        m_lastInvert = false;
+        m_devices = devices;
+        m_chunkSize = chunkSize;
+        m_idlePattern = idlePattern;
+        m_datarate = datarate;
+        m_enable = enable;
+        m_lastInvert.resize(getDBIPinNumber(), false);
     }
 
     void onLoad(timestamp_t timestamp, util::DataBusMode mode, std::size_t n_bits, const uint8_t *data, bool &invert) {
-        // TODO upper and lower dbi signal
         if (!data || n_bits == 0 || util::DataBusMode::Bus != mode || !m_enable) return;
-        if (IdlePattern_t::Z == m_idlePattern) return;
+        if (IdlePattern_t::Z == m_idlePattern) {
+            // No inversion needed because there is no termination
+            invert = false;
+            return;
+        }
         invert = false;
 
-        // Count Transistions and check what is cheaper
-        // 1. Invert the data
-        // 2. Not invert the data
+        // Process each chunk independently
+        assert(n_bits % m_chunkSize == 0);
+        assert((m_devices * m_width) % m_chunkSize == 0);
+        std::size_t n_chunks = n_bits / m_chunkSize;
+        std::size_t chunksPerCompleteBus = getDBIPinNumber();
+        
+        // Make sure m_lastInvert is properly sized
+        if (m_lastInvert.size() < n_chunks) {
+            m_lastInvert.resize(n_chunks, false);
+        }
+        
+        for (std::size_t chunk = 0; chunk < n_chunks; ++chunk) {
+            std::size_t chunk_start_bit = chunk * m_chunkSize;
+            std::size_t chunk_end_bit = std::min(chunk_start_bit + m_chunkSize, n_bits);
+            //std::size_t chunk_bits = chunk_end_bit - chunk_start_bit;
+            
+            // Count 0s and 1s in this chunk
+            uint64_t chunk_count_0 = 0;
+            uint64_t chunk_count_1 = 0;
+            
+            for (std::size_t bit = chunk_start_bit; bit < chunk_end_bit; ++bit) {
+                // Calculate byte index and bit position within byte
+                std::size_t byte_idx = bit / 8;
+                std::size_t bit_pos = bit % 8;
+                
+                // Check if bit is set
+                bool bit_value = (data[byte_idx] & (1u << bit_pos)) != 0;
+                if (bit_value) {
+                    chunk_count_1++;
+                } else {
+                    chunk_count_0++;
+                }
+            }
+            
+            // Decide whether to invert this chunk
+            bool invert_chunk = false;
+            switch(m_idlePattern) {
+                case IdlePattern_t::L:
+                    if (chunk_count_0 < chunk_count_1) {
+                        invert_chunk = true;
+                    }
+                    break;
+                case IdlePattern_t::H:
+                    if (chunk_count_1 < chunk_count_0) {
+                        invert_chunk = true;
+                    }
+                    break;
+                default:
+                    assert(false);
+            }
+            
+            m_lastInvert[chunk] = invert_chunk;
+            if (m_lastInvert[chunk] != invert_chunk && nullptr != m_invertChangeCallback) {
+                if (nullptr != m_invertChangeCallback) {
+                    // timestamp is relative to the complete bus size and the chunk size
+                    timestamp_t t = timestamp + ((chunk / chunksPerCompleteBus) * m_datarate);
+                    m_invertChangeCallback(t, chunk / chunksPerCompleteBus, invert_chunk);
+                }
+            }
+        }
 
-        uint64_t count_0 = 0;
-        uint64_t count_1 = 0;
-        size_t n_bytes = (n_bits + 7) / 8;
-        for (size_t i = 0; i < n_bytes; ++i) {
-            size_t ones_in_byte = util::BinaryOps::popcount(data[i]);
-            count_1 += ones_in_byte;
-            count_0 += 8 - ones_in_byte;
-        }
-        // Correct count_0, count_1 if the last byte is not full
-        if (n_bits % 8 != 0) {
-            uint8_t unused_bits = 8 - (n_bits % 8);
-            uint8_t mask = (1u << (n_bits % 8)) - 1;
-            uint8_t unused_portion = data[n_bytes - 1] & ~mask;
-            size_t ones_in_unused = util::BinaryOps::popcount(unused_portion);
-            count_1 -= ones_in_unused;
-            count_0 -= unused_bits - ones_in_unused;
-        }
-        switch(m_idlePattern)
-        {
-            case IdlePattern_t::L:
-                if (count_0 < count_1) {
-                    invert = true;
-                }
-                break;
-            case IdlePattern_t::H:
-                if (count_1 < count_0) {
-                    invert = true;
-                }
-                break;
-            default:
-                assert(false);
-        }
-        // Signal a change in the invert state
-        if (nullptr != m_invertChangeCallback && invert != m_lastInvert) {
-            m_invertChangeCallback(timestamp, invert);
-        }
-        m_lastInvert = invert;
+        // Return if any chunk is inverted
+        invert = std::any_of(m_lastInvert.begin(), m_lastInvert.end(), [](bool b) { return b; });
     }
 private:
     bool m_enable = false;
-    bool m_lastInvert = false;
+    std::vector<bool> m_lastInvert;
+    std::size_t m_devices = 1;
+    std::size_t m_datarate = 1;
     std::size_t m_width = 0;
+    std::size_t m_chunkSize = 8;
 
     InvertChangeCallback_t m_invertChangeCallback = nullptr;
 

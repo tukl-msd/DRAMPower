@@ -7,14 +7,31 @@ Pin::Pin(std::size_t dataRate, PinState state)
 , m_last_state(state)
 {}
 
-Pin::pin_stats_t Pin::count(timestamp_t timestamp, PinState newState) {
-    pin_stats_t stats;
-    // Add Pending stats
+void Pin::addPendingStats(timestamp_t timestamp, pin_stats_t &stats) const {
     if (pending_stats.isPending()) {
         assert(pending_stats.getTimestamp() < timestamp);
         stats += pending_stats.getStats();
-        pending_stats.clear();
     }
+}
+
+Pin::pin_stats_t Pin::getPinChangeStats(PinState &newState) const {
+    pin_stats_t stats;
+    // Add pin change stats
+    if (newState != m_last_state) {
+        // L to H or H to L result in bit changes
+        // X to Z or Z to X do not count
+        if ((m_last_state == PinState::L && newState == PinState::H)) {
+            stats.bit_changes++;
+            stats.zeroes_to_ones++;
+        } else if (m_last_state == PinState::H && newState == PinState::L) {
+            stats.bit_changes++;
+            stats.ones_to_zeroes++;
+        }
+    }
+    return stats;
+}
+
+void Pin::count(timestamp_t timestamp, pin_stats_t &stats) const {
     // Add duration of lastState
     switch (m_last_state) {
         case PinState::L:
@@ -27,40 +44,32 @@ Pin::pin_stats_t Pin::count(timestamp_t timestamp, PinState newState) {
             // Nothing to do
             break;
     }
-    // Add pin change stats
-    if (newState != m_last_state) {
-        pin_stats_t stats;
-        // L to H or H to L result in bit changes
-        // X to Z or Z to X do not count
-        if ((m_last_state == PinState::L && newState == PinState::H)) {
-            stats.bit_changes++;
-            stats.zeroes_to_ones++;
-        } else if (m_last_state == PinState::H && newState == PinState::L) {
-            stats.bit_changes++;
-            stats.ones_to_zeroes++;
-        }
-        pending_stats.setPendingStats(timestamp, stats);
-    }
-    return stats;
 }
 
 void Pin::set(timestamp_t t, PinState state)
 {
     assert(t > m_last_set);
     // count stats
-    m_stats += count(t, state);
+    addPendingStats(t, m_stats);
+    count(t, m_stats);
+    // store new state
+    pending_stats.setPendingStats(t, getPinChangeStats(state));
     // save new state
     m_last_set = t;
     m_last_state = state;
 }
 
-Pin::pin_stats_t Pin::get_stats_at(timestamp_t t)
+Pin::pin_stats_t Pin::get_stats_at(timestamp_t t) const
 {
-    auto stats = m_stats;
+    if (t <= m_last_set) {
+        return m_stats;
+    }
+
     // Add stats from m_last_set to t
-    if (t > m_last_set) {
-        stats += count(t, m_last_state);
-    };
+    auto stats = m_stats;
+    addPendingStats(t, stats);
+    count(t, stats);
+
     return stats;
 }
 

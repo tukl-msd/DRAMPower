@@ -53,7 +53,7 @@ namespace DRAMPower {
         , writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
     {
         this->registerCommands();
-        this->extensionManager.registerExtension<extensions::DRAMPowerExtensionDBI>(dataBus);
+        this->extensionManager.registerExtension<extensions::DBI>(dataBus);
     }
 
     void DDR5::registerCommands() {
