@@ -1,11 +1,7 @@
 #ifndef DRAMPOWER_UTIL_BINARY_OPS_H
 #define DRAMPOWER_UTIL_BINARY_OPS_H
 
-#include <algorithm>
-#include <memory>
-#include <vector>
-
-#include <bitset>
+#include <cstdint>
 #include <sstream>
 
 namespace DRAMPower::util {
