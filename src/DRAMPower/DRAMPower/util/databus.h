@@ -3,12 +3,12 @@
 
 #include <cstddef>
 #include <type_traits>
+#include <utility>
 
 
 #include <DRAMPower/util/bus.h>
 #include <DRAMPower/util/databus_types.h>
 #include <DRAMPower/util/extension_manager_static.h>
-#include <DRAMPower/util/databus_extensions.h>
 #include <DRAMPower/util/databus_types.h>
 #include <DRAMPower/dram/Interface.h>
 
@@ -18,17 +18,14 @@
 namespace DRAMPower::util {
 
 // DataBus class
-template<std::size_t max_bitset_size = 0, typename... Extensions>
+template<std::size_t max_bitset_size = 0, typename... BusExtensions>
 class DataBus {
 
 public:
-    using Bus_t = util::Bus<max_bitset_size>;
+    using Bus_t = util::Bus<max_bitset_size, BusExtensions...>;
+    using ExtensionManager_t = typename Bus_t::ExtensionManager_t;
     using IdlePattern_t = util::BusIdlePatternSpec;
     using InitPattern_t = util::BusInitPatternSpec;
-    using ExtensionManager_t = extension_manager_static::StaticExtensionManager<DRAMUtils::util::type_sequence<
-        Extensions...
-        >, databus_extensions::DataBusHook
-    >;
 
 public:
     DataBus(std::size_t width, std::size_t dataRate,
@@ -72,11 +69,7 @@ private:
                     // No data to load, skip burst
                     return;
                 }
-                bool invert = false;
-                extensionManager.template callHook<databus_extensions::DataBusHook::onLoad>([this, timestamp, n_bits, &data, &invert](auto& ext) {
-                    ext.onLoad(timestamp, this->busType, n_bits, data, invert);
-                });
-                bus.load(timestamp, data, n_bits, invert);
+                bus.load(timestamp, data, n_bits);
                 break;
             }
             case DataBusMode::TogglingRate:
@@ -153,34 +146,44 @@ public:
         togglingHandleWriteStats += togglingHandleWrite.get_stats(timestamp);
     }
 
-    constexpr ExtensionManager_t& getExtensionManager() {
-        return extensionManager;
+    constexpr ExtensionManager_t& getExtensionManagerRead() {
+        return busRead.getExtensionManager();
     }
-    constexpr const ExtensionManager_t& getExtensionManager() const {
-        return extensionManager;
-    }
-
-    // Proxy getExtension
-    template<typename Extension>
-    constexpr auto& getExtension() {
-        return extensionManager.template getExtension<Extension>();
+    constexpr ExtensionManager_t& getExtensionManagerWrite() {
+        return busWrite.getExtensionManager();
     }
 
     // Proxy getExtension
     template<typename Extension>
-    constexpr const auto& getExtension() const {
-        return extensionManager.template getExtension<Extension>();
+    constexpr auto& getExtensionRead() {
+        return busRead.getExtensionManager().template getExtension<Extension>();
+    }
+    template<typename Extension>
+    constexpr auto& getExtensionWrite() {
+        return busWrite.getExtensionManager().template getExtension<Extension>();
+    }
+    template<typename Extension>
+    constexpr const auto& getExtensionRead() {
+        return busRead.getExtensionManager().template getExtension<Extension>();
+    }
+    template<typename Extension>
+    constexpr const auto& getExtensionWrite() {
+        return busWrite.getExtensionManager().template getExtension<Extension>();
     }
 
     template<typename Extension, typename Func>
-    constexpr decltype(auto) withExtension(Func&& func) {
-        return extensionManager.template withExtension<Extension>(std::forward<Func>(func));
+    constexpr decltype(auto) withExtensionWrite(Func&& func) {
+        return busWrite.getExtensionManager().template withExtension<Extension>(std::forward<Func>(func));
+    }
+    template<typename Extension, typename Func>
+    constexpr decltype(auto) withExtensionRead(Func&& func) {
+        return busRead.getExtensionManager().template withExtension<Extension>(std::forward<Func>(func));
     }
 
     // Proxy hasExtension
     template<typename Extension>
     constexpr static bool hasExtension() {
-        return (std::is_same_v<Extension, Extensions> || ...);
+        return (false || ... || (std::is_same_v<Extension, BusExtensions>));
     }
 
 private:
@@ -336,9 +339,15 @@ public:
     }
 
     template<typename Extension, typename Func>
-    decltype(auto) withExtension(Func&& func) {
+    decltype(auto) withExtensionRead(Func&& func) {
         return std::visit([&func](auto && arg) {
-            return arg.template withExtension<Extension>(std::forward<Func>(func));
+            return arg.template withExtensionRead<Extension>(std::forward<Func>(func));
+        }, m_dataBusContainer.getVariant());
+    }
+    template<typename Extension, typename Func>
+    decltype(auto) withExtensionWrite(Func&& func) {
+        return std::visit([&func](auto && arg) {
+            return arg.template withExtensionWrite<Extension>(std::forward<Func>(func));
         }, m_dataBusContainer.getVariant());
     }
 

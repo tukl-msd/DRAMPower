@@ -60,7 +60,8 @@ namespace DRAMPower
 		util::bus_stats_t clockStats;
 		util::bus_stats_t wClockStats;
 
-		util::bus_stats_t dbiStats;
+		util::bus_stats_t readdbiStats;
+		util::bus_stats_t writedbiStats;
 
         TogglingStats togglingStats;
 

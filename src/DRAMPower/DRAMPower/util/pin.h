@@ -24,11 +24,15 @@ public:
 private:
     void addPendingStats(timestamp_t timestamp, pin_stats_t &stats) const;
     pin_stats_t getPinChangeStats(PinState &newState) const;
-    void count(timestamp_t timestamp, pin_stats_t &stats) const;
+    void count(timestamp_t timestamp, pin_stats_t &stats, std::optional<std::size_t> datarate = std::nullopt) const;
 
 // Public member functions
 public:
+    // The timestamp t is relative to the clock frequency
     void set(timestamp_t t, PinState state);
+    // The timestamp t respects the data rate of the pin
+    void set_with_datarate(timestamp_t t, PinState state);
+    // The timestamp t is relative to the clock frequency
     pin_stats_t get_stats_at(timestamp_t t) const;
 
 // Private member variables

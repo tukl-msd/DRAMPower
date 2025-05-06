@@ -54,7 +54,8 @@ public:
 public:
     databus_t dataBus;
 private:
-    std::vector<util::Pin> dbi;
+    std::vector<util::Pin> dbiread;
+    std::vector<util::Pin> dbiwrite;
 
 protected:
 

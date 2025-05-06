@@ -6,8 +6,7 @@
 #include <iostream>
 #include <functional>
 #include <DRAMPower/util/extensions.h>
-#include <DRAMPower/util/databus_extensions.h>
-
+#include <DRAMPower/util/bus_extensions.h>
 
 namespace DRAMPower {
 
@@ -51,7 +50,7 @@ namespace DRAMPower {
         std::size_t n_dbi_pins = 0;
         if (memSpec.bitWidth > 4) {
             // Only x8 and x16 devices have DBI
-            this->dataBus.withExtension<util::databus_extensions::DataBusExtensionDBI>([&n_dbi_pins, &memSpec](auto& ext) {
+            auto callback = [&n_dbi_pins, &memSpec](auto& ext) {
                 ext.setWidth(memSpec.bitWidth);
                 ext.setDataRate(memSpec.dataRate);
                 ext.setNumberOfDevices(memSpec.numberOfDevices);
@@ -61,8 +60,11 @@ namespace DRAMPower {
                 ext.enable(false); // DBI is disabled by default
                 
                 n_dbi_pins = ext.getDBIPinNumber();
-            });
-            this->dbi.resize(n_dbi_pins, {1, util::PinState::L});
+            };
+            this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>(callback);
+            this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>(callback);
+            this->dbiread.resize(n_dbi_pins, {1, util::PinState::L});
+            this->dbiwrite.resize(n_dbi_pins, {1, util::PinState::L});
             this->registerCommands();
             this->registerExtensions();
         }
@@ -98,16 +100,25 @@ namespace DRAMPower {
                 auto ca_length = MRSPattern.size() / commandBus.get_width();
                 this->commandBus.load(timestamp, pattern, ca_length);
                 // Toggle the DBI databus extension
-                this->dataBus.withExtension<util::databus_extensions::DataBusExtensionDBI>([enable](auto& ext) {
+                this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>([enable](auto& ext) {
+                    ext.enable(enable);
+                });
+                this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>([enable](auto& ext) {
                     ext.enable(enable);
                 });
             }
         );
         // DRAMPowerExtensionDBI -- DataBusExtensionDBI
-        this->dataBus.withExtension<util::databus_extensions::DataBusExtensionDBI>([this](auto& ext) {
+        this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>([this](auto& ext) {
             ext.setChangeCallback([this](timestamp_t timestamp, std::size_t pinnumber, bool invert) {
-                assert(pinnumber < this->dbi.size());
-                this->dbi[pinnumber].set(timestamp, invert ? util::PinState::H : util::PinState::L);
+                assert(pinnumber < this->dbiread.size());
+                this->dbiread[pinnumber].set_with_datarate(timestamp, invert ? util::PinState::H : util::PinState::L);
+            });
+        });
+        this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>([this](auto& ext) {
+            ext.setChangeCallback([this](timestamp_t timestamp, std::size_t pinnumber, bool invert) {
+                assert(pinnumber < this->dbiwrite.size());
+                this->dbiwrite[pinnumber].set_with_datarate(timestamp, invert ? util::PinState::H : util::PinState::L);
             });
         });
     }
@@ -720,8 +731,11 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         stats.clockStats = 2u * clock.get_stats_at(timestamp);
         stats.readDQSStats = NumDQsPairs * 2u * readDQS_.get_stats_at(timestamp);
         stats.writeDQSStats = NumDQsPairs * 2u * writeDQS_.get_stats_at(timestamp);
-        for (const auto &dbi_pin : dbi) {
-            stats.dbiStats += dbi_pin.get_stats_at(timestamp);
+        for (const auto &dbi_pin : dbiread) {
+            stats.readdbiStats += dbi_pin.get_stats_at(timestamp);
+        }
+        for (const auto &dbi_pin : dbiwrite) {
+            stats.writedbiStats += dbi_pin.get_stats_at(timestamp);
         }
 
         return stats;

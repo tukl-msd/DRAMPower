@@ -4,15 +4,15 @@
 #include <optional>
 
 #include <DRAMPower/util/databus.h>
-#include <DRAMPower/util/databus_extensions.h>
+#include <DRAMPower/util/bus_extensions.h>
 #include <DRAMUtils/util/types.h>
 
 namespace DRAMPower::util::databus_presets {
 
-    using databus_64_t = DataBus<64, databus_extensions::DataBusExtensionDBI>;
-    using databus_256_t = DataBus<256, databus_extensions::DataBusExtensionDBI>;
-    using databus_1024_t = DataBus<1024, databus_extensions::DataBusExtensionDBI>;
-    using databus_4096_t = DataBus<4096, databus_extensions::DataBusExtensionDBI>;
+    using databus_64_t = DataBus<64, bus_extensions::BusExtensionDBI>;
+    using databus_256_t = DataBus<256, bus_extensions::BusExtensionDBI>;
+    using databus_1024_t = DataBus<1024, bus_extensions::BusExtensionDBI>;
+    using databus_4096_t = DataBus<4096, bus_extensions::BusExtensionDBI>;
 
     using databus_preset_sequence_t = DRAMUtils::util::type_sequence<
         databus_64_t,

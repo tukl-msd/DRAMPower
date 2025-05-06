@@ -31,14 +31,15 @@ Pin::pin_stats_t Pin::getPinChangeStats(PinState &newState) const {
     return stats;
 }
 
-void Pin::count(timestamp_t timestamp, pin_stats_t &stats) const {
+void Pin::count(timestamp_t timestamp, pin_stats_t &stats, std::optional<std::size_t> datarate) const {
     // Add duration of lastState
+    std::size_t i_dataRate = datarate.value_or(m_dataRate);
     switch (m_last_state) {
         case PinState::L:
-            stats.zeroes += (timestamp - m_last_set) * m_dataRate;
+            stats.zeroes += (timestamp - m_last_set) * i_dataRate;
             break;
         case PinState::H:
-            stats.ones += (timestamp - m_last_set) * m_dataRate;
+            stats.ones += (timestamp - m_last_set) * i_dataRate;
             break;
         case PinState::Z:
             // Nothing to do
@@ -46,7 +47,7 @@ void Pin::count(timestamp_t timestamp, pin_stats_t &stats) const {
     }
 }
 
-void Pin::set(timestamp_t t, PinState state)
+void Pin::set_with_datarate(timestamp_t t, PinState state)
 {
     assert(t > m_last_set);
     // count stats
@@ -57,6 +58,12 @@ void Pin::set(timestamp_t t, PinState state)
     // save new state
     m_last_set = t;
     m_last_state = state;
+}
+
+void Pin::set(timestamp_t t, PinState state)
+{
+    timestamp_t virtual_time = t * m_dataRate;
+    set_with_datarate(virtual_time, state);
 }
 
 Pin::pin_stats_t Pin::get_stats_at(timestamp_t t) const
