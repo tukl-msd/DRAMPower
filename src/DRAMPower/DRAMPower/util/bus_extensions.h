@@ -89,6 +89,7 @@ public:
 // Hook functions
 public:
 
+    // The timestamp is relative to the datarate of the bus (timestamp = t_clock * datarate_bus)
     void onLoad(timestamp_t timestamp, std::size_t n_bits, const uint8_t *datain, uint8_t *&dataout, bool &invert) {
         if (!datain || n_bits == 0 || !m_enable) return;
         if (IdlePattern_t::Z == m_idlePattern) {

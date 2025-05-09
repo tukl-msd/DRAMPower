@@ -191,8 +191,8 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		// Extension hook
 		const uint8_t *datain = data; 
 		uint8_t *dataout = nullptr;
-		extensionManager.template callHook<bus_extensions::BusHook::onLoad>([this, timestamp, n_bits, &datain, &dataout, &invert](auto& ext) {
-			ext.onLoad(timestamp, n_bits, datain, dataout, invert);
+		extensionManager.template callHook<bus_extensions::BusHook::onLoad>([this, virtual_timestamp, n_bits, &datain, &dataout, &invert](auto& ext) {
+			ext.onLoad(virtual_timestamp, n_bits, datain, dataout, invert);
 			if (nullptr != dataout) {
 				datain = dataout;
 			}
