@@ -12,6 +12,7 @@
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMPower/memspec/MemSpecDDR4.h>
+#include <DRAMPower/util/bus_extensions.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
 
@@ -33,7 +34,7 @@ public:
     virtual ~DDR4() = default;
 public:
     using commandbus_t = util::Bus<27>;
-    using databus_t =  util::databus_presets::databus_preset_t;
+    using databus_t =  util::databus_presets::databus_preset_t<util::bus_extensions::BusExtensionDBI>;
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
 
