@@ -143,10 +143,10 @@ private:
 		}
 	}
 
-	void add_data(timestamp_t virtual_timestamp, const uint8_t * data, std::size_t n_bits, bool invert = false)
+	void add_data(timestamp_t virtual_timestamp, const uint8_t * data, std::size_t n_bits)
 	{
 		// Add new burst to storage
-		this->burst_storage.insert_data(data, n_bits, invert);
+		this->burst_storage.insert_data(data, n_bits);
 
 		// Adjust statistics for new data
 		this->pending_stats.setPendingStats(virtual_timestamp, diff(
@@ -172,8 +172,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		this->idle_pattern = idle_pattern;
 	}
 
-	// TODO remove invert
-	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits, bool invert = false) {
+	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
 		if (!this->enableflag) {
 			return;
 		}
@@ -191,8 +190,8 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		// Extension hook
 		const uint8_t *datain = data; 
 		uint8_t *dataout = nullptr;
-		extensionManager.template callHook<bus_extensions::BusHook::onLoad>([this, virtual_timestamp, n_bits, &datain, &dataout, &invert](auto& ext) {
-			ext.onLoad(virtual_timestamp, n_bits, datain, dataout, invert);
+		extensionManager.template callHook<bus_extensions::BusHook::onLoad>([this, virtual_timestamp, n_bits, &datain, &dataout](auto& ext) {
+			ext.onLoad(virtual_timestamp, n_bits, datain, dataout);
 			if (nullptr != dataout) {
 				datain = dataout;
 			}
@@ -218,11 +217,11 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		// given the assumption the burst_storage can safely be cleared
 		this->burst_storage.clear();
 
-		add_data(virtual_timestamp, data, n_bits, invert);
+		add_data(virtual_timestamp, data, n_bits);
 	};
 
-	void load(timestamp_t timestamp, uint64_t data, std::size_t length, bool invert = false) {
-		this->load(timestamp, (uint8_t*)&data, (width * length), invert); // TODO: is this endianess dependend?
+	void load(timestamp_t timestamp, uint64_t data, std::size_t length) {
+		this->load(timestamp, (uint8_t*)&data, (width * length)); // TODO: is this endianess dependend?
 	};
 
 	// Returns optional burst (std::nullopt if idle pattern is Z)

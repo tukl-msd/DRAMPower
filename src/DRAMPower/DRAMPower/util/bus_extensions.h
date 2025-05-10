@@ -90,11 +90,10 @@ public:
 public:
 
     // The timestamp is relative to the datarate of the bus (timestamp = t_clock * datarate_bus)
-    void onLoad(timestamp_t timestamp, std::size_t n_bits, const uint8_t *datain, uint8_t *&dataout, bool &invert) {
+    void onLoad(timestamp_t timestamp, std::size_t n_bits, const uint8_t *datain, uint8_t *&dataout) {
         if (!datain || n_bits == 0 || !m_enable) return;
         if (IdlePattern_t::Z == m_idlePattern) {
             // No inversion needed because there is no termination
-            invert = false;
             return;
         }
         
@@ -112,9 +111,6 @@ public:
         // Set the output pointer to the vector data (safe because the vector was resized)
         dataout = m_invertedData.data();
         
-        // Initialize invert flag
-        invert = false;
-
         // Process each chunk independently
         assert(n_bits % m_chunkSize == 0); // Ensure n_bits is a multiple of chunk size
         assert((m_devices * m_width) % m_chunkSize == 0); // Ensure burst size is a multiple of chunk size
@@ -175,9 +171,6 @@ public:
                     // Toggle the bit in our buffer
                     m_invertedData[byte_idx] ^= (1u << bit_pos);
                 }
-                
-                // Set the global invert flag
-                invert = true;
             }
             
             // Call the callback if inversion state changed and callback is set
