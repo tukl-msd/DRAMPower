@@ -2,28 +2,28 @@
 
 namespace DRAMPower::util {
 
-Pin::Pin(std::size_t dataRate, PinState state)
-: m_dataRate(dataRate)
-, m_last_state(state)
+Pin::Pin(PinState state)
+: m_last_state(state)
 {}
 
-void Pin::addPendingStats(timestamp_t timestamp, pin_stats_t &stats) const {
+void Pin::addPendingStats(timestamp_t t, pin_stats_t &stats) const {
+    // add stats from last load stored in pending_stats
     if (pending_stats.isPending()) {
-        assert(pending_stats.getTimestamp() < timestamp);
-        stats += pending_stats.getStats();
+        assert(pending_stats.getTimestamp() < t);
+        stats += getPinChangeStats(pending_stats.getStats().fromstate, pending_stats.getStats().newstate);
     }
 }
 
-Pin::pin_stats_t Pin::getPinChangeStats(PinState &newState) const {
+Pin::pin_stats_t Pin::getPinChangeStats(const PinState &fromState, const PinState &newState) const {
     pin_stats_t stats;
     // Add pin change stats
-    if (newState != m_last_state) {
+    if (newState != fromState) {
         // L to H or H to L result in bit changes
-        // X to Z or Z to X do not count
-        if ((m_last_state == PinState::L && newState == PinState::H)) {
+        // X to Z or Z to X are not counted
+        if (fromState == PinState::L && newState == PinState::H) {
             stats.bit_changes++;
             stats.zeroes_to_ones++;
-        } else if (m_last_state == PinState::H && newState == PinState::L) {
+        } else if (fromState == PinState::H && newState == PinState::L) {
             stats.bit_changes++;
             stats.ones_to_zeroes++;
         }
@@ -31,15 +31,14 @@ Pin::pin_stats_t Pin::getPinChangeStats(PinState &newState) const {
     return stats;
 }
 
-void Pin::count(timestamp_t timestamp, pin_stats_t &stats, std::optional<std::size_t> datarate) const {
+void Pin::count(timestamp_t timestamp, pin_stats_t &stats) const {
     // Add duration of lastState
-    std::size_t i_dataRate = datarate.value_or(m_dataRate);
     switch (m_last_state) {
         case PinState::L:
-            stats.zeroes += (timestamp - m_last_set) * i_dataRate;
+            stats.zeroes += timestamp - m_last_set;
             break;
         case PinState::H:
-            stats.ones += (timestamp - m_last_set) * i_dataRate;
+            stats.ones += timestamp - m_last_set;
             break;
         case PinState::Z:
             // Nothing to do
@@ -47,35 +46,36 @@ void Pin::count(timestamp_t timestamp, pin_stats_t &stats, std::optional<std::si
     }
 }
 
-void Pin::set_with_datarate(timestamp_t t, PinState state)
+void Pin::set(timestamp_t t, PinState state, std::size_t dataRate)
 {
-    assert(t > m_last_set);
+    timestamp_t virtual_time = t * dataRate;
+    assert(virtual_time > m_last_set);
     // count stats
-    addPendingStats(t, m_stats);
-    count(t, m_stats);
+    addPendingStats(virtual_time, m_stats);
+    pending_stats.clear();
+    count(virtual_time, m_stats);
     // store new state
-    pending_stats.setPendingStats(t, getPinChangeStats(state));
-    // save new state
-    m_last_set = t;
+    pending_stats.setPendingStats(virtual_time, {
+        m_last_state, // From state
+        state // New state
+    });
+    m_last_set = virtual_time;
     m_last_state = state;
 }
 
-void Pin::set(timestamp_t t, PinState state)
+Pin::pin_stats_t Pin::get_stats_at(timestamp_t t, std::size_t dataRate) const
 {
-    timestamp_t virtual_time = t * m_dataRate;
-    set_with_datarate(virtual_time, state);
-}
-
-Pin::pin_stats_t Pin::get_stats_at(timestamp_t t) const
-{
-    if (t <= m_last_set) {
+    timestamp_t virtual_time = t * dataRate;
+    assert(virtual_time >= m_last_set);
+    if (virtual_time * dataRate == m_last_set) {
         return m_stats;
     }
+    // virtual_time > m_last_set
 
     // Add stats from m_last_set to t
     auto stats = m_stats;
-    addPendingStats(t, stats);
-    count(t, stats);
+    addPendingStats(virtual_time, stats);
+    count(virtual_time, stats);
 
     return stats;
 }
