@@ -7,11 +7,16 @@
 namespace DRAMPower::util
 {
 
+template <typename T = bus_stats_t>
 class PendingStats
 {
 // Constructor, assignment operator and destructor
 public:
-    PendingStats();
+    PendingStats()
+    : m_timestamp(0)
+    , m_stats()
+    , m_pending(false)
+    {}
     ~PendingStats() = default;
 
     PendingStats(const PendingStats&) = default;
@@ -21,16 +26,37 @@ public:
 
 // Public member functions
 public:
-    void setPendingStats(timestamp_t timestamp, bus_stats_t stats);
-    bool isPending() const;
-    void clear();
-    timestamp_t getTimestamp() const;
-    bus_stats_t getStats() const;
+    void setPendingStats(timestamp_t timestamp, T stats)
+    {
+        m_timestamp = timestamp;
+        m_stats = stats;
+        m_pending = true;
+    }
+    
+    bool isPending() const
+    {
+        return m_pending;
+    }
+
+    void clear()
+    {
+        m_pending = false;
+    }
+    
+    timestamp_t getTimestamp() const
+    {
+        return m_timestamp;
+    }
+    
+    T getStats() const
+    {
+        return m_stats;
+    }
 
 // Private member variables
 private:
     timestamp_t m_timestamp;
-    bus_stats_t m_stats;
+    T           m_stats;
     bool        m_pending;
 };
 
