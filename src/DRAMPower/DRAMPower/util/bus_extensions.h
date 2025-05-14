@@ -17,8 +17,9 @@
 namespace DRAMPower::util::bus_extensions {
 
 enum class BusHook : uint64_t {
-    None        = 0,
-    onLoad      = 1 << 0,
+    None         = 0,
+    onBeforeLoad = 1 << 0,
+    onAfterLoad  = 1 << 1
 };
 constexpr BusHook operator|(BusHook lhs, BusHook rhs) {
     return static_cast<BusHook>(static_cast<std::underlying_type_t<BusHook>>(lhs) |
@@ -37,14 +38,20 @@ public:
     using IdlePattern_t = util::BusIdlePatternSpec;
     using PinNumber_t = std::size_t;
     // Note: The timestamp is relative to the internal bus time and datarate
-    using InvertChangeCallback_t = std::function<void(timestamp_t, PinNumber_t, bool)>;
+    // void callback(timestampt_t load_time, timestamp_t invert_time, PinNumber_t pin, bool invert);
+    using InvertChangeCallback_t = std::function<void(timestamp_t, timestamp_t, PinNumber_t, bool)>;
+
+    // Note: The timestamp is relative to the internal bus time and datarate
+    // void callback(timestampt_t load_time, timestamp_t burst_finish_time);
+    // The burst finish time is the time when the last burst is written to the bus
+    using AfterLoadCallback_t = std::function<void(timestamp_t, timestamp_t)>;
 
 public:
     explicit BusExtensionDBI() = default;
 
     // supported hooks
     static constexpr BusHook getSupportedHooks() {
-        return BusHook::onLoad;
+        return BusHook::onBeforeLoad | BusHook::onAfterLoad;
     }
 
 // Public member functions
@@ -86,11 +93,27 @@ public:
         m_invertChangeCallback = std::forward<Func>(callback);
     }
 
+    template <typename Func>
+    void setAfterLoadCallback(Func&& callback) {
+        m_afterLoadCallback = std::forward<Func>(callback);
+    }
+
 // Hook functions
 public:
 
     // The timestamp is relative to the datarate of the bus (timestamp = t_clock * datarate_bus)
-    void onLoad(timestamp_t timestamp, std::size_t n_bits, const uint8_t *datain, uint8_t *&dataout) {
+    void onAfterLoad(timestamp_t timestamp, std::size_t n_bits, [[maybe_unused]] const uint8_t *data) {
+        // No action needed after load
+        std::size_t chunksPerCompleteBus = getDBIPinNumber();
+        std::size_t n_chunks = n_bits / m_chunkSize;
+        timestamp_t t_end = timestamp + (n_chunks / chunksPerCompleteBus);
+        if (m_afterLoadCallback) {
+            m_afterLoadCallback(timestamp, t_end);
+        }
+    }
+
+    // The timestamp is relative to the datarate of the bus (timestamp = t_clock * datarate_bus)
+    void onBeforeLoad(timestamp_t timestamp, std::size_t n_bits, const uint8_t *datain, uint8_t *&dataout) {
         if (!datain || n_bits == 0 || !m_enable) return;
         if (IdlePattern_t::Z == m_idlePattern) {
             // No inversion needed because there is no termination
@@ -117,9 +140,9 @@ public:
         std::size_t n_chunks = n_bits / m_chunkSize;
         std::size_t chunksPerCompleteBus = getDBIPinNumber();
         
-        // Resize lastInvert vector if needed
-        if (m_lastInvert.size() < n_chunks) {
-            m_lastInvert.resize(n_chunks, false);
+        // Resize lastInvert vector if needed // TODO resize in init
+        if (m_lastInvert.size() < chunksPerCompleteBus) {
+            m_lastInvert.resize(chunksPerCompleteBus, false);
         }
         
         // Loop through each chunk
@@ -174,15 +197,16 @@ public:
             }
             
             // Call the callback if inversion state changed and callback is set
-            if (m_lastInvert[chunk] != invert_chunk && nullptr != m_invertChangeCallback) {
+            PinNumber_t pin = chunk % chunksPerCompleteBus;
+            if (m_lastInvert[pin] != invert_chunk && nullptr != m_invertChangeCallback) {
                 timestamp_t t = timestamp + (chunk / chunksPerCompleteBus);
-                PinNumber_t pin = chunk % chunksPerCompleteBus;
-                m_invertChangeCallback(t, pin, invert_chunk);
+                m_invertChangeCallback(timestamp, t, pin, invert_chunk);
             }
             
             // Update the last inversion state
-            m_lastInvert[chunk] = invert_chunk;
+            m_lastInvert[pin] = invert_chunk;
         }
+        // TODO call callback to notify about the idle state
     }
 private:
     bool m_enable = false;
@@ -194,6 +218,7 @@ private:
     std::size_t m_chunkSize = 8;
 
     InvertChangeCallback_t m_invertChangeCallback = nullptr;
+    AfterLoadCallback_t m_afterLoadCallback = nullptr;
 
     IdlePattern_t m_idlePattern = IdlePattern_t::Z;
 };

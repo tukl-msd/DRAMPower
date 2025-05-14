@@ -730,10 +730,10 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         stats.readDQSStats = NumDQsPairs * 2u * readDQS_.get_stats_at(timestamp);
         stats.writeDQSStats = NumDQsPairs * 2u * writeDQS_.get_stats_at(timestamp);
         for (const auto &dbi_pin : dbiread) {
-            stats.readdbiStats += dbi_pin.get_stats_at(timestamp);
+            stats.readDBI += dbi_pin.get_stats_at(timestamp, 2);
         }
         for (const auto &dbi_pin : dbiwrite) {
-            stats.writedbiStats += dbi_pin.get_stats_at(timestamp);
+            stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2);
         }
 
         return stats;

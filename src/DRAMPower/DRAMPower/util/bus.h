@@ -58,7 +58,7 @@ private:
 	uint64_t datarate = 1;
 	bool init_load = false;
 	
-	PendingStats pending_stats;
+	PendingStats<bus_stats_t> pending_stats;
 	
 	std::optional<burst_t> last_pattern;
 
@@ -190,8 +190,8 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		// Extension hook
 		const uint8_t *datain = data; 
 		uint8_t *dataout = nullptr;
-		extensionManager.template callHook<bus_extensions::BusHook::onLoad>([this, virtual_timestamp, n_bits, &datain, &dataout](auto& ext) {
-			ext.onLoad(virtual_timestamp, n_bits, datain, dataout);
+		extensionManager.template callHook<bus_extensions::BusHook::onBeforeLoad>([this, virtual_timestamp, n_bits, &datain, &dataout](auto& ext) {
+			ext.onBeforeLoad(virtual_timestamp, n_bits, datain, dataout);
 			if (nullptr != dataout) {
 				datain = dataout;
 			}
@@ -218,6 +218,10 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		this->burst_storage.clear();
 
 		add_data(virtual_timestamp, data, n_bits);
+
+		extensionManager.template callHook<bus_extensions::BusHook::onAfterLoad>([this, virtual_timestamp, n_bits, &data](auto& ext) {
+			ext.onAfterLoad(virtual_timestamp, n_bits, data);
+		});
 	};
 
 	void load(timestamp_t timestamp, uint64_t data, std::size_t length) {
