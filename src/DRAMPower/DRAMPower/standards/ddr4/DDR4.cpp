@@ -63,8 +63,8 @@ namespace DRAMPower {
             };
             this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>(callback);
             this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>(callback);
-            this->dbiread.resize(n_dbi_pins, {1, util::PinState::L});
-            this->dbiwrite.resize(n_dbi_pins, {1, util::PinState::L});
+            this->dbiread.resize(n_dbi_pins, util::Pin{util::PinState::H});
+            this->dbiwrite.resize(n_dbi_pins, util::Pin{util::PinState::H});
             this->registerCommands();
             this->registerExtensions();
         }
@@ -107,16 +107,48 @@ namespace DRAMPower {
             this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>(callback);
         }, false);
         // DRAMPowerExtensionDBI -- DataBusExtensionDBI
-        this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>([this](auto& ext) {
-            ext.setChangeCallback([this](timestamp_t timestamp, std::size_t pinnumber, bool invert) {
+        this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>([this](util::bus_extensions::BusExtensionDBI& ext) {
+            ext.setChangeCallback([this](timestamp_t load_timestamp, timestamp_t invert_timestamp, std::size_t pinnumber, bool invert) {
                 assert(pinnumber < this->dbiread.size());
-                this->dbiread[pinnumber].set_with_datarate(timestamp, invert ? util::PinState::H : util::PinState::L);
+                if (invert_timestamp > load_timestamp) {
+                    this->addImplicitCommand(invert_timestamp / memSpec.dataRate, [this, invert_timestamp, pinnumber, invert]() {
+                        this->dbiread[pinnumber].set(invert_timestamp, invert ? util::PinState::L : util::PinState::H, 1);
+                    });
+                } else {
+                    // load_timestamp == invert_timestamp
+                    this->dbiread[pinnumber].set(invert_timestamp, invert ? util::PinState::L : util::PinState::H, 1);
+                }
+            });
+            ext.setAfterLoadCallback([this]([[maybe_unused]] timestamp_t load_timestamp, timestamp_t burst_finish_timestamp) {
+                // convert bus timestamp to clock timestamp and schedule the pin idle
+                this->addImplicitCommand(burst_finish_timestamp / memSpec.dataRate, [this, burst_finish_timestamp]() {
+                    for (auto& pin : this->dbiread) {
+                        // Set the pin to high after the burst
+                        pin.set(burst_finish_timestamp, util::PinState::H, 1);
+                    }
+                });
             });
         });
-        this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>([this](auto& ext) {
-            ext.setChangeCallback([this](timestamp_t timestamp, std::size_t pinnumber, bool invert) {
+        this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>([this](util::bus_extensions::BusExtensionDBI& ext) {
+            ext.setChangeCallback([this](timestamp_t load_timestamp, timestamp_t invert_timestamp, std::size_t pinnumber, bool invert) {
                 assert(pinnumber < this->dbiwrite.size());
-                this->dbiwrite[pinnumber].set_with_datarate(timestamp, invert ? util::PinState::H : util::PinState::L);
+                if (invert_timestamp > load_timestamp) {
+                    this->addImplicitCommand(invert_timestamp / memSpec.dataRate, [this, invert_timestamp, pinnumber, invert]() {
+                        this->dbiwrite[pinnumber].set(invert_timestamp, invert ? util::PinState::L : util::PinState::H, 1);
+                    });
+                } else {
+                    // load_timestamp == invert_timestamp
+                    this->dbiwrite[pinnumber].set(invert_timestamp, invert ? util::PinState::L : util::PinState::H, 1);
+                }
+            });
+            ext.setAfterLoadCallback([this]([[maybe_unused]] timestamp_t load_timestamp, timestamp_t burst_finish_timestamp) {
+                // convert bus timestamp to clock timestamp and schedule the pin idle
+                this->addImplicitCommand(burst_finish_timestamp / memSpec.dataRate, [this, burst_finish_timestamp]() {
+                    for (auto& pin : this->dbiwrite) {
+                        // Set the pin to high after the burst
+                        pin.set(burst_finish_timestamp, util::PinState::H, 1);
+                    }
+                });
             });
         });
     }

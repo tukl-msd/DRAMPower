@@ -16,6 +16,24 @@
 
 namespace DRAMPower::util::extension_manager_static {
 
+// Helpers
+namespace detail {
+    template <typename Func, typename Ext>
+    constexpr auto tryCallFunctor(Func&& func, Ext& ext) -> decltype(std::forward<Func>(func)(ext)) {
+        if constexpr (std::is_invocable_v<Func, Ext&>) {
+            return std::forward<Func>(func)(ext);
+        } else {
+            // If the function is not invocable, do nothing
+            return;
+        }
+    }
+
+    template <typename Ext, typename FuncTuple, std::size_t... Is>
+    constexpr void callHookIfSupportedImpl(Ext& extension, FuncTuple&& funcTuple, std::index_sequence<Is...>) {
+        (detail::tryCallFunctor(std::get<Is>(std::forward<FuncTuple>(funcTuple)), extension), ...);
+    }
+} // namespace detail
+
 /** static extensionmanager
  * Template arguments:
  * - Parent: Parent type of the type which holds the StaticExtensionManager
@@ -42,12 +60,12 @@ private:
 
 private:
 // Private member functions
-    template <Hook_t hook, typename Func, std::size_t... Is>
-    constexpr void callHookImpl(Func&& func, std::index_sequence<Is...>) {
+    template <Hook_t hook, typename FuncTuple, std::size_t... Is>
+    constexpr void callHookImpl(FuncTuple&& funcTuple, std::index_sequence<Is...>) {
         // use index_sequence to loop over callHookIfSupported
         // example: callHookIfSupported<0>(...), callHookIfSupported<1>(...), ...
         if constexpr (sizeof...(Is) > 0) {
-            (callHookIfSupported<hook, Is>(std::forward<Func>(func)), ...);
+            (callHookIfSupported<hook, Is>(std::forward<FuncTuple>(funcTuple)), ...);
         }/* else {
             // Prevent "unused parameter" warning
             (void) hook;
@@ -55,16 +73,20 @@ private:
         }*/
     }
 
-    template <Hook_t hook, std::size_t I, typename Func>
-    constexpr void callHookIfSupported(Func&& func) {
+    template <Hook_t hook, std::size_t I, typename FuncTuple>
+    constexpr void callHookIfSupported(FuncTuple&& funcTuple) {
         // Use index from callHookImpl to get the tuple elementtype to query for the supported hooks
         using ExtensionType = std::tuple_element_t<I, Extension_tuple_t>;
         constexpr Hook_t supportedHooks = ExtensionType::getSupportedHooks();
         if constexpr ((static_cast<Hook_value_t>(supportedHooks) & static_cast<Hook_value_t>(hook)) != 0) {
-            // retrieve the extension from the tuple and call the function
-            std::forward<Func>(func)(std::get<I>(m_extensions));
+            // retrieve the extension from the tuple and call the functor if the extension is supported
+            auto& extension = std::get<I>(m_extensions);
+            detail::callHookIfSupportedImpl(extension, std::forward<FuncTuple>(funcTuple),
+                std::make_index_sequence<std::tuple_size_v<std::decay_t<FuncTuple>>>{});
         }
     }
+
+    
 
 public:
 // Constructor
@@ -72,10 +94,15 @@ public:
     : m_extensions(StaticExtensions{}...)
     {}
 // Public member functions
-    template <Hook_t hook, typename Func>
-    constexpr void callHook(Func&& func) {
-        // Call Hook implementation with integer sequence of length sizeof...(StaticExtensions)
-        callHookImpl<hook>(std::forward<Func>(func), Extension_index_sequence_t{});
+    template <Hook_t hook, typename... Func>
+    constexpr void callHook(Func&&... funcs) {
+        using FuncTuple = std::tuple<Func...>;
+        // Explicit functor copy to ensure memory safety
+        FuncTuple funcTuple{std::forward<Func>(funcs)...};
+        if constexpr (sizeof...(Func) > 0) {
+            // Call Hook implementation with integer sequence of length sizeof...(StaticExtensions)
+            callHookImpl<hook>(std::move(funcTuple), Extension_index_sequence_t{});
+        }
     }
 
     // has extension

@@ -27,6 +27,18 @@ using DRAMPower::SimulationStats;
 // burst length = 8 for x8 devices
 static constexpr uint8_t wr_data[] = {
     0xF0, 0x0F, 0xE0, 0xF1,  0x00, 0xFF, 0xFF, 0xFF, // inverted to 0xF0,0x0F,0x1F,0xF1, 0xFF,0xFF,0xFF,0xFF
+    // DBI Line:
+    // H // before burst
+    // H // burst 1
+    // H // burst 2
+    // L // burst 3
+    // H // burst 4
+    // L // burst 5
+    // H // burst 6
+    // H // burst 7
+    // H // burst 8
+    // H // after burst
+    // 2 inversions
     // 0xFF to 0xF0; 4 ones to zeroes, 0 zeroes to ones, 8 ones, 0 zeroes // before burst
     // 0xF0 to 0x0F; 4 ones to zeroes, 4 zeroes to ones, 4 ones, 4 zeroes
     // 0x0F to 0x1F; 0 ones to zeroes, 1 zeroes to ones, 4 ones, 4 zeroes
@@ -43,6 +55,18 @@ static constexpr uint8_t wr_data[] = {
 // burst length = 8 for x8 devices
 static constexpr uint8_t rd_data[] = {
     0, 0, 0, 0,  0, 0, 255, 1, // inverted to 0xFF,0xFF,0xFF,0xFF, 0xFF,0xFF,0xFF,0xFE
+    // DBI Line:
+    // H // before burst
+    // L // burst 1
+    // L // burst 2
+    // L // burst 3
+    // L // burst 4
+    // L // burst 5
+    // L // burst 6
+    // H // burst 7
+    // L // burst 8
+    // H // after burst
+    // 7 inversions
     // 0xFF to 0xFF; 0 ones to zeroes, 0 zeroes to ones, 8 ones, 0 zeroes // before burst
     // 0xFF to 0xFF; 0 ones to zeroes, 0 zeroes to ones, 8 ones, 0 zeroes
     // 0xFF to 0xFF; 0 ones to zeroes, 0 zeroes to ones, 8 ones, 0 zeroes
@@ -109,5 +133,16 @@ TEST_F(DDR4_DBI_Tests, Pattern_0) {
     EXPECT_EQ(stats.readBus.zeroes, 1);  // 1 (zeroes)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 1); // 1 transition 1 -> 0
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1); // back to 1
+
+    // DBI
+    EXPECT_EQ(stats.readDBI.ones, 48 - 7);
+    EXPECT_EQ(stats.readDBI.zeroes, 7);
+    EXPECT_EQ(stats.readDBI.ones_to_zeroes, 2);
+    EXPECT_EQ(stats.readDBI.zeroes_to_ones, 2);
+
+    EXPECT_EQ(stats.writeDBI.ones, 48 - 2);
+    EXPECT_EQ(stats.writeDBI.zeroes, 2);
+    EXPECT_EQ(stats.writeDBI.ones_to_zeroes, 2);
+    EXPECT_EQ(stats.writeDBI.zeroes_to_ones, 2);
 
 }
