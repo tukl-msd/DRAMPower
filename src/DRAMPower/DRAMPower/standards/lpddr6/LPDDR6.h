@@ -36,7 +36,7 @@ public:
 // Public constructor
 public:
     LPDDR6Interface(const MemSpecLPDDR6 &memSpec)
-    : m_commandBus{7, 2, // modelled with datarate 2
+    : m_commandBus{4, 2, // modelled with datarate 2
         util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
     , m_dataBus{
         util::databus_presets::getDataBusPreset<util::bus_extensions::BusExtensionDBI>(
