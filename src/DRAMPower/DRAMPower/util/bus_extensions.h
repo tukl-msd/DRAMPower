@@ -104,10 +104,10 @@ public:
     // The timestamp is relative to the datarate of the bus (timestamp = t_clock * datarate_bus)
     void onAfterLoad(timestamp_t timestamp, std::size_t n_bits, [[maybe_unused]] const uint8_t *data) {
         // No action needed after load
-        std::size_t chunksPerCompleteBus = getDBIPinNumber();
-        std::size_t n_chunks = n_bits / m_chunkSize;
-        timestamp_t t_end = timestamp + (n_chunks / chunksPerCompleteBus);
         if (m_afterLoadCallback) {
+            std::size_t chunksPerCompleteBus = getDBIPinNumber();
+            std::size_t n_chunks = n_bits / m_chunkSize;
+            timestamp_t t_end = timestamp + (n_chunks / chunksPerCompleteBus);
             m_afterLoadCallback(timestamp, t_end);
         }
     }
