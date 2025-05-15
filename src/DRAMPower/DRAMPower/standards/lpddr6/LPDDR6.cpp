@@ -20,7 +20,29 @@ namespace DRAMPower {
         , efficiencyMode(false)
     {
         this->registerCommands();
-        // this->extensionManager.registerExtension<extensions::DBI>(dataBus);
+        auto callback = [&memSpec](auto& ext) {
+            ext.setWidth(memSpec.bitWidth);
+            ext.setDataRate(memSpec.dataRate);
+            ext.setNumberOfDevices(memSpec.numberOfDevices);
+            ext.setChunkSize(16); // Chunk size of dbi bits
+            ext.setIdlePattern(util::BusIdlePatternSpec::L);
+            
+            ext.enable(false); // DBI is disabled by default
+        };
+        for (auto& entry : interface) {
+            entry.m_dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>(callback);
+            entry.m_dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>(callback);
+        }
+        
+        this->extensionManager.registerExtension<extensions::DBI>([this]([[maybe_unused]] const timestamp_t timestamp, const bool enable) {
+            auto callback = [enable](auto& ext) {
+                ext.enable(enable);
+            };
+            for (auto& entry : interface) {
+                entry.m_dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>(callback);
+                entry.m_dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>(callback);
+            }
+        }, false);
         this->extensionManager.registerExtension<extensions::LPDDR6EfficiencyMode>(efficiencyMode, [this](const timestamp_t, const bool enabled){
             this->efficiencyMode = enabled;
         });
