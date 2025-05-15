@@ -30,7 +30,7 @@ namespace DRAMPower {
 class LPDDR6Interface {
 // Public type definitions
 public:
-    using commandbus_t = util::Bus<7>;
+    using commandbus_t = util::Bus<4>;
     using databus_t = util::databus_presets::databus_preset_t<util::bus_extensions::BusExtensionDBI>;
 
 // Public constructor
