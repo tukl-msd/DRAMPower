@@ -31,7 +31,7 @@ class LPDDR6Interface {
 // Public type definitions
 public:
     using commandbus_t = util::Bus<7>;
-    using databus_t = util::databus_presets::databus_preset_t;
+    using databus_t = util::databus_presets::databus_preset_t<util::bus_extensions::BusExtensionDBI>;
 
 // Public constructor
 public:
@@ -39,7 +39,7 @@ public:
     : m_commandBus{7, 2, // modelled with datarate 2
         util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
     , m_dataBus{
-        util::databus_presets::getDataBusPreset(
+        util::databus_presets::getDataBusPreset<util::bus_extensions::BusExtensionDBI>(
             memSpec.bitWidth * memSpec.numberOfDevices,
             util::DataBusConfig {
                 memSpec.bitWidth * memSpec.numberOfDevices,
@@ -77,7 +77,7 @@ public:
     MemSpecLPDDR6 memSpec;
     std::vector<Rank> ranks;
     using commandbus_t = util::Bus<7>;
-    using databus_t =  util::databus_presets::databus_preset_t;
+    using databus_t =  util::databus_presets::databus_preset_t<util::bus_extensions::BusExtensionDBI>;
 private:
     std::vector<LPDDR6Interface> interface;
     bool efficiencyMode;
