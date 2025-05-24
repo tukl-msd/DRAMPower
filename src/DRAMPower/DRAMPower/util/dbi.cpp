@@ -53,7 +53,7 @@ void DBI::resetDBI() {
     m_lastInvert_write.clear();
 }
 
-void DBI::dispatchResetCallback(timestamp_t timestamp, bool read) {
+void DBI::dispatchResetCallback(timestamp_t timestamp, bool read) const {
     auto &m_lastBurst = read ? m_lastBurst_read : m_lastBurst_write;
     auto &m_lastInvert = read ? m_lastInvert_read : m_lastInvert_write;
     assert(m_lastInversionSize % getChunksPerWidth() == 0); // Ensure last inversion size is a multiple of chunks per width
@@ -67,7 +67,7 @@ void DBI::dispatchResetCallback(timestamp_t timestamp, bool read) {
         return;
     } else if (m_lastBurst.end == timestamp && m_lastBurst.read == read) {
         // Seamless burst
-        m_lastBurst.consumed = true; // Mark the last burst as consumed
+        // m_lastBurst.consumed = true; // Mark the last burst as consumed
         return;
     }
 
@@ -87,12 +87,12 @@ void DBI::dispatchResetCallback(timestamp_t timestamp, bool read) {
             if (m_lastInvert[chunk]) {
                 // Reset the inversion state
                 m_changeCallback(timestamp, t, chunk_idx, false, read);
-                m_lastInvert[chunk] = false; // Reset to idle state (ensures not computed again
+                // m_lastInvert[chunk] = false; // Reset to idle state (ensures not computed again
             }
         }
     }
     // lastBurst is consumed
-    m_lastBurst.consumed = true;
+    // m_lastBurst.consumed = true;
 }
 
 std::optional<const uint8_t *> DBI::updateDBI(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read)

@@ -81,7 +81,7 @@ public:
 
     std::optional<const uint8_t *> updateDBI(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
     std::tuple<const uint8_t *, std::size_t> getInvertedData() const;
-    void dispatchResetCallback(timestamp_t timestamp, bool read);
+    void dispatchResetCallback(timestamp_t timestamp, bool read) const;
 
 // Private member variables
 private:

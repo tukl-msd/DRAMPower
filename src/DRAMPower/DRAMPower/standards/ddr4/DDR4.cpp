@@ -18,79 +18,46 @@ namespace DRAMPower {
         : dram_base<CmdType>({
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
             {pattern_descriptor::X, PatternEncoderBitSpec::H},
-          })
+          }, DDR4Interface::cmdBusInitPattern)
         , memSpec(memSpec)
-        , ranks(memSpec.numberOfRanks, {(std::size_t)memSpec.numberOfBanks})
-        , cmdBusWidth(27)
-        , cmdBusInitPattern((1<<cmdBusWidth)-1)
-        , readDQS_(2, true)
-        , writeDQS_(2, true)
-        , commandBus(
-            cmdBusWidth,
-            1,
-            util::BusIdlePatternSpec::H,
-            util::BusInitPatternSpec::H
-        )
-        , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
-        , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
-        , dataBus(
-            util::databus_presets::getDataBusPreset(
-                memSpec.bitWidth * memSpec.numberOfDevices, 
-                util::DataBusConfig {
-                    memSpec.bitWidth * memSpec.numberOfDevices,
-                    memSpec.dataRate,
-                    util::BusIdlePatternSpec::H,
-                    util::BusInitPatternSpec::H,
-                    DRAMUtils::Config::TogglingRateIdlePattern::H,
-                    0.0,
-                    0.0,
-                    util::DataBusMode::Bus
-                }
-            )
-        )
-        , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, util::DBI::IdlePattern_t::H, 8,
-            [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
-            this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
-        }, false)
-        , dbiread(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
-        , dbiwrite(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
+        , interface(memSpec, getImplicitCommandHandler().createInserter(), getPatternHandler())
+        , core(memSpec, getImplicitCommandHandler().createInserter())
     {
         this->registerCommands();
         this->registerExtensions();
     }
 
-    void DDR4::handleDBIPinChange(const timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool state, bool read) {
-        assert(pin < dbiread.size() || pin < dbiwrite.size());
+    void DDR4Interface::handleDBIPinChange(const timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool state, bool read) {
+        assert(pin < m_dbiread.size() || pin < m_dbiwrite.size());
         auto updatePinCallback = [this, chunk_timestamp, pin, state, read](){
             if (read) {
-                this->dbiread[pin].set(chunk_timestamp, state ? util::PinState::L : util::PinState::H, 1);
+                this->m_dbiread[pin].set(chunk_timestamp, state ? util::PinState::L : util::PinState::H, 1);
             } else {
-                this->dbiwrite[pin].set(chunk_timestamp, state ? util::PinState::L : util::PinState::H, 1);
+                this->m_dbiwrite[pin].set(chunk_timestamp, state ? util::PinState::L : util::PinState::H, 1);
             }
         };
 
         if (chunk_timestamp > load_timestamp) {
             // Schedule the pin state change
-            this->addImplicitCommand(chunk_timestamp / memSpec.dataRate, updatePinCallback);
+            this->addImplicitCommand(chunk_timestamp / m_memSpec.dataRate, updatePinCallback);
         } else {
             // chunk_timestamp <= load_timestamp
             updatePinCallback();
         }
     }
 
-    std::optional<const uint8_t *> DDR4::handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read) {
+    std::optional<const uint8_t *> DDR4Interface::handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read) {
         if (0 == n_bits || !data || !m_dbi.isEnabled()) {
             // No DBI or no data to process
             return std::nullopt;
         }
-        timestamp_t virtual_time = timestamp * memSpec.dataRate;
+        timestamp_t virtual_time = timestamp * m_memSpec.dataRate;
         // updateDBI calls the given callback to handle pin changes
         auto dbiResult = m_dbi.updateDBI(virtual_time, n_bits, data, read);
         if (!dbiResult) {
             // No data to return
             return std::nullopt;
         }
-        // TODO Schedule reset
         // Return the inverted data
         return dbiResult;
     }
@@ -98,90 +65,70 @@ namespace DRAMPower {
     void DDR4::registerExtensions() {
         using namespace pattern_descriptor;
         // DRAMPowerExtensionDBI
-        this->extensionManager.registerExtension<extensions::DBI>([this]([[maybe_unused]] const timestamp_t timestamp, const bool enable) {
+        getExtensionManager().registerExtension<extensions::DBI>([this]([[maybe_unused]] const timestamp_t timestamp, const bool enable) {
             // NOTE: Assumption: the enabling of the DBI does not interleave with previous data on the bus
-            m_dbi.enable(enable);
+            interface.m_dbi.enable(enable);
         }, false);
     }
 
 
-    void DDR4::registerCommands(){
+    void DDR4Interface::registerPatterns() {
         using namespace pattern_descriptor;
-        // ACT
-        this->registerBankHandler<CmdType::ACT>(&DDR4::handleAct);
-        this->registerPattern<CmdType::ACT>({
+        m_patternHandler.registerPattern<CmdType::ACT>({
             L, L, R16, R15, R14, BG0, BG1, BA0, BA1,
             V, V, V, R12, R17, R13, R11, R10, R0,
             R1, R2, R3, R4, R5, R6, R7, R8, R9
         });
-        this->registerInterfaceMember<CmdType::ACT>(&DDR4::handleInterfaceCommandBus);
         // PRE
-        this->registerBankHandler<CmdType::PRE>(&DDR4::handlePre);
-        this->registerPattern<CmdType::PRE>({
+        m_patternHandler.registerPattern<CmdType::PRE>({
             L, H, L, H, L, BG0, BG1, BA0, BA1,
             V, V, V, V, V, V, V, L, V,
             V, V, V, V, V, V, V, V, V
         });
-        this->registerInterfaceMember<CmdType::PRE>(&DDR4::handleInterfaceCommandBus);
         // PREA
-        this->registerRankHandler<CmdType::PREA>(&DDR4::handlePreAll);
-        this->registerPattern<CmdType::PREA>({
+        m_patternHandler.registerPattern<CmdType::PREA>({
             L, H, L, H, L, V, V, V, V,
             V, V, V, V, V, V, V, H, V,
             V, V, V, V, V, V, V, V, V
         });
-        this->registerInterfaceMember<CmdType::PREA>(&DDR4::handleInterfaceCommandBus);
         // REFA
-        this->registerRankHandler<CmdType::REFA>(&DDR4::handleRefAll);
-        this->registerPattern<CmdType::REFA>({
+        m_patternHandler.registerPattern<CmdType::REFA>({
             L, H, L, L, H, V, V, V, V,
             V, V, V, V, V, V, V, V, V,
             V, V, V, V, V, V, V, V, V
         });
-        this->registerInterfaceMember<CmdType::REFA>(&DDR4::handleInterfaceCommandBus);
         // RD
-        this->registerBankHandler<CmdType::RD>(&DDR4::handleRead);
-        this->registerPattern<CmdType::RD>({
+        m_patternHandler.registerPattern<CmdType::RD>({
             L, H, H, L, H, BG0, BG1, BA0, BA1,
             V, V, V, V, V, V, V, L, C0,
             C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
-        this->routeInterfaceCommand<CmdType::RD>([this](const Command &command){this->handleInterfaceData(command, true);});
         // RDA
-        this->registerBankHandler<CmdType::RDA>(&DDR4::handleReadAuto);
-        this->registerPattern<CmdType::RDA>({
+        m_patternHandler.registerPattern<CmdType::RDA>({
             L, H, H, L, H, BG0, BG1, BA0, BA1,
             V, V, V, V, V, V, V, H, C0,
             C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
-        this->routeInterfaceCommand<CmdType::RDA>([this](const Command &command){this->handleInterfaceData(command, true);});
         // WR
-        this->registerBankHandler<CmdType::WR>(&DDR4::handleWrite);
-        this->registerPattern<CmdType::WR>({
+        m_patternHandler.registerPattern<CmdType::WR>({
             L, H, H, L, L, BG0, BG1, BA0, BA1,
             V, V, V, V, V, V, V, L, C0,
             C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
-        this->routeInterfaceCommand<CmdType::WR>([this](const Command &command){this->handleInterfaceData(command, false);});
         // WRA
-        this->registerBankHandler<CmdType::WRA>(&DDR4::handleWriteAuto);
-        this->registerPattern<CmdType::WRA>({
+        m_patternHandler.registerPattern<CmdType::WRA>({
             L, H, H, L, L, BG0, BG1, BA0, BA1,
             V, V, V, V, V, V, V, H, C0,
             C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
-        this->routeInterfaceCommand<CmdType::WRA>([this](const Command &command){this->handleInterfaceData(command, false);});
         // SREFEN
-        this->registerRankHandler<CmdType::SREFEN>(&DDR4::handleSelfRefreshEntry);
-        this->registerPattern<CmdType::SREFEN>({
+        m_patternHandler.registerPattern<CmdType::SREFEN>({
             L, H, L, L, H, V, V, V, V,
             V, V, V, V, V, V, V, V, V,
             V, V, V, V, V, V, V, V, V
         });
-        this->registerInterfaceMember<CmdType::SREFEN>(&DDR4::handleInterfaceCommandBus);
         // SREFEX
-        this->registerRankHandler<CmdType::SREFEX>(&DDR4::handleSelfRefreshExit);
-        this->registerPattern<CmdType::SREFEX>({
+        m_patternHandler.registerPattern<CmdType::SREFEX>({
             H, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
@@ -190,42 +137,78 @@ namespace DRAMPower {
             V, V, V, V, V, V, V, V, V,
             V, V, V, V, V, V, V, V, V
         });
-        this->registerInterfaceMember<CmdType::SREFEX>(&DDR4::handleInterfaceCommandBus);
         // PDEA
-        this->registerRankHandler<CmdType::PDEA>(&DDR4::handlePowerDownActEntry);
-        this->registerPattern<CmdType::PDEA>({
+        m_patternHandler.registerPattern<CmdType::PDEA>({
             H, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
         });
-        this->registerInterfaceMember<CmdType::PDEA>(&DDR4::handleInterfaceCommandBus);
         // PDEP
-        this->registerRankHandler<CmdType::PDEP>(&DDR4::handlePowerDownPreEntry);
-        this->registerPattern<CmdType::PDEP>({
+        m_patternHandler.registerPattern<CmdType::PDEP>({
             H, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
         });
-        this->registerInterfaceMember<CmdType::PDEP>(&DDR4::handleInterfaceCommandBus);
         // PDXA
-        this->registerRankHandler<CmdType::PDXA>(&DDR4::handlePowerDownActExit);
-        this->registerPattern<CmdType::PDXA>({
+        m_patternHandler.registerPattern<CmdType::PDXA>({
             H, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
         });
-        this->registerInterfaceMember<CmdType::PDXA>(&DDR4::handleInterfaceCommandBus);
         // PDXP
-        this->registerRankHandler<CmdType::PDXP>(&DDR4::handlePowerDownPreExit);
-        this->registerPattern<CmdType::PDXP>({
+        m_patternHandler.registerPattern<CmdType::PDXP>({
             H, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
         });
-        this->registerInterfaceMember<CmdType::PDXP>(&DDR4::handleInterfaceCommandBus);
-        // EOS
-        routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+    }
 
+    void DDR4::registerCommands(){
+        // ACT
+        routeCoreCommand<CmdType::ACT>(core.getRegisterHelper().registerBankHandler(&DDR4Core::handleAct));
+        routeInterfaceCommand<CmdType::ACT>(interface.getRegisterHelper().registerHandler(&DDR4Interface::handleCommandBus));
+        // PRE
+        routeCoreCommand<CmdType::PRE>(core.getRegisterHelper().registerBankHandler(&DDR4Core::handlePre));
+        routeInterfaceCommand<CmdType::PRE>(interface.getRegisterHelper().registerHandler(&DDR4Interface::handleCommandBus));
+        // PREA
+        routeCoreCommand<CmdType::PREA>(core.getRegisterHelper().registerRankHandler(&DDR4Core::handlePreAll));
+        routeInterfaceCommand<CmdType::PREA>(interface.getRegisterHelper().registerHandler(&DDR4Interface::handleCommandBus));
+        // REFA
+        routeCoreCommand<CmdType::REFA>(core.getRegisterHelper().registerRankHandler(&DDR4Core::handleRefAll));
+        routeInterfaceCommand<CmdType::REFA>(interface.getRegisterHelper().registerHandler(&DDR4Interface::handleCommandBus));
+        // RD
+        routeCoreCommand<CmdType::RD>(core.getRegisterHelper().registerBankHandler(&DDR4Core::handleRead));
+        routeInterfaceCommand<CmdType::RD>([this](const Command &command){interface.handleData(command, true);});
+        // RDA
+        routeCoreCommand<CmdType::RDA>(core.getRegisterHelper().registerBankHandler(&DDR4Core::handleReadAuto));
+        routeInterfaceCommand<CmdType::RDA>([this](const Command &command){interface.handleData(command, true);});
+        // WR
+        routeCoreCommand<CmdType::WR>(core.getRegisterHelper().registerBankHandler(&DDR4Core::handleWrite));
+        routeInterfaceCommand<CmdType::WR>([this](const Command &command){interface.handleData(command, false);});
+        // WRA
+        routeCoreCommand<CmdType::WRA>(core.getRegisterHelper().registerBankHandler(&DDR4Core::handleWriteAuto));
+        routeInterfaceCommand<CmdType::WRA>([this](const Command &command){interface.handleData(command, false);});
+        // SREFEN
+        routeCoreCommand<CmdType::SREFEN>(core.getRegisterHelper().registerRankHandler(&DDR4Core::handleSelfRefreshEntry));
+        routeInterfaceCommand<CmdType::SREFEN>(interface.getRegisterHelper().registerHandler(&DDR4Interface::handleCommandBus));
+        // SREFEX
+        routeCoreCommand<CmdType::SREFEX>(core.getRegisterHelper().registerRankHandler(&DDR4Core::handleSelfRefreshExit));
+        routeInterfaceCommand<CmdType::SREFEX>(interface.getRegisterHelper().registerHandler(&DDR4Interface::handleCommandBus));
+        // PDEA
+        routeCoreCommand<CmdType::PDEA>(core.getRegisterHelper().registerRankHandler(&DDR4Core::handlePowerDownActEntry));
+        routeInterfaceCommand<CmdType::PDEA>(interface.getRegisterHelper().registerHandler(&DDR4Interface::handleCommandBus));
+        // PDEP
+        routeCoreCommand<CmdType::PDEP>(core.getRegisterHelper().registerRankHandler(&DDR4Core::handlePowerDownPreEntry));
+        routeInterfaceCommand<CmdType::PDEP>(interface.getRegisterHelper().registerHandler(&DDR4Interface::handleCommandBus));
+        // PDXA
+        routeCoreCommand<CmdType::PDXA>(core.getRegisterHelper().registerRankHandler(&DDR4Core::handlePowerDownActExit));
+        routeInterfaceCommand<CmdType::PDXA>(interface.getRegisterHelper().registerHandler(&DDR4Interface::handleCommandBus));
+        // PDXP
+        routeCoreCommand<CmdType::PDXP>(core.getRegisterHelper().registerRankHandler(&DDR4Core::handlePowerDownPreExit));
+        routeInterfaceCommand<CmdType::PDXP>(interface.getRegisterHelper().registerHandler(&DDR4Interface::handleCommandBus));
+        // EOS
+        routeCoreCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        routeInterfaceCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     }
 
 // Getters for CLI
@@ -242,68 +225,61 @@ namespace DRAMPower {
     }
 
 // Update toggling rate
-void DDR4::enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp) {
+void DDR4Interface::enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp) {
     // Change from bus to toggling rate
     assert(enable_timestamp >= timestamp);
     if ( enable_timestamp > timestamp ) {
         // Schedule toggling rate enable
         this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-            dataBus.enableTogglingRate(enable_timestamp);
+            m_dataBus.enableTogglingRate(enable_timestamp);
         });
     } else {
-        dataBus.enableTogglingRate(enable_timestamp);
+        m_dataBus.enableTogglingRate(enable_timestamp);
     }
 }
 
-void DDR4::enableBus(timestamp_t timestamp, timestamp_t enable_timestamp) {
+void DDR4Interface::enableBus(timestamp_t timestamp, timestamp_t enable_timestamp) {
     // Change from toggling rate to bus
     assert(enable_timestamp >= timestamp);
     if ( enable_timestamp > timestamp ) {
         // Schedule toggling rate disable
         this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-            dataBus.enableBus(enable_timestamp);
+            m_dataBus.enableBus(enable_timestamp);
         });
     } else {
-        dataBus.enableBus(enable_timestamp);
+        m_dataBus.enableBus(enable_timestamp);
     }
 }
 
-timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleratedefinition)
+timestamp_t DDR4Interface::updateTogglingRate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleratedefinition)
 {
     if (toggleratedefinition) {
-        dataBus.setTogglingRateDefinition(*toggleratedefinition);
-        if (dataBus.isTogglingRate()) {
+        m_dataBus.setTogglingRateDefinition(*toggleratedefinition);
+        if (m_dataBus.isTogglingRate()) {
             // toggling rate already enabled
             return timestamp;
         }
         // Enable toggling rate
-        timestamp_t enable_timestamp = std::max(timestamp, dataBus.lastBurst());
+        timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
         enableTogglingHandle(timestamp, enable_timestamp);
         return enable_timestamp;
     } else {
-        if (dataBus.isBus()) {
+        if (m_dataBus.isBus()) {
             // Bus already enabled
             return timestamp;
         }
         // Enable bus
-        timestamp_t enable_timestamp = std::max(timestamp, dataBus.lastBurst());
+        timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
         enableBus(timestamp, enable_timestamp);
         return enable_timestamp;
     }
     return timestamp;
 }
 
-// Interface
-    // Init pattern for command bus and pattern encoder
-    uint64_t DDR4::getInitEncoderPattern()
-    {
-        return this->cmdBusInitPattern;
-    }
-
-    void DDR4::handlePrePostamble(
+    void DDR4Interface::handlePrePostamble(
         const timestamp_t   timestamp,
         const uint64_t      length,
-        Rank                &rank,
+        RankInterface       &rank,
         bool                read
     )
     {
@@ -340,7 +316,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         }
     }
 
-    void DDR4::handleInterfaceOverrides(size_t length, bool read)
+    void DDR4Interface::handleOverrides(size_t length, bool read)
     {
         // Set command bus pattern overrides
         switch(length) {
@@ -348,7 +324,8 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
                 if(read)
                 {
                     // Read
-                    this->encoder.settings.updateSettings({
+                    
+                    m_patternHandler.getEncoder().settings.updateSettings({
                         {pattern_descriptor::C2, PatternEncoderBitSpec::L},
                         {pattern_descriptor::C1, PatternEncoderBitSpec::L},
                         {pattern_descriptor::C0, PatternEncoderBitSpec::L},
@@ -357,7 +334,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
                 else
                 {
                     // Write
-                    this->encoder.settings.updateSettings({
+                    m_patternHandler.getEncoder().settings.updateSettings({
                         {pattern_descriptor::C2, PatternEncoderBitSpec::L},
                         {pattern_descriptor::C1, PatternEncoderBitSpec::H},
                         {pattern_descriptor::C0, PatternEncoderBitSpec::H},
@@ -372,7 +349,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
                 if(read)
                 {
                     // Read
-                    this->encoder.settings.updateSettings({
+                    m_patternHandler.getEncoder().settings.updateSettings({
                         {pattern_descriptor::C2, PatternEncoderBitSpec::L},
                         {pattern_descriptor::C1, PatternEncoderBitSpec::L},
                         {pattern_descriptor::C0, PatternEncoderBitSpec::L},
@@ -381,7 +358,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
                 else
                 {
                     // Write
-                    this->encoder.settings.updateSettings({
+                    m_patternHandler.getEncoder().settings.updateSettings({
                         {pattern_descriptor::C2, PatternEncoderBitSpec::H},
                         {pattern_descriptor::C1, PatternEncoderBitSpec::H},
                         {pattern_descriptor::C0, PatternEncoderBitSpec::H},
@@ -391,49 +368,49 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         }
     }
 
-    void DDR4::handleInterfaceCommandBus(const Command &cmd) {
-        auto pattern = this->getCommandPattern(cmd);
-        auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
-        this->commandBus.load(cmd.timestamp, pattern, ca_length);
+    void DDR4Interface::handleCommandBus(const Command &cmd) {
+        auto pattern = m_patternHandler.getCommandPattern(cmd);
+        auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_commandBus.get_width();
+        this->m_commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
-    void DDR4::handleInterfaceDQs(const Command &cmd, util::Clock &dqs, const size_t length) {
+    void DDR4Interface::handleDQs(const Command &cmd, util::Clock &dqs, const size_t length) {
         dqs.start(cmd.timestamp);
-        dqs.stop(cmd.timestamp + length / memSpec.dataRate);
+        dqs.stop(cmd.timestamp + length / m_memSpec.dataRate);
     }
 
-    void DDR4::handleInterfaceData(const Command &cmd, bool read) {
+    void DDR4Interface::handleData(const Command &cmd, bool read) {
         auto loadfunc = read ? &databus_t::loadRead : &databus_t::loadWrite;
-        util::Clock &dqs = read ? readDQS_ : writeDQS_;
+        util::Clock &dqs = read ? m_readDQS : m_writeDQS;
         size_t length = 0;
         if (0 == cmd.sz_bits) {
             // No data provided by command
             // Use default burst length
-            if (dataBus.isTogglingRate()) {
+            if (m_dataBus.isTogglingRate()) {
                 // If bus is enabled skip loading data
-                length = memSpec.burstLength;
-                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), cmd.data);
+                length = m_memSpec.burstLength;
+                (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
             }
         } else {
             std::optional<const uint8_t *> dbi_data = std::nullopt;
             // Data provided by command
-            if (dataBus.isBus() && m_dbi.isEnabled()) {
+            if (m_dataBus.isBus() && m_dbi.isEnabled()) {
                 // Only compute dbi for bus mode
                 dbi_data = handleDBIInterface(cmd.timestamp, cmd.sz_bits, cmd.data, read);
             }
-            length = cmd.sz_bits / (dataBus.getWidth());
-            (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, dbi_data.value_or(cmd.data));
+            length = cmd.sz_bits / (m_dataBus.getWidth());
+            (m_dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, dbi_data.value_or(cmd.data));
         }
-        assert(this->ranks.size()>cmd.targetCoordinate.rank);
-        auto & rank = this->ranks[cmd.targetCoordinate.rank];
-        handleInterfaceDQs(cmd, dqs, length);
-        handlePrePostamble(cmd.timestamp, length / memSpec.dataRate, rank, read);
-        handleInterfaceOverrides(length, read);
-        handleInterfaceCommandBus(cmd);
+        handleOverrides(length, read);
+        handleDQs(cmd, dqs, length);
+        handleCommandBus(cmd);
+        assert(m_ranks.size()>cmd.targetCoordinate.rank);
+        auto & rank = m_ranks[cmd.targetCoordinate.rank];
+        handlePrePostamble(cmd.timestamp, length / m_memSpec.dataRate, rank, read);
     }
 
 // Core
-    void DDR4::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
+    void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         bank.counter.act++;
         bank.bankState = Bank::BankState::BANK_ACTIVE;
 
@@ -443,7 +420,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         //rank.cycles.pre.close_interval(timestamp);
     }
 
-    void DDR4::handlePre(Rank &rank, Bank &bank, timestamp_t timestamp) {
+    void DDR4Core::handlePre(Rank &rank, Bank &bank, timestamp_t timestamp) {
         // If statement necessary for core power calculation
         // bank.counter.pre doesn't correspond to the number of pre commands
         // It corresponds to the number of state transisitons to the pre state
@@ -461,13 +438,13 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         }
     }
 
-    void DDR4::handlePreAll(Rank &rank, timestamp_t timestamp) {
+    void DDR4Core::handlePreAll(Rank &rank, timestamp_t timestamp) {
         for (auto &bank: rank.banks) 
             handlePre(rank, bank, timestamp);
     }
 
-    void DDR4::handleRefAll(Rank &rank, timestamp_t timestamp) {
-        auto timestamp_end = timestamp + memSpec.memTimingSpec.tRFC;
+    void DDR4Core::handleRefAll(Rank &rank, timestamp_t timestamp) {
+        auto timestamp_end = timestamp + m_memSpec.memTimingSpec.tRFC;
         rank.endRefreshTime = timestamp_end;
         rank.cycles.act.start_interval_if_not_running(timestamp);
         //rank.cycles.pre.close_interval(timestamp);
@@ -497,15 +474,15 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         // Required for precharge power-down
     }
 
-    void DDR4::handleRead(Rank&, Bank &bank, timestamp_t) {
+    void DDR4Core::handleRead(Rank&, Bank &bank, timestamp_t) {
         ++bank.counter.reads;
     }
 
-    void DDR4::handleReadAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
+    void DDR4Core::handleReadAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
         ++bank.counter.readAuto;
 
-        auto minBankActiveTime = bank.cycles.act.get_start() + this->memSpec.memTimingSpec.tRAS;
-        auto minReadActiveTime = timestamp + this->memSpec.prechargeOffsetRD;
+        auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
+        auto minReadActiveTime = timestamp + m_memSpec.prechargeOffsetRD;
 
         auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
@@ -515,15 +492,15 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         });
     }
 
-    void DDR4::handleWrite(Rank&, Bank &bank, timestamp_t) {
+    void DDR4Core::handleWrite(Rank&, Bank &bank, timestamp_t) {
         ++bank.counter.writes;
     }
 
-    void DDR4::handleWriteAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
+    void DDR4Core::handleWriteAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
         ++bank.counter.writeAuto;
 
-        auto minBankActiveTime = bank.cycles.act.get_start() + this->memSpec.memTimingSpec.tRAS;
-        auto minWriteActiveTime =  timestamp + this->memSpec.prechargeOffsetWR;
+        auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
+        auto minWriteActiveTime =  timestamp + m_memSpec.prechargeOffsetWR;
 
         auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
 
@@ -533,11 +510,11 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         });
     }
 
-    void DDR4::handleSelfRefreshEntry(Rank &rank, timestamp_t timestamp) {
+    void DDR4Core::handleSelfRefreshEntry(Rank &rank, timestamp_t timestamp) {
         // Issue implicit refresh
         handleRefAll(rank, timestamp);
         // Handle self-refresh entry after tRFC
-        auto timestampSelfRefreshStart = timestamp + memSpec.memTimingSpec.tRFC;
+        auto timestampSelfRefreshStart = timestamp + m_memSpec.memTimingSpec.tRFC;
         addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
             rank.counter.selfRefresh++;
             rank.cycles.sref.start_interval(timestampSelfRefreshStart);
@@ -545,13 +522,13 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         });
     }
 
-    void DDR4::handleSelfRefreshExit(Rank &rank, timestamp_t timestamp) {
+    void DDR4Core::handleSelfRefreshExit(Rank &rank, timestamp_t timestamp) {
         assert(rank.memState == MemState::SREF);                                    // check for previous SelfRefreshEntry
         rank.cycles.sref.close_interval(timestamp);                                 // Duration between entry and exit
         rank.memState = MemState::NOT_IN_PD;
     }
 
-    void DDR4::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
+    void DDR4Core::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
         addImplicitCommand(entryTime, [&rank, entryTime]() {
@@ -565,7 +542,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         });
     }
 
-    void DDR4::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
+    void DDR4Core::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
         assert(rank.memState == MemState::PDN_ACT);
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
@@ -590,7 +567,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         });
     }
 
-    void DDR4::handlePowerDownPreEntry(Rank &rank, timestamp_t timestamp) {
+    void DDR4Core::handlePowerDownPreEntry(Rank &rank, timestamp_t timestamp) {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
 
@@ -604,7 +581,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         });
     }
 
-    void DDR4::handlePowerDownPreExit(Rank &rank, timestamp_t timestamp) {
+    void DDR4Core::handlePowerDownPreExit(Rank &rank, timestamp_t timestamp) {
         // The computation is necessary to exit at the earliest timestamp (upon entry)
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
@@ -629,6 +606,20 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         });
     }
 
+    timestamp_t DDR4Core::earliestPossiblePowerDownEntryTime(Rank & rank) const {
+        timestamp_t entryTime = 0;
+
+        for (const auto & bank : rank.banks) {
+            entryTime = std::max({ entryTime,
+                                   bank.counter.act == 0 ? 0 :  bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRCD,
+                                   bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.memTimingSpec.tRP,
+                                   bank.refreshEndTime
+                                 });
+        }
+
+        return entryTime;
+    }
+
     void DDR4::endOfSimulation(timestamp_t) {
         assert(this->implicitCommandCount() == 0);
 	}
@@ -646,29 +637,16 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
     }
 
 // Stats
-    SimulationStats DDR4::getWindowStats(timestamp_t timestamp) {
-        // If there are still implicit commands queued up, process them first
-        processImplicitCommandQueue(timestamp);
-
-        // Reset the DBI interface pins to idle state
-        m_dbi.dispatchResetCallback(timestamp * memSpec.dataRate, false);
-        m_dbi.dispatchResetCallback(timestamp * memSpec.dataRate, true);
-
-        // DDR4 x16 have 2 DQs differential pairs
-        uint_fast8_t NumDQsPairs = 1;
-        if(memSpec.bitWidth == 16)
-            NumDQsPairs = 2;
-
-        SimulationStats stats;
-        stats.bank.resize(memSpec.numberOfBanks * memSpec.numberOfRanks);
-        stats.rank_total.resize(memSpec.numberOfRanks);
+    void DDR4Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
+        // resize banks and ranks
+        stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks);
+        stats.rank_total.resize(m_memSpec.numberOfRanks);
 
         auto simulation_duration = timestamp;
-        for (size_t i = 0; i < memSpec.numberOfRanks; ++i) {
-            Rank &rank = ranks[i];
-            size_t bank_offset = i * memSpec.numberOfBanks;
-
-            for (size_t j = 0; j < memSpec.numberOfBanks; ++j) {
+        for (size_t i = 0; i < m_memSpec.numberOfRanks; ++i) {
+            const Rank &rank = m_ranks[i];
+            size_t bank_offset = i * m_memSpec.numberOfBanks;
+            for (size_t j = 0; j < m_memSpec.numberOfBanks; ++j) {
                 stats.bank[bank_offset + j].counter = rank.banks[j].counter;
                 stats.bank[bank_offset + j].cycles.act =
                     rank.banks[j].cycles.act.get_count_at(timestamp);
@@ -698,18 +676,33 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
                 stats.rank_total[i].cycles.selfRefresh
             );
             //stats.rank_total[i].cycles.pre = rank.cycles.pre.get_count_at(timestamp);
-
-            stats.rank_total[i].prepos.readSeamless = rank.seamlessPrePostambleCounter_read;
-            stats.rank_total[i].prepos.writeSeamless = rank.seamlessPrePostambleCounter_write;
-            
-            stats.rank_total[i].prepos.readMerged = rank.mergedPrePostambleCounter_read;
-            stats.rank_total[i].prepos.readMergedTime = rank.mergedPrePostambleTime_read;
-            stats.rank_total[i].prepos.writeMerged = rank.mergedPrePostambleCounter_write;
-            stats.rank_total[i].prepos.writeMergedTime = rank.mergedPrePostambleTime_write;
         }
-        stats.commandBus = commandBus.get_stats(timestamp);
+    }
 
-        dataBus.get_stats(timestamp,
+    void DDR4Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
+        // Reset the DBI interface pins to idle state
+        m_dbi.dispatchResetCallback(timestamp * m_memSpec.dataRate, true);
+
+        // DDR4 x16 have 2 DQs differential pairs
+        uint_fast8_t NumDQsPairs = 1;
+        if(m_memSpec.bitWidth == 16) {
+            NumDQsPairs = 2;
+        }
+        stats.rank_total.resize(m_memSpec.numberOfRanks);
+        for (size_t i = 0; i < m_memSpec.numberOfRanks; ++i) {
+            const RankInterface &rank_interface = m_ranks[i];
+            stats.rank_total[i].prepos.readSeamless = rank_interface.seamlessPrePostambleCounter_read;
+            stats.rank_total[i].prepos.writeSeamless = rank_interface.seamlessPrePostambleCounter_write;
+            
+            stats.rank_total[i].prepos.readMerged = rank_interface.mergedPrePostambleCounter_read;
+            stats.rank_total[i].prepos.readMergedTime = rank_interface.mergedPrePostambleTime_read;
+            stats.rank_total[i].prepos.writeMerged = rank_interface.mergedPrePostambleCounter_write;
+            stats.rank_total[i].prepos.writeMergedTime = rank_interface.mergedPrePostambleTime_write;
+        }
+
+        stats.commandBus = m_commandBus.get_stats(timestamp);
+
+        m_dataBus.get_stats(timestamp,
             stats.readBus,
             stats.writeBus,
             stats.togglingStats.read,
@@ -718,21 +711,24 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
 
         // single line stored in stats
         // differential power calculated in interface calculation
-        stats.clockStats = 2u * clock.get_stats_at(timestamp);
-        stats.readDQSStats = NumDQsPairs * 2u * readDQS_.get_stats_at(timestamp);
-        stats.writeDQSStats = NumDQsPairs * 2u * writeDQS_.get_stats_at(timestamp);
-        for (const auto &dbi_pin : dbiread) {
+        stats.clockStats = 2u * m_clock.get_stats_at(timestamp);
+        stats.readDQSStats = NumDQsPairs * 2u * m_readDQS.get_stats_at(timestamp);
+        stats.writeDQSStats = NumDQsPairs * 2u * m_writeDQS.get_stats_at(timestamp);
+        for (const auto &dbi_pin : m_dbiread) {
             stats.readDBI += dbi_pin.get_stats_at(timestamp, 2);
         }
-        for (const auto &dbi_pin : dbiwrite) {
+        for (const auto &dbi_pin : m_dbiwrite) {
             stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2);
         }
+    }
 
+    SimulationStats DDR4::getWindowStats(timestamp_t timestamp) {
+        // If there are still implicit commands queued up, process them first
+        processImplicitCommandQueue(timestamp);
+        SimulationStats stats;
+        core.getWindowStats(timestamp, stats);
+        interface.getWindowStats(timestamp, stats);
         return stats;
     }
 
-    SimulationStats DDR4::getStats() {
-        return getWindowStats(getLastCommandTime());
-    }
-
-}
+} // namespace DRAMPower
