@@ -5,6 +5,8 @@
 #include <DRAMPower/util/bus_types.h>
 
 #include <optional>
+#include <cassert>
+#include <cstddef>
 
 namespace DRAMPower::util {
 
@@ -18,7 +20,7 @@ private:
     std::size_t dataRate;
 
 private:
-    clock_stats_t count(timestamp_t duration)
+    clock_stats_t count(timestamp_t duration) const
     {
         // __--__--__--__--__--__--__--__--__--__--__--__--
         // f(t)	= t / 2;
@@ -58,7 +60,7 @@ public:
         last_start = t;
     };
 
-    clock_stats_t get_stats_at(timestamp_t t)
+    clock_stats_t get_stats_at(timestamp_t t) const
     {
         auto stats = this->stats;
 
