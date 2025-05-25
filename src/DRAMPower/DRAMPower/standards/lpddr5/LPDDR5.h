@@ -46,7 +46,7 @@ private:
 
 public:
 
-    SimulationStats getStats() override;
+    SimulationStats getStats();
     uint64_t getBankCount() override;
     uint64_t getRankCount() override;
     uint64_t getDeviceCount() override;
@@ -73,7 +73,7 @@ public:
     void handleDSMEntry(Rank& rank, timestamp_t timestamp);
     void handleDSMExit(Rank& rank, timestamp_t timestamp);
     void endOfSimulation(timestamp_t timestamp);
-    SimulationStats getWindowStats(timestamp_t timestamp);
+    SimulationStats getWindowStats(timestamp_t timestamp) override;
     energy_t calcCoreEnergy(timestamp_t timestamp) override;
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
     
@@ -98,7 +98,7 @@ private:
 
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func&& member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command& command) {
+        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
             assert(this->ranks.size()>command.targetCoordinate.rank);
             auto& rank = this->ranks.at(command.targetCoordinate.rank);
 
@@ -112,7 +112,7 @@ private:
 
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankGroupHandler(Func&& member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command& command) {
+        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
             assert(this->ranks.size()>command.targetCoordinate.rank);
             auto& rank = this->ranks.at(command.targetCoordinate.rank);
             
@@ -129,7 +129,7 @@ private:
 
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerRankHandler(Func&& member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command& command) {
+        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
             assert(this->ranks.size()>command.targetCoordinate.rank);
             auto& rank = this->ranks.at(command.targetCoordinate.rank);
 
@@ -140,7 +140,7 @@ private:
 
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerHandler(Func&& member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command& command) {
+        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
             (this->*member_func)(command.timestamp);
         });
     }

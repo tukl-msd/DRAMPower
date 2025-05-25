@@ -37,7 +37,7 @@ namespace DRAMPower {
         , writeDQS(memSpec.dataRate, true)
     {
         this->registerCommands();
-        this->extensionManager.registerExtension<extensions::DBI>([](const timestamp_t, const bool){
+        getExtensionManager().registerExtension<extensions::DBI>([]([[maybe_unused]] const timestamp_t timestamp, const bool enable){
             // Assumption: the enabling of the DBI does not interleave with previous data on the bus
             // TODO add DBI
         }, false);
@@ -47,7 +47,7 @@ namespace DRAMPower {
         using namespace pattern_descriptor;
         // ACT
         this->registerBankHandler<CmdType::ACT>(&LPDDR4::handleAct);
-        this->registerPattern<CmdType::ACT>({
+        getPatternHandler().registerPattern<CmdType::ACT>({
             H, L, R12, R13, R14, R15,
             BA0, BA1, BA2, R16, R10, R11,
             R17, R18, R6, R7, R8, R9,
@@ -56,28 +56,28 @@ namespace DRAMPower {
         this->registerInterfaceMember<CmdType::ACT>(&LPDDR4::handleInterfaceCommandBus);
         // PRE
         this->registerBankHandler<CmdType::PRE>(&LPDDR4::handlePre);
-        this->registerPattern<CmdType::PRE>({
+        getPatternHandler().registerPattern<CmdType::PRE>({
             L, L, L, L, H, L,
             BA0, BA1, BA2, V, V, V,
         });
         this->registerInterfaceMember<CmdType::PRE>(&LPDDR4::handleInterfaceCommandBus);
         // PREA
         this->registerRankHandler<CmdType::PREA>(&LPDDR4::handlePreAll);
-        this->registerPattern<CmdType::PREA>({
+        getPatternHandler().registerPattern<CmdType::PREA>({
             L, L, L, L, H, H,
             V, V, V, V, V, V,
         });
         this->registerInterfaceMember<CmdType::PREA>(&LPDDR4::handleInterfaceCommandBus);
         // REFB
         this->registerBankHandler<CmdType::REFB>(&LPDDR4::handleRefPerBank);
-        this->registerPattern<CmdType::REFB>({
+        getPatternHandler().registerPattern<CmdType::REFB>({
             L, L, L, H, L, L,
             BA0, BA1, BA2, V, V, V,
         });
         this->registerInterfaceMember<CmdType::REFB>(&LPDDR4::handleInterfaceCommandBus);
         // RD
         this->registerBankHandler<CmdType::RD>(&LPDDR4::handleRead);
-        this->registerPattern<CmdType::RD>({
+        getPatternHandler().registerPattern<CmdType::RD>({
             L, H, L, L, L, BL,
             BA0, BA1, BA2, V, C9, L,
             L, H, L, L, H, C8,
@@ -86,7 +86,7 @@ namespace DRAMPower {
         this->routeInterfaceCommand<CmdType::RD>([this](const Command &cmd) { this->handleInterfaceData(cmd, true); });
         // RDA
         this->registerBankHandler<CmdType::RDA>(&LPDDR4::handleReadAuto);
-        this->registerPattern<CmdType::RDA>({
+        getPatternHandler().registerPattern<CmdType::RDA>({
             L, H, L, L, L, BL,
             BA0, BA1, BA2, V, C9, H,
             L, H, L, L, H, C8,
@@ -95,7 +95,7 @@ namespace DRAMPower {
         this->routeInterfaceCommand<CmdType::RDA>([this](const Command &cmd) { this->handleInterfaceData(cmd, true); });
         // WR
         this->registerBankHandler<CmdType::WR>(&LPDDR4::handleWrite);
-        this->registerPattern<CmdType::WR>({
+        getPatternHandler().registerPattern<CmdType::WR>({
             L, L, H, L, L, BL,
             BA0, BA1, BA2, V, C9, L,
             L, H, L, L, H, C8,
@@ -104,7 +104,7 @@ namespace DRAMPower {
         this->routeInterfaceCommand<CmdType::WR>([this](const Command &cmd) { this->handleInterfaceData(cmd, false); });
         // WRA
         this->registerBankHandler<CmdType::WRA>(&LPDDR4::handleWriteAuto);
-        this->registerPattern<CmdType::WRA>({
+        getPatternHandler().registerPattern<CmdType::WRA>({
             L, L, H, L, L, BL,
             BA0, BA1, BA2, V, C9, H,
             L, H, L, L, H, C8,
@@ -113,7 +113,7 @@ namespace DRAMPower {
         this->routeInterfaceCommand<CmdType::WRA>([this](const Command &cmd) { this->handleInterfaceData(cmd, false); });
         // REFA
         this->registerRankHandler<CmdType::REFA>(&LPDDR4::handleRefAll);
-        this->registerPattern<CmdType::REFA>({
+        getPatternHandler().registerPattern<CmdType::REFA>({
             L, L, L, H, L, H,
             V, V, V, V, V, V,
         });
@@ -128,20 +128,21 @@ namespace DRAMPower {
         this->registerRankHandler<CmdType::PDXP>(&LPDDR4::handlePowerDownPreExit);
         // SREFEN
         this->registerRankHandler<CmdType::SREFEN>(&LPDDR4::handleSelfRefreshEntry);
-        this->registerPattern<CmdType::SREFEN>({
+        getPatternHandler().registerPattern<CmdType::SREFEN>({
             L, L, L, H, H, V,
             V, V, V, V, V, V,
         });
         this->registerInterfaceMember<CmdType::SREFEN>(&LPDDR4::handleInterfaceCommandBus);
         // SREFEX
         this->registerRankHandler<CmdType::SREFEX>(&LPDDR4::handleSelfRefreshExit);
-        this->registerPattern<CmdType::SREFEX>({
+        getPatternHandler().registerPattern<CmdType::SREFEX>({
             L, L, H, L, H, V,
             V, V, V, V, V, V,
         });
         this->registerInterfaceMember<CmdType::SREFEX>(&LPDDR4::handleInterfaceCommandBus);
         // EOS
-        routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        getCommandCoreRouter().routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        getCommandInterfaceRouter().routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
         // LPDDR4
         // ---------------------------------:
     };
@@ -165,7 +166,7 @@ namespace DRAMPower {
         assert(enable_timestamp >= timestamp);
         if ( enable_timestamp > timestamp ) {
             // Schedule toggling rate enable
-            this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+            getImplicitCommandHandler().addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
                 dataBus.enableTogglingRate(enable_timestamp);
             });
         } else {
@@ -178,7 +179,7 @@ namespace DRAMPower {
         assert(enable_timestamp >= timestamp);
         if ( enable_timestamp > timestamp ) {
             // Schedule toggling rate disable
-            this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+            getImplicitCommandHandler().addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
                 dataBus.enableBus(enable_timestamp);
             });
         } else {
@@ -217,7 +218,7 @@ namespace DRAMPower {
         // Set command bus pattern overrides
         switch(length) {
             case 32:
-                this->encoder.settings.updateSettings({
+                getPatternHandler().getEncoder().settings.updateSettings({
                     {pattern_descriptor::C4, PatternEncoderBitSpec::L},
                     {pattern_descriptor::C3, PatternEncoderBitSpec::L},
                     {pattern_descriptor::C2, PatternEncoderBitSpec::L},
@@ -229,8 +230,8 @@ namespace DRAMPower {
                 // No interface power needed for PatternEncoderBitSpec::L
                 // Defaults to burst length 16
             case 16:
-                this->encoder.settings.removeSetting(pattern_descriptor::C4);
-                this->encoder.settings.updateSettings({
+                getPatternHandler().getEncoder().settings.removeSetting(pattern_descriptor::C4);
+                getPatternHandler().getEncoder().settings.updateSettings({
                     {pattern_descriptor::C3, PatternEncoderBitSpec::L},
                     {pattern_descriptor::C2, PatternEncoderBitSpec::L},
                     {pattern_descriptor::BL, PatternEncoderBitSpec::L},
@@ -240,8 +241,8 @@ namespace DRAMPower {
     }
 
     void LPDDR4::handleInterfaceCommandBus(const Command &cmd) {
-        auto pattern = this->getCommandPattern(cmd);
-        auto ca_length = this->getPattern(cmd.type).size() / commandBus.get_width();
+        auto pattern = getPatternHandler().getCommandPattern(cmd);
+        auto ca_length = getPatternHandler().getPattern(cmd.type).size() / commandBus.get_width();
         this->commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
@@ -318,7 +319,7 @@ namespace DRAMPower {
             bank.cycles.act.start_interval(timestamp);
 
         // Execute implicit pre-charge at refresh end
-        addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
+        getImplicitCommandHandler().addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
             bank.bankState = Bank::BankState::BANK_PRECHARGED;
             bank.cycles.act.close_interval(timestamp_end);
 
@@ -344,7 +345,7 @@ namespace DRAMPower {
         handleRefAll(rank, timestamp);
         // Handle self-refresh entry after tRFC
         auto timestampSelfRefreshStart = timestamp + memSpec.memTimingSpec.tRFC;
-        addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
+        getImplicitCommandHandler().addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
             rank.counter.selfRefresh++;
             rank.cycles.sref.start_interval(timestampSelfRefreshStart);
             rank.memState = MemState::SREF;
@@ -360,7 +361,7 @@ namespace DRAMPower {
     void LPDDR4::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
-        addImplicitCommand(entryTime, [&rank, entryTime]() {
+        getImplicitCommandHandler().addImplicitCommand(entryTime, [&rank, entryTime]() {
             rank.cycles.powerDownAct.start_interval(entryTime);
             rank.memState = MemState::PDN_ACT;
             if (rank.cycles.act.is_open()) {
@@ -379,7 +380,7 @@ namespace DRAMPower {
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-        addImplicitCommand(exitTime, [&rank, exitTime]() {
+        getImplicitCommandHandler().addImplicitCommand(exitTime, [&rank, exitTime]() {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownAct.close_interval(exitTime);
 
@@ -402,7 +403,7 @@ namespace DRAMPower {
     void LPDDR4::handlePowerDownPreEntry(Rank &rank, timestamp_t timestamp) {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
-        addImplicitCommand(entryTime, [&rank, entryTime]() {
+        getImplicitCommandHandler().addImplicitCommand(entryTime, [&rank, entryTime]() {
             rank.cycles.powerDownPre.start_interval(entryTime);
             rank.memState = MemState::PDN_PRE;
         });
@@ -413,7 +414,7 @@ namespace DRAMPower {
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-        addImplicitCommand(exitTime, [&rank, exitTime]() {
+        getImplicitCommandHandler().addImplicitCommand(exitTime, [&rank, exitTime]() {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownPre.close_interval(exitTime);
         });
@@ -436,7 +437,7 @@ namespace DRAMPower {
         auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
         // Execute PRE after minimum active time
-        addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
+        getImplicitCommandHandler().addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
             this->handlePre(rank, bank, delayed_timestamp);
         });
     }
@@ -450,7 +451,7 @@ namespace DRAMPower {
         auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
 
         // Execute PRE after minimum active time
-        addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
+        getImplicitCommandHandler().addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
             this->handlePre(rank, bank, delayed_timestamp);
         });
     }

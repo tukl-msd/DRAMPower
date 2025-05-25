@@ -53,7 +53,7 @@ protected:
 
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func && member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command & command) {
+        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command & command) {
             assert(this->ranks.size()>command.targetCoordinate.rank);
             auto & rank = this->ranks.at(command.targetCoordinate.rank);
 
@@ -67,7 +67,7 @@ protected:
 
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerRankHandler(Func && member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command & command) {
+        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command & command) {
             assert(this->ranks.size()>command.targetCoordinate.rank);
             auto & rank = this->ranks.at(command.targetCoordinate.rank);
 
@@ -78,7 +78,7 @@ protected:
 
     template<dram_base::commandEnum_t Cmd, typename Func>
     void registerHandler(Func && member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command & command) {
+        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command & command) {
             (this->*member_func)(command.timestamp);
         });
     }
@@ -99,7 +99,7 @@ public:
         return entryTime;
     };
 public:
-    SimulationStats getStats() override;
+    SimulationStats getStats();
     uint64_t getBankCount() override;
     uint64_t getRankCount() override;
     uint64_t getDeviceCount() override;
@@ -134,7 +134,7 @@ private:
 public:
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
     energy_t calcCoreEnergy(timestamp_t timestamp) override;
-    SimulationStats getWindowStats(timestamp_t timestamp);
+    SimulationStats getWindowStats(timestamp_t timestamp) override;
 };
 
 } // namespace DRAMPower

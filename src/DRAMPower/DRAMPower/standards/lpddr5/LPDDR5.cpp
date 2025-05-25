@@ -37,7 +37,7 @@ namespace DRAMPower {
         , wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
     {
         this->registerCommands();
-        this->extensionManager.registerExtension<extensions::DBI>([](const timestamp_t, const bool){
+        getExtensionManager().registerExtension<extensions::DBI>([](const timestamp_t, const bool){
             // Assumption: the enabling of the DBI does not interleave with previous data on the bus
             // TODO add DBI
         }, false);
@@ -45,6 +45,7 @@ namespace DRAMPower {
 
     void LPDDR5::registerCommands() {
         using namespace pattern_descriptor;
+        using commandPattern_t = std::vector<pattern_descriptor::t>;
         // ACT
         this->registerBankHandler<CmdType::ACT>(&LPDDR5::handleAct);
         // LPDDR5 needs 2 commands for activation (ACT-1 and ACT-2)
@@ -69,7 +70,7 @@ namespace DRAMPower {
         } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
             act_pattern[10] = V;
         }
-        this->registerPattern<CmdType::ACT>(act_pattern);
+        getPatternHandler().registerPattern<CmdType::ACT>(act_pattern);
         this->registerInterfaceMember<CmdType::ACT>(&LPDDR5::handleInterfaceCommandBus);
         // PRE
         this->registerBankHandler<CmdType::PRE>(&LPDDR5::handlePre);
@@ -85,7 +86,7 @@ namespace DRAMPower {
         } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
             pre_pattern[10] = V;
         }
-        this->registerPattern<CmdType::PRE>(pre_pattern);
+        getPatternHandler().registerPattern<CmdType::PRE>(pre_pattern);
         this->registerInterfaceMember<CmdType::PRE>(&LPDDR5::handleInterfaceCommandBus);
         // PREA
         this->registerRankHandler<CmdType::PREA>(&LPDDR5::handlePreAll);
@@ -101,7 +102,7 @@ namespace DRAMPower {
         } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
             prea_pattern[10] = V;
         }
-        this->registerPattern<CmdType::PREA>(prea_pattern);
+        getPatternHandler().registerPattern<CmdType::PREA>(prea_pattern);
         this->registerInterfaceMember<CmdType::PREA>(&LPDDR5::handleInterfaceCommandBus);
         // REFB
         this->registerBankHandler<CmdType::REFB>(&LPDDR5::handleRefPerBank);
@@ -116,7 +117,7 @@ namespace DRAMPower {
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
             refb_pattern[9] = BG0;
         }
-        this->registerPattern<CmdType::REFB>(refb_pattern);
+        getPatternHandler().registerPattern<CmdType::REFB>(refb_pattern);
         this->registerInterfaceMember<CmdType::REFB>(&LPDDR5::handleInterfaceCommandBus);
         // RD
         this->registerBankHandler<CmdType::RD>(&LPDDR5::handleRead);
@@ -132,7 +133,7 @@ namespace DRAMPower {
         } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
             rd_pattern[10] = L; // B4
         }
-        this->registerPattern<CmdType::RD>(rd_pattern);
+        getPatternHandler().registerPattern<CmdType::RD>(rd_pattern);
         this->routeInterfaceCommand<CmdType::RD>([this](const Command &cmd) { this->handleInterfaceData(cmd, true); });
         // RDA
         this->registerBankHandler<CmdType::RDA>(&LPDDR5::handleReadAuto);
@@ -148,7 +149,7 @@ namespace DRAMPower {
         } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
             rda_pattern[10] = L;
         }
-        this->registerPattern<CmdType::RDA>(rda_pattern);
+        getPatternHandler().registerPattern<CmdType::RDA>(rda_pattern);
         this->routeInterfaceCommand<CmdType::RDA>([this](const Command &cmd) { this->handleInterfaceData(cmd, true); });
         // WR
         this->registerBankHandler<CmdType::WR>(&LPDDR5::handleWrite);
@@ -164,7 +165,7 @@ namespace DRAMPower {
         } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
             wr_pattern[10] = V;
         }
-        this->registerPattern<CmdType::WR>(wr_pattern);
+        getPatternHandler().registerPattern<CmdType::WR>(wr_pattern);
         this->routeInterfaceCommand<CmdType::WR>([this](const Command &cmd) { this->handleInterfaceData(cmd, false); });
         // WRA
         this->registerBankHandler<CmdType::WRA>(&LPDDR5::handleWriteAuto);
@@ -180,12 +181,12 @@ namespace DRAMPower {
         } else if (memSpec.bank_arch == MemSpecLPDDR5::M8B) {
             wra_pattern[10] = V;
         }
-        this->registerPattern<CmdType::WRA>(wra_pattern);
+        getPatternHandler().registerPattern<CmdType::WRA>(wra_pattern);
         this->routeInterfaceCommand<CmdType::WRA>([this](const Command &cmd) { this->handleInterfaceData(cmd, false); });
         // REFP2B
         this->registerBankGroupHandler<CmdType::REFP2B>(&LPDDR5::handleRefPerTwoBanks);
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG || memSpec.bank_arch == MemSpecLPDDR5::M16B) {
-            this->registerPattern<CmdType::REFP2B>(refb_pattern);
+            getPatternHandler().registerPattern<CmdType::REFP2B>(refb_pattern);
             this->registerInterfaceMember<CmdType::REFP2B>(&LPDDR5::handleInterfaceCommandBus);
         }
         // REFA
@@ -199,11 +200,11 @@ namespace DRAMPower {
         if (memSpec.bank_arch == MemSpecLPDDR5::MBG) {
             refa_pattern[9] = BG0;
         }
-        this->registerPattern<CmdType::REFA>(refa_pattern);
+        getPatternHandler().registerPattern<CmdType::REFA>(refa_pattern);
         this->registerInterfaceMember<CmdType::REFA>(&LPDDR5::handleInterfaceCommandBus);
         // SREFEN
         this->registerRankHandler<CmdType::SREFEN>(&LPDDR5::handleSelfRefreshEntry);
-        this->registerPattern<CmdType::SREFEN>({
+        getPatternHandler().registerPattern<CmdType::SREFEN>({
             // R1
             L, L, L, H, L, H, H,
             // F1
@@ -212,7 +213,7 @@ namespace DRAMPower {
         this->registerInterfaceMember<CmdType::SREFEN>(&LPDDR5::handleInterfaceCommandBus);
         // SREFEX
         this->registerRankHandler<CmdType::SREFEX>(&LPDDR5::handleSelfRefreshExit);
-        this->registerPattern<CmdType::SREFEX>({
+        getPatternHandler().registerPattern<CmdType::SREFEX>({
             // R1
             L, L, L, H, L, H, L,
             // F1
@@ -221,7 +222,7 @@ namespace DRAMPower {
         this->registerInterfaceMember<CmdType::SREFEX>(&LPDDR5::handleInterfaceCommandBus);
         // PDEA
         this->registerRankHandler<CmdType::PDEA>(&LPDDR5::handlePowerDownActEntry);
-        this->registerPattern<CmdType::PDEA>({
+        getPatternHandler().registerPattern<CmdType::PDEA>({
             // R1
             L, L, L, H, L, H, H,
             // F1
@@ -230,7 +231,7 @@ namespace DRAMPower {
         this->registerInterfaceMember<CmdType::PDEA>(&LPDDR5::handleInterfaceCommandBus);
         // PDEP
         this->registerRankHandler<CmdType::PDEP>(&LPDDR5::handlePowerDownPreEntry);
-        this->registerPattern<CmdType::PDEP>({
+        getPatternHandler().registerPattern<CmdType::PDEP>({
             // R1
             L, L, L, H, L, H, H,
             // F1
@@ -239,7 +240,7 @@ namespace DRAMPower {
         this->registerInterfaceMember<CmdType::PDEP>(&LPDDR5::handleInterfaceCommandBus);
         // PDXA
         this->registerRankHandler<CmdType::PDXA>(&LPDDR5::handlePowerDownActExit);
-        this->registerPattern<CmdType::PDXA>({
+        getPatternHandler().registerPattern<CmdType::PDXA>({
             // R1
             L, L, L, H, L, H, L,
             // F1
@@ -248,7 +249,7 @@ namespace DRAMPower {
         this->registerInterfaceMember<CmdType::PDXA>(&LPDDR5::handleInterfaceCommandBus);
         // PDXP
         this->registerRankHandler<CmdType::PDXP>(&LPDDR5::handlePowerDownPreExit);
-        this->registerPattern<CmdType::PDXP>({
+        getPatternHandler().registerPattern<CmdType::PDXP>({
             // R1
             L, L, L, H, L, H, L,
             // F1
@@ -257,7 +258,7 @@ namespace DRAMPower {
         this->registerInterfaceMember<CmdType::PDXP>(&LPDDR5::handleInterfaceCommandBus);
         // DSMEN
         this->registerRankHandler<CmdType::DSMEN>(&LPDDR5::handleDSMEntry);
-        this->registerPattern<CmdType::DSMEN>({
+        getPatternHandler().registerPattern<CmdType::DSMEN>({
             // R1
             L, L, L, H, L, H, H,
             // F1
@@ -266,7 +267,7 @@ namespace DRAMPower {
         this->registerInterfaceMember<CmdType::DSMEN>(&LPDDR5::handleInterfaceCommandBus);
         // DSMEX
         this->registerRankHandler<CmdType::DSMEX>(&LPDDR5::handleDSMExit);
-        this->registerPattern<CmdType::DSMEX>({
+        getPatternHandler().registerPattern<CmdType::DSMEX>({
             // R1
             L, L, L, H, L, H, L,
             // F1
@@ -274,7 +275,8 @@ namespace DRAMPower {
         });
         this->registerInterfaceMember<CmdType::DSMEX>(&LPDDR5::handleInterfaceCommandBus);
         // EOS
-        routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        getCommandCoreRouter().routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        getCommandInterfaceRouter().routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     }
 
 // Getters for CLI
@@ -296,7 +298,7 @@ namespace DRAMPower {
         assert(enable_timestamp >= timestamp);
         if ( enable_timestamp > timestamp ) {
             // Schedule toggling rate enable
-            this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+            getImplicitCommandHandler().addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
                 dataBus.enableTogglingRate(enable_timestamp);
             });
         } else {
@@ -309,7 +311,7 @@ namespace DRAMPower {
         assert(enable_timestamp >= timestamp);
         if ( enable_timestamp > timestamp ) {
             // Schedule toggling rate disable
-            this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+            getImplicitCommandHandler().addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
                 dataBus.enableBus(enable_timestamp);
             });
         } else {
@@ -348,7 +350,7 @@ namespace DRAMPower {
         // Set command bus pattern overrides
         switch(length) {
             case 32:
-                this->encoder.settings.updateSettings({
+                getPatternHandler().getEncoder().settings.updateSettings({
                     {pattern_descriptor::C0, PatternEncoderBitSpec::L},
                 });
                 break;
@@ -357,14 +359,14 @@ namespace DRAMPower {
                 // No interface power needed for PatternEncoderBitSpec::L
                 // Defaults to burst length 16
             case 16:
-                this->encoder.settings.removeSetting(pattern_descriptor::C0);
+                getPatternHandler().getEncoder().settings.removeSetting(pattern_descriptor::C0);
                 break;
         }
     }
 
     void LPDDR5::handleInterfaceCommandBus(const Command &cmd) {
-        auto pattern = getCommandPattern(cmd);
-        auto ca_length = getPattern(cmd.type).size() / commandBus.get_width();
+        auto pattern = getPatternHandler().getCommandPattern(cmd);
+        auto ca_length = getPatternHandler().getPattern(cmd.type).size() / commandBus.get_width();
         commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
@@ -465,7 +467,7 @@ namespace DRAMPower {
             bank.cycles.act.start_interval(timestamp);
 
         // Execute implicit pre-charge at refresh end
-        addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
+        getImplicitCommandHandler().addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
             bank.bankState = Bank::BankState::BANK_PRECHARGED;
             bank.cycles.act.close_interval(timestamp_end);
 
@@ -488,7 +490,7 @@ namespace DRAMPower {
         auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
         // Execute PRE after minimum active time
-        addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
+        getImplicitCommandHandler().addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
             this->handlePre(rank, bank, delayed_timestamp);
         });
     }
@@ -505,7 +507,7 @@ namespace DRAMPower {
 
         auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
         // Execute PRE after minimum active time
-        addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
+        getImplicitCommandHandler().addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
             this->handlePre(rank, bank, delayed_timestamp);
         });
     }
@@ -515,7 +517,7 @@ namespace DRAMPower {
         handleRefAll(rank, timestamp);
         // Handle self-refresh entry after tRFC
         auto timestampSelfRefreshStart = timestamp + memSpec.memTimingSpec.tRFC;
-        addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
+        getImplicitCommandHandler().addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
             rank.counter.selfRefresh++;
             rank.cycles.sref.start_interval(timestampSelfRefreshStart);
             rank.memState = MemState::SREF;
@@ -531,7 +533,7 @@ namespace DRAMPower {
     void LPDDR5::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
-        addImplicitCommand(entryTime, [&rank, entryTime]() {
+        getImplicitCommandHandler().addImplicitCommand(entryTime, [&rank, entryTime]() {
             rank.cycles.powerDownAct.start_interval(entryTime);
             rank.memState = MemState::PDN_ACT;
             if (rank.cycles.act.is_open()) {
@@ -550,7 +552,7 @@ namespace DRAMPower {
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-        addImplicitCommand(exitTime, [&rank, exitTime]() {
+        getImplicitCommandHandler().addImplicitCommand(exitTime, [&rank, exitTime]() {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownAct.close_interval(exitTime);
 
@@ -573,7 +575,7 @@ namespace DRAMPower {
     void LPDDR5::handlePowerDownPreEntry(Rank &rank, timestamp_t timestamp) {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
-        addImplicitCommand(entryTime, [&rank, entryTime]() {
+        getImplicitCommandHandler().addImplicitCommand(entryTime, [&rank, entryTime]() {
             rank.cycles.powerDownPre.start_interval(entryTime);
             rank.memState = MemState::PDN_PRE;
         });
@@ -584,7 +586,7 @@ namespace DRAMPower {
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-        addImplicitCommand(exitTime, [&rank, exitTime]() {
+        getImplicitCommandHandler().addImplicitCommand(exitTime, [&rank, exitTime]() {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownPre.close_interval(exitTime);
         });

@@ -2,7 +2,6 @@
 #define DRAMPOWER_STANDARDS_DDR5_DDR5_H
 
 #include <cstdint>
-#include <deque>
 #include <vector>
 #include <optional>
 #include <stdexcept>
@@ -15,27 +14,24 @@
 #include "DRAMPower/dram/Rank.h"
 #include <DRAMPower/dram/Interface.h>
 #include "DRAMPower/dram/dram_base.h"
-#include "DRAMPower/memspec/MemSpec.h"
 #include "DRAMPower/memspec/MemSpecDDR5.h"
 #include "DRAMPower/util/bus.h"
-#include "DRAMPower/util/databus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
-#include "DRAMPower/util/cycle_stats.h"
 
 namespace DRAMPower {
 
 class DDR5 : public dram_base<CmdType> {
+private:
+    const static std::size_t cmdBusWidth = 14;
+    const static uint64_t cmdBusInitPattern = (1 << cmdBusWidth) - 1;
 
 public:
-    using commandbus_t = util::Bus<14>;
+    using commandbus_t = util::Bus<cmdBusWidth>;
     using databus_t = util::databus_presets::databus_preset_t;
     MemSpecDDR5 memSpec;
     std::vector<Rank> ranks;
     databus_t dataBus;
-private:
-    std::size_t cmdBusWidth;
-    uint64_t cmdBusInitPattern;
 public:
     commandbus_t commandBus;
 private:
@@ -49,7 +45,6 @@ public:
 
     timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
 
-    SimulationStats getStats() override;
     uint64_t getBankCount() override;
     uint64_t getRankCount() override;
     uint64_t getDeviceCount() override;
@@ -80,10 +75,9 @@ public:
     void handlePowerDownPreExit(Rank& rank, timestamp_t timestamp);
     void endOfSimulation(timestamp_t timestamp);
 
-    SimulationStats getWindowStats(timestamp_t timestamp);
+    SimulationStats getWindowStats(timestamp_t timestamp) override;
 
 private:
-    uint64_t getInitEncoderPattern() override;
     timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
     void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
     void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
@@ -103,7 +97,7 @@ protected:
 
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankHandler(Func&& member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command& command) {
+        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
             assert(this->ranks.size()>command.targetCoordinate.rank);
             auto& rank = this->ranks.at(command.targetCoordinate.rank);
 
@@ -117,7 +111,7 @@ protected:
 
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerBankGroupHandler(Func&& member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command& command) {
+        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
             assert(this->ranks.size()>command.targetCoordinate.rank);
             auto& rank = this->ranks.at(command.targetCoordinate.rank);
 
@@ -134,7 +128,7 @@ protected:
 
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerRankHandler(Func&& member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command& command) {
+        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
             assert(this->ranks.size()>command.targetCoordinate.rank);
             auto& rank = this->ranks.at(command.targetCoordinate.rank);
 
@@ -145,7 +139,7 @@ protected:
 
     template <dram_base::commandEnum_t Cmd, typename Func>
     void registerHandler(Func&& member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command& command) {
+        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
             (this->*member_func)(command.timestamp);
         });
     }
