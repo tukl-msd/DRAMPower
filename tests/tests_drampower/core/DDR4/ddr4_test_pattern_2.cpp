@@ -29,13 +29,14 @@ protected:
 
     // Test variables
     std::unique_ptr<DRAMPower::DDR4> ddr;
+    std::unique_ptr<DRAMPower::MemSpecDDR4> memSpec;
 
     virtual void SetUp()
     {
         auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
-        auto memSpec = DRAMPower::MemSpecDDR4::from_memspec(*data);
+        memSpec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
 
-        ddr = std::make_unique<DDR4>(memSpec);
+        ddr = std::make_unique<DDR4>(*memSpec);
     }
 
     virtual void TearDown()
@@ -52,17 +53,17 @@ TEST_F(DramPowerTest_DDR4_2, Counters_and_Cycles){
 
     // Check bank command count: ACT
     ASSERT_EQ(stats.bank[0].counter.act, 1);
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].counter.act, 0);
 
     // Check bank command count: RD
     ASSERT_EQ(stats.bank[0].counter.reads, 1);
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].counter.reads, 0);
 
     // Check bank command count: PRE
     ASSERT_EQ(stats.bank[0].counter.pre, 1);
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].counter.pre, 0);
 
     // Check cycles count
@@ -71,12 +72,12 @@ TEST_F(DramPowerTest_DDR4_2, Counters_and_Cycles){
 
     // Check bank specific ACT cycle count
     ASSERT_EQ(stats.bank[0].cycles.act, 35);
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].cycles.act, 0);
 
     // Check bank specific PRE cycle count
     ASSERT_EQ(stats.bank[0].cycles.pre, 15);
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].cycles.pre, 50);
 }
 

@@ -21,28 +21,28 @@ public:
 	uint64_t getBankCount() override { return 1; };
 	uint64_t getRankCount() override { return 1; };
 	uint64_t getDeviceCount() override { return 1; };
-	SimulationStats getStats() override { return SimulationStats(); };
+	SimulationStats getWindowStats(timestamp_t) override { return SimulationStats(); };
 
 	std::vector<timestamp_t> execution_order;
 
 	test_ddr() : dram_base<CmdType>(PatternEncoderOverrides{})
 	{
-		this->routeCommand<CmdType::ACT>([this](const Command & command) {
+		getCommandCoreRouter().routeCommand<CmdType::ACT>([this](const Command & command) {
 			execution_order.push_back(command.timestamp);
 		});
 
-		this->routeCommand<CmdType::PRE>([this](const Command & command) {
+		getCommandCoreRouter().routeCommand<CmdType::PRE>([this](const Command & command) {
 			execution_order.push_back(command.timestamp);
 			auto next_timestamp = command.timestamp + 10;
-			addImplicitCommand(next_timestamp, [this, next_timestamp]() {
+			getImplicitCommandHandler().addImplicitCommand(next_timestamp, [this, next_timestamp]() {
 				execution_order.push_back(next_timestamp);
 			});
 		});
 
-		this->routeCommand<CmdType::PREA>([this](const Command & command) {
+		getCommandCoreRouter().routeCommand<CmdType::PREA>([this](const Command & command) {
 			execution_order.push_back(command.timestamp);
 			auto next_timestamp = command.timestamp + 1;
-			addImplicitCommand(next_timestamp, [this, next_timestamp]() {
+			getImplicitCommandHandler().addImplicitCommand(next_timestamp, [this, next_timestamp]() {
 				execution_order.push_back(next_timestamp);
 			});
 		});
@@ -66,9 +66,9 @@ protected:
 
 TEST_F(DDR_Base_Test, DoCommand)
 {
-    ASSERT_EQ(ddr->getCommandCount(CmdType::ACT), 0);
+    ASSERT_EQ(ddr->getCommandCoreCount(CmdType::ACT), 0);
     this->ddr->doCoreCommand({ 10, CmdType::ACT, { 1, 0, 0 } });
-    ASSERT_EQ(ddr->getCommandCount(CmdType::ACT), 1);
+    ASSERT_EQ(ddr->getCommandCoreCount(CmdType::ACT), 1);
 
 	ASSERT_EQ(ddr->execution_order.size(), 1);
 	ASSERT_EQ(ddr->execution_order[0], 10);
