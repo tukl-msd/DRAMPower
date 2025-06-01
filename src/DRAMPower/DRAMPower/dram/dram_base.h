@@ -110,7 +110,7 @@ protected:
 // ImplicitCommandHandler forwards
 public:
     // Forward implicit command count
-    std::size_t implicitCommandCount() const { return m_ImplicitCommandHandler.getInserter().implicitCommandCount(); }
+    std::size_t implicitCommandCount() const { return m_ImplicitCommandHandler.implicitCommandCount(); }
 protected:
     void processImplicitCommandQueue(timestamp_t timestamp)
     {

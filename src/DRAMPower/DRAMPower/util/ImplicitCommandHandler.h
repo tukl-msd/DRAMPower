@@ -11,6 +11,21 @@
 
 namespace DRAMPower {
 
+namespace details {
+    template <typename Queue, typename Func>
+    void addImplicitCommand(Queue& queue, timestamp_t timestamp, Func&& func)
+    {
+        auto entry = std::make_pair(timestamp, std::forward<Func>(func));
+
+        auto upper = std::upper_bound(queue.begin(), queue.end(),
+            entry,
+            [](const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; });
+
+        queue.emplace(upper, entry);
+    }
+
+}
+
 class ImplicitCommandHandler {
 // Public type definitions
 public:
@@ -36,7 +51,7 @@ private:
 // Public constructors and assignment operators
 public:
     Inserter(Inserter&&) = default;
-    Inserter& operator=(Inserter&&) = default;
+    Inserter& operator=(Inserter&&) = delete;
     ~Inserter() = default;
 
 // Public member functions
@@ -45,13 +60,7 @@ public:
     template <typename Func>
     void addImplicitCommand(timestamp_t timestamp, Func&& func)
     {
-        auto entry = std::make_pair(timestamp, std::forward<Func>(func));
-
-        auto upper = std::upper_bound(m_implicitCommandList.begin(), m_implicitCommandList.end(),
-            entry,
-            [](const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; });
-
-        m_implicitCommandList.emplace(upper, entry);
+        details::addImplicitCommand(m_implicitCommandList, timestamp, std::forward<Func>(func));
     }
 
     std::size_t implicitCommandCount() const;
@@ -79,25 +88,21 @@ public:
     template <typename Func>
     void addImplicitCommand(timestamp_t timestamp, Func&& func)
     {
-        m_inserter.addImplicitCommand(timestamp, std::forward<Func>(func));
+        details::addImplicitCommand(m_implicitCommandList, timestamp, std::forward<Func>(func));
     }
 
 // Public member functions
 public:
-    // Get inserter reference
-    Inserter_t& getInserter();
-    // Get const inserter reference
-    const Inserter_t& getInserter() const;
     // Create a inserter for adding implicit commands which holds a reference to the implicit command list
     // The lifetime of the inserter must be managed by the caller
     Inserter_t createInserter();
     // Process implicit command queue
     void processImplicitCommandQueue(timestamp_t timestamp, timestamp_t &last_command_time);
+    std::size_t implicitCommandCount() const;
 
 // Private member variables
 private:
     implicitCommandList_t m_implicitCommandList;
-    Inserter_t m_inserter{m_implicitCommandList};
 };
 
 } // namespace DRAMPower

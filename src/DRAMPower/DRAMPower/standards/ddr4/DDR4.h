@@ -30,8 +30,8 @@ public:
     DDR4() = delete; // No default constructor
     DDR4(const DDR4&) = delete; // No copy constructor
     DDR4& operator=(const DDR4&) = delete; // No copy assignment operator
-    DDR4(DDR4&&) = default; // Move constructor
-    DDR4& operator=(DDR4&&) = delete; // Move assignment operator
+    DDR4(DDR4&&) = delete; // no move constructor
+    DDR4& operator=(DDR4&&) = delete; // no move assignment operator
     DDR4(const MemSpecDDR4 &memSpec);
     ~DDR4() override = default;
 

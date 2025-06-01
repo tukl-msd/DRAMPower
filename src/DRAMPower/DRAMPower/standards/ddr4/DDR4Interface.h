@@ -68,6 +68,12 @@ public:
 
 // Public constructor
 public:
+    DDR4Interface() = delete; // no default constructor
+    DDR4Interface(const DDR4Interface&) = delete; // no copy constructor
+    DDR4Interface& operator=(const DDR4Interface&) = delete; // no copy assignment operator
+    DDR4Interface(DDR4Interface&&) = delete; // no move constructor
+    DDR4Interface& operator=(DDR4Interface&&) = delete; // no move assignment operator
+
     DDR4Interface(const MemSpecDDR4 &memSpec, implicitCommandInserter_t&& implicitCommandInserter, 
                   patternHandler_t &patternHandler)
     : m_commandBus{cmdBusWidth, 1,
