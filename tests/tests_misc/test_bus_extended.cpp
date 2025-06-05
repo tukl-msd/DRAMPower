@@ -7,7 +7,6 @@
 #include <algorithm>
 
 using namespace DRAMPower;
-constexpr size_t buswidth = 128; // test bus width greater than 64
 using Bus_512 = util::Bus<512>;
 using Bus_128 = util::Bus<128>;
 using Bus_64 = util::Bus<64>;

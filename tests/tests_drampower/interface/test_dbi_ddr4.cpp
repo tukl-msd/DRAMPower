@@ -1,24 +1,18 @@
 #include <gtest/gtest.h>
 
 #include <memory>
-#include <fstream>
 
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
-#include <variant>
 
-#include "DRAMPower/data/energy.h"
 #include "DRAMPower/data/stats.h"
 #include "DRAMPower/memspec/MemSpecDDR4.h"
 #include "DRAMPower/standards/ddr4/DDR4.h"
-#include "DRAMPower/standards/ddr4/interface_calculation_DDR4.h"
 #include "DRAMPower/util/extensions.h"
 
 using DRAMPower::CmdType;
 using DRAMPower::Command;
 using DRAMPower::DDR4;
-using DRAMPower::interface_energy_info_t;
-using DRAMPower::InterfaceCalculation_DDR4;
 using DRAMPower::MemSpecDDR4;
 using DRAMPower::SimulationStats;
 
@@ -29,15 +23,15 @@ static constexpr uint8_t wr_data[] = {
     0xF0, 0x0F, 0xE0, 0xF1,  0x00, 0xFF, 0xFF, 0xFF, // inverted to 0xF0,0x0F,0x1F,0xF1, 0xFF,0xFF,0xFF,0xFF
     // DBI Line:
     // H // before burst
-    // H // burst 1
-    // H // burst 2
-    // L // burst 3
-    // H // burst 4
-    // L // burst 5
-    // H // burst 6
-    // H // burst 7
-    // H // burst 8
-    // H // after burst
+    // H // burst 1 time = 4, virtual_time = 8 ok
+    // H // burst 2 vt = 9 ok
+    // L // burst 3 vt = 10 ok
+    // H // burst 4 vt = 11 ok
+    // L // burst 5 vt = 12 ok
+    // H // burst 6 vt = 13 ok
+    // H // burst 7 vt = 14 ok
+    // H // burst 8 vt = 15 ok
+    // H // after burst ok
     // 2 inversions
     // 0xFF to 0xF0; 4 ones to zeroes, 0 zeroes to ones, 8 ones, 0 zeroes // before burst
     // 0xF0 to 0x0F; 4 ones to zeroes, 4 zeroes to ones, 4 ones, 4 zeroes
@@ -57,15 +51,15 @@ static constexpr uint8_t rd_data[] = {
     0, 0, 0, 0,  0, 0, 255, 1, // inverted to 0xFF,0xFF,0xFF,0xFF, 0xFF,0xFF,0xFF,0xFE
     // DBI Line:
     // H // before burst
-    // L // burst 1
-    // L // burst 2
-    // L // burst 3
-    // L // burst 4
-    // L // burst 5
-    // L // burst 6
-    // H // burst 7
-    // L // burst 8
-    // H // after burst
+    // L // burst 1 time = 11, virtual_time = 22 ok
+    // L // burst 2 vt = 23 ok
+    // L // burst 3 vt = 24 ok
+    // L // burst 4 vt = 25 ok
+    // L // burst 5 vt = 26 ok
+    // L // burst 6 vt = 27 ok
+    // H // burst 7 vt = 28 ok
+    // L // burst 8 vt = 29 ok
+    // H // after burst TODO
     // 7 inversions
     // 0xFF to 0xFF; 0 ones to zeroes, 0 zeroes to ones, 8 ones, 0 zeroes // before burst
     // 0xFF to 0xFF; 0 ones to zeroes, 0 zeroes to ones, 8 ones, 0 zeroes

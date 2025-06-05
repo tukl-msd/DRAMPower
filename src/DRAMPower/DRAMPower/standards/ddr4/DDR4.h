@@ -20,7 +20,6 @@
 #include <DRAMPower/util/cycle_stats.h>
 #include <DRAMPower/util/clock.h>
 
-#include <deque>
 #include <algorithm>
 #include <stdint.h>
 #include <vector>

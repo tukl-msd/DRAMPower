@@ -7,7 +7,6 @@
 #include <DRAMPower/standards/ddr4/core_calculation_DDR4.h>
 #include <DRAMPower/standards/ddr4/interface_calculation_DDR4.h>
 #include <iostream>
-#include <functional>
 #include <DRAMPower/util/extensions.h>
 #include <optional>
 
@@ -483,7 +482,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
             bank.refreshEndTime = timestamp_end;                                    // used for earliest power down calculation
 
             // Execute implicit pre-charge at refresh end
-            addImplicitCommand(timestamp_end, [this, &bank, &rank, timestamp_end]() {
+            addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
                 bank.bankState = Bank::BankState::BANK_PRECHARGED;
                 bank.cycles.act.close_interval(timestamp_end);
                 // stop rank active interval if no more banks active
@@ -539,7 +538,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         handleRefAll(rank, timestamp);
         // Handle self-refresh entry after tRFC
         auto timestampSelfRefreshStart = timestamp + memSpec.memTimingSpec.tRFC;
-        addImplicitCommand(timestampSelfRefreshStart, [this, &rank, timestampSelfRefreshStart]() {
+        addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
             rank.counter.selfRefresh++;
             rank.cycles.sref.start_interval(timestampSelfRefreshStart);
             rank.memState = MemState::SREF;
@@ -555,7 +554,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
     void DDR4::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
-        addImplicitCommand(entryTime, [this, &rank, entryTime]() {
+        addImplicitCommand(entryTime, [&rank, entryTime]() {
             rank.memState = MemState::PDN_ACT;
             rank.cycles.powerDownAct.start_interval(entryTime);
             rank.cycles.act.close_interval(entryTime);
@@ -571,7 +570,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-        addImplicitCommand(exitTime, [this, &rank, exitTime]() {
+        addImplicitCommand(exitTime, [&rank, exitTime]() {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownAct.close_interval(exitTime);
 
@@ -595,7 +594,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
 
-        addImplicitCommand(entryTime, [this, &rank, entryTime]() {
+        addImplicitCommand(entryTime, [&rank, entryTime]() {
             for (auto &bank : rank.banks)
                 bank.cycles.act.close_interval(entryTime);
             rank.memState = MemState::PDN_PRE;
@@ -610,7 +609,7 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-        addImplicitCommand(exitTime, [this, &rank, exitTime]() {
+        addImplicitCommand(exitTime, [&rank, exitTime]() {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownPre.close_interval(exitTime);
 

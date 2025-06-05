@@ -318,7 +318,7 @@ namespace DRAMPower {
             bank.cycles.act.start_interval(timestamp);
 
         // Execute implicit pre-charge at refresh end
-        addImplicitCommand(timestamp_end, [this, &bank, &rank, timestamp_end]() {
+        addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
             bank.bankState = Bank::BankState::BANK_PRECHARGED;
             bank.cycles.act.close_interval(timestamp_end);
 
@@ -344,7 +344,7 @@ namespace DRAMPower {
         handleRefAll(rank, timestamp);
         // Handle self-refresh entry after tRFC
         auto timestampSelfRefreshStart = timestamp + memSpec.memTimingSpec.tRFC;
-        addImplicitCommand(timestampSelfRefreshStart, [this, &rank, timestampSelfRefreshStart]() {
+        addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
             rank.counter.selfRefresh++;
             rank.cycles.sref.start_interval(timestampSelfRefreshStart);
             rank.memState = MemState::SREF;
@@ -360,7 +360,7 @@ namespace DRAMPower {
     void LPDDR4::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
-        addImplicitCommand(entryTime, [this, &rank, entryTime]() {
+        addImplicitCommand(entryTime, [&rank, entryTime]() {
             rank.cycles.powerDownAct.start_interval(entryTime);
             rank.memState = MemState::PDN_ACT;
             if (rank.cycles.act.is_open()) {
@@ -379,7 +379,7 @@ namespace DRAMPower {
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-        addImplicitCommand(exitTime, [this, &rank, exitTime]() {
+        addImplicitCommand(exitTime, [&rank, exitTime]() {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownAct.close_interval(exitTime);
 
@@ -402,7 +402,7 @@ namespace DRAMPower {
     void LPDDR4::handlePowerDownPreEntry(Rank &rank, timestamp_t timestamp) {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
-        addImplicitCommand(entryTime, [this, &rank, entryTime]() {
+        addImplicitCommand(entryTime, [&rank, entryTime]() {
             rank.cycles.powerDownPre.start_interval(entryTime);
             rank.memState = MemState::PDN_PRE;
         });
@@ -413,7 +413,7 @@ namespace DRAMPower {
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-        addImplicitCommand(exitTime, [this, &rank, exitTime]() {
+        addImplicitCommand(exitTime, [&rank, exitTime]() {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownPre.close_interval(exitTime);
         });
