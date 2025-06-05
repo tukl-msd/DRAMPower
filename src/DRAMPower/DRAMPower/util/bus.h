@@ -5,8 +5,6 @@
 #include <DRAMPower/util/burst_storage.h>
 #include <DRAMPower/util/bus_types.h>
 #include <DRAMPower/util/pending_stats.h>
-#include <DRAMPower/util/extension_manager_static.h>
-#include <DRAMPower/util/bus_extensions.h>
 #include <DRAMPower/Types.h>
 
 #include <DRAMUtils/util/types.h>
@@ -25,7 +23,7 @@
 namespace DRAMPower::util 
 {
 
-template <std::size_t max_bitset_size = 0, typename... Extensions>
+template <std::size_t max_bitset_size = 0>
 class Bus {
 
 private:
@@ -41,10 +39,6 @@ public:
 	
 	using burst_storage_t = util::burst_storage<max_bitset_size>;
 	using burst_t = typename burst_storage_t::burst_t;
-	using ExtensionManager_t = extension_manager_static::StaticExtensionManager<DRAMUtils::util::type_sequence<
-		Extensions...
-		>, bus_extensions::BusHook
-	>;
 
 	bus_stats_t stats;
 
@@ -68,7 +62,6 @@ private:
 	BusIdlePatternSpec idle_pattern;
 	BusInitPatternSpec_ init_pattern;
 	std::optional<burst_t> custom_init_pattern;
-    ExtensionManager_t extensionManager;
 
 private:
 	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec_ init_pattern,
@@ -187,19 +180,6 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		}
 		timestamp_t virtual_timestamp = timestamp * this->datarate;
 		
-		// Extension hook
-		const uint8_t *datain = data; 
-		uint8_t *dataout = nullptr;
-		extensionManager.template callHook<bus_extensions::BusHook::onBeforeLoad>([this, virtual_timestamp, n_bits, &datain, &dataout](auto& ext) {
-			ext.onBeforeLoad(virtual_timestamp, n_bits, datain, dataout);
-			if (nullptr != dataout) {
-				datain = dataout;
-			}
-		});
-		if (dataout != nullptr) {
-			data = dataout;
-		}
-
 		// Init stats
 		if(!this->init_load && virtual_timestamp == 0) {
 			// stats added as pending_stats
@@ -218,10 +198,6 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		this->burst_storage.clear();
 
 		add_data(virtual_timestamp, data, n_bits);
-
-		extensionManager.template callHook<bus_extensions::BusHook::onAfterLoad>([this, virtual_timestamp, n_bits, &data](auto& ext) {
-			ext.onAfterLoad(virtual_timestamp, n_bits, data);
-		});
 	};
 
 	void load(timestamp_t timestamp, uint64_t data, std::size_t length) {
@@ -380,30 +356,6 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 	bus_stats_t diff(std::optional<burst_t> high, burst_t low) const {
 		return diff(high, std::make_optional(low));
 	};
-
-	constexpr ExtensionManager_t& getExtensionManager() {
-		return extensionManager;
-	}
-
-	// Proxy extensionManager functions
-	template<typename Extension, typename Func>
-	constexpr decltype(auto) withExtension(Func&& func) {
-		return extensionManager.template withExtension<Extension>(std::forward<Func>(func));
-	}
-
-	template<typename Extension>
-	constexpr static bool hasExtension() {
-		return (false || ... || (std::is_same_v<Extension, Extensions>));
-	}
-	template<typename Extension>
-	constexpr auto& getExtension() {
-		return extensionManager.template getExtension<Extension>();
-	}
-	template<typename Extension>
-	constexpr const auto& getExtension() const {
-		return extensionManager.template getExtension<Extension>();
-	}
-
 };
 
 }

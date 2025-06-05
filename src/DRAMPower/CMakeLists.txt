@@ -29,6 +29,7 @@ add_library(DRAMPower
     DRAMPower/util/binary_ops.cpp
     DRAMPower/util/extensions.cpp
     DRAMPower/util/pin.cpp
+    DRAMPower/util/dbi.cpp
 )
 
 target_include_directories(DRAMPower PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

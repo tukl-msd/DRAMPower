@@ -1,4 +1,7 @@
 #include "DDR4.h"
+#include "DRAMPower/Types.h"
+#include "DRAMPower/util/pin.h"
+#include "DRAMPower/util/pin_types.h"
 
 #include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/standards/ddr4/core_calculation_DDR4.h>
@@ -6,7 +9,7 @@
 #include <iostream>
 #include <functional>
 #include <DRAMPower/util/extensions.h>
-#include <DRAMPower/util/bus_extensions.h>
+#include <optional>
 
 namespace DRAMPower {
 
@@ -32,7 +35,7 @@ namespace DRAMPower {
         , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
         , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
         , dataBus(
-            util::databus_presets::getDataBusPreset<util::bus_extensions::BusExtensionDBI>(
+            util::databus_presets::getDataBusPreset(
                 memSpec.bitWidth * memSpec.numberOfDevices, 
                 util::DataBusConfig {
                     memSpec.bitWidth * memSpec.numberOfDevices,
@@ -46,87 +49,60 @@ namespace DRAMPower {
                 }
             )
         )
+        , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, util::DBI::IdlePattern_t::H, 8,
+            [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
+            this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
+        }, false)
+        , dbiread(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
+        , dbiwrite(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
     {
-        std::size_t n_dbi_pins = 0;
-        if (memSpec.bitWidth > 4) {
-            // Only x8 and x16 devices have DBI
-            auto callback = [&n_dbi_pins, &memSpec](auto& ext) {
-                ext.setWidth(memSpec.bitWidth);
-                ext.setDataRate(memSpec.dataRate);
-                ext.setNumberOfDevices(memSpec.numberOfDevices);
-                ext.setChunkSize(8);
-                ext.setIdlePattern(util::BusIdlePatternSpec::H);
-                
-                ext.enable(false); // DBI is disabled by default
-                
-                n_dbi_pins = ext.getDBIPinNumber();
-            };
-            this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>(callback);
-            this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>(callback);
-            this->dbiread.resize(n_dbi_pins, util::Pin{util::PinState::H});
-            this->dbiwrite.resize(n_dbi_pins, util::Pin{util::PinState::H});
-            this->registerCommands();
-            this->registerExtensions();
+        this->registerCommands();
+        this->registerExtensions();
+    }
+
+    void DDR4::handleDBIPinChange(const timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool state, bool read) {
+        assert(pin < dbiread.size() || pin < dbiwrite.size());
+        auto updatePinCallback = [this, chunk_timestamp, pin, state, read](){
+            if (read) {
+                this->dbiread[pin].set(chunk_timestamp, state ? util::PinState::L : util::PinState::H, 1);
+            } else {
+                this->dbiwrite[pin].set(chunk_timestamp, state ? util::PinState::L : util::PinState::H, 1);
+            }
+        };
+
+        if (chunk_timestamp > load_timestamp) {
+            // Schedule the pin state change
+            this->addImplicitCommand(chunk_timestamp / memSpec.dataRate, updatePinCallback);
+        } else {
+            // chunk_timestamp <= load_timestamp
+            updatePinCallback();
         }
+    }
+
+    std::optional<const uint8_t *> DDR4::handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read) {
+        if (0 == n_bits || !data || !m_dbi.isEnabled()) {
+            // No DBI or no data to process
+            return std::nullopt;
+        }
+        timestamp_t virtual_time = timestamp * memSpec.dataRate;
+        // updateDBI calls the given callback to handle pin changes
+        auto dbiResult = m_dbi.updateDBI(virtual_time, n_bits, data, read);
+        if (!dbiResult) {
+            // No data to return
+            return std::nullopt;
+        }
+        // TODO Schedule reset
+        // Return the inverted data
+        return dbiResult;
     }
 
     void DDR4::registerExtensions() {
         using namespace pattern_descriptor;
         // DRAMPowerExtensionDBI
         this->extensionManager.registerExtension<extensions::DBI>([this]([[maybe_unused]] const timestamp_t timestamp, const bool enable) {
-            // Assumption: the enabling of the DBI does not interleave with previous data on the bus
-            // Toggle the DBI databus extension
-            auto callback = [enable](auto& ext) {
-                ext.enable(enable);
-            };
-            this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>(callback);
-            this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>(callback);
+            // NOTE: Assumption: the enabling of the DBI does not interleave with previous data on the bus
+            m_dbi.enable(enable);
         }, false);
-        // DRAMPowerExtensionDBI -- DataBusExtensionDBI
-        this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>([this](util::bus_extensions::BusExtensionDBI& ext) {
-            ext.setChangeCallback([this](timestamp_t load_timestamp, timestamp_t invert_timestamp, std::size_t pinnumber, bool invert) {
-                assert(pinnumber < this->dbiread.size());
-                if (invert_timestamp > load_timestamp) {
-                    this->addImplicitCommand(invert_timestamp / memSpec.dataRate, [this, invert_timestamp, pinnumber, invert]() {
-                        this->dbiread[pinnumber].set(invert_timestamp, invert ? util::PinState::L : util::PinState::H, 1);
-                    });
-                } else {
-                    // load_timestamp == invert_timestamp
-                    this->dbiread[pinnumber].set(invert_timestamp, invert ? util::PinState::L : util::PinState::H, 1);
-                }
-            });
-            ext.setAfterLoadCallback([this]([[maybe_unused]] timestamp_t load_timestamp, timestamp_t burst_finish_timestamp) {
-                // convert bus timestamp to clock timestamp and schedule the pin idle
-                this->addImplicitCommand(burst_finish_timestamp / memSpec.dataRate, [this, burst_finish_timestamp]() {
-                    for (auto& pin : this->dbiread) {
-                        // Set the pin to high after the burst
-                        pin.set(burst_finish_timestamp, util::PinState::H, 1);
-                    }
-                });
-            });
-        });
-        this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>([this](util::bus_extensions::BusExtensionDBI& ext) {
-            ext.setChangeCallback([this](timestamp_t load_timestamp, timestamp_t invert_timestamp, std::size_t pinnumber, bool invert) {
-                assert(pinnumber < this->dbiwrite.size());
-                if (invert_timestamp > load_timestamp) {
-                    this->addImplicitCommand(invert_timestamp / memSpec.dataRate, [this, invert_timestamp, pinnumber, invert]() {
-                        this->dbiwrite[pinnumber].set(invert_timestamp, invert ? util::PinState::L : util::PinState::H, 1);
-                    });
-                } else {
-                    // load_timestamp == invert_timestamp
-                    this->dbiwrite[pinnumber].set(invert_timestamp, invert ? util::PinState::L : util::PinState::H, 1);
-                }
-            });
-            ext.setAfterLoadCallback([this]([[maybe_unused]] timestamp_t load_timestamp, timestamp_t burst_finish_timestamp) {
-                // convert bus timestamp to clock timestamp and schedule the pin idle
-                this->addImplicitCommand(burst_finish_timestamp / memSpec.dataRate, [this, burst_finish_timestamp]() {
-                    for (auto& pin : this->dbiwrite) {
-                        // Set the pin to high after the burst
-                        pin.set(burst_finish_timestamp, util::PinState::H, 1);
-                    }
-                });
-            });
-        });
     }
 
 
@@ -437,12 +413,17 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
             if (dataBus.isTogglingRate()) {
                 // If bus is enabled skip loading data
                 length = memSpec.burstLength;
-                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), nullptr);
+                (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), cmd.data);
             }
         } else {
+            std::optional<const uint8_t *> dbi_data = std::nullopt;
             // Data provided by command
+            if (dataBus.isBus() && m_dbi.isEnabled()) {
+                // Only compute dbi for bus mode
+                dbi_data = handleDBIInterface(cmd.timestamp, cmd.sz_bits, cmd.data, read);
+            }
             length = cmd.sz_bits / (dataBus.getWidth());
-            (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
+            (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, dbi_data.value_or(cmd.data));
         }
         assert(this->ranks.size()>cmd.targetCoordinate.rank);
         auto & rank = this->ranks[cmd.targetCoordinate.rank];

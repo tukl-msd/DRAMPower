@@ -19,7 +19,7 @@ namespace DRAMPower {
         , commandBus{7, 2, // modelled with datarate 2
             util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
         , dataBus{
-            util::databus_presets::getDataBusPreset<util::bus_extensions::BusExtensionDBI>(
+            util::databus_presets::getDataBusPreset(
                 memSpec.bitWidth * memSpec.numberOfDevices,
                 util::DataBusConfig {
                     memSpec.bitWidth * memSpec.numberOfDevices,
@@ -37,14 +37,9 @@ namespace DRAMPower {
         , wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
     {
         this->registerCommands();
-        this->extensionManager.registerExtension<extensions::DBI>([this]([[maybe_unused]] const timestamp_t timestamp, const bool enable){
+        this->extensionManager.registerExtension<extensions::DBI>([](const timestamp_t, const bool){
             // Assumption: the enabling of the DBI does not interleave with previous data on the bus
-            // Toggle the DBI databus extension
-            auto callback = [enable](auto& ext) {
-                ext.enable(enable);
-            };
-            this->dataBus.withExtensionRead<util::bus_extensions::BusExtensionDBI>(callback);
-            this->dataBus.withExtensionWrite<util::bus_extensions::BusExtensionDBI>(callback);
+            // TODO add DBI
         }, false);
     }
 

@@ -37,6 +37,8 @@ public:
     void set(timestamp_t t, PinState state, std::size_t datarate = 1);
     // The timestamp t is relative to the clock frequency
     pin_stats_t get_stats_at(timestamp_t t, std::size_t dataRate = 1) const;
+
+    PinState get(timestamp_t timestampp, std::size_t dataRate = 1);
     
 // Private member variables
 private:

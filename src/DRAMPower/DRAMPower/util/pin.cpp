@@ -63,11 +63,34 @@ void Pin::set(timestamp_t t, PinState state, std::size_t dataRate)
     m_last_state = state;
 }
 
+PinState Pin::get(timestamp_t timestamp, std::size_t dataRate)
+{
+    timestamp_t virtual_time = timestamp * dataRate;
+    assert(virtual_time >= m_last_set);
+    if (virtual_time == m_last_set) {
+        // Retrive lastState from pendingStats
+        if (pending_stats.isPending()) {
+            return pending_stats.getStats().fromstate;
+        } else {
+            return m_last_state; // No pending stats, return last state
+        }
+    }
+    // Add stats before returning the state
+    if (pending_stats.isPending() && pending_stats.getTimestamp() < virtual_time) {
+        addPendingStats(virtual_time, m_stats);
+        pending_stats.clear();
+    }
+    // m_last_state doesn't change
+    count(virtual_time, m_stats);
+    m_last_set = virtual_time;
+    return m_last_state; // Return the last state
+}
+
 Pin::pin_stats_t Pin::get_stats_at(timestamp_t t, std::size_t dataRate) const
 {
     timestamp_t virtual_time = t * dataRate;
     assert(virtual_time >= m_last_set);
-    if (virtual_time * dataRate == m_last_set) {
+    if (virtual_time == m_last_set) {
         return m_stats;
     }
     // virtual_time > m_last_set

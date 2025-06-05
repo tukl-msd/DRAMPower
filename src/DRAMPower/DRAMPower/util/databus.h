@@ -8,7 +8,6 @@
 
 #include <DRAMPower/util/bus.h>
 #include <DRAMPower/util/databus_types.h>
-#include <DRAMPower/util/extension_manager_static.h>
 #include <DRAMPower/util/databus_types.h>
 #include <DRAMPower/dram/Interface.h>
 
@@ -18,12 +17,11 @@
 namespace DRAMPower::util {
 
 // DataBus class
-template<std::size_t max_bitset_size = 0, typename... BusExtensions>
+template<std::size_t max_bitset_size = 0>
 class DataBus {
 
 public:
-    using Bus_t = util::Bus<max_bitset_size, BusExtensions...>;
-    using ExtensionManager_t = typename Bus_t::ExtensionManager_t;
+    using Bus_t = util::Bus<max_bitset_size>;
     using IdlePattern_t = util::BusIdlePatternSpec;
     using InitPattern_t = util::BusInitPatternSpec;
 
@@ -52,9 +50,6 @@ public:
                 togglingHandleWrite.enable(0);
                 break;
         }
-        // extensionManager.template callHook<databus_extensions::DataBusHook::onInit>([this](auto& ext) {
-        //     ext.onInit(this->width);
-        // });
     }
     DataBus(DataBusConfig&& config)
     : DataBus(config.width, config.dataRate, config.idlePattern, config.initPattern,
@@ -146,46 +141,6 @@ public:
         togglingHandleWriteStats += togglingHandleWrite.get_stats(timestamp);
     }
 
-    constexpr ExtensionManager_t& getExtensionManagerRead() {
-        return busRead.getExtensionManager();
-    }
-    constexpr ExtensionManager_t& getExtensionManagerWrite() {
-        return busWrite.getExtensionManager();
-    }
-
-    // Proxy getExtension
-    template<typename Extension>
-    constexpr auto& getExtensionRead() {
-        return busRead.getExtensionManager().template getExtension<Extension>();
-    }
-    template<typename Extension>
-    constexpr auto& getExtensionWrite() {
-        return busWrite.getExtensionManager().template getExtension<Extension>();
-    }
-    template<typename Extension>
-    constexpr const auto& getExtensionRead() {
-        return busRead.getExtensionManager().template getExtension<Extension>();
-    }
-    template<typename Extension>
-    constexpr const auto& getExtensionWrite() {
-        return busWrite.getExtensionManager().template getExtension<Extension>();
-    }
-
-    template<typename Extension, typename Func>
-    constexpr decltype(auto) withExtensionWrite(Func&& func) {
-        return busWrite.getExtensionManager().template withExtension<Extension>(std::forward<Func>(func));
-    }
-    template<typename Extension, typename Func>
-    constexpr decltype(auto) withExtensionRead(Func&& func) {
-        return busRead.getExtensionManager().template withExtension<Extension>(std::forward<Func>(func));
-    }
-
-    // Proxy hasExtension
-    template<typename Extension>
-    constexpr static bool hasExtension() {
-        return (false || ... || (std::is_same_v<Extension, BusExtensions>));
-    }
-
 private:
     Bus_t busRead;
     Bus_t busWrite;
@@ -194,7 +149,6 @@ private:
     DataBusMode busType;
     std::size_t dataRate;
     std::size_t width;
-    ExtensionManager_t extensionManager;
 };
 
 /** DataBusContainer class
@@ -337,35 +291,6 @@ public:
             arg.get_stats(timestamp, busReadStats, busWriteStats, togglingReadState, togglingWriteState);
         }, m_dataBusContainer.getVariant());
     }
-
-    template<typename Extension, typename Func>
-    decltype(auto) withExtensionRead(Func&& func) {
-        return std::visit([&func](auto && arg) {
-            return arg.template withExtensionRead<Extension>(std::forward<Func>(func));
-        }, m_dataBusContainer.getVariant());
-    }
-    template<typename Extension, typename Func>
-    decltype(auto) withExtensionWrite(Func&& func) {
-        return std::visit([&func](auto && arg) {
-            return arg.template withExtensionWrite<Extension>(std::forward<Func>(func));
-        }, m_dataBusContainer.getVariant());
-    }
-
-    // All databus types must support the given Extension for this to be true
-    template<typename Extension>
-    static constexpr bool hasExtension() {
-        // Check if all DataBus types support the given extension
-        return (Tss::template hasExtension<Extension>() && ...);
-    }
-
-    // The active databus must support the given Extension for this to be true
-    template<typename Extension>
-    bool hasExtensionRuntime() const {
-        return std::visit([](auto && arg) {
-            return arg.template hasExtension<Extension>();
-        }, m_dataBusContainer.getVariant());
-    }
-    
 };
 
 } // namespace DRAMPower::util

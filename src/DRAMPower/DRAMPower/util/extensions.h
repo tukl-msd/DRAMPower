@@ -4,7 +4,6 @@
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/util/extension_base.h>
 #include <DRAMPower/util/databus_presets.h>
-#include <DRAMPower/util/bus_extensions.h>
 #include <DRAMPower/Types.h>
 
 #include <functional>

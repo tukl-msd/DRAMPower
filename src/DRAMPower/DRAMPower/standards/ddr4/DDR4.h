@@ -12,7 +12,7 @@
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMPower/memspec/MemSpecDDR4.h>
-#include <DRAMPower/util/bus_extensions.h>
+#include <DRAMPower/util/dbi.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
 
@@ -34,7 +34,7 @@ public:
     virtual ~DDR4() = default;
 public:
     using commandbus_t = util::Bus<27>;
-    using databus_t =  util::databus_presets::databus_preset_t<util::bus_extensions::BusExtensionDBI>;
+    using databus_t =  util::databus_presets::databus_preset_t;
     MemSpecDDR4 memSpec;
     std::vector<Rank> ranks;
 
@@ -55,6 +55,7 @@ public:
 public:
     databus_t dataBus;
 private:
+    util::DBI m_dbi;
     std::vector<util::Pin> dbiread;
     std::vector<util::Pin> dbiwrite;
 
@@ -114,10 +115,12 @@ public:
         return entryTime;
     };
 private:
+    void handleDBIPinChange(const timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool state, bool read);
     void handleInterfaceDQs(const Command& cmd, util::Clock &dqs, size_t length);
     void handleInterfaceCommandBus(const Command& cmd);
     void handleInterfaceData(const Command &cmd, bool read);
     void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
+    std::optional<const uint8_t *> handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
     void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
     timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
     void handleInterfaceOverrides(size_t length, bool read);
