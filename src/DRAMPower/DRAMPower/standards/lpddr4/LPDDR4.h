@@ -1,6 +1,7 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR4_LPDDR4_H
 #define DRAMPOWER_STANDARDS_LPDDR4_LPDDR4_H
 
+#include "DRAMPower/util/cli_architecture_config.h"
 #include <DRAMPower/util/bus.h>
 #include <DRAMPower/util/databus.h>
 #include <DRAMPower/util/databus_presets.h>
@@ -100,10 +101,7 @@ public:
     };
 public:
     SimulationStats getStats();
-    uint64_t getBankCount() override;
-    uint64_t getRankCount() override;
-    uint64_t getDeviceCount() override;
-
+    util::CLIArchitectureConfig getCLIArchitectureConfig() override;
 
     void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handlePre(Rank & rank, Bank & bank, timestamp_t timestamp);

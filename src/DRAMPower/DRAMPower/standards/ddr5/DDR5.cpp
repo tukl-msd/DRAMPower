@@ -172,16 +172,12 @@ namespace DRAMPower {
     }
 
 // Getters for CLI
-    uint64_t DDR5::getBankCount() {
-        return memSpec.numberOfBanks;
-    }
-
-    uint64_t DDR5::getRankCount() {
-        return memSpec.numberOfRanks;
-    }
-
-    uint64_t DDR5::getDeviceCount() {
-        return memSpec.numberOfDevices;
+    util::CLIArchitectureConfig DDR5::getCLIArchitectureConfig() {
+        return util::CLIArchitectureConfig{
+            memSpec.numberOfDevices,
+            memSpec.numberOfRanks,
+            memSpec.numberOfBanks
+        };
     }
 
 // Update toggling rate

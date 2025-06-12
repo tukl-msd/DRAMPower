@@ -1,6 +1,7 @@
 #ifndef DRAMPOWER_STANDARDS_DDR4_DDR4_H
 #define DRAMPOWER_STANDARDS_DDR4_DDR4_H
 
+#include "DRAMPower/util/cli_architecture_config.h"
 #include <DRAMPower/standards/ddr4/DDR4Interface.h>
 #include <DRAMPower/standards/ddr4/DDR4Core.h>
 
@@ -42,9 +43,7 @@ public:
     energy_t calcCoreEnergy(timestamp_t timestamp) override;
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
     SimulationStats getWindowStats(timestamp_t timestamp) override;
-    uint64_t getBankCount() override;
-    uint64_t getRankCount() override;
-    uint64_t getDeviceCount() override;
+    util::CLIArchitectureConfig getCLIArchitectureConfig() override;
 
 #ifdef DRAMPOWER_TESTING
 public:

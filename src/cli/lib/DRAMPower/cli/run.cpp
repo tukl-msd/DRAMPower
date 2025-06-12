@@ -13,6 +13,8 @@
 
 #include <DRAMPower/data/energy.h>
 
+#include <DRAMPower/util/cli_architecture_config.h>
+
 #include <DRAMPower/standards/ddr4/DDR4.h>
 #include <DRAMPower/memspec/MemSpecDDR4.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
@@ -165,13 +167,14 @@ bool jsonFileResult(const std::string &jsonfile, const std::unique_ptr<dram_base
 	}
 	json_t j;
 	size_t energy_offset = 0;
-	auto bankcount = ddr->getBankCount();
-	auto rankcount = ddr->getRankCount();
-	auto devicecount = ddr->getDeviceCount();
+	DRAMPower::util::CLIArchitectureConfig cli_config = ddr->getCLIArchitectureConfig();
+	auto bankcount = cli_config.bankCount;
+	auto rankcount = cli_config.rankCount;
+	auto devicecount = cli_config.deviceCount;
 
-	j["RankCount"] = ddr->getRankCount();
-	j["DeviceCount"] = ddr->getDeviceCount();
-	j["BankCount"] = ddr->getBankCount();
+	j["RankCount"] = rankcount;
+	j["DeviceCount"] = devicecount;
+	j["BankCount"] = bankcount;
 	j["TotalEnergy"] = core_energy.total() + interface_energy.total();
 
 	// Energy object to json
@@ -208,9 +211,10 @@ bool stdoutResult(const std::unique_ptr<dram_base<CmdType>> &ddr, const energy_t
 	// Setup output format
 	std::cout << std::defaultfloat << std::setprecision(3);
 	// Print stats
-	auto bankcount = ddr->getBankCount();
-	auto rankcount = ddr->getRankCount();
-	auto devicecount = ddr->getDeviceCount();
+	DRAMPower::util::CLIArchitectureConfig cli_config = ddr->getCLIArchitectureConfig();
+	auto bankcount = cli_config.bankCount;
+	auto rankcount = cli_config.rankCount;
+	auto devicecount = cli_config.deviceCount;
 	size_t energy_offset = 0;
 	// NOTE: ensure the same order of calculation in the interface
 	spdlog::info("Rank,Device,Bank -> bank_energy:");

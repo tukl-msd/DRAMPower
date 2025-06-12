@@ -12,6 +12,7 @@
 #include <DRAMPower/util/Router.h>
 #include <DRAMPower/util/PatternHandler.h>
 #include <DRAMPower/util/ImplicitCommandHandler.h>
+#include <DRAMPower/util/cli_architecture_config.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
 
@@ -69,9 +70,7 @@ public:
     virtual energy_t calcCoreEnergy(timestamp_t timestamp) = 0;
     virtual interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) = 0;
     virtual SimulationStats getWindowStats(timestamp_t timestamp) = 0;
-    virtual uint64_t getBankCount() = 0;
-    virtual uint64_t getRankCount() = 0;
-    virtual uint64_t getDeviceCount() = 0;
+    virtual util::CLIArchitectureConfig getCLIArchitectureConfig() = 0;
 
 // Getters for member variables
 public:

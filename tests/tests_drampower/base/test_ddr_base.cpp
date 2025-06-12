@@ -5,6 +5,7 @@
 #include "DRAMPower/dram/dram_base.h"
 
 #include "DRAMPower/command/Pattern.h"
+#include "DRAMPower/util/cli_architecture_config.h"
 
 #include <memory>
 
@@ -18,9 +19,7 @@ private:
 public:
 	energy_t calcCoreEnergy(timestamp_t) override { return energy_t(1); };
     interface_energy_info_t calcInterfaceEnergy(timestamp_t) override { return interface_energy_info_t(); };
-	uint64_t getBankCount() override { return 1; };
-	uint64_t getRankCount() override { return 1; };
-	uint64_t getDeviceCount() override { return 1; };
+	util::CLIArchitectureConfig getCLIArchitectureConfig() override { return util::CLIArchitectureConfig{}; };
 	SimulationStats getWindowStats(timestamp_t) override { return SimulationStats(); };
 
 	std::vector<timestamp_t> execution_order;

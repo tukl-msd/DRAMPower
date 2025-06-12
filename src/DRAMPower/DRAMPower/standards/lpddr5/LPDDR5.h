@@ -19,6 +19,7 @@
 #include "DRAMPower/memspec/MemSpec.h"
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
 #include "DRAMPower/util/bus.h"
+#include "DRAMPower/util/cli_architecture_config.h"
 #include "DRAMPower/util/databus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
@@ -47,9 +48,7 @@ private:
 public:
 
     SimulationStats getStats();
-    uint64_t getBankCount() override;
-    uint64_t getRankCount() override;
-    uint64_t getDeviceCount() override;
+    util::CLIArchitectureConfig getCLIArchitectureConfig() override;
 
     // Commands
     void handleAct(Rank& rank, Bank& bank, timestamp_t timestamp);

@@ -1,5 +1,6 @@
 #include "DDR4.h"
 #include "DRAMPower/Types.h"
+#include "DRAMPower/util/cli_architecture_config.h"
 
 #include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/standards/ddr4/core_calculation_DDR4.h>
@@ -100,16 +101,12 @@ namespace DRAMPower {
     }
 
 // Getters for CLI
-    uint64_t DDR4::getBankCount() {
-        return m_memSpec.numberOfBanks;
-    }
-
-    uint64_t DDR4::getRankCount() {
-        return m_memSpec.numberOfRanks;
-    }
-
-    uint64_t DDR4::getDeviceCount() {
-        return m_memSpec.numberOfDevices;
+    util::CLIArchitectureConfig DDR4::getCLIArchitectureConfig() {
+        return util::CLIArchitectureConfig{
+            m_memSpec.numberOfDevices,
+            m_memSpec.numberOfRanks,
+            m_memSpec.numberOfBanks
+        };
     }
 
     void DDR4::endOfSimulation(timestamp_t) {

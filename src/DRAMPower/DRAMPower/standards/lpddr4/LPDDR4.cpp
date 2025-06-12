@@ -148,17 +148,13 @@ namespace DRAMPower {
     };
 
 // Getters for CLI
-    uint64_t LPDDR4::getBankCount() {
-        return memSpec.numberOfBanks;
+    util::CLIArchitectureConfig LPDDR4::getCLIArchitectureConfig() {
+        return util::CLIArchitectureConfig{
+            memSpec.numberOfDevices,
+            memSpec.numberOfRanks,
+            memSpec.numberOfBanks
+        };
     }
-
-    uint64_t LPDDR4::getRankCount() {
-        return memSpec.numberOfRanks;
-    }
-
-    uint64_t LPDDR4::getDeviceCount() {
-    return memSpec.numberOfDevices;
-}
 
 // Update toggling rate
     void LPDDR4::enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp) {

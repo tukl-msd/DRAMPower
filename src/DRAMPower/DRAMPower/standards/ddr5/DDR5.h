@@ -16,6 +16,7 @@
 #include "DRAMPower/dram/dram_base.h"
 #include "DRAMPower/memspec/MemSpecDDR5.h"
 #include "DRAMPower/util/bus.h"
+#include "DRAMPower/util/cli_architecture_config.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
 
@@ -45,9 +46,7 @@ public:
 
     timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
 
-    uint64_t getBankCount() override;
-    uint64_t getRankCount() override;
-    uint64_t getDeviceCount() override;
+    util::CLIArchitectureConfig getCLIArchitectureConfig() override;
 
 
 public:
