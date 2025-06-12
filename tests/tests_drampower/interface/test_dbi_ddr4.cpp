@@ -50,7 +50,8 @@ static constexpr uint8_t wr_data[] = {
 static constexpr uint8_t rd_data[] = {
     0, 0, 0, 0,  0, 0, 255, 1, // inverted to 0xFF,0xFF,0xFF,0xFF, 0xFF,0xFF,0xFF,0xFE
     // DBI Line:
-    // H // before burst
+    // H // before burst for test_patterns[0] or test_patterns[1] burst 1
+    // L // before burst for test_patterns[1] burst 2
     // L // burst 1 time = 11, virtual_time = 22 ok
     // L // burst 2 vt = 23 ok
     // L // burst 3 vt = 24 ok
@@ -59,7 +60,8 @@ static constexpr uint8_t rd_data[] = {
     // L // burst 6 vt = 27 ok
     // H // burst 7 vt = 28 ok
     // L // burst 8 vt = 29 ok
-    // H // after burst TODO
+    // H // after burst for test_patterns[0]
+    // L // after burst for test_patterns[1] burst 2
     // 7 inversions
     // 0xFF to 0xFF; 0 ones to zeroes, 0 zeroes to ones, 8 ones, 0 zeroes // before burst
     // 0xFF to 0xFF; 0 ones to zeroes, 0 zeroes to ones, 8 ones, 0 zeroes
@@ -82,6 +84,14 @@ class DDR4_DBI_Tests : public ::testing::Test {
             {4, CmdType::WR, {1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
             {11, CmdType::RD, {1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
             {16, CmdType::PRE, {1, 0, 0, 2}},
+            {24, CmdType::END_OF_SIMULATION},
+        });
+        test_patterns.push_back({
+            {0, CmdType::ACT, {1, 0, 0, 2}},
+            {4, CmdType::WR, {1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
+            {11, CmdType::RD, {1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)},
+            {15, CmdType::RD, {1, 0, 0, 0, 16}, rd_data, SZ_BITS(rd_data)}, // Seamless read
+            {20, CmdType::PRE, {1, 0, 0, 2}},
             {24, CmdType::END_OF_SIMULATION},
         });
 
@@ -133,6 +143,40 @@ TEST_F(DDR4_DBI_Tests, Pattern_0) {
     EXPECT_EQ(stats.readDBI.zeroes, 7);
     EXPECT_EQ(stats.readDBI.ones_to_zeroes, 2);
     EXPECT_EQ(stats.readDBI.zeroes_to_ones, 2);
+
+    EXPECT_EQ(stats.writeDBI.ones, 48 - 2);
+    EXPECT_EQ(stats.writeDBI.zeroes, 2);
+    EXPECT_EQ(stats.writeDBI.ones_to_zeroes, 2);
+    EXPECT_EQ(stats.writeDBI.zeroes_to_ones, 2);
+
+}
+
+TEST_F(DDR4_DBI_Tests, Pattern_1) {
+    ddr->getExtensionManager().withExtension<DRAMPower::extensions::DBI>([](DRAMPower::extensions::DBI& dbi) {
+        dbi.enable(0, true);
+    });
+    runCommands(test_patterns[1]);
+
+    SimulationStats stats = ddr->getStats();
+
+    EXPECT_EQ(spec->dataRate, 2);
+
+    // Data bus
+    EXPECT_EQ(stats.writeBus.ones, 370); // 2 (datarate) * 24 (time) * 8 (bus width) - 14 (zeroes)
+    EXPECT_EQ(stats.writeBus.zeroes, 14);
+    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 11);  // 0 transitions 1 -> 0
+    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 11);  // back to 1
+
+    EXPECT_EQ(stats.readBus.ones, 382);  // 2 (datarate) * 24 (time) * 8 (bus width) - 2 (zeroes) 
+    EXPECT_EQ(stats.readBus.zeroes, 2);  // 2 (zeroes)
+    EXPECT_EQ(stats.readBus.ones_to_zeroes, 2); // 2 transitions 1 -> 0
+    EXPECT_EQ(stats.readBus.zeroes_to_ones, 2); // back to 1
+
+    // DBI
+    EXPECT_EQ(stats.readDBI.ones, 48 - 14);
+    EXPECT_EQ(stats.readDBI.zeroes, 14);
+    EXPECT_EQ(stats.readDBI.ones_to_zeroes, 3);
+    EXPECT_EQ(stats.readDBI.zeroes_to_ones, 3);
 
     EXPECT_EQ(stats.writeDBI.ones, 48 - 2);
     EXPECT_EQ(stats.writeDBI.zeroes, 2);

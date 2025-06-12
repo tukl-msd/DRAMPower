@@ -650,6 +650,10 @@ timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optiona
         // If there are still implicit commands queued up, process them first
         processImplicitCommandQueue(timestamp);
 
+        // Reset the DBI interface pins to idle state
+        m_dbi.dispatchResetCallback(timestamp * memSpec.dataRate, false);
+        m_dbi.dispatchResetCallback(timestamp * memSpec.dataRate, true);
+
         // DDR4 x16 have 2 DQs differential pairs
         uint_fast8_t NumDQsPairs = 1;
         if(memSpec.bitWidth == 16)

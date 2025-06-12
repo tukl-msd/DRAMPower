@@ -29,8 +29,12 @@ public:
 private:
     using Self = DBI;
     struct LastBurst_t {
+        timestamp_t start; // Start timestamp of the last burst
         timestamp_t end; // End timestamp of the last burst
         bool read; // True if the last burst was a read operation
+
+        bool consumed = false;
+        bool init = false;
     };
 
 // Public contructors, destructors and assignment operators
@@ -60,7 +64,8 @@ public:
     void enable(bool enable);
     bool isEnabled() const;
 
-    const std::vector<State_t>& getInversionState() const;
+    const std::vector<State_t>& getInversionStateRead() const;
+    const std::vector<State_t>& getInversionStateWrite() const;
 
     std::size_t getChunksPerWidth() const;
 
@@ -84,10 +89,12 @@ private:
     IdlePattern_t m_idlePattern = IdlePattern_t::Z; // Default idle pattern is High-Z
     std::size_t m_lastInversionSize = 0; // Store last inversion length for toggle detection
 
-    std::optional<LastBurst_t> m_lastBurst = std::nullopt; // Last burst end timestamp
+    LastBurst_t m_lastBurst_read;  // Last burst end timestamp
+    LastBurst_t m_lastBurst_write; // Last burst end timestamp
 
     std::size_t m_chunkSize = 8; // Size of each chunk in bits
-    std::vector<State_t> m_lastInvert; // Last inversion state for each pin
+    std::vector<State_t> m_lastInvert_read;  // Last inversion state for each pin
+    std::vector<State_t> m_lastInvert_write; // Last inversion state for each pin
     DataBuffer_t m_invertedData; // Buffer for inverted data
 
     ChangeCallback_t m_changeCallback = nullptr; // Callback called in updateDBI
