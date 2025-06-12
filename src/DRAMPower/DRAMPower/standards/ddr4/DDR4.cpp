@@ -25,22 +25,6 @@ namespace DRAMPower {
         this->registerExtensions();
     }
 
-    std::optional<const uint8_t *> DDR4Interface::handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read) {
-        if (0 == n_bits || !data || !m_dbi.isEnabled()) {
-            // No DBI or no data to process
-            return std::nullopt;
-        }
-        timestamp_t virtual_time = timestamp * m_memSpec.dataRate;
-        // updateDBI calls the given callback to handle pin changes
-        auto dbiResult = m_dbi.updateDBI(virtual_time, n_bits, data, read);
-        if (!dbiResult) {
-            // No data to return
-            return std::nullopt;
-        }
-        // Return the inverted data
-        return dbiResult;
-    }
-
     void DDR4::registerExtensions() {
         using namespace pattern_descriptor;
         // DRAMPowerExtensionDBI
