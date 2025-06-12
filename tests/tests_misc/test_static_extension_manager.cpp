@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
 #include <type_traits>
 
 #include <DRAMUtils/util/types.h>
@@ -76,27 +75,27 @@ public:
 
 // Member functions
     void testhook0(int &i) {
-        invokeHook<StaticExtensionHookExample::Hook_0>([this, &i](auto& ext) {
+        invokeHook<StaticExtensionHookExample::Hook_0>([&i](auto& ext) {
             ext.Hook_0(i);
         });
     }
     void testhook1(int &i) {
-        invokeHook<StaticExtensionHookExample::Hook_1>([this, &i](auto& ext) {
+        invokeHook<StaticExtensionHookExample::Hook_1>([&i](auto& ext) {
             ext.Hook_1(i);
         });
     }
     void testhook2(int &i) {
-        invokeHook<StaticExtensionHookExample::Hook_2>([this, &i](auto& ext) {
+        invokeHook<StaticExtensionHookExample::Hook_2>([&i](auto& ext) {
             ext.Hook_2(i);
         });
     }
     void testhook3(int &i) {
-        invokeHook<StaticExtensionHookExample::Hook_3>([this, &i](auto& ext) {
+        invokeHook<StaticExtensionHookExample::Hook_3>([&i](auto& ext) {
             ext.Hook_3(i);
         });
     }
     void testhook4(int &i) {
-        invokeHook<StaticExtensionHookExample::Hook_4>([this, &i](auto& ext) {
+        invokeHook<StaticExtensionHookExample::Hook_4>([&i](auto& ext) {
             ext.Hook_4(i);
         });
     }
@@ -130,7 +129,7 @@ TEST_F(MiscTestStaticExtensionHook, StaticExtensionManager0)
     ASSERT_EQ(dut->extensionManager.getExtension<StaticExtensionWithHookExample>().getState(), 1);
 
     // Set Extension with a visitor lambda
-    dut->extensionManager.withExtension<StaticExtensionWithHookExample>([this](auto& ext) {
+    dut->extensionManager.withExtension<StaticExtensionWithHookExample>([](auto& ext) {
         ext.setState(2);
     });
     ASSERT_EQ(dut->extensionManager.getExtension<StaticExtensionWithHookExample>().getState(), 2);

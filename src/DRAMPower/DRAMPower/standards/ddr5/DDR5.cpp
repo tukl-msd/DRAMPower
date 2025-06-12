@@ -51,7 +51,7 @@ namespace DRAMPower {
         , writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
     {
         this->registerCommands();
-        getExtensionManager().registerExtension<extensions::DBI>([]([[maybe_unused]] const timestamp_t timestamp, const bool enable){
+        getExtensionManager().registerExtension<extensions::DBI>([](const timestamp_t, const bool){
             // Assumption: the enabling of the DBI does not interleave with previous data on the bus
             // TODO add DBI
         }, false);
