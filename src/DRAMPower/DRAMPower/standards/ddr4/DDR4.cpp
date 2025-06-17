@@ -25,6 +25,7 @@ namespace DRAMPower {
         this->registerExtensions();
     }
 
+// Extensions
     void DDR4::registerExtensions() {
         using namespace pattern_descriptor;
         // DRAMPowerExtensionDBI
@@ -84,6 +85,10 @@ namespace DRAMPower {
         routeInterfaceCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
     }
 
+    void DDR4::endOfSimulation(timestamp_t) {
+        assert(this->implicitCommandCount() == 0);
+    }
+
 // Getters for CLI
     util::CLIArchitectureConfig DDR4::getCLIArchitectureConfig() {
         return util::CLIArchitectureConfig{
@@ -91,10 +96,6 @@ namespace DRAMPower {
             m_memSpec.numberOfRanks,
             m_memSpec.numberOfBanks
         };
-    }
-
-    void DDR4::endOfSimulation(timestamp_t) {
-        assert(this->implicitCommandCount() == 0);
     }
 
     timestamp_t DDR4::update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) {
