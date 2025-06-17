@@ -29,7 +29,7 @@ namespace DRAMPower {
     void DDR4::registerExtensions() {
         using namespace pattern_descriptor;
         // DRAMPowerExtensionDBI
-        getExtensionManager().registerExtension<extensions::DBI>([this]([[maybe_unused]] const timestamp_t timestamp, const bool enable) {
+        getExtensionManager().registerExtension<extensions::DBI>([this](const timestamp_t, const bool enable) {
             // NOTE: Assumption: the enabling of the DBI does not interleave with previous data on the bus
             m_interface.m_dbi.enable(enable);
         }, false);
