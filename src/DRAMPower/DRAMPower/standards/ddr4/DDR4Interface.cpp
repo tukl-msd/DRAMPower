@@ -171,13 +171,7 @@ namespace DRAMPower {
         }
         timestamp_t virtual_time = timestamp * m_memSpec.dataRate;
         // updateDBI calls the given callback to handle pin changes
-        auto dbiResult = m_dbi.updateDBI(virtual_time, n_bits, data, read);
-        if (!dbiResult) {
-            // No data to return
-            return std::nullopt;
-        }
-        // Return the inverted data
-        return dbiResult;
+        return m_dbi.updateDBI(virtual_time, n_bits, data, read);
     }
 
     void DDR4Interface::handlePrePostamble(
