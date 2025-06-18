@@ -42,8 +42,6 @@ public:
         return coreRegisterHelper_t{this, m_ranks};
     }
 
-// Public member functions
-public:
     void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handlePre(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handlePreAll(Rank & rank, timestamp_t timestamp); 
