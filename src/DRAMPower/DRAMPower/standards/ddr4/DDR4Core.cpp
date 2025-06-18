@@ -51,7 +51,7 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
             bank.refreshEndTime = timestamp_end;                                    // used for earliest power down calculation
 
             // Execute implicit pre-charge at refresh end
-            addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
+            m_implicitCommandInserter.addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
                 bank.bankState = Bank::BankState::BANK_PRECHARGED;
                 bank.cycles.act.close_interval(timestamp_end);
                 // stop rank active interval if no more banks active
@@ -79,7 +79,7 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
         // Execute PRE after minimum active time
-        addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
+        m_implicitCommandInserter.addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
             this->handlePre(rank, bank, delayed_timestamp);
         });
     }
@@ -97,7 +97,7 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
 
         // Execute PRE after minimum active time
-        addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
+        m_implicitCommandInserter.addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
             this->handlePre(rank, bank, delayed_timestamp);
         });
     }
@@ -107,7 +107,7 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         handleRefAll(rank, timestamp);
         // Handle self-refresh entry after tRFC
         auto timestampSelfRefreshStart = timestamp + m_memSpec.get().memTimingSpec.tRFC;
-        addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
+        m_implicitCommandInserter.addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
             rank.counter.selfRefresh++;
             rank.cycles.sref.start_interval(timestampSelfRefreshStart);
             rank.memState = MemState::SREF;
@@ -123,7 +123,7 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
     void DDR4Core::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
-        addImplicitCommand(entryTime, [&rank, entryTime]() {
+        m_implicitCommandInserter.addImplicitCommand(entryTime, [&rank, entryTime]() {
             rank.memState = MemState::PDN_ACT;
             rank.cycles.powerDownAct.start_interval(entryTime);
             rank.cycles.act.close_interval(entryTime);
@@ -139,7 +139,7 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-        addImplicitCommand(exitTime, [&rank, exitTime]() {
+        m_implicitCommandInserter.addImplicitCommand(exitTime, [&rank, exitTime]() {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownAct.close_interval(exitTime);
 
@@ -163,7 +163,7 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
         auto entryTime = std::max(timestamp, earliestPossibleEntry);
 
-        addImplicitCommand(entryTime, [&rank, entryTime]() {
+        m_implicitCommandInserter.addImplicitCommand(entryTime, [&rank, entryTime]() {
             for (auto &bank : rank.banks)
                 bank.cycles.act.close_interval(entryTime);
             rank.memState = MemState::PDN_PRE;
@@ -178,7 +178,7 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
         auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-        addImplicitCommand(exitTime, [&rank, exitTime]() {
+        m_implicitCommandInserter.addImplicitCommand(exitTime, [&rank, exitTime]() {
             rank.memState = MemState::NOT_IN_PD;
             rank.cycles.powerDownPre.close_interval(exitTime);
 

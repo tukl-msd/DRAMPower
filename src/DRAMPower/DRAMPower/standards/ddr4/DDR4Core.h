@@ -42,13 +42,6 @@ public:
         return coreRegisterHelper_t{this, m_ranks};
     }
 
-// Private member functions
-private:
-    template<typename Func>
-    void addImplicitCommand(timestamp_t timestamp, Func && func) {
-        m_implicitCommandInserter.addImplicitCommand(timestamp, std::forward<Func>(func));
-    }
-
 // Public member functions
 public:
     void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);
@@ -65,7 +58,9 @@ public:
     void handlePowerDownActExit(Rank & rank, timestamp_t timestamp);
     void handlePowerDownPreEntry(Rank & rank, timestamp_t timestamp);
     void handlePowerDownPreExit(Rank & rank, timestamp_t timestamp);
+
     timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) const;
+
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
 
 // Public members
