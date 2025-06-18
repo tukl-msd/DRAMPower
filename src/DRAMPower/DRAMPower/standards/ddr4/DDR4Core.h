@@ -63,11 +63,11 @@ public:
 
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
 
-// Public members
+// Public member variables
 public:
     std::vector<Rank> m_ranks;
 
-// Private members
+// Private members variables
 private:
     std::reference_wrapper<const MemSpecDDR4> m_memSpec;
     implicitCommandInserter_t m_implicitCommandInserter;
