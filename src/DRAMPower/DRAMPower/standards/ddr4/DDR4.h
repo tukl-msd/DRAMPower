@@ -29,12 +29,13 @@ class DDR4 : public dram_base<CmdType> {
 // Public constructors and assignment operators
 public:
     DDR4() = delete; // No default constructor
-    DDR4(const DDR4&) = delete; // No copy constructor
-    DDR4& operator=(const DDR4&) = delete; // No copy assignment operator
-    DDR4(DDR4&&) = delete; // no move constructor
-    DDR4& operator=(DDR4&&) = delete; // no move assignment operator
-    DDR4(const MemSpecDDR4 &memSpec);
+    DDR4(const DDR4&) = default; // copy constructor
+    DDR4& operator=(const DDR4&) = default; // copy assignment operator
+    DDR4(DDR4&&) = default; // move constructor
+    DDR4& operator=(DDR4&&) = default; // move assignment operator
     ~DDR4() override = default;
+    
+    DDR4(const MemSpecDDR4 &memSpec);
 
 // Overrides
 private:

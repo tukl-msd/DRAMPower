@@ -36,7 +36,7 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
     }
 
     void DDR4Core::handleRefAll(Rank &rank, timestamp_t timestamp) {
-        auto timestamp_end = timestamp + m_memSpec.memTimingSpec.tRFC;
+        auto timestamp_end = timestamp + m_memSpec.get().memTimingSpec.tRFC;
         rank.endRefreshTime = timestamp_end;
         rank.cycles.act.start_interval_if_not_running(timestamp);
         //rank.cycles.pre.close_interval(timestamp);
@@ -73,8 +73,8 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
     void DDR4Core::handleReadAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
         ++bank.counter.readAuto;
 
-        auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
-        auto minReadActiveTime = timestamp + m_memSpec.prechargeOffsetRD;
+        auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.get().memTimingSpec.tRAS;
+        auto minReadActiveTime = timestamp + m_memSpec.get().prechargeOffsetRD;
 
         auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
@@ -91,8 +91,8 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
     void DDR4Core::handleWriteAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
         ++bank.counter.writeAuto;
 
-        auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
-        auto minWriteActiveTime =  timestamp + m_memSpec.prechargeOffsetWR;
+        auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.get().memTimingSpec.tRAS;
+        auto minWriteActiveTime =  timestamp + m_memSpec.get().prechargeOffsetWR;
 
         auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
 
@@ -106,7 +106,7 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
         // Issue implicit refresh
         handleRefAll(rank, timestamp);
         // Handle self-refresh entry after tRFC
-        auto timestampSelfRefreshStart = timestamp + m_memSpec.memTimingSpec.tRFC;
+        auto timestampSelfRefreshStart = timestamp + m_memSpec.get().memTimingSpec.tRFC;
         addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
             rank.counter.selfRefresh++;
             rank.cycles.sref.start_interval(timestampSelfRefreshStart);
@@ -203,8 +203,8 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
 
         for (const auto & bank : rank.banks) {
             entryTime = std::max({ entryTime,
-                                   bank.counter.act == 0 ? 0 :  bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRCD,
-                                   bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.memTimingSpec.tRP,
+                                   bank.counter.act == 0 ? 0 :  bank.cycles.act.get_start() + m_memSpec.get().memTimingSpec.tRCD,
+                                   bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.get().memTimingSpec.tRP,
                                    bank.refreshEndTime
                                  });
         }
@@ -214,14 +214,14 @@ void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
 
     void DDR4Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
         // resize banks and ranks
-        stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks);
-        stats.rank_total.resize(m_memSpec.numberOfRanks);
+        stats.bank.resize(m_memSpec.get().numberOfBanks * m_memSpec.get().numberOfRanks);
+        stats.rank_total.resize(m_memSpec.get().numberOfRanks);
 
         auto simulation_duration = timestamp;
-        for (size_t i = 0; i < m_memSpec.numberOfRanks; ++i) {
+        for (size_t i = 0; i < m_memSpec.get().numberOfRanks; ++i) {
             const Rank &rank = m_ranks[i];
-            size_t bank_offset = i * m_memSpec.numberOfBanks;
-            for (size_t j = 0; j < m_memSpec.numberOfBanks; ++j) {
+            size_t bank_offset = i * m_memSpec.get().numberOfBanks;
+            for (size_t j = 0; j < m_memSpec.get().numberOfBanks; ++j) {
                 stats.bank[bank_offset + j].counter = rank.banks[j].counter;
                 stats.bank[bank_offset + j].cycles.act =
                     rank.banks[j].cycles.act.get_count_at(timestamp);

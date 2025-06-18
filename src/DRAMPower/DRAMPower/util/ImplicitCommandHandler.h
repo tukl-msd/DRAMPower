@@ -41,18 +41,17 @@ class Inserter {
 
 // Private constructors and assignment operators
 private:
-    Inserter() = delete; // No default constructor
-    Inserter(const Inserter&) = delete; // No copy constructor
-    Inserter& operator=(const Inserter&) = delete; // No copy assignment operator
-
     // Constructor that takes a reference to the implicit command list
     explicit Inserter(implicitCommandList_t& implicitCommandList);
 
 // Public constructors and assignment operators
 public:
-    Inserter(Inserter&&) = default;
-    Inserter& operator=(Inserter&&) = delete;
-    ~Inserter() = default;
+    Inserter() = delete; // No default constructor
+    Inserter(const Inserter&) = default; // copy constructor
+    Inserter& operator=(const Inserter&) = default; // copy assignment operator
+
+    Inserter(Inserter&&) = default; // move constructor
+    Inserter& operator=(Inserter&&) = default; // move assignment operator
 
 // Public member functions
 public:
@@ -60,14 +59,14 @@ public:
     template <typename Func>
     void addImplicitCommand(timestamp_t timestamp, Func&& func)
     {
-        details::addImplicitCommand(m_implicitCommandList, timestamp, std::forward<Func>(func));
+        details::addImplicitCommand(m_implicitCommandList.get(), timestamp, std::forward<Func>(func));
     }
 
     std::size_t implicitCommandCount() const;
 
 // Private member variables
 private:
-    implicitCommandList_t& m_implicitCommandList;
+    std::reference_wrapper<implicitCommandList_t> m_implicitCommandList;
 };
 
 // Helper type definitions
@@ -77,8 +76,8 @@ public:
 // Constructors and assignment operators
 public:
     ImplicitCommandHandler() = default;
-    ImplicitCommandHandler(const ImplicitCommandHandler&) = delete; // No copy constructor
-    ImplicitCommandHandler& operator=(const ImplicitCommandHandler&) = delete; // No copy assignment operator
+    ImplicitCommandHandler(const ImplicitCommandHandler&) = default; // copy constructor
+    ImplicitCommandHandler& operator=(const ImplicitCommandHandler&) = default; // copy assignment operator
     ImplicitCommandHandler(ImplicitCommandHandler&&) = default;
     ImplicitCommandHandler& operator=(ImplicitCommandHandler&&) = default;
     ~ImplicitCommandHandler() = default;

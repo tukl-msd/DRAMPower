@@ -7,7 +7,7 @@ ImplicitCommandHandler::Inserter::Inserter(implicitCommandList_t& implicitComman
 {}
 
 std::size_t ImplicitCommandHandler::Inserter::implicitCommandCount() const{
-    return m_implicitCommandList.size();
+    return m_implicitCommandList.get().size();
 }
 
 ImplicitCommandHandler::Inserter_t ImplicitCommandHandler::createInserter() {

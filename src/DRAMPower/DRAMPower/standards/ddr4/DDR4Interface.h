@@ -21,6 +21,7 @@
 
 #include <DRAMUtils/config/toggling_rate.h>
 
+#include <functional>
 #include <stdint.h>
 #include <cstddef>
 #include <vector>
@@ -34,8 +35,8 @@ public:
     InterfaceRegisterHelper(Interface *interface)
         : m_interface(interface)
     {}
-    InterfaceRegisterHelper(const InterfaceRegisterHelper&) = delete; // No copy constructor
-    InterfaceRegisterHelper& operator=(const InterfaceRegisterHelper&) = delete; // No copy assignment operator
+    InterfaceRegisterHelper(const InterfaceRegisterHelper&) = default; // copy constructor
+    InterfaceRegisterHelper& operator=(const InterfaceRegisterHelper&) = default; // copy assignment operator
     InterfaceRegisterHelper(InterfaceRegisterHelper&&) = default; // Move constructor
     InterfaceRegisterHelper& operator=(InterfaceRegisterHelper&&) = default; // Move assignment operator
     ~InterfaceRegisterHelper() = default; // Destructor
@@ -69,10 +70,10 @@ public:
 // Public constructor
 public:
     DDR4Interface() = delete; // no default constructor
-    DDR4Interface(const DDR4Interface&) = delete; // no copy constructor
-    DDR4Interface& operator=(const DDR4Interface&) = delete; // no copy assignment operator
-    DDR4Interface(DDR4Interface&&) = delete; // no move constructor
-    DDR4Interface& operator=(DDR4Interface&&) = delete; // no move assignment operator
+    DDR4Interface(const DDR4Interface&) = default; // copy constructor
+    DDR4Interface& operator=(const DDR4Interface&) = default; // copy assignment operator
+    DDR4Interface(DDR4Interface&&) = default; // move constructor
+    DDR4Interface& operator=(DDR4Interface&&) = default; // move assignment operator
 
     DDR4Interface(const MemSpecDDR4 &memSpec, implicitCommandInserter_t&& implicitCommandInserter, 
                   patternHandler_t &patternHandler)
@@ -162,8 +163,8 @@ public:
 
 // Private members
 private:
-    const MemSpecDDR4& m_memSpec;
-    patternHandler_t &m_patternHandler;
+    std::reference_wrapper<const MemSpecDDR4> m_memSpec;
+    std::reference_wrapper<patternHandler_t> m_patternHandler;
     implicitCommandInserter_t m_implicitCommandInserter;
 };
 

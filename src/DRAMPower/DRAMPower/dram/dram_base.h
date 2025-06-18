@@ -47,9 +47,9 @@ public:
 
 // Public constructors and assignment operators
 public:
-    dram_base() = delete; // No default constructor
-    dram_base(const dram_base&) = delete; // No copy constructor
-    dram_base& operator=(const dram_base&) = delete; // No copy assignment operator
+    dram_base() = default; // default constructor
+    dram_base(const dram_base&) = default; // copy constructor
+    dram_base& operator=(const dram_base&) = default; // copy assignment operator
     dram_base(dram_base&&) = default; // Move constructor
     dram_base& operator=(dram_base&&) = default; // Move assignment operator
     virtual ~dram_base() = 0;

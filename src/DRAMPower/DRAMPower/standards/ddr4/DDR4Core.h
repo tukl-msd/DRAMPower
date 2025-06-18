@@ -9,9 +9,9 @@
 
 #include <DRAMPower/memspec/MemSpecDDR4.h>
 
+#include <functional>
 #include <vector>
 #include <cstddef>
-#include <functional>
 #include <cassert>
 
 namespace DRAMPower {
@@ -81,8 +81,13 @@ public:
     using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
     using coreRegisterHelper_t = CoreRegisterHelper<DDR4Core>;
 
-// Public constructors
+// Public constructors and assignment operators
 public:
+    DDR4Core() = delete; // No default constructor
+    DDR4Core(const DDR4Core&) = default; // copy constructor
+    DDR4Core& operator=(const DDR4Core&) = default; // copy assignment operator
+    DDR4Core(DDR4Core&&) = default; // move constructor
+    DDR4Core& operator=(DDR4Core&&) = default; // move assignment operator
     DDR4Core(const MemSpecDDR4 &memSpec, implicitCommandInserter_t&& implicitCommandInserter)
         : m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)}) 
         , m_memSpec(memSpec)
@@ -137,7 +142,7 @@ public:
 
 // Private members
 private:
-    const MemSpecDDR4& m_memSpec;
+    std::reference_wrapper<const MemSpecDDR4> m_memSpec;
     implicitCommandInserter_t m_implicitCommandInserter;
 };
 

@@ -65,16 +65,13 @@ public:
 	MemSpecDDR4(json_t &data) = delete;
 	MemSpecDDR4(const json_t &data) = delete;
 
-    // Copy constructor
+    // Copy constructor and assignment operator
     MemSpecDDR4(const MemSpecDDR4&) = default;
+	MemSpecDDR4& operator=(const MemSpecDDR4&) = default;
 
-    // Move constructor
+    // Move constructor and assignment operator
     MemSpecDDR4(MemSpecDDR4&&) = default;
-
-    // Move assignment operator
-    MemSpecDDR4& operator=(MemSpecDDR4&&) = default;
-
-	~MemSpecDDR4() = default;
+	MemSpecDDR4& operator=(MemSpecDDR4&&) = default;
 
     uint64_t timeToCompletion(CmdType type) override;
 
