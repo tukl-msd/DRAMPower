@@ -48,11 +48,11 @@ public:
 
 #ifdef DRAMPOWER_TESTING
 public:
-    const std::vector<Rank>& getCoreRanks() const {
-        return m_core.getRanks();
+    const DDR4Core& getCore() const {
+        return m_core;
     }
-    std::vector<Rank>& getCoreRanks() {
-        return m_core.getRanks();
+    DDR4Core& getCore() {
+        return m_core;
     }
     const DDR4Interface& getInterface() const {
         return m_interface;
