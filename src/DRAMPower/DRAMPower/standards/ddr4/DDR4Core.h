@@ -6,6 +6,7 @@
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/data/stats.h>
 #include <DRAMPower/util/ImplicitCommandHandler.h>
+#include <DRAMPower/util/RegisterHelper.h>
 
 #include <DRAMPower/memspec/MemSpecDDR4.h>
 
@@ -16,70 +17,11 @@
 
 namespace DRAMPower {
 
-template<typename Core>
-struct CoreRegisterHelper {
-// Public constructors and assignment operators
-public:
-    CoreRegisterHelper(Core *core, std::vector<Rank> &ranks)
-        : m_core(core)
-        , m_ranks(ranks)
-    {}
-    CoreRegisterHelper(const CoreRegisterHelper&) = delete; // No copy constructor
-    CoreRegisterHelper& operator=(const CoreRegisterHelper&) = delete; // No copy assignment operator
-    CoreRegisterHelper(CoreRegisterHelper&&) = default; // Move constructor
-    CoreRegisterHelper& operator=(CoreRegisterHelper&&) = default; // Move assignment operator
-    ~CoreRegisterHelper() = default; // Destructor
-
-// Public member functions
-public:
-    template<typename Func>
-    decltype(auto) registerBankHandler(Func &&member_func) {
-        Core* this_ptr = m_core;
-        return [this_ptr, ranks_ref = std::ref(m_ranks), member_func](const Command & command) {
-            auto &this_ranks = ranks_ref.get();
-            assert(this_ranks.size()>command.targetCoordinate.rank);
-            auto & rank = this_ranks.at(command.targetCoordinate.rank);
-
-            assert(rank.banks.size()>command.targetCoordinate.bank);
-            auto & bank = rank.banks.at(command.targetCoordinate.bank);
-
-            rank.commandCounter.inc(command.type);
-            (this_ptr->*member_func)(rank, bank, command.timestamp);
-        };
-    }
-
-    template<typename Func>
-    decltype(auto) registerRankHandler(Func &&member_func) {
-        Core* this_ptr = m_core;
-        return [this_ptr, ranks_ref = std::ref(m_ranks), member_func](const Command & command) {
-            auto &this_ranks = ranks_ref.get();
-            assert(this_ranks.size()>command.targetCoordinate.rank);
-            auto & rank = this_ranks.at(command.targetCoordinate.rank);
-
-            rank.commandCounter.inc(command.type);
-            (this_ptr->*member_func)(rank, command.timestamp);
-        };
-    }
-
-    template<typename Func>
-    decltype(auto) registerHandler(Func && member_func) {
-        Core* this_ptr = m_core;
-        return [this_ptr, member_func](const Command & command) {
-            (this_ptr->*member_func)(command.timestamp);
-        };
-    }
-
-// Private member variables
-private:
-    Core *m_core;
-    std::vector<Rank> &m_ranks;
-};
-
 class DDR4Core {
 // Public type definitions
 public:
     using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
-    using coreRegisterHelper_t = CoreRegisterHelper<DDR4Core>;
+    using coreRegisterHelper_t = util::CoreRegisterHelper<DDR4Core>;
 
 // Public constructors and assignment operators
 public:
@@ -106,16 +48,6 @@ private:
     void addImplicitCommand(timestamp_t timestamp, Func && func) {
         m_implicitCommandInserter.addImplicitCommand(timestamp, std::forward<Func>(func));
     }
-
-#ifdef DRAMPOWER_TESTING
-public:
-    const std::vector<Rank>& getRanks() const {
-        return m_ranks;
-    }
-    std::vector<Rank>& getRanks() {
-        return m_ranks;
-    }
-#endif
 
 // Public member functions
 public:
