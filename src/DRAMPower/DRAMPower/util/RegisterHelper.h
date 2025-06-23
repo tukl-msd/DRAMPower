@@ -53,8 +53,27 @@ public:
         };
     }
 
+    template <typename Func>
+    decltype(auto) registerBankGroupHandler(Func &&member_func) {
+        Core *this_ptr = m_core;
+        return [this_ptr, ranks_ref = std::ref(m_ranks), member_func](const Command & command) {
+            auto &this_ranks = ranks_ref.get();
+            assert(this_ranks.size()>command.targetCoordinate.rank);
+            auto& rank = this_ranks.at(command.targetCoordinate.rank);
+
+            assert(rank.banks.size()>command.targetCoordinate.bank);
+            if (command.targetCoordinate.bank >= rank.banks.size()) {
+                throw std::invalid_argument("Invalid bank targetcoordinate");
+            }
+            auto bank_id = command.targetCoordinate.bank;
+            
+            rank.commandCounter.inc(command.type);
+            (this_ptr->*member_func)(rank, bank_id, command.timestamp);
+        };
+    }
+
     template<typename Func>
-    decltype(auto) registerHandler(Func && member_func) {
+    decltype(auto) registerHandler(Func &&member_func) {
         Core* this_ptr = m_core;
         return [this_ptr, member_func](const Command & command) {
             (this_ptr->*member_func)(command.timestamp);
