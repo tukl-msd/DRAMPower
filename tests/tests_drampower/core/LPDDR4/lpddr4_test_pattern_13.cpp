@@ -85,7 +85,7 @@ TEST_F(DramPowerTest_LPDDR4_13, Test)
         ddr->doCoreCommand(command);
     };
 
-	Rank & rank_1 = ddr->ranks[0];
+	Rank & rank_1 = ddr->getCore().m_ranks[0];
 	auto stats = ddr->getStats();
 
 	// Check global command count

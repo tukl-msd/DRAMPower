@@ -90,7 +90,7 @@ TEST_F(DramPowerTest_LPDDR4_12, Pattern_2)
     };
 
 	// Inspect first rank
-	Rank & rank_1 = ddr->ranks[0];
+	Rank & rank_1 = ddr->getCore().m_ranks[0];
 
 	// Check global command count
 	ASSERT_EQ(rank_1.commandCounter.get(CmdType::RD), 13);
