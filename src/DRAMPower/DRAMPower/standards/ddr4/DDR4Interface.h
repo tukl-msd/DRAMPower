@@ -77,14 +77,7 @@ public:
     void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
     void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
     timestamp_t updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition);
-    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp);
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
-
-private:
-    template<typename Func>
-    void addImplicitCommand(timestamp_t timestamp, Func && func) {
-        m_implicitCommandInserter.addImplicitCommand(timestamp, std::forward<Func>(func));
-    }
 
 // Public member variables
 public:

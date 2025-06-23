@@ -42,6 +42,7 @@ namespace DRAMPower {
 
     void DDR4Interface::registerPatterns() {
         using namespace pattern_descriptor;
+        // ACT
         m_patternHandler.get().registerPattern<CmdType::ACT>({
             L, L, R16, R15, R14, BG0, BG1, BA0, BA1,
             V, V, V, R12, R17, R13, R11, R10, R0,
@@ -137,7 +138,7 @@ namespace DRAMPower {
         assert(enable_timestamp >= timestamp);
         if ( enable_timestamp > timestamp ) {
             // Schedule toggling rate enable
-            this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+            m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
                 m_dataBus.enableTogglingRate(enable_timestamp);
             });
         } else {
@@ -150,7 +151,7 @@ namespace DRAMPower {
         assert(enable_timestamp >= timestamp);
         if ( enable_timestamp > timestamp ) {
             // Schedule toggling rate disable
-            this->addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+            m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
                 m_dataBus.enableBus(enable_timestamp);
             });
         } else {
@@ -195,7 +196,7 @@ namespace DRAMPower {
 
         if (chunk_timestamp > load_timestamp) {
             // Schedule the pin state change
-            this->addImplicitCommand(chunk_timestamp / m_memSpec.get().dataRate, updatePinCallback);
+            m_implicitCommandInserter.addImplicitCommand(chunk_timestamp / m_memSpec.get().dataRate, updatePinCallback);
         } else {
             // chunk_timestamp <= load_timestamp
             updatePinCallback();

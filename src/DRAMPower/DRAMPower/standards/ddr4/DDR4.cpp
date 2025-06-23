@@ -35,6 +35,7 @@ namespace DRAMPower {
         }, false);
     }
 
+// Commands
     void DDR4::registerCommands(){
         auto interfaceregistrar = m_interface.getRegisterHelper();
         auto coreregistrar = m_core.getRegisterHelper();
