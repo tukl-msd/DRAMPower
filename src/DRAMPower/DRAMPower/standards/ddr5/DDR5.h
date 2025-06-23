@@ -1,149 +1,70 @@
 #ifndef DRAMPOWER_STANDARDS_DDR5_DDR5_H
 #define DRAMPOWER_STANDARDS_DDR5_DDR5_H
 
-#include <cstdint>
-#include <vector>
 #include <optional>
-#include <stdexcept>
 
 #include <DRAMUtils/config/toggling_rate.h>
 
+#include "DRAMPower/standards/ddr5/DDR5Core.h"
+#include "DRAMPower/standards/ddr5/DDR5Interface.h"
+#include "DRAMPower/memspec/MemSpecDDR5.h"
+
 #include "DRAMPower/Types.h"
-#include "DRAMPower/command/Command.h"
 #include "DRAMPower/data/energy.h"
-#include "DRAMPower/dram/Rank.h"
 #include <DRAMPower/dram/Interface.h>
 #include "DRAMPower/dram/dram_base.h"
-#include "DRAMPower/memspec/MemSpecDDR5.h"
-#include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/cli_architecture_config.h"
-#include "DRAMPower/util/databus_presets.h"
-#include "DRAMPower/util/clock.h"
 
 namespace DRAMPower {
 
 class DDR5 : public dram_base<CmdType> {
-private:
-    const static std::size_t cmdBusWidth = 14;
-    const static uint64_t cmdBusInitPattern = (1 << cmdBusWidth) - 1;
+// public constructors and assignment operators
+public:
+    DDR5() = delete; // No default constructor
+    DDR5(const DDR5&) = default; // copy constructor
+    DDR5& operator=(const DDR5&) = default; // copy assignment operator
+    DDR5(DDR5&&) = default; // move constructor
+    DDR5& operator=(DDR5&&) = default; // move assignment operator
+    ~DDR5() override = default;
 
-public:
-    using commandbus_t = util::Bus<cmdBusWidth>;
-    using databus_t = util::databus_presets::databus_preset_t;
-    MemSpecDDR5 memSpec;
-    std::vector<Rank> ranks;
-    databus_t dataBus;
-public:
-    commandbus_t commandBus;
-private:
-    util::Clock readDQS;
-    util::Clock writeDQS;
-    util::Clock clock;
-
-public:
     DDR5(const MemSpecDDR5& memSpec);
-    virtual ~DDR5() = default;
 
-    timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
-
-    util::CLIArchitectureConfig getCLIArchitectureConfig() override;
-
-
+// Overrides
+private:
+    timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
 public:
     energy_t calcCoreEnergy(timestamp_t timestamp) override;
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
+    SimulationStats getWindowStats(timestamp_t timestamp) override;
+    util::CLIArchitectureConfig getCLIArchitectureConfig() override;
 
-    // Commands
-    void handleAct(Rank& rank, Bank& bank, timestamp_t timestamp);
-    void handlePre(Rank& rank, Bank& bank, timestamp_t timestamp);
-    void handlePreSameBank(Rank& rank, std::size_t bank_id, timestamp_t timestamp);
-    void handlePreAll(Rank& rank, timestamp_t timestamp);
-    void handleRefSameBank(Rank& rank, std::size_t bank_id, timestamp_t timestamp);
-    void handleRefAll(Rank& rank, timestamp_t timestamp);
-    void handleRefreshOnBank(Rank& rank, Bank& bank, timestamp_t timestamp, uint64_t timing,
-                             uint64_t& counter);
-    void handleSelfRefreshEntry(Rank& rank, timestamp_t timestamp);
-    void handleSelfRefreshExit(Rank& rank, timestamp_t timestamp);
-    void handleRead(Rank& rank, Bank& bank, timestamp_t timestamp);
-    void handleWrite(Rank& rank, Bank& bank, timestamp_t timestamp);
-    void handleReadAuto(Rank& rank, Bank& bank, timestamp_t timestamp);
-    void handleWriteAuto(Rank& rank, Bank& bank, timestamp_t timestamp);
-    void handlePowerDownActEntry(Rank& rank, timestamp_t timestamp);
-    void handlePowerDownActExit(Rank& rank, timestamp_t timestamp);
-    void handlePowerDownPreEntry(Rank& rank, timestamp_t timestamp);
-    void handlePowerDownPreExit(Rank& rank, timestamp_t timestamp);
+#ifdef DRAMPOWER_TESTING
+public:
+    const DDR5Core& getCore() const {
+        return m_core;
+    }
+    DDR5Core& getCore() {
+        return m_core;
+    }
+    const DDR5Interface& getInterface() const {
+        return m_interface;
+    }
+    DDR5Interface& getInterface() {
+        return m_interface;
+    }
+#endif
+
+// Private member functions
+private:
+    void registerCommands();
+    void registerExtensions();
     void endOfSimulation(timestamp_t timestamp);
 
-    SimulationStats getWindowStats(timestamp_t timestamp) override;
-
+// Private member variables
 private:
-    timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
-    void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
-    void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
-    void handleInterfaceDQs(const Command& cmd, util::Clock &dqs, size_t length);
-    void handleInterfaceOverrides(size_t length, bool read);
-    void handleInterfaceCommandBus(const Command& cmd);
-    void handleInterfaceData(const Command &cmd, bool read);
-
-protected:
-
-    template<dram_base::commandEnum_t Cmd, typename Func>
-    void registerInterfaceMember(Func && member_func) {
-        this->routeInterfaceCommand<Cmd>([this, member_func](const Command & command) {
-            (this->*member_func)(command);
-        });
-    }
-
-    template <dram_base::commandEnum_t Cmd, typename Func>
-    void registerBankHandler(Func&& member_func) {
-        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
-            assert(this->ranks.size()>command.targetCoordinate.rank);
-            auto& rank = this->ranks.at(command.targetCoordinate.rank);
-
-            assert(rank.banks.size()>command.targetCoordinate.bank);
-            auto& bank = rank.banks.at(command.targetCoordinate.bank);
-            
-            rank.commandCounter.inc(command.type);
-            (this->*member_func)(rank, bank, command.timestamp);
-        });
-    }
-
-    template <dram_base::commandEnum_t Cmd, typename Func>
-    void registerBankGroupHandler(Func&& member_func) {
-        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
-            assert(this->ranks.size()>command.targetCoordinate.rank);
-            auto& rank = this->ranks.at(command.targetCoordinate.rank);
-
-            assert(rank.banks.size()>command.targetCoordinate.bank);
-            if (command.targetCoordinate.bank >= rank.banks.size()) {
-                throw std::invalid_argument("Invalid bank targetcoordinate");
-            }
-            auto bank_id = command.targetCoordinate.bank;
-            
-            rank.commandCounter.inc(command.type);
-            (this->*member_func)(rank, bank_id, command.timestamp);
-        });
-    }
-
-    template <dram_base::commandEnum_t Cmd, typename Func>
-    void registerRankHandler(Func&& member_func) {
-        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
-            assert(this->ranks.size()>command.targetCoordinate.rank);
-            auto& rank = this->ranks.at(command.targetCoordinate.rank);
-
-            rank.commandCounter.inc(command.type);
-            (this->*member_func)(rank, command.timestamp);
-        });
-    }
-
-    template <dram_base::commandEnum_t Cmd, typename Func>
-    void registerHandler(Func&& member_func) {
-        getCommandCoreRouter().routeCommand<Cmd>([this, member_func](const Command& command) {
-            (this->*member_func)(command.timestamp);
-        });
-    }
-
-    void registerCommands();
+    MemSpecDDR5 m_memSpec;
+    DDR5Interface m_interface;
+    DDR5Core m_core;
 };
 
 }  // namespace DRAMPower
