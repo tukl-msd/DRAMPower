@@ -60,7 +60,6 @@ protected:
     virtual void SetUp()
     {
         auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
-        // auto memSpec = DRAMPower::MemSpecDDR4::from_memspec(*data);
         memSpec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
 
         memSpec->numberOfDevices = 5;

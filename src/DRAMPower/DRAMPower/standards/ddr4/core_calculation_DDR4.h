@@ -38,6 +38,6 @@ private:
 	const MemSpecDDR4 &m_memSpec;
 };
 
-};
+} // namespace DRAMPower
 
 #endif /* DRAMPOWER_STANDARDS_DDR4_CALCULATION_DDR4_H */
