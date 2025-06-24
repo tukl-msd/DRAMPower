@@ -31,6 +31,8 @@ add_library(DRAMPower
     DRAMPower/standards/lpddr4/interface_calculation_LPDDR4.cpp
     DRAMPower/standards/lpddr5/core_calculation_LPDDR5.cpp
     DRAMPower/standards/lpddr5/LPDDR5.cpp
+    DRAMPower/standards/lpddr5/LPDDR5Core.cpp
+    DRAMPower/standards/lpddr5/LPDDR5Interface.cpp
     DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.cpp
     DRAMPower/util/binary_ops.cpp
     DRAMPower/util/extensions.cpp

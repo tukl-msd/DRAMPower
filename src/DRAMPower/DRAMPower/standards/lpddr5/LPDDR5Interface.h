@@ -52,7 +52,32 @@ public:
 
     LPDDR5Interface(const MemSpecLPDDR5 &memSpec, implicitCommandInserter_t&& implicitCommandInserter, patternHandler_t &patternHandler);
 
+// Private member functions
+private:
+    void registerPatterns();
 
+// Public member functions
+public:
+    interfaceRegisterHelper_t getRegisterHelper() {
+        return interfaceRegisterHelper_t{this};
+    }
+    void handleOverrides(size_t length, bool read);
+    void handleDQs(const Command& cmd, util::Clock &dqs, size_t length, uint64_t datarate);
+    void handleCommandBus(const Command& cmd);
+    void handleData(const Command &cmd, bool read);
+
+    void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
+    void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
+    timestamp_t updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition);
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+
+// Public member variables
+public:
+    commandbus_t m_commandBus;
+    databus_t m_dataBus;
+    util::Clock m_readDQS;
+    util::Clock m_wck;
+    util::Clock m_clock;
 
 // Private member variables
 private:

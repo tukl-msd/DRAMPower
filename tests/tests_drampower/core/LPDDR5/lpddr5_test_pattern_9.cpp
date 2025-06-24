@@ -35,14 +35,15 @@ protected:
 
 
     // Test variables
+    std::unique_ptr<DRAMPower::MemSpecLPDDR5> memSpec;
     std::unique_ptr<DRAMPower::LPDDR5> ddr;
 
     virtual void SetUp()
     {
         auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr5.json");
-        auto memSpec = DRAMPower::MemSpecLPDDR5::from_memspec(*data);
+        memSpec = std::make_unique<DRAMPower::MemSpecLPDDR5>(DRAMPower::MemSpecLPDDR5::from_memspec(*data));
 
-        ddr = std::make_unique<LPDDR5>(memSpec);
+        ddr = std::make_unique<LPDDR5>(*memSpec);
     }
 
     virtual void TearDown()
@@ -66,7 +67,7 @@ TEST_F(DramPowerTest_LPDDR5_9, Counters_and_Cycles){
     ASSERT_EQ(stats.rank_total[0].cycles.powerDownPre, 15);
 
     // Check bank specific ACT cycle count
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++){
         if(b == 0){
             ASSERT_EQ(stats .bank[b].cycles.act, 45);
         }else if (b == 5){
@@ -77,7 +78,7 @@ TEST_F(DramPowerTest_LPDDR5_9, Counters_and_Cycles){
     }
 
     // Check bank specific PRE cycle count
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++){
         if(b == 0){
             ASSERT_EQ(stats.bank[b].cycles.pre, 20);
         }else if (b == 5){
@@ -88,13 +89,13 @@ TEST_F(DramPowerTest_LPDDR5_9, Counters_and_Cycles){
     }
 
     // Check bank specific PDNA cycle count
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.powerDownAct, 20);
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.powerDownAct, 20);
 
     // Check bank specific PDNP cycle count
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.powerDownPre, 15);
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.powerDownPre, 15);
 
     // Check bank specific SREF cycle count
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.selfRefresh, 0);
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++)  ASSERT_EQ(stats.bank[b].cycles.selfRefresh, 0);
 }
 
 TEST_F(DramPowerTest_LPDDR5_9, Energy) {

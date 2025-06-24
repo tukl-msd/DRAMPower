@@ -30,53 +30,54 @@ protected:
 	};
 
     // Test variables
+    std::unique_ptr<DRAMPower::MemSpecLPDDR5> memSpec;
     std::unique_ptr<DRAMPower::LPDDR5> ddr;
 
     virtual void SetUp()
     {
         auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr5.json");
-        auto memSpec = DRAMPower::MemSpecLPDDR5::from_memspec(*data);
+        memSpec = std::make_unique<DRAMPower::MemSpecLPDDR5>(DRAMPower::MemSpecLPDDR5::from_memspec(*data));
 
-		memSpec.numberOfRanks = 1;
-        memSpec.numberOfBanks = 8;
-        memSpec.banksPerGroup = 8;
-        memSpec.numberOfBankGroups = 1;
-        memSpec.bank_arch = MemSpecLPDDR5::M16B;
-        memSpec.numberOfDevices = 1;
-        memSpec.bitWidth = 16;
-
-
-        memSpec.memTimingSpec.tRAS = 10;
-        memSpec.memTimingSpec.tRFCPB = 25;
-		memSpec.memTimingSpec.tWR = 20;
-		memSpec.memTimingSpec.tWL = 0;
-		memSpec.memTimingSpec.tCK = 1e-9;
-        memSpec.memTimingSpec.tWCK = 1e-9;
-        memSpec.memTimingSpec.tRP = 10;
-		memSpec.memTimingSpec.tREFI = 1;
-        memSpec.memTimingSpec.WCKtoCK = 1;
-        memSpec.memTimingSpec.tRBTP = 2;
+		memSpec->numberOfRanks = 1;
+        memSpec->numberOfBanks = 8;
+        memSpec->banksPerGroup = 8;
+        memSpec->numberOfBankGroups = 1;
+        memSpec->bank_arch = MemSpecLPDDR5::M16B;
+        memSpec->numberOfDevices = 1;
+        memSpec->bitWidth = 16;
 
 
-		memSpec.memPowerSpec[0].vDDX = 1;
-		memSpec.memPowerSpec[0].iDD0X = 64e-3;
-		memSpec.memPowerSpec[0].iDD2NX = 8e-3;
-		memSpec.memPowerSpec[0].iDD3NX = 32e-3;
-		memSpec.memPowerSpec[0].iDD4RX = 72e-3;
-		memSpec.memPowerSpec[0].iDD4WX = 72e-3;
-		memSpec.memPowerSpec[0].iDD5PBX = 6008e-3;
-        memSpec.memPowerSpec[0].iBeta = memSpec.memPowerSpec[0].iDD0X;
+        memSpec->memTimingSpec.tRAS = 10;
+        memSpec->memTimingSpec.tRFCPB = 25;
+		memSpec->memTimingSpec.tWR = 20;
+		memSpec->memTimingSpec.tWL = 0;
+		memSpec->memTimingSpec.tCK = 1e-9;
+        memSpec->memTimingSpec.tWCK = 1e-9;
+        memSpec->memTimingSpec.tRP = 10;
+		memSpec->memTimingSpec.tREFI = 1;
+        memSpec->memTimingSpec.WCKtoCK = 1;
+        memSpec->memTimingSpec.tRBTP = 2;
 
-        memSpec.bwParams.bwPowerFactRho = 0.333333333;
 
-		memSpec.burstLength = 16;
-		memSpec.dataRate = 2;
+		memSpec->memPowerSpec[0].vDDX = 1;
+		memSpec->memPowerSpec[0].iDD0X = 64e-3;
+		memSpec->memPowerSpec[0].iDD2NX = 8e-3;
+		memSpec->memPowerSpec[0].iDD3NX = 32e-3;
+		memSpec->memPowerSpec[0].iDD4RX = 72e-3;
+		memSpec->memPowerSpec[0].iDD4WX = 72e-3;
+		memSpec->memPowerSpec[0].iDD5PBX = 6008e-3;
+        memSpec->memPowerSpec[0].iBeta = memSpec->memPowerSpec[0].iDD0X;
 
-        memSpec.memTimingSpec.tBurst = memSpec.burstLength/(memSpec.dataRate * memSpec.memTimingSpec.WCKtoCK);
-        memSpec.prechargeOffsetRD      =   memSpec.memTimingSpec.tBurst + memSpec.memTimingSpec.tRBTP;
-        memSpec.prechargeOffsetWR      =  memSpec.memTimingSpec.tWL + memSpec.memTimingSpec.tBurst + 1 + memSpec.memTimingSpec.tWR;
+        memSpec->bwParams.bwPowerFactRho = 0.333333333;
 
-        ddr = std::make_unique<LPDDR5>(memSpec);
+		memSpec->burstLength = 16;
+		memSpec->dataRate = 2;
+
+        memSpec->memTimingSpec.tBurst = memSpec->burstLength/(memSpec->dataRate * memSpec->memTimingSpec.WCKtoCK);
+        memSpec->prechargeOffsetRD      =   memSpec->memTimingSpec.tBurst + memSpec->memTimingSpec.tRBTP;
+        memSpec->prechargeOffsetWR      =  memSpec->memTimingSpec.tWL + memSpec->memTimingSpec.tBurst + 1 + memSpec->memTimingSpec.tWR;
+
+        ddr = std::make_unique<LPDDR5>(*memSpec);
     }
 
     virtual void TearDown()

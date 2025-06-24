@@ -1,8 +1,10 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR5_CALCULATION_LPDDR5_H
 #define DRAMPOWER_STANDARDS_LPDDR5_CALCULATION_LPDDR5_H
 
+#include "DRAMPower/data/stats.h"
 #pragma once
 
+#include "DRAMPower/memspec/MemSpecLPDDR5.h"
 #include <DRAMPower/data/energy.h>
 
 #include <DRAMPower/Types.h>
@@ -17,6 +19,8 @@ namespace DRAMPower
 
     class Calculation_LPDDR5
     {
+    public:
+        Calculation_LPDDR5(const MemSpecLPDDR5 &memSpec);
     private:
         double E_act(double VDD, double I_theta, double I_1, double t_RAS, uint64_t N_act);
         double E_pre(double VDD, double IBeta, double IDD2_N, double t_RP, uint64_t N_pre);
@@ -30,7 +34,9 @@ namespace DRAMPower
         double E_ref_p2b(double VDD, double IDD5PB_B, double I_2, double tRFCPB, uint64_t N_P2B_REF);
 
     public:
-        energy_t calcEnergy(timestamp_t timestamp, LPDDR5 & dram);
+        energy_t calcEnergy(const SimulationStats &stats);
+    private:
+        const MemSpecLPDDR5 &m_memSpec;
     };
 
 };

@@ -36,8 +36,32 @@ public:
     coreRegisterHelper_t getRegisterHelper() {
         return coreRegisterHelper_t{this, m_ranks};
     }
+    void handleAct(Rank& rank, Bank& bank, timestamp_t timestamp);
+    void handlePre(Rank& rank, Bank& bank, timestamp_t timestamp);
+    void handlePreAll(Rank& rank, timestamp_t timestamp);
+    void handleRead(Rank& rank, Bank& bank, timestamp_t timestamp);
+    void handleWrite(Rank& rank, Bank& bank, timestamp_t timestamp);
+    void handleReadAuto(Rank& rank, Bank& bank, timestamp_t timestamp);
+    void handleWriteAuto(Rank& rank, Bank& bank, timestamp_t timestamp);
+    void handleRefAll(Rank& rank, timestamp_t timestamp);
+    void handleRefPerBank(Rank& rank, Bank& bank, timestamp_t timestamp);
+    void handleRefPerTwoBanks(Rank& rank, std::size_t bank_id, timestamp_t timestamp);
+    void handleRefreshOnBank(Rank& rank, Bank& bank, timestamp_t timestamp, uint64_t timing,
+                             uint64_t& counter);
+    void handleSelfRefreshEntry(Rank& rank, timestamp_t timestamp);
+    void handleSelfRefreshExit(Rank& rank, timestamp_t timestamp);
+    void handlePowerDownActEntry(Rank& rank, timestamp_t timestamp);
+    void handlePowerDownActExit(Rank& rank, timestamp_t timestamp);
+    void handlePowerDownPreEntry(Rank& rank, timestamp_t timestamp);
+    void handlePowerDownPreExit(Rank& rank, timestamp_t timestamp);
+    void handleDSMEntry(Rank& rank, timestamp_t timestamp);
+    void handleDSMExit(Rank& rank, timestamp_t timestamp);
 
-// Publie member variables:
+    timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) const;
+
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+
+// Public member variables:
 public:
     std::vector<Rank> m_ranks;
 
