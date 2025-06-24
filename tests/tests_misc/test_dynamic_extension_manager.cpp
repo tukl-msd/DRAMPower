@@ -164,27 +164,27 @@ public:
 
 // Member functions
     void testhook0(int &i) {
-        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_0, [this, &i](auto& ext) {
+        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_0, [&i](auto& ext) {
             ext.Hook_0(i);
         });
     }
     void testhook1(int &i) {
-        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_1, [this, &i](const auto& ext) {
+        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_1, [&i](const auto& ext) {
             ext.Hook_1(i);
         });
     }
     void testhook2(int &i) {
-        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_2, [this, &i](auto& ext) {
+        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_2, [&i](auto& ext) {
             ext.Hook_2(i);
         });
     }
     void testhook3(int &i) {
-        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_3, [this, &i](const auto& ext) {
+        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_3, [&i](const auto& ext) {
             ext.Hook_3(i);
         });
     }
     void testhook4(int &i) {
-        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_4, [this, &i](auto& ext) {
+        m_extensionManagerHooks.callHook(DynamicExtensionHookExample::Hook_4, [&i](auto& ext) {
             ext.Hook_4(i);
         });
     }
@@ -272,11 +272,11 @@ TEST_F(MiscTestExtension, DynamicExtensionHooks0)
     ASSERT_EQ(dut_hook->getExtensionManager().getExtension<DynamicExtensionWithHooksExample>().lock()->getState(), true);
 
     // Test visitor
-    dut_hook->getExtensionManager().withExtension<DynamicExtensionWithHooksExample>([this](auto& ext) {
+    dut_hook->getExtensionManager().withExtension<DynamicExtensionWithHooksExample>([](auto& ext) {
         ext.setState(false);
     });
     ASSERT_EQ(dut_hook->getExtensionManager().getExtension<DynamicExtensionWithHooksExample>().lock()->getState(), false);
-    dut_hook->getExtensionManager().withExtension<DynamicExtensionWithHooksExample>([this](auto& ext) {
+    dut_hook->getExtensionManager().withExtension<DynamicExtensionWithHooksExample>([](auto& ext) {
         ext.setState(true);
     });
 
