@@ -28,7 +28,15 @@
 
 namespace DRAMPower {
 
+namespace internal {
+    template<typename Standard, typename Core, typename Interface>
+    class TestAccessor;
+}
+
 class LPDDR4 : public dram_base<CmdType>{
+// Friend classes
+friend class internal::TestAccessor<LPDDR4, LPDDR4Core, LPDDR4Interface>;
+
 // public constructors and assignment operators
 public:
     LPDDR4() = delete; // No default constructor
@@ -49,24 +57,20 @@ public:
     SimulationStats getWindowStats(timestamp_t timestamp) override;
     util::CLIArchitectureConfig getCLIArchitectureConfig() override;
 
-#ifdef DRAMPOWER_TESTING
-public:
-    const LPDDR4Core& getCore() const {
-        return m_core;
-    }
+// Private member functions
+private:
     LPDDR4Core& getCore() {
         return m_core;
     }
-    const LPDDR4Interface& getInterface() const {
-        return m_interface;
+    const LPDDR4Core& getCore() const {
+        return m_core;
     }
     LPDDR4Interface& getInterface() {
         return m_interface;
     }
-#endif
-
-// Private member functions
-private:
+    const LPDDR4Interface& getInterface() const {
+        return m_interface;
+    }
     void registerCommands();
     void registerExtensions();
     void endOfSimulation(timestamp_t timestamp);

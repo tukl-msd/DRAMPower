@@ -12,8 +12,6 @@
 
 namespace DRAMPower {
 
-    using namespace DRAMUtils::Config;
-
     LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
         : dram_base<CmdType>(PatternEncoderOverrides{})
         , m_memSpec(memSpec)
@@ -113,7 +111,7 @@ namespace DRAMPower {
     }
 
 // Update toggling rate
-    timestamp_t LPDDR5::update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleratedefinition)
+    timestamp_t LPDDR5::update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleratedefinition)
     {
         return m_interface.updateTogglingRate(timestamp, toggleratedefinition);
     }

@@ -3,6 +3,7 @@
 #include "DRAMPower/command/Command.h"
 
 #include <DRAMPower/standards/lpddr5/LPDDR5.h>
+#include <DRAMPower/standards/test_accessor.h>
 
 #include <memory>
 #include <fstream>
@@ -82,7 +83,7 @@ TEST_F(DramPowerTest_LPDDR5_12, Pattern1)
     };
 
 	// Inspect first rank
-	auto & rank_1 = ddr->getCore().m_ranks[0];
+	auto & rank_1 = internal::LPDDR5TestAccessor.getCore(*ddr).m_ranks[0];
 	auto stats = ddr->getStats();
 
 	// Check global count

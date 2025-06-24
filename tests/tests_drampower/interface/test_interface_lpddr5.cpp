@@ -5,6 +5,7 @@
 
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
+#include <DRAMPower/standards/test_accessor.h>
 #include <variant>
 
 #include "DRAMPower/data/energy.h"

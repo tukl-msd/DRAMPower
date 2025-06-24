@@ -29,8 +29,17 @@
 #include "DRAMPower/util/databus.h"
 
 namespace DRAMPower {
-class LPDDR5 : public dram_base<CmdType> {
 
+namespace internal {
+    template<typename Standard, typename Core, typename Interface>
+    class TestAccessor;
+}
+
+class LPDDR5 : public dram_base<CmdType> {
+// Friend classes
+friend class internal::TestAccessor<LPDDR5, LPDDR5Core, LPDDR5Interface>;
+
+// Public constructors and assignment operators
 public:
     LPDDR5() = delete; // No default constructor
     LPDDR5(const LPDDR5&) = default; // copy constructor
@@ -49,24 +58,20 @@ public:
     SimulationStats getWindowStats(timestamp_t timestamp) override;
     util::CLIArchitectureConfig getCLIArchitectureConfig() override;
 
-#ifdef DRAMPOWER_TESTING
-public:
-    const LPDDR5Core& getCore() const {
-        return m_core;
-    }
+// Private member functions
+private:
     LPDDR5Core& getCore() {
         return m_core;
     }
-    const LPDDR5Interface& getInterface() const {
-        return m_interface;
+    const LPDDR5Core& getCore() const {
+        return m_core;
     }
     LPDDR5Interface& getInterface() {
         return m_interface;
     }
-#endif
-
-// Private member functions
-private:
+    const LPDDR5Interface& getInterface() const {
+        return m_interface;
+    }
     void registerCommands();
     void registerExtensions();
     void endOfSimulation(timestamp_t timestamp);

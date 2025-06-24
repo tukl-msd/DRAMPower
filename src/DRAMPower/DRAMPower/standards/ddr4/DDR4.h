@@ -25,7 +25,15 @@
 
 namespace DRAMPower {
 
+namespace internal {
+    template<typename Standard, typename Core, typename Interface>
+    class TestAccessor;
+}
+
 class DDR4 : public dram_base<CmdType> {
+// Friend classes
+friend class internal::TestAccessor<DDR4, DDR4Core, DDR4Interface>;
+
 // Public constructors and assignment operators
 public:
     DDR4() = delete; // No default constructor
@@ -46,24 +54,21 @@ public:
     SimulationStats getWindowStats(timestamp_t timestamp) override;
     util::CLIArchitectureConfig getCLIArchitectureConfig() override;
 
-#ifdef DRAMPOWER_TESTING
-public:
-    const DDR4Core& getCore() const {
-        return m_core;
-    }
+    
+// Private member functions
+private:
     DDR4Core& getCore() {
         return m_core;
     }
-    const DDR4Interface& getInterface() const {
-        return m_interface;
+    const DDR4Core& getCore() const {
+        return m_core;
     }
     DDR4Interface& getInterface() {
         return m_interface;
     }
-#endif
-
-// Private member functions
-private:
+    const DDR4Interface& getInterface() const {
+        return m_interface;
+    }
     void registerCommands();
     void registerExtensions();
     void endOfSimulation(timestamp_t timestamp);

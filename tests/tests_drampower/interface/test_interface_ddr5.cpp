@@ -5,6 +5,7 @@
 
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
+#include <DRAMPower/standards/test_accessor.h>
 #include <variant>
 
 #include "DRAMPower/data/energy.h"
@@ -116,7 +117,7 @@ TEST_F(DDR5_WindowStats_Tests, Pattern_0) {
 
     // In this example read data and write data are the same size, so stats should be the same
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(ddr->getInterface().m_dataBus.getWidth(), spec->bitWidth);
+    EXPECT_EQ(DRAMPower::internal::DDR5TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)

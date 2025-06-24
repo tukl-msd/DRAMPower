@@ -8,6 +8,7 @@
 
 #include "DRAMPower/standards/lpddr4/LPDDR4.h"
 #include "DRAMPower/memspec/MemSpecLPDDR4.h"
+#include <DRAMPower/standards/test_accessor.h>
 #include "DRAMPower/standards/lpddr4/interface_calculation_LPDDR4.h"
 
 #include "DRAMPower/data/energy.h"
@@ -104,7 +105,7 @@ TEST_F(LPDDR4_TogglingRate_Tests, Pattern_0_LH) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(spec->dataRate, 2);
-    EXPECT_EQ(ddr->getInterface().m_dataBus.getWidth(), spec->bitWidth);
+    EXPECT_EQ(DRAMPower::internal::LPDDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
 
 // Data bus
     // Read bus
@@ -335,7 +336,7 @@ TEST_F(LPDDR4_TogglingRate_Tests, Pattern_1) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(spec->dataRate, 2);
-    EXPECT_EQ(ddr->getInterface().m_dataBus.getWidth(), spec->bitWidth);
+    EXPECT_EQ(DRAMPower::internal::LPDDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
 
 // Toggling rate
     uint64_t toggles_read = 16;

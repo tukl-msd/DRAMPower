@@ -3,6 +3,7 @@
 #include "DRAMPower/command/Command.h"
 
 #include <DRAMPower/standards/ddr5/DDR5.h>
+#include <DRAMPower/standards/test_accessor.h>
 
 #include <memory>
 #include <fstream>
@@ -86,7 +87,7 @@ TEST_F(DramPowerTest_DDR5_14, Test)
         ddr->doCoreCommand(command);
     };
 
-	Rank & rank_1 = ddr->getCore().m_ranks[0];
+	const Rank & rank_1 = internal::DDR5TestAccessor.getCore(*ddr).m_ranks[0];
 	auto stats = ddr->getStats();
 
 	// Check global command count
