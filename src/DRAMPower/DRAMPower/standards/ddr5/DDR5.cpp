@@ -27,12 +27,7 @@ namespace DRAMPower {
 
 // Extensions
     void DDR5::registerExtensions() {
-        using namespace pattern_descriptor;
-        // DRAMPowerExtensionDBI
-        getExtensionManager().registerExtension<extensions::DBI>([](const timestamp_t, const bool) {
-            // NOTE: Assumption: the enabling of the DBI does not interleave with previous data on the bus
-            // m_interface.m_dbi.enable(enable);
-        }, false);
+
     }
 
 // Commands

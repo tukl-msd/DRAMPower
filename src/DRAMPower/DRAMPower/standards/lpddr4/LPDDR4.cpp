@@ -22,10 +22,7 @@ namespace DRAMPower {
 
 // Extensions
     void LPDDR4::registerExtensions() {
-        getExtensionManager().registerExtension<extensions::DBI>([](const timestamp_t, const bool){
-            // Assumption: the enabling of the DBI does not interleave with previous data on the bus
-            // TODO add DBI
-        }, false);
+
     }
 
 // Commands
