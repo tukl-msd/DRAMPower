@@ -1,7 +1,6 @@
 #ifndef DRAMPOWER_STANDARDS_DDR5_DDR5INTERFACE_H
 #define DRAMPOWER_STANDARDS_DDR5_DDR5INTERFACE_H
 
-#include "DRAMPower/util/pin.h"
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
@@ -9,22 +8,17 @@
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/command/Command.h"
-#include "DRAMPower/dram/Rank.h"
-#include "DRAMPower/data/energy.h"
 #include "DRAMPower/data/stats.h"
 
 #include "DRAMPower/util/PatternHandler.h"
 #include "DRAMPower/util/ImplicitCommandHandler.h"
-#include "DRAMPower/util/dbi.h"
 
 #include "DRAMPower/memspec/MemSpecDDR5.h"
 
 #include "DRAMUtils/config/toggling_rate.h"
 
-#include <functional>
 #include <stdint.h>
 #include <cstddef>
-#include <vector>
 
 namespace DRAMPower {
 

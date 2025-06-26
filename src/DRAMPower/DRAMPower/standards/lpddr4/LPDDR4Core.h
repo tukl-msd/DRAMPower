@@ -8,7 +8,6 @@
 
 #include "DRAMPower/memspec/MemSpecLPDDR4.h"
 
-#include <functional>
 #include <vector>
 
 namespace DRAMPower {

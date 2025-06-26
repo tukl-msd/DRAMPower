@@ -10,7 +10,6 @@
 #include "DRAMPower/Types.h"
 #include "DRAMPower/command/Command.h"
 #include "DRAMPower/dram/Rank.h"
-#include "DRAMPower/data/energy.h"
 #include "DRAMPower/data/stats.h"
 
 #include "DRAMPower/util/PatternHandler.h"
@@ -21,7 +20,6 @@
 
 #include "DRAMUtils/config/toggling_rate.h"
 
-#include <functional>
 #include <memory>
 #include <stdint.h>
 #include <cstddef>

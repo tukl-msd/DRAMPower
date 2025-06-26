@@ -8,7 +8,6 @@
 
 #include "DRAMPower/memspec/MemSpecDDR5.h"
 
-#include <functional>
 #include <vector>
 
 namespace DRAMPower {

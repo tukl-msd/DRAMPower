@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-#include "DRAMPower/command/Pattern.h"
 #include "DRAMPower/memspec/MemSpecDDR5.h"
 #include "DRAMPower/standards/ddr5/DDR5Interface.h"
 #include "DRAMPower/standards/ddr5/core_calculation_DDR5.h"
