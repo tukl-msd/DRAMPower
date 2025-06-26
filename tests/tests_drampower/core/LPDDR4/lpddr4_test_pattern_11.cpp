@@ -77,7 +77,7 @@ TEST_F(DramPowerTest_LPDDR4_11, Pattern1)
     };
 
 	// Inspect first rank
-	auto & rank_1 = internal::LPDDR4TestAccessor.getCore(*ddr).m_ranks[0];
+	const auto & rank_1 = internal::LPDDR4TestAccessor.getCore(*ddr).m_ranks[0];
 	auto stats = ddr->getStats();
 
 	// Check global count

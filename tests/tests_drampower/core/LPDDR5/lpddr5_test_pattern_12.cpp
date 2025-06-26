@@ -83,7 +83,7 @@ TEST_F(DramPowerTest_LPDDR5_12, Pattern1)
     };
 
 	// Inspect first rank
-	auto & rank_1 = internal::LPDDR5TestAccessor.getCore(*ddr).m_ranks[0];
+	const auto & rank_1 = internal::LPDDR5TestAccessor.getCore(*ddr).m_ranks[0];
 	auto stats = ddr->getStats();
 
 	// Check global count

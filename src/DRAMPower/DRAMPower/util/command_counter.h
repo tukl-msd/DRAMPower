@@ -24,7 +24,7 @@ public:
 		counter[static_cast<std::size_t>(cmd)] += 1;
 	};
 
-	std::size_t get(CommandEnum cmd) {
+	std::size_t get(CommandEnum cmd) const {
 		assert(counter.size() > static_cast<std::size_t>(cmd));
 		return counter[static_cast<std::size_t>(cmd)];
 	};
