@@ -121,7 +121,7 @@ std::optional<const uint8_t *> DBI::updateDBI(timestamp_t timestamp, std::size_t
     std::size_t n_chunks = n_bits / m_chunkSize;
     
     // Resize lastInvert vector if needed
-    if (m_lastInvert.size() < n_chunks) { // TODO always resize
+    if (m_lastInvert.size() < n_chunks) {
         m_lastInvert.resize(n_chunks, false);
     }
     
