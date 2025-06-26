@@ -2,15 +2,15 @@
 
 namespace DRAMPower {
 
-LPDDR5Interface::LPDDR5Interface(const MemSpecLPDDR5 &memSpec, implicitCommandInserter_t&& implicitCommandInserter, patternHandler_t &patternHandler)
+LPDDR5Interface::LPDDR5Interface(const std::shared_ptr<const MemSpecLPDDR5>& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
     : m_commandBus{cmdBusWidth, 2, // modelled with datarate 2
         util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
     , m_dataBus{
         util::databus_presets::getDataBusPreset(
-            memSpec.bitWidth * memSpec.numberOfDevices,
+            memSpec->bitWidth * memSpec->numberOfDevices,
             util::DataBusConfig {
-                memSpec.bitWidth * memSpec.numberOfDevices,
-                memSpec.dataRate,
+                memSpec->bitWidth * memSpec->numberOfDevices,
+                memSpec->dataRate,
                 util::BusIdlePatternSpec::L,
                 util::BusInitPatternSpec::L,
                 DRAMUtils::Config::TogglingRateIdlePattern::L,
@@ -20,10 +20,10 @@ LPDDR5Interface::LPDDR5Interface(const MemSpecLPDDR5 &memSpec, implicitCommandIn
             }
         )
     }
-    , m_readDQS(memSpec.dataRate, true)
-    , m_wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
+    , m_readDQS(memSpec->dataRate, true)
+    , m_wck(memSpec->dataRate / memSpec->memTimingSpec.WCKtoCK, !memSpec->wckAlwaysOnMode)
     , m_memSpec(memSpec)
-    , m_patternHandler(patternHandler)
+    , m_patternHandler(PatternEncoderOverrides{}) // No overrides
     , m_implicitCommandInserter(std::move(implicitCommandInserter))
 {
     registerPatterns();
@@ -49,13 +49,13 @@ void LPDDR5Interface::registerPatterns() {
         // F2
         R0, R1, R2, R3, R4, R5, R6
     };
-    if (m_memSpec.get().bank_arch == MemSpecLPDDR5::MBG) {
+    if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG) {
         act_pattern[9] = BG0;
         act_pattern[10] = BG1;
-    } else if (m_memSpec.get().bank_arch == MemSpecLPDDR5::M8B) {
+    } else if (m_memSpec->bank_arch == MemSpecLPDDR5::M8B) {
         act_pattern[10] = V;
     }
-    m_patternHandler.get().registerPattern<CmdType::ACT>(act_pattern);
+    m_patternHandler.registerPattern<CmdType::ACT>(act_pattern);
     // PRE
     commandPattern_t pre_pattern = {
         // R1
@@ -63,13 +63,13 @@ void LPDDR5Interface::registerPatterns() {
         // F1
         BA0, BA1, BA2, BA3, V, V, L
     };
-    if (m_memSpec.get().bank_arch == MemSpecLPDDR5::MBG) {
+    if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG) {
         pre_pattern[9] = BG0;
         pre_pattern[10] = BG1;
-    } else if (m_memSpec.get().bank_arch == MemSpecLPDDR5::M8B) {
+    } else if (m_memSpec->bank_arch == MemSpecLPDDR5::M8B) {
         pre_pattern[10] = V;
     }
-    m_patternHandler.get().registerPattern<CmdType::PRE>(pre_pattern);
+    m_patternHandler.registerPattern<CmdType::PRE>(pre_pattern);
     // PREA
     commandPattern_t prea_pattern = {
         // R1
@@ -77,13 +77,13 @@ void LPDDR5Interface::registerPatterns() {
         // F1
         V, V, V, V, V, V, H
     };
-    if (m_memSpec.get().bank_arch == MemSpecLPDDR5::MBG) {
+    if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG) {
         prea_pattern[9] = BG0;
         prea_pattern[10] = BG1;
-    } else if (m_memSpec.get().bank_arch == MemSpecLPDDR5::M8B) {
+    } else if (m_memSpec->bank_arch == MemSpecLPDDR5::M8B) {
         prea_pattern[10] = V;
     }
-    m_patternHandler.get().registerPattern<CmdType::PREA>(prea_pattern);
+    m_patternHandler.registerPattern<CmdType::PREA>(prea_pattern);
     // REFB
     // For refresh commands LPDDR5 has RFM (Refresh Management)
     // Considering RFM is disabled, CA3 is V
@@ -93,10 +93,10 @@ void LPDDR5Interface::registerPatterns() {
         // F1
         BA0, BA1, BA2, V, V, V, L
     };
-    if (m_memSpec.get().bank_arch == MemSpecLPDDR5::MBG) {
+    if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG) {
         refb_pattern[9] = BG0;
     }
-    m_patternHandler.get().registerPattern<CmdType::REFB>(refb_pattern);
+    m_patternHandler.registerPattern<CmdType::REFB>(refb_pattern);
     // RD
     commandPattern_t rd_pattern = {
         // R1
@@ -104,13 +104,13 @@ void LPDDR5Interface::registerPatterns() {
         // F1
         BA0, BA1, BA2, BA3, C1, C2, L
     };
-    if (m_memSpec.get().bank_arch == MemSpecLPDDR5::MBG) {
+    if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG) {
         rd_pattern[9] = BG0;
         rd_pattern[10] = BG1;
-    } else if (m_memSpec.get().bank_arch == MemSpecLPDDR5::M8B) {
+    } else if (m_memSpec->bank_arch == MemSpecLPDDR5::M8B) {
         rd_pattern[10] = L; // B4
     }
-    m_patternHandler.get().registerPattern<CmdType::RD>(rd_pattern);
+    m_patternHandler.registerPattern<CmdType::RD>(rd_pattern);
     // RDA
     commandPattern_t rda_pattern = {
         // R1
@@ -118,13 +118,13 @@ void LPDDR5Interface::registerPatterns() {
         // F1
         BA0, BA1, BA2, BA3, C1, C2, H
     };
-    if (m_memSpec.get().bank_arch == MemSpecLPDDR5::MBG) {
+    if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG) {
         rda_pattern[9] = BG0;
         rda_pattern[10] = BG1;
-    } else if (m_memSpec.get().bank_arch == MemSpecLPDDR5::M8B) {
+    } else if (m_memSpec->bank_arch == MemSpecLPDDR5::M8B) {
         rda_pattern[10] = L;
     }
-    m_patternHandler.get().registerPattern<CmdType::RDA>(rda_pattern);
+    m_patternHandler.registerPattern<CmdType::RDA>(rda_pattern);
     // WR
     commandPattern_t wr_pattern = {
         // R1
@@ -132,13 +132,13 @@ void LPDDR5Interface::registerPatterns() {
         // F1
         BA0, BA1, BA2, BA3, C1, C2, L
     };
-    if (m_memSpec.get().bank_arch == MemSpecLPDDR5::MBG) {
+    if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG) {
         wr_pattern[9] = BG0;
         wr_pattern[10] = BG1;
-    } else if (m_memSpec.get().bank_arch == MemSpecLPDDR5::M8B) {
+    } else if (m_memSpec->bank_arch == MemSpecLPDDR5::M8B) {
         wr_pattern[10] = V;
     }
-    m_patternHandler.get().registerPattern<CmdType::WR>(wr_pattern);
+    m_patternHandler.registerPattern<CmdType::WR>(wr_pattern);
     // WRA
     commandPattern_t wra_pattern = {
         // R1
@@ -146,16 +146,16 @@ void LPDDR5Interface::registerPatterns() {
         // F1
         BA0, BA1, BA2, BA3, C1, C2, H
     };
-    if (m_memSpec.get().bank_arch == MemSpecLPDDR5::MBG) {
+    if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG) {
         wra_pattern[9] = BG0;
         wra_pattern[10] = BG1;
-    } else if (m_memSpec.get().bank_arch == MemSpecLPDDR5::M8B) {
+    } else if (m_memSpec->bank_arch == MemSpecLPDDR5::M8B) {
         wra_pattern[10] = V;
     }
-    m_patternHandler.get().registerPattern<CmdType::WRA>(wra_pattern);
+    m_patternHandler.registerPattern<CmdType::WRA>(wra_pattern);
     // REFP2B
-    if (m_memSpec.get().bank_arch == MemSpecLPDDR5::MBG || m_memSpec.get().bank_arch == MemSpecLPDDR5::M16B) {
-        m_patternHandler.get().registerPattern<CmdType::REFP2B>(refb_pattern);
+    if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG || m_memSpec->bank_arch == MemSpecLPDDR5::M16B) {
+        m_patternHandler.registerPattern<CmdType::REFP2B>(refb_pattern);
     }
     // REFA
     commandPattern_t refa_pattern = {
@@ -164,61 +164,61 @@ void LPDDR5Interface::registerPatterns() {
         // F1
         V, V, V, V, V, V, H
     };
-    if (m_memSpec.get().bank_arch == MemSpecLPDDR5::MBG) {
+    if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG) {
         refa_pattern[9] = BG0;
     }
-    m_patternHandler.get().registerPattern<CmdType::REFA>(refa_pattern);
+    m_patternHandler.registerPattern<CmdType::REFA>(refa_pattern);
     // SREFEN
-    m_patternHandler.get().registerPattern<CmdType::SREFEN>({
+    m_patternHandler.registerPattern<CmdType::SREFEN>({
         // R1
         L, L, L, H, L, H, H,
         // F1
         V, V, V, V, V, L, L
     });
     // SREFEX
-    m_patternHandler.get().registerPattern<CmdType::SREFEX>({
+    m_patternHandler.registerPattern<CmdType::SREFEX>({
         // R1
         L, L, L, H, L, H, L,
         // F1
         V, V, V, V, V, V, V
     });
     // PDEA
-    m_patternHandler.get().registerPattern<CmdType::PDEA>({
+    m_patternHandler.registerPattern<CmdType::PDEA>({
         // R1
         L, L, L, H, L, H, H,
         // F1
         V, V, V, V, V, L, H
     });
     // PDEP
-    m_patternHandler.get().registerPattern<CmdType::PDEP>({
+    m_patternHandler.registerPattern<CmdType::PDEP>({
         // R1
         L, L, L, H, L, H, H,
         // F1
         V, V, V, V, V, L, H
     });
     // PDXA
-    m_patternHandler.get().registerPattern<CmdType::PDXA>({
+    m_patternHandler.registerPattern<CmdType::PDXA>({
         // R1
         L, L, L, H, L, H, L,
         // F1
         V, V, V, V, V, V, V
     });
     // PDXP
-    m_patternHandler.get().registerPattern<CmdType::PDXP>({
+    m_patternHandler.registerPattern<CmdType::PDXP>({
         // R1
         L, L, L, H, L, H, L,
         // F1
         V, V, V, V, V, V, V
     });
     // DSMEN
-    m_patternHandler.get().registerPattern<CmdType::DSMEN>({
+    m_patternHandler.registerPattern<CmdType::DSMEN>({
         // R1
         L, L, L, H, L, H, H,
         // F1
         V, V, V, V, V, H, L
     });
     // DSMEX
-    m_patternHandler.get().registerPattern<CmdType::DSMEX>({
+    m_patternHandler.registerPattern<CmdType::DSMEX>({
         // R1
         L, L, L, H, L, H, L,
         // F1
@@ -230,7 +230,7 @@ void LPDDR5Interface::handleOverrides(size_t length, bool /*read*/) {
     // Set command bus pattern overrides
     switch(length) {
         case 32:
-            m_patternHandler.get().getEncoder().settings.updateSettings({
+            m_patternHandler.getEncoder().settings.updateSettings({
                 {pattern_descriptor::C0, PatternEncoderBitSpec::L},
             });
             break;
@@ -239,14 +239,14 @@ void LPDDR5Interface::handleOverrides(size_t length, bool /*read*/) {
             // No interface power needed for PatternEncoderBitSpec::L
             // Defaults to burst length 16
         case 16:
-            m_patternHandler.get().getEncoder().settings.removeSetting(pattern_descriptor::C0);
+            m_patternHandler.getEncoder().settings.removeSetting(pattern_descriptor::C0);
             break;
     }
 }
 
 void LPDDR5Interface::handleCommandBus(const Command &cmd) {
-    auto pattern = m_patternHandler.get().getCommandPattern(cmd);
-    auto ca_length = m_patternHandler.get().getPattern(cmd.type).size() / m_commandBus.get_width();
+    auto pattern = m_patternHandler.getCommandPattern(cmd);
+    auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_commandBus.get_width();
     m_commandBus.load(cmd.timestamp, pattern, ca_length);
 }
 
@@ -256,7 +256,7 @@ void LPDDR5Interface::handleData(const Command &cmd, bool read) {
     if (0 == cmd.sz_bits) {
         // No data provided by command
         if (m_dataBus.isTogglingRate()) {
-            length = m_memSpec.get().burstLength;
+            length = m_memSpec->burstLength;
             (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
         }
     } else {
@@ -268,16 +268,16 @@ void LPDDR5Interface::handleData(const Command &cmd, bool read) {
     if (read) {
         // Read
         m_readDQS.start(cmd.timestamp);
-        m_readDQS.stop(cmd.timestamp + length / m_memSpec.get().dataRate);
-        if (!m_memSpec.get().wckAlwaysOnMode) {
+        m_readDQS.stop(cmd.timestamp + length / m_memSpec->dataRate);
+        if (!m_memSpec->wckAlwaysOnMode) {
             m_wck.start(cmd.timestamp);
-            m_wck.stop(cmd.timestamp + length / m_memSpec.get().dataRate);
+            m_wck.stop(cmd.timestamp + length / m_memSpec->dataRate);
         }
     } else {
         // Write
-        if (!m_memSpec.get().wckAlwaysOnMode) {
+        if (!m_memSpec->wckAlwaysOnMode) {
             m_wck.start(cmd.timestamp);
-            m_wck.stop(cmd.timestamp + length / m_memSpec.get().dataRate);
+            m_wck.stop(cmd.timestamp + length / m_memSpec->dataRate);
         }
     }
     handleOverrides(length, read);

@@ -22,6 +22,7 @@
 #include "DRAMUtils/config/toggling_rate.h"
 
 #include <functional>
+#include <memory>
 #include <stdint.h>
 #include <cstddef>
 #include <vector>
@@ -50,7 +51,7 @@ public:
     DDR4Interface(DDR4Interface&&) = default; // move constructor
     DDR4Interface& operator=(DDR4Interface&&) = default; // move assignment operator
 
-    DDR4Interface(const MemSpecDDR4 &memSpec, implicitCommandInserter_t&& implicitCommandInserter, patternHandler_t &patternHandler);
+    DDR4Interface(const std::shared_ptr<const MemSpecDDR4>& memSpec, implicitCommandInserter_t&& implicitCommandInserter);
 
 // Private member functions
 private:
@@ -95,8 +96,8 @@ public:
 
 // Private member variables
 private:
-    std::reference_wrapper<const MemSpecDDR4> m_memSpec;
-    std::reference_wrapper<patternHandler_t> m_patternHandler;
+    std::shared_ptr<const MemSpecDDR4> m_memSpec;
+    patternHandler_t m_patternHandler;
     implicitCommandInserter_t m_implicitCommandInserter;
 };
 

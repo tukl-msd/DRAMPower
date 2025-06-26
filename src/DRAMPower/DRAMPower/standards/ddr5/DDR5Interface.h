@@ -50,7 +50,7 @@ public:
     DDR5Interface(DDR5Interface&&) = default; // move constructor
     DDR5Interface& operator=(DDR5Interface&&) = default; // move assignment operator
 
-    DDR5Interface(const MemSpecDDR5 &memSpec, implicitCommandInserter_t&& implicitCommandInserter, patternHandler_t &patternHandler);
+    DDR5Interface(const std::shared_ptr<const MemSpecDDR5>& memSpec, implicitCommandInserter_t&& implicitCommandInserter);
 
 // Private member functions
 private:
@@ -81,8 +81,8 @@ public:
 
 // Private member variables
 private:
-    std::reference_wrapper<const MemSpecDDR5> m_memSpec;
-    std::reference_wrapper<patternHandler_t> m_patternHandler;
+    std::shared_ptr<const MemSpecDDR5> m_memSpec;
+    patternHandler_t m_patternHandler;
     implicitCommandInserter_t m_implicitCommandInserter;
 };
 

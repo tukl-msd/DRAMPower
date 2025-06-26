@@ -2,16 +2,15 @@
 
 namespace DRAMPower {
 
-    DDR4Interface::DDR4Interface(const MemSpecDDR4 &memSpec, implicitCommandInserter_t&& implicitCommandInserter, 
-                  patternHandler_t &patternHandler)
+    DDR4Interface::DDR4Interface(const std::shared_ptr<const MemSpecDDR4>& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
     : m_commandBus{cmdBusWidth, 1,
         util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
     , m_dataBus{
         util::databus_presets::getDataBusPreset(
-            memSpec.bitWidth * memSpec.numberOfDevices,
+            memSpec->bitWidth * memSpec->numberOfDevices,
             util::DataBusConfig {
-                memSpec.bitWidth * memSpec.numberOfDevices,
-                memSpec.dataRate,
+                memSpec->bitWidth * memSpec->numberOfDevices,
+                memSpec->dataRate,
                 util::BusIdlePatternSpec::H,
                 util::BusInitPatternSpec::H,
                 DRAMUtils::Config::TogglingRateIdlePattern::H,
@@ -21,20 +20,23 @@ namespace DRAMPower {
             }
         )
     }
-    , m_readDQS(memSpec.dataRate, true)
-    , m_writeDQS(memSpec.dataRate, true)
+    , m_readDQS(memSpec->dataRate, true)
+    , m_writeDQS(memSpec->dataRate, true)
     , m_clock(2, false)
-    , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, util::DBI::IdlePattern_t::H, 8,
+    , m_dbi(memSpec->numberOfDevices * memSpec->bitWidth, util::DBI::IdlePattern_t::H, 8,
         [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
         this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
     }, false)
     , m_dbiread(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
     , m_dbiwrite(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
-    , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
-    , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
-    , m_ranks(memSpec.numberOfRanks)
+    , prepostambleReadMinTccd(memSpec->prePostamble.readMinTccd)
+    , prepostambleWriteMinTccd(memSpec->prePostamble.writeMinTccd)
+    , m_ranks(memSpec->numberOfRanks)
     , m_memSpec(memSpec)
-    , m_patternHandler(patternHandler)
+    , m_patternHandler(PatternEncoderOverrides {
+            {pattern_descriptor::V, PatternEncoderBitSpec::H},
+            {pattern_descriptor::X, PatternEncoderBitSpec::H},
+        }, cmdBusInitPattern)
     , m_implicitCommandInserter(std::move(implicitCommandInserter))
     {
         registerPatterns();
@@ -43,61 +45,61 @@ namespace DRAMPower {
     void DDR4Interface::registerPatterns() {
         using namespace pattern_descriptor;
         // ACT
-        m_patternHandler.get().registerPattern<CmdType::ACT>({
+        m_patternHandler.registerPattern<CmdType::ACT>({
             L, L, R16, R15, R14, BG0, BG1, BA0, BA1,
             V, V, V, R12, R17, R13, R11, R10, R0,
             R1, R2, R3, R4, R5, R6, R7, R8, R9
         });
         // PRE
-        m_patternHandler.get().registerPattern<CmdType::PRE>({
+        m_patternHandler.registerPattern<CmdType::PRE>({
             L, H, L, H, L, BG0, BG1, BA0, BA1,
             V, V, V, V, V, V, V, L, V,
             V, V, V, V, V, V, V, V, V
         });
         // PREA
-        m_patternHandler.get().registerPattern<CmdType::PREA>({
+        m_patternHandler.registerPattern<CmdType::PREA>({
             L, H, L, H, L, V, V, V, V,
             V, V, V, V, V, V, V, H, V,
             V, V, V, V, V, V, V, V, V
         });
         // REFA
-        m_patternHandler.get().registerPattern<CmdType::REFA>({
+        m_patternHandler.registerPattern<CmdType::REFA>({
             L, H, L, L, H, V, V, V, V,
             V, V, V, V, V, V, V, V, V,
             V, V, V, V, V, V, V, V, V
         });
         // RD
-        m_patternHandler.get().registerPattern<CmdType::RD>({
+        m_patternHandler.registerPattern<CmdType::RD>({
             L, H, H, L, H, BG0, BG1, BA0, BA1,
             V, V, V, V, V, V, V, L, C0,
             C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
         // RDA
-        m_patternHandler.get().registerPattern<CmdType::RDA>({
+        m_patternHandler.registerPattern<CmdType::RDA>({
             L, H, H, L, H, BG0, BG1, BA0, BA1,
             V, V, V, V, V, V, V, H, C0,
             C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
         // WR
-        m_patternHandler.get().registerPattern<CmdType::WR>({
+        m_patternHandler.registerPattern<CmdType::WR>({
             L, H, H, L, L, BG0, BG1, BA0, BA1,
             V, V, V, V, V, V, V, L, C0,
             C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
         // WRA
-        m_patternHandler.get().registerPattern<CmdType::WRA>({
+        m_patternHandler.registerPattern<CmdType::WRA>({
             L, H, H, L, L, BG0, BG1, BA0, BA1,
             V, V, V, V, V, V, V, H, C0,
             C1, C2, C3, C4, C5, C6, C7, C8, C9
         });
         // SREFEN
-        m_patternHandler.get().registerPattern<CmdType::SREFEN>({
+        m_patternHandler.registerPattern<CmdType::SREFEN>({
             L, H, L, L, H, V, V, V, V,
             V, V, V, V, V, V, V, V, V,
             V, V, V, V, V, V, V, V, V
         });
         // SREFEX
-        m_patternHandler.get().registerPattern<CmdType::SREFEX>({
+        m_patternHandler.registerPattern<CmdType::SREFEX>({
             H, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
@@ -107,25 +109,25 @@ namespace DRAMPower {
             V, V, V, V, V, V, V, V, V
         });
         // PDEA
-        m_patternHandler.get().registerPattern<CmdType::PDEA>({
+        m_patternHandler.registerPattern<CmdType::PDEA>({
             H, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
         });
         // PDEP
-        m_patternHandler.get().registerPattern<CmdType::PDEP>({
+        m_patternHandler.registerPattern<CmdType::PDEP>({
             H, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
         });
         // PDXA
-        m_patternHandler.get().registerPattern<CmdType::PDXA>({
+        m_patternHandler.registerPattern<CmdType::PDXA>({
             H, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
         });
         // PDXP
-        m_patternHandler.get().registerPattern<CmdType::PDXP>({
+        m_patternHandler.registerPattern<CmdType::PDXP>({
             H, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
             X, X, X, X, X, X, X, X, X,
@@ -196,7 +198,7 @@ namespace DRAMPower {
 
         if (chunk_timestamp > load_timestamp) {
             // Schedule the pin state change
-            m_implicitCommandInserter.addImplicitCommand(chunk_timestamp / m_memSpec.get().dataRate, updatePinCallback);
+            m_implicitCommandInserter.addImplicitCommand(chunk_timestamp / m_memSpec->dataRate, updatePinCallback);
         } else {
             // chunk_timestamp <= load_timestamp
             updatePinCallback();
@@ -208,7 +210,7 @@ namespace DRAMPower {
             // No DBI or no data to process
             return std::nullopt;
         }
-        timestamp_t virtual_time = timestamp * m_memSpec.get().dataRate;
+        timestamp_t virtual_time = timestamp * m_memSpec->dataRate;
         // updateDBI calls the given callback to handle pin changes
         return m_dbi.updateDBI(virtual_time, n_bits, data, read);
     }
@@ -262,7 +264,7 @@ namespace DRAMPower {
                 {
                     // Read
                     
-                    m_patternHandler.get().getEncoder().settings.updateSettings({
+                    m_patternHandler.getEncoder().settings.updateSettings({
                         {pattern_descriptor::C2, PatternEncoderBitSpec::L},
                         {pattern_descriptor::C1, PatternEncoderBitSpec::L},
                         {pattern_descriptor::C0, PatternEncoderBitSpec::L},
@@ -271,7 +273,7 @@ namespace DRAMPower {
                 else
                 {
                     // Write
-                    m_patternHandler.get().getEncoder().settings.updateSettings({
+                    m_patternHandler.getEncoder().settings.updateSettings({
                         {pattern_descriptor::C2, PatternEncoderBitSpec::L},
                         {pattern_descriptor::C1, PatternEncoderBitSpec::H},
                         {pattern_descriptor::C0, PatternEncoderBitSpec::H},
@@ -286,7 +288,7 @@ namespace DRAMPower {
                 if(read)
                 {
                     // Read
-                    m_patternHandler.get().getEncoder().settings.updateSettings({
+                    m_patternHandler.getEncoder().settings.updateSettings({
                         {pattern_descriptor::C2, PatternEncoderBitSpec::L},
                         {pattern_descriptor::C1, PatternEncoderBitSpec::L},
                         {pattern_descriptor::C0, PatternEncoderBitSpec::L},
@@ -295,7 +297,7 @@ namespace DRAMPower {
                 else
                 {
                     // Write
-                    m_patternHandler.get().getEncoder().settings.updateSettings({
+                    m_patternHandler.getEncoder().settings.updateSettings({
                         {pattern_descriptor::C2, PatternEncoderBitSpec::H},
                         {pattern_descriptor::C1, PatternEncoderBitSpec::H},
                         {pattern_descriptor::C0, PatternEncoderBitSpec::H},
@@ -306,14 +308,14 @@ namespace DRAMPower {
     }
 
     void DDR4Interface::handleCommandBus(const Command &cmd) {
-        auto pattern = m_patternHandler.get().getCommandPattern(cmd);
-        auto ca_length = m_patternHandler.get().getPattern(cmd.type).size() / m_commandBus.get_width();
+        auto pattern = m_patternHandler.getCommandPattern(cmd);
+        auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_commandBus.get_width();
         this->m_commandBus.load(cmd.timestamp, pattern, ca_length);
     }
 
     void DDR4Interface::handleDQs(const Command &cmd, util::Clock &dqs, const size_t length) {
         dqs.start(cmd.timestamp);
-        dqs.stop(cmd.timestamp + length / m_memSpec.get().dataRate);
+        dqs.stop(cmd.timestamp + length / m_memSpec->dataRate);
     }
 
     void DDR4Interface::handleData(const Command &cmd, bool read) {
@@ -325,7 +327,7 @@ namespace DRAMPower {
             // Use default burst length
             if (m_dataBus.isTogglingRate()) {
                 // If bus is enabled skip loading data
-                length = m_memSpec.get().burstLength;
+                length = m_memSpec->burstLength;
                 (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
             }
         } else {
@@ -343,20 +345,20 @@ namespace DRAMPower {
         handleCommandBus(cmd);
         assert(m_ranks.size()>cmd.targetCoordinate.rank);
         auto & rank = m_ranks[cmd.targetCoordinate.rank];
-        handlePrePostamble(cmd.timestamp, length / m_memSpec.get().dataRate, rank, read);
+        handlePrePostamble(cmd.timestamp, length / m_memSpec->dataRate, rank, read);
     }
 
     void DDR4Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
         // Reset the DBI interface pins to idle state
-        m_dbi.dispatchResetCallback(timestamp * m_memSpec.get().dataRate, true);
+        m_dbi.dispatchResetCallback(timestamp * m_memSpec->dataRate, true);
 
         // DDR4 x16 have 2 DQs differential pairs
         uint_fast8_t NumDQsPairs = 1;
-        if(m_memSpec.get().bitWidth == 16) {
+        if(m_memSpec->bitWidth == 16) {
             NumDQsPairs = 2;
         }
-        stats.rank_total.resize(m_memSpec.get().numberOfRanks);
-        for (size_t i = 0; i < m_memSpec.get().numberOfRanks; ++i) {
+        stats.rank_total.resize(m_memSpec->numberOfRanks);
+        for (size_t i = 0; i < m_memSpec->numberOfRanks; ++i) {
             const RankInterface &rank_interface = m_ranks[i];
             stats.rank_total[i].prepos.readSeamless = rank_interface.seamlessPrePostambleCounter_read;
             stats.rank_total[i].prepos.writeSeamless = rank_interface.seamlessPrePostambleCounter_write;

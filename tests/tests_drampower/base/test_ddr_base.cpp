@@ -24,7 +24,7 @@ public:
 
 	std::vector<timestamp_t> execution_order;
 
-	test_ddr() : dram_base<CmdType>(PatternEncoderOverrides{})
+	test_ddr()
 	{
 		getCommandCoreRouter().routeCommand<CmdType::ACT>([this](const Command & command) {
 			execution_order.push_back(command.timestamp);

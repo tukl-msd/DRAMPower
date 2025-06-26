@@ -10,7 +10,7 @@
 
 #include <DRAMPower/memspec/MemSpecDDR4.h>
 
-#include <functional>
+#include <memory>
 #include <vector>
 #include <cstddef>
 #include <cassert>
@@ -30,8 +30,8 @@ public:
     DDR4Core& operator=(const DDR4Core&) = default; // copy assignment operator
     DDR4Core(DDR4Core&&) = default; // move constructor
     DDR4Core& operator=(DDR4Core&&) = default; // move assignment operator
-    DDR4Core(const MemSpecDDR4 &memSpec, implicitCommandInserter_t&& implicitCommandInserter)
-        : m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)}) 
+    DDR4Core(const std::shared_ptr<const MemSpecDDR4>& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
+        : m_ranks(memSpec->numberOfRanks, {static_cast<std::size_t>(memSpec->numberOfBanks)}) 
         , m_memSpec(memSpec)
         , m_implicitCommandInserter(std::move(implicitCommandInserter))
     {}
@@ -67,7 +67,7 @@ public:
 
 // Private members variables
 private:
-    std::reference_wrapper<const MemSpecDDR4> m_memSpec;
+    std::shared_ptr<const MemSpecDDR4> m_memSpec;
     implicitCommandInserter_t m_implicitCommandInserter;
 };
 

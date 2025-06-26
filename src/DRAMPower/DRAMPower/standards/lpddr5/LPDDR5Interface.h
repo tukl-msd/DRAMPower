@@ -50,7 +50,7 @@ public:
     LPDDR5Interface(LPDDR5Interface&&) = default; // move constructor
     LPDDR5Interface& operator=(LPDDR5Interface&&) = default; // move assignment operator
 
-    LPDDR5Interface(const MemSpecLPDDR5 &memSpec, implicitCommandInserter_t&& implicitCommandInserter, patternHandler_t &patternHandler);
+    LPDDR5Interface(const std::shared_ptr<const MemSpecLPDDR5>& memSpec, implicitCommandInserter_t&& implicitCommandInserter);
 
 // Private member functions
 private:
@@ -81,8 +81,8 @@ public:
 
 // Private member variables
 private:
-    std::reference_wrapper<const MemSpecLPDDR5> m_memSpec;
-    std::reference_wrapper<patternHandler_t> m_patternHandler;
+    std::shared_ptr<const MemSpecLPDDR5> m_memSpec;
+    patternHandler_t m_patternHandler;
     implicitCommandInserter_t m_implicitCommandInserter;
 };
 

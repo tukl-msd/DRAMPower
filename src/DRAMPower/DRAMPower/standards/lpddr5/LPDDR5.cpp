@@ -13,9 +13,8 @@
 namespace DRAMPower {
 
     LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
-        : dram_base<CmdType>(PatternEncoderOverrides{})
-        , m_memSpec(memSpec)
-        , m_interface(m_memSpec, getImplicitCommandHandler().createInserter(), getPatternHandler())
+        : m_memSpec(std::make_shared<MemSpecLPDDR5>(memSpec))
+        , m_interface(m_memSpec, getImplicitCommandHandler().createInserter())
         , m_core(m_memSpec, getImplicitCommandHandler().createInserter())
     {
         this->registerCommands();
@@ -60,7 +59,7 @@ namespace DRAMPower {
         routeInterfaceCommand<CmdType::WRA>([this](const Command &cmd) { m_interface.handleData(cmd, false); });
         // REFP2B TODO
         routeCoreCommand<CmdType::REFP2B>(coreregistrar.registerBankGroupHandler(&LPDDR5Core::handleRefPerTwoBanks));
-        if (m_memSpec.bank_arch == MemSpecLPDDR5::MBG || m_memSpec.bank_arch == MemSpecLPDDR5::M16B) {
+        if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG || m_memSpec->bank_arch == MemSpecLPDDR5::M16B) {
             routeInterfaceCommand<CmdType::REFP2B>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
         }
         // REFA
@@ -104,9 +103,9 @@ namespace DRAMPower {
 // Getters for CLI
     util::CLIArchitectureConfig LPDDR5::getCLIArchitectureConfig() {
         return util::CLIArchitectureConfig{
-            m_memSpec.numberOfDevices,
-            m_memSpec.numberOfRanks,
-            m_memSpec.numberOfBanks
+            m_memSpec->numberOfDevices,
+            m_memSpec->numberOfRanks,
+            m_memSpec->numberOfBanks
         };
     }
 
@@ -118,12 +117,12 @@ namespace DRAMPower {
 
 // Calculation
     energy_t LPDDR5::calcCoreEnergy(timestamp_t timestamp) {
-        Calculation_LPDDR5 calculation(m_memSpec);
+        Calculation_LPDDR5 calculation(*m_memSpec);
         return calculation.calcEnergy(getWindowStats(timestamp));
     }
 
     interface_energy_info_t LPDDR5::calcInterfaceEnergy(timestamp_t timestamp) {
-        InterfaceCalculation_LPDDR5 calculation(m_memSpec);
+        InterfaceCalculation_LPDDR5 calculation(*m_memSpec);
         return calculation.calculateEnergy(getWindowStats(timestamp));
     }
 

@@ -25,8 +25,8 @@ public:
     LPDDR4Core& operator=(const LPDDR4Core&) = default; // copy assignment operator
     LPDDR4Core(LPDDR4Core&&) = default; // move constructor
     LPDDR4Core& operator=(LPDDR4Core&&) = default; // move assignment operator
-    LPDDR4Core(const MemSpecLPDDR4 &memSpec, implicitCommandInserter_t&& implicitCommandInserter)
-        : m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
+    LPDDR4Core(const std::shared_ptr<const MemSpecLPDDR4>& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
+        : m_ranks(memSpec->numberOfRanks, {static_cast<std::size_t>(memSpec->numberOfBanks)})
         , m_memSpec(memSpec)
         , m_implicitCommandInserter(std::move(implicitCommandInserter))
     {}
@@ -64,7 +64,7 @@ public:
 
 // Private member variables
 private:
-    std::reference_wrapper<const MemSpecLPDDR4> m_memSpec;
+    std::shared_ptr<const MemSpecLPDDR4> m_memSpec;
     implicitCommandInserter_t m_implicitCommandInserter;
 };
 

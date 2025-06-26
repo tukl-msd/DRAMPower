@@ -1,6 +1,7 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR5_LPDDR5_H
 #define DRAMPOWER_STANDARDS_LPDDR5_LPDDR5_H
 
+#include <memory>
 #include <stdint.h>
 
 #include <algorithm>
@@ -78,7 +79,7 @@ private:
 
 // Private member variables
 private:
-    MemSpecLPDDR5 m_memSpec;
+    std::shared_ptr<MemSpecLPDDR5> m_memSpec;
     LPDDR5Interface m_interface;
     LPDDR5Core m_core;
 

@@ -47,7 +47,6 @@ public:
 
 // Public constructors and assignment operators
 public:
-    dram_base() = default; // default constructor
     dram_base(const dram_base&) = default; // copy constructor
     dram_base& operator=(const dram_base&) = default; // copy assignment operator
     dram_base(dram_base&&) = default; // Move constructor
@@ -55,12 +54,11 @@ public:
     virtual ~dram_base() = 0;
 // Protected constructors
 protected:
-    dram_base(PatternEncoderOverrides encoderoverrides, uint64_t initPattern = 0)
+    dram_base()
         : m_commandCoreCount(static_cast<std::size_t>(commandEnum_t::COUNT), 0)
         , m_commandInterfaceCount(static_cast<std::size_t>(commandEnum_t::COUNT), 0)
         , m_commandCoreRouter(std::nullopt)
         , m_commandInterfaceRouter(std::nullopt)
-        , m_patternHandler(encoderoverrides, initPattern)
     {}
 
 // Interface
@@ -78,9 +76,6 @@ public:
     extension_manager_t& getExtensionManager() { return m_extensionManager; }
     const extension_manager_t& getExtensionManager() const { return m_extensionManager; }
 protected:
-    // PatternHandler
-    patternHandler_t& getPatternHandler() { return m_patternHandler; }
-    const patternHandler_t& getPatternHandler() const { return m_patternHandler; }
     // ImplicitCommandHandler
     ImplicitCommandHandler_t& getImplicitCommandHandler() { return m_ImplicitCommandHandler; }
     const ImplicitCommandHandler_t& getImplicitCommandHandler() const { return m_ImplicitCommandHandler; }
@@ -192,8 +187,6 @@ private:
     // Router
     commandRouter_t m_commandCoreRouter;
     commandRouter_t m_commandInterfaceRouter;
-    // PatternHandler
-    patternHandler_t m_patternHandler;
     // ExtensionManager
     extension_manager_t m_extensionManager;
     // ImplicitCommandHandler

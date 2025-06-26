@@ -1,11 +1,14 @@
 #include "DDR4.h"
 #include "DRAMPower/Types.h"
+#include "DRAMPower/memspec/MemSpecDDR4.h"
+#include "DRAMPower/standards/ddr4/DDR4Interface.h"
 #include "DRAMPower/util/cli_architecture_config.h"
 
 #include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/standards/ddr4/core_calculation_DDR4.h>
 #include <DRAMPower/standards/ddr4/interface_calculation_DDR4.h>
 #include <DRAMPower/util/extensions.h>
+#include <memory>
 #include <optional>
 
 namespace DRAMPower {
@@ -13,12 +16,9 @@ namespace DRAMPower {
     using namespace DRAMUtils::Config;
 
     DDR4::DDR4(const MemSpecDDR4 &memSpec)
-        : dram_base<CmdType>({
-            {pattern_descriptor::V, PatternEncoderBitSpec::H},
-            {pattern_descriptor::X, PatternEncoderBitSpec::H},
-          }, DDR4Interface::cmdBusInitPattern)
-        , m_memSpec(memSpec)
-        , m_interface(m_memSpec, getImplicitCommandHandler().createInserter(), getPatternHandler())
+        : dram_base<CmdType>()
+        , m_memSpec(std::make_shared<MemSpecDDR4>(memSpec))
+        , m_interface(m_memSpec, getImplicitCommandHandler().createInserter())
         , m_core(m_memSpec, getImplicitCommandHandler().createInserter())
     {
         this->registerCommands();
@@ -93,9 +93,9 @@ namespace DRAMPower {
 // Getters for CLI
     util::CLIArchitectureConfig DDR4::getCLIArchitectureConfig() {
         return util::CLIArchitectureConfig{
-            m_memSpec.numberOfDevices,
-            m_memSpec.numberOfRanks,
-            m_memSpec.numberOfBanks
+            m_memSpec->numberOfDevices,
+            m_memSpec->numberOfRanks,
+            m_memSpec->numberOfBanks
         };
     }
 
@@ -105,12 +105,12 @@ namespace DRAMPower {
 
 // Calculation
     energy_t DDR4::calcCoreEnergy(timestamp_t timestamp) {
-        Calculation_DDR4 calculation(m_memSpec);
+        Calculation_DDR4 calculation(*m_memSpec);
         return calculation.calcEnergy(getWindowStats(timestamp));
     }
 
     interface_energy_info_t DDR4::calcInterfaceEnergy(timestamp_t timestamp) {
-        InterfaceCalculation_DDR4 calculation(m_memSpec);
+        InterfaceCalculation_DDR4 calculation(*m_memSpec);
         return calculation.calculateEnergy(getWindowStats(timestamp));
     }
 

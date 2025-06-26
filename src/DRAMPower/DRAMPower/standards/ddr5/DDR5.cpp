@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "DRAMPower/command/Pattern.h"
+#include "DRAMPower/memspec/MemSpecDDR5.h"
 #include "DRAMPower/standards/ddr5/DDR5Interface.h"
 #include "DRAMPower/standards/ddr5/core_calculation_DDR5.h"
 #include "DRAMPower/standards/ddr5/interface_calculation_DDR5.h"
@@ -13,19 +14,8 @@ namespace DRAMPower {
     using namespace DRAMUtils::Config;
 
     DDR5::DDR5(const MemSpecDDR5 &memSpec)
-        : dram_base<CmdType>(PatternEncoderOverrides{
-            {pattern_descriptor::V, PatternEncoderBitSpec::H},
-            {pattern_descriptor::X, PatternEncoderBitSpec::H}, // TODO high impedance ???
-            {pattern_descriptor::C0, PatternEncoderBitSpec::H},
-            {pattern_descriptor::C1, PatternEncoderBitSpec::H},
-            // Default value for CID0-3 is H in Pattern.h
-            // {pattern_descriptor::CID0, PatternEncoderBitSpec::H},
-            // {pattern_descriptor::CID1, PatternEncoderBitSpec::H},
-            // {pattern_descriptor::CID2, PatternEncoderBitSpec::H},
-            // {pattern_descriptor::CID3, PatternEncoderBitSpec::H},
-          }, DDR5Interface::cmdBusInitPattern)
-        , m_memSpec(memSpec)
-        , m_interface(m_memSpec, getImplicitCommandHandler().createInserter(), getPatternHandler())
+        : m_memSpec(std::make_shared<MemSpecDDR5>(memSpec))
+        , m_interface(m_memSpec, getImplicitCommandHandler().createInserter())
         , m_core(m_memSpec, getImplicitCommandHandler().createInserter())
     {
         this->registerCommands();
@@ -117,9 +107,9 @@ namespace DRAMPower {
 // Getters for CLI
     util::CLIArchitectureConfig DDR5::getCLIArchitectureConfig() {
         return util::CLIArchitectureConfig{
-            m_memSpec.numberOfDevices,
-            m_memSpec.numberOfRanks,
-            m_memSpec.numberOfBanks
+            m_memSpec->numberOfDevices,
+            m_memSpec->numberOfRanks,
+            m_memSpec->numberOfBanks
         };
     }
 
@@ -129,12 +119,12 @@ namespace DRAMPower {
 
 // Calculation
     energy_t DDR5::calcCoreEnergy(timestamp_t timestamp) {
-        Calculation_DDR5 calculation(m_memSpec);
+        Calculation_DDR5 calculation(*m_memSpec);
         return calculation.calcEnergy(getWindowStats(timestamp));
     }
 
     interface_energy_info_t DDR5::calcInterfaceEnergy(timestamp_t timestamp) {
-        InterfaceCalculation_DDR5 calculation(m_memSpec);
+        InterfaceCalculation_DDR5 calculation(*m_memSpec);
         return calculation.calculateEnergy(getWindowStats(timestamp));
     }
 

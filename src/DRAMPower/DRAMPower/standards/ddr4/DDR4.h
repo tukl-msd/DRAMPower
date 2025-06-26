@@ -75,7 +75,7 @@ private:
 
 // Private member variables
 private:
-    MemSpecDDR4 m_memSpec;
+    std::shared_ptr<MemSpecDDR4> m_memSpec;
     DDR4Interface m_interface;
     DDR4Core m_core;
 };

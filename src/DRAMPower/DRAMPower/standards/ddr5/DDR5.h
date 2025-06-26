@@ -1,6 +1,7 @@
 #ifndef DRAMPOWER_STANDARDS_DDR5_DDR5_H
 #define DRAMPOWER_STANDARDS_DDR5_DDR5_H
 
+#include <memory>
 #include <optional>
 
 #include <DRAMUtils/config/toggling_rate.h>
@@ -66,7 +67,7 @@ private:
 
 // Private member variables
 private:
-    MemSpecDDR5 m_memSpec;
+    std::shared_ptr<MemSpecDDR5> m_memSpec;
     DDR5Interface m_interface;
     DDR5Core m_core;
 };

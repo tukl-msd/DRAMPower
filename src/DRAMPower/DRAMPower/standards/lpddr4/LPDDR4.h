@@ -23,6 +23,7 @@
 
 #include <DRAMUtils/config/toggling_rate.h>
 
+#include <memory>
 #include <stdint.h>
 #include <optional>
 
@@ -77,7 +78,7 @@ private:
 
 // Private member variables
 private:
-    MemSpecLPDDR4 m_memSpec;
+    std::shared_ptr<MemSpecLPDDR4> m_memSpec;
     LPDDR4Interface m_interface;
     LPDDR4Core m_core;
 };
