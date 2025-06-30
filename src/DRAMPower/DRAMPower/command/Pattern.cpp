@@ -270,7 +270,7 @@ namespace DRAMPower {
                 bitset[n] = row_bits[17];
                 break;
             case OPCODE:
-                // TODO: Check shift direction
+                // Example: opcode 0x31 results in pattern 0b0011'0001
                 assert(m_opcodeLength > opcodecount);
                 bitset[n] = m_opcode & opcodeshifter;
                 opcodeshifter <<= 1;

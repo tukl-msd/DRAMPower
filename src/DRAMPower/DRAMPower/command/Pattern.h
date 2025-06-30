@@ -18,7 +18,7 @@ namespace pattern_descriptor {
         CID0, CID1, CID2, CID3,
         AP,
         BL,
-        OPCODE,
+        OPCODE, // Example: opcode 0x03 pattern: {H, L, OPCODE, OPCODE, OPCODE, OPCODE} result in 0b100011
     };
 }
 

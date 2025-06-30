@@ -15,6 +15,7 @@ class PatternTest : public ::testing::Test {
 protected:
 
 	std::vector<DRAMPower::pattern_descriptor::t> pattern;
+	std::vector<DRAMPower::pattern_descriptor::t> pattern2;
 
 	virtual void SetUp()
 	{
@@ -26,6 +27,12 @@ protected:
 			C0,  C1,  C2,  C3, C4, // 5
 			R0, R1, R2, // 3
 		};
+		pattern2 = {
+			H, L, H, 
+			OPCODE, OPCODE, OPCODE, OPCODE,
+			OPCODE, OPCODE, OPCODE, OPCODE,
+			L, H, L
+		};	
 	}
 
 	virtual void TearDown()
@@ -106,4 +113,36 @@ TEST_F(PatternTest, Test_Override_2_Patterns)
 	ASSERT_EQ(result, 2860539785);
 	result = encoder.encode(Command{0, CmdType::ACT, { 7,3,3,7,17} }, pattern, result);
 	ASSERT_EQ(result, 2866864015);
+};
+
+TEST_F(PatternTest, Test_Opcode_Patterns)
+{
+	using namespace pattern_descriptor;
+
+	auto encoder = PatternEncoder(PatternEncoderOverrides{
+		{X, PatternEncoderBitSpec::LAST_BIT},
+		{V, PatternEncoderBitSpec::LAST_BIT},
+		{AP, PatternEncoderBitSpec::LAST_BIT},
+		{BL, PatternEncoderBitSpec::LAST_BIT},
+	});
+
+	// last_pattern
+	uint64_t init_pattern = 0x0;
+
+	const uint64_t opcode = 0x1234'56A5; // 0b...10100101
+	const uint16_t opcodeLength = 32; // 32 bits
+	encoder.setOpcode(opcode, opcodeLength);
+
+	// Bank, Bank Group, Rank, Row, Column
+	auto result = encoder.encode(TargetCoordinate{ 1,2,3,4,17}, pattern2, init_pattern);
+	// HLH
+	uint64_t result_expected = 0b101 << 11;
+	// OPCODE
+	result_expected |= (opcode & 0xFF) << 3;
+	// LHL
+	result_expected |= 0b010;
+
+	ASSERT_EQ(result, result_expected);
+	result = encoder.encode(TargetCoordinate{ 7,6,3,7,21}, pattern2, result);
+	ASSERT_EQ(result, result_expected);
 };
