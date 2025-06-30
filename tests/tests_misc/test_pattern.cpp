@@ -16,6 +16,7 @@ protected:
 
 	std::vector<DRAMPower::pattern_descriptor::t> pattern;
 	std::vector<DRAMPower::pattern_descriptor::t> pattern2;
+	std::vector<DRAMPower::pattern_descriptor::t> pattern3;
 
 	virtual void SetUp()
 	{
@@ -32,7 +33,10 @@ protected:
 			OPCODE, OPCODE, OPCODE, OPCODE,
 			OPCODE, OPCODE, OPCODE, OPCODE,
 			L, H, L
-		};	
+		};
+		pattern3 = {
+			BA0, BA1, BA2, BA3, X, X, X, X,
+		};
 	}
 
 	virtual void TearDown()
@@ -54,6 +58,20 @@ TEST_F(PatternTest, Test_Override_Low)
 	// Bank, Bank Group, Rank, Row, Column
 	auto result = encoder.encode(Command{0, CmdType::ACT, { 1,2,3,4,17} }, pattern, 0);
 	ASSERT_EQ(result, 2189443209);
+};
+
+TEST_F(PatternTest, Test_Pattern_LastBit)
+{
+	using namespace pattern_descriptor;
+
+	auto encoder = PatternEncoder(PatternEncoderOverrides{
+		{X, PatternEncoderBitSpec::LAST_BIT},
+	});
+	const uint64_t init_pattern = 0b0101;
+	// Bank, Bank Group, Rank, Row, Column
+	auto result = encoder.encode({ 0xB, 2,
+		3, 4,}, pattern3, init_pattern);
+	ASSERT_EQ(result, 0b1101'0101);
 };
 
 TEST_F(PatternTest, Test_Override_High)

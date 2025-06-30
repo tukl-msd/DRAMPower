@@ -80,7 +80,6 @@ public:
         return m_opcodeLength;
     }
 
-// TODO test shift direction for LAST_BIT
 public:
     uint64_t encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern);
     uint64_t encode(const TargetCoordinate& coordinate, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern);
