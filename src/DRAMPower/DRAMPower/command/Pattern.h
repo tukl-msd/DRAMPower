@@ -55,7 +55,6 @@ public:
     bool removeSetting(pattern_descriptor::t descriptor);
 };
 
-// TODO: Has to be standard specific
 class PatternEncoder // Currently LPDDR4
 {
 public:
