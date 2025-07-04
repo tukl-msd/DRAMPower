@@ -31,13 +31,14 @@ protected:
 
     // Test variables
     std::unique_ptr<DRAMPower::DDR4> ddr;
+    std::unique_ptr<DRAMPower::MemSpecDDR4> memSpec;
 
     virtual void SetUp()
     {
         auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
-        auto memSpec = DRAMPower::MemSpecDDR4::from_memspec(*data);
+        memSpec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
 
-        ddr = std::make_unique<DDR4>(memSpec);
+        ddr = std::make_unique<DDR4>(*memSpec);
     }
 
     virtual void TearDown()
@@ -53,7 +54,7 @@ TEST_F(DramPowerTest_DDR4_3, Counters_and_Cycles){
     auto stats = ddr->getStats();
 
     // Check bank command count: ACT
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++){
         if(b == 0 || b == 3)
             ASSERT_EQ(stats.bank[b].counter.act, 1);
         else
@@ -61,7 +62,7 @@ TEST_F(DramPowerTest_DDR4_3, Counters_and_Cycles){
     }
 
     // Check bank command count: RD
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++){
         if(b == 0)
             ASSERT_EQ(stats.bank[b].counter.reads, 1);
         else
@@ -69,7 +70,7 @@ TEST_F(DramPowerTest_DDR4_3, Counters_and_Cycles){
     }
 
     // Check bank command count: PRE
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++){
         if(b == 0 || b == 3)
             ASSERT_EQ(stats.bank[b].counter.pre, 1);
         else
@@ -81,7 +82,7 @@ TEST_F(DramPowerTest_DDR4_3, Counters_and_Cycles){
     ASSERT_EQ(stats.rank_total[0].cycles.pre, 5);
 
     // Check bank specific ACT cycle count;
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++){
         if (b == 0)
             ASSERT_EQ(stats.bank[b].cycles.act, 35);
         else if(b == 3)
@@ -91,7 +92,7 @@ TEST_F(DramPowerTest_DDR4_3, Counters_and_Cycles){
     }
 
     // Check bank specific PRE cycle count
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++){
         if(b == 0)
             ASSERT_EQ(stats.bank[b].cycles.pre, 15);
         else if (b == 3)

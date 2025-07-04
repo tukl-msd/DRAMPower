@@ -4,6 +4,10 @@
 
 namespace DRAMPower {
 
+    Calculation_DDR5::Calculation_DDR5(const MemSpecDDR5 &memSpec)
+        : m_memSpec(memSpec)
+    {}
+
     double Calculation_DDR5::E_BG_pre(std::size_t B, double VDD, double IDD2_N, double T_BG_pre) {
         return (1.0 / B) * VDD * IDD2_N * T_BG_pre;
     };
@@ -45,36 +49,34 @@ namespace DRAMPower {
         return VDD * (IDD5C - I_BG) * tRFCsb * N_SB_REF * (1.0 / BG);
     }
 
-    energy_t Calculation_DDR5::calcEnergy(timestamp_t timestamp, DDR5 &dram) {
-        auto stats = dram.getWindowStats(timestamp);
+    energy_t Calculation_DDR5::calcEnergy(const SimulationStats &stats) {
+        double t_CK = m_memSpec.memTimingSpec.tCK;
+        auto t_RAS = m_memSpec.memTimingSpec.tRAS * t_CK;
+        auto t_RP = m_memSpec.memTimingSpec.tRP * t_CK;
+        auto t_RFC = m_memSpec.memTimingSpec.tRFC * t_CK;
+        auto t_RFCsb = m_memSpec.memTimingSpec.tRFCsb * t_CK;
 
-        double t_CK = dram.memSpec.memTimingSpec.tCK;
-        auto t_RAS = dram.memSpec.memTimingSpec.tRAS * t_CK;
-        auto t_RP = dram.memSpec.memTimingSpec.tRP * t_CK;
-        auto t_RFC = dram.memSpec.memTimingSpec.tRFC * t_CK;
-        auto t_RFCsb = dram.memSpec.memTimingSpec.tRFCsb * t_CK;
+        auto rho = m_memSpec.bwParams.bwPowerFactRho;
+        auto BL = m_memSpec.burstLength;
+        auto DR = m_memSpec.dataRate;
+        auto B = m_memSpec.numberOfBanks;
+        auto BG = m_memSpec.numberOfBankGroups;
 
-        auto rho = dram.memSpec.bwParams.bwPowerFactRho;
-        auto BL = dram.memSpec.burstLength;
-        auto DR = dram.memSpec.dataRate;
-        auto B = dram.memSpec.numberOfBanks;
-        auto BG = dram.memSpec.numberOfBankGroups;
-
-        energy_t energy(dram.memSpec.numberOfBanks * dram.memSpec.numberOfRanks * dram.memSpec.numberOfDevices);
+        energy_t energy(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks * m_memSpec.numberOfDevices);
 
         for (auto vd : {MemSpecDDR5::VoltageDomain::VDD, MemSpecDDR5::VoltageDomain::VPP}) {
-            auto VXX = dram.memSpec.memPowerSpec[vd].vXX;
-            auto IXX_0 = dram.memSpec.memPowerSpec[vd].iXX0;
-            auto IXX2N = dram.memSpec.memPowerSpec[vd].iXX2N;
-            auto IXX3N = dram.memSpec.memPowerSpec[vd].iXX3N;
-            auto IXX2P = dram.memSpec.memPowerSpec[vd].iXX2P;
-            auto IXX3P = dram.memSpec.memPowerSpec[vd].iXX3P;
-            auto IXX4R = dram.memSpec.memPowerSpec[vd].iXX4R;
-            auto IXX4W = dram.memSpec.memPowerSpec[vd].iXX4W;
-            auto IXX5X = dram.memSpec.memPowerSpec[vd].iXX5X;
-            auto IXX5C = dram.memSpec.memPowerSpec[vd].iXX5C;
-            auto IXX6N = dram.memSpec.memPowerSpec[vd].iXX6N;
-            auto IBeta = dram.memSpec.memPowerSpec[vd].iBeta;
+            auto VXX = m_memSpec.memPowerSpec[vd].vXX;
+            auto IXX_0 = m_memSpec.memPowerSpec[vd].iXX0;
+            auto IXX2N = m_memSpec.memPowerSpec[vd].iXX2N;
+            auto IXX3N = m_memSpec.memPowerSpec[vd].iXX3N;
+            auto IXX2P = m_memSpec.memPowerSpec[vd].iXX2P;
+            auto IXX3P = m_memSpec.memPowerSpec[vd].iXX3P;
+            auto IXX4R = m_memSpec.memPowerSpec[vd].iXX4R;
+            auto IXX4W = m_memSpec.memPowerSpec[vd].iXX4W;
+            auto IXX5X = m_memSpec.memPowerSpec[vd].iXX5X;
+            auto IXX5C = m_memSpec.memPowerSpec[vd].iXX5C;
+            auto IXX6N = m_memSpec.memPowerSpec[vd].iXX6N;
+            auto IBeta = m_memSpec.memPowerSpec[vd].iBeta;
 
             auto I_rho = rho * (IXX3N - IXX2N) + IXX2N;
             auto I_theta = (IXX_0 * (t_RP + t_RAS) - IBeta * t_RP) * (1 / t_RAS);
@@ -83,13 +85,13 @@ namespace DRAMPower {
 
             size_t energy_offset = 0;
             size_t bank_offset = 0;
-            for (size_t i = 0; i < dram.memSpec.numberOfRanks; ++i) {
-                for (size_t d = 0; d < dram.memSpec.numberOfDevices; ++d) {
-                    energy_offset = i * dram.memSpec.numberOfDevices * dram.memSpec.numberOfBanks
-                                    + d * dram.memSpec.numberOfBanks;
-                    bank_offset = i * dram.memSpec.numberOfBanks;
+            for (size_t i = 0; i < m_memSpec.numberOfRanks; ++i) {
+                for (size_t d = 0; d < m_memSpec.numberOfDevices; ++d) {
+                    energy_offset = i * m_memSpec.numberOfDevices * m_memSpec.numberOfBanks
+                                    + d * m_memSpec.numberOfBanks;
+                    bank_offset = i * m_memSpec.numberOfBanks;
 
-                    for (std::size_t b = 0; b < dram.memSpec.numberOfBanks; ++b) {
+                    for (std::size_t b = 0; b < m_memSpec.numberOfBanks; ++b) {
                         const auto &bank = stats.bank[bank_offset + b];
 
                         energy.bank_energy[energy_offset + b].E_act +=
@@ -120,12 +122,12 @@ namespace DRAMPower {
                     }
                 }
 
-                energy.E_sref += VXX * IXX6N * stats.rank_total[i].cycles.selfRefresh * t_CK * dram.memSpec.numberOfDevices;
-                energy.E_PDNA += VXX * IXX3P * stats.rank_total[i].cycles.powerDownAct * t_CK * dram.memSpec.numberOfDevices;
-                energy.E_PDNP += VXX * IXX2P * stats.rank_total[i].cycles.powerDownPre * t_CK * dram.memSpec.numberOfDevices;
+                energy.E_sref += VXX * IXX6N * stats.rank_total[i].cycles.selfRefresh * t_CK * m_memSpec.numberOfDevices;
+                energy.E_PDNA += VXX * IXX3P * stats.rank_total[i].cycles.powerDownAct * t_CK * m_memSpec.numberOfDevices;
+                energy.E_PDNP += VXX * IXX2P * stats.rank_total[i].cycles.powerDownPre * t_CK * m_memSpec.numberOfDevices;
 
                 energy.E_bg_act_shared +=
-                    E_BG_act_shared(VXX, I_rho, stats.rank_total[i].cycles.act * t_CK) * dram.memSpec.numberOfDevices;
+                    E_BG_act_shared(VXX, I_rho, stats.rank_total[i].cycles.act * t_CK) * m_memSpec.numberOfDevices;
             }
         }
 

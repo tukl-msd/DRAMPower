@@ -6,6 +6,8 @@
 #include <DRAMPower/data/energy.h>
 
 #include <DRAMPower/Types.h>
+#include <DRAMPower/memspec/MemSpecDDR4.h>
+#include <DRAMPower/data/stats.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -17,6 +19,9 @@ class DDR4;
 
 class Calculation_DDR4
 {
+public:
+	Calculation_DDR4(const MemSpecDDR4 &memSpec);
+
 private:
 	inline double E_act(double VDD, double I_theta, double I_1, double t_RAS, uint64_t N_act);
 	inline double E_pre(double VDD, double IBeta, double IDD2_N, double t_RP, uint64_t N_pre);
@@ -28,9 +33,11 @@ private:
 	inline double E_ref_ab(std::size_t B, double VDD, double IDD5B, double IDD3_N, double tRFC, uint64_t N_REF);
 	
 public:
-	energy_t calcEnergy(timestamp_t timestamp, DDR4 & dram);
+	energy_t calcEnergy(const SimulationStats &stats);
+private:
+	const MemSpecDDR4 &m_memSpec;
 };
 
-};
+} // namespace DRAMPower
 
 #endif /* DRAMPOWER_STANDARDS_DDR4_CALCULATION_DDR4_H */

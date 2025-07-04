@@ -25,16 +25,13 @@ class MemSpecDDR5 final : public MemSpec<DRAMUtils::MemSpec::MemSpecDDR5> {
         MemSpecDDR5(json_t &data) = delete;
         MemSpecDDR5(const json_t &data) = delete;
 
-        // Copy constructor
+        // Copy constructor and assignment operator
         MemSpecDDR5(const MemSpecDDR5&) = default;
+        MemSpecDDR5& operator=(const MemSpecDDR5&) = default;
 
-        // Move constructor
+        // Move constructor and assignment operator
         MemSpecDDR5(MemSpecDDR5&&) = default;
-
-        // Move assignment operator
         MemSpecDDR5& operator=(MemSpecDDR5&&) = default;
-
-        ~MemSpecDDR5() = default;
 
         uint64_t timeToCompletion(CmdType type) override;
 

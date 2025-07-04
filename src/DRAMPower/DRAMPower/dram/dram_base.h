@@ -6,6 +6,13 @@
 
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/data/stats.h>
+#include <DRAMPower/util/extension_manager.h>
+#include <DRAMPower/util/extensions.h>
+
+#include <DRAMPower/util/Router.h>
+#include <DRAMPower/util/PatternHandler.h>
+#include <DRAMPower/util/ImplicitCommandHandler.h>
+#include <DRAMPower/util/cli_architecture_config.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
 
@@ -23,187 +30,170 @@ using namespace DRAMUtils::Config;
 
 template <typename CommandEnum>
 class dram_base {
+// Public type definitions
 public:
     using commandEnum_t = CommandEnum;
-    using commandHandler_t = std::function<void(const Command&)>;
     using commandCount_t = std::vector<std::size_t>;
-    using commandCoreRouter_t = std::vector<commandHandler_t>;
-    using commandInterfaceRouter_t = std::vector<commandHandler_t>;
-    using commandPattern_t = std::vector<pattern_descriptor::t>;
-    using commandPatternMap_t = std::vector<commandPattern_t>;
-    using implicitCommand_t = std::function<void(void)>;
-    using implicitCommandListEntry_t = std::pair<timestamp_t, implicitCommand_t>;
-    using implicitCommandList_t = std::deque<implicitCommandListEntry_t>;
+    using commandRouter_t = Router<commandEnum_t>;
+    // PatternHandler
+    using patternHandler_t = PatternHandler<commandEnum_t>;
+    // ImplicitCommandHandler
+    using ImplicitCommandHandler_t = ImplicitCommandHandler;
+    using implicitCommandInserter_t = typename ImplicitCommandHandler::Inserter_t;
+    // ExtensionManager
+    using extension_manager_t = util::extension_manager::ExtensionManager<
+        extensions::Base
+    >;
 
+// Public constructors and assignment operators
 public:
-    commandCount_t commandCount;
-private:
-    commandCoreRouter_t commandCoreRouter;
-    commandInterfaceRouter_t commandInterfaceRouter;
-    commandPatternMap_t commandPatternMap;
-protected:
-    PatternEncoder encoder;
-    uint64_t lastPattern;
-private:
-    implicitCommandList_t implicitCommandList;
-    timestamp_t last_command_time;
-
-public:
-    dram_base(PatternEncoderOverrides encoderoverrides)
-        : commandCount(static_cast<std::size_t>(CommandEnum::COUNT), 0)
-        , commandCoreRouter(static_cast<std::size_t>(CommandEnum::COUNT), [](const Command&) {})
-        , commandInterfaceRouter(static_cast<std::size_t>(CommandEnum::COUNT), [](const Command&) {})
-        , commandPatternMap(static_cast<std::size_t>(CommandEnum::COUNT), commandPattern_t {})
-        , encoder(encoderoverrides)
-        , lastPattern(0)
-        {
-            init();
-        };
-
-private:
-    void init()
-    {
-        this->lastPattern = getInitEncoderPattern();
-    };
-
-public:
+    dram_base(const dram_base&) = default; // copy constructor
+    dram_base& operator=(const dram_base&) = default; // copy assignment operator
+    dram_base(dram_base&&) = default; // Move constructor
+    dram_base& operator=(dram_base&&) = default; // Move assignment operator
     virtual ~dram_base() = 0;
+// Protected constructors
+protected:
+    dram_base()
+        : m_commandCoreCount(static_cast<std::size_t>(commandEnum_t::COUNT), 0)
+        , m_commandInterfaceCount(static_cast<std::size_t>(commandEnum_t::COUNT), 0)
+        , m_commandCoreRouter(std::nullopt)
+        , m_commandInterfaceRouter(std::nullopt)
+    {}
+
+// Interface
 private:
     virtual timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleRateDefinition) = 0;
-    virtual uint64_t getInitEncoderPattern()
-    {
-        // Default encoder init pattern
-        return 0;
-    };
 public:
     virtual energy_t calcCoreEnergy(timestamp_t timestamp) = 0;
     virtual interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) = 0;
-    virtual SimulationStats getStats() = 0;
-    virtual uint64_t getBankCount() = 0;
-    virtual uint64_t getRankCount() = 0;
-    virtual uint64_t getDeviceCount() = 0;
+    virtual SimulationStats getWindowStats(timestamp_t timestamp) = 0;
+    virtual util::CLIArchitectureConfig getCLIArchitectureConfig() = 0;
 
-    double getTotalEnergy(timestamp_t timestamp)
-    {
-        return calcCoreEnergy(timestamp).total() + calcInterfaceEnergy(timestamp).total();
-    };
-
+// Getters for member variables
 public:
-    uint64_t getCommandPattern(const Command& cmd)
-    {
-        if (commandPatternMap[static_cast<std::size_t>(cmd.type)].empty()) {
-            // No pattern registered for this command
-            throw std::runtime_error("No pattern registered for this command");
-        }
-        const auto& pattern = commandPatternMap[static_cast<std::size_t>(cmd.type)];
-        lastPattern = encoder.encode(cmd, pattern, lastPattern);
-        return lastPattern;
-    };
-
+    // ExtensionManager
+    extension_manager_t& getExtensionManager() { return m_extensionManager; }
+    const extension_manager_t& getExtensionManager() const { return m_extensionManager; }
 protected:
-    template <typename Func>
-    void addImplicitCommand(timestamp_t timestamp, Func&& func)
+    // ImplicitCommandHandler
+    ImplicitCommandHandler_t& getImplicitCommandHandler() { return m_ImplicitCommandHandler; }
+    const ImplicitCommandHandler_t& getImplicitCommandHandler() const { return m_ImplicitCommandHandler; }
+    // Router Core
+    commandRouter_t& getCommandCoreRouter() { return m_commandCoreRouter; }
+    const commandRouter_t& getCommandCoreRouter() const { return m_commandCoreRouter; }
+    // Router Interface
+    commandRouter_t& getCommandInterfaceRouter() { return m_commandInterfaceRouter; }
+    const commandRouter_t& getCommandInterfaceRouter() const { return m_commandInterfaceRouter; }
+
+
+// Router forwards
+protected:
+    template <commandEnum_t cmd, typename Func>
+    void routeCoreCommand(Func&& func)
     {
-        auto entry = std::make_pair(timestamp, std::forward<Func>(func));
-
-        auto upper = std::upper_bound(implicitCommandList.begin(), implicitCommandList.end(),
-            entry,
-            [](const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; });
-
-        implicitCommandList.emplace(upper, entry);
+        m_commandCoreRouter.template routeCommand<cmd>(std::forward<Func>(func));
     }
 
-    template <CommandEnum cmd, typename Func>
-    void routeCommand(Func&& func)
-    {
-        assert(commandCoreRouter.size() > static_cast<std::size_t>(cmd));
-        this->commandCoreRouter[static_cast<std::size_t>(cmd)] = func;
-    }
-
-    template <CommandEnum cmd, typename Func>
+    template <commandEnum_t cmd, typename Func>
     void routeInterfaceCommand(Func&& func)
     {
-        assert(commandInterfaceRouter.size() > static_cast<std::size_t>(cmd));
-        this->commandInterfaceRouter[static_cast<std::size_t>(cmd)] = func;
+        m_commandInterfaceRouter.template routeCommand<cmd>(std::forward<Func>(func));
     }
 
-    template <CommandEnum cmd_type>
-    void registerPattern(std::initializer_list<pattern_descriptor::t> pattern)
-    {
-        assert(this->commandPatternMap.size() > static_cast<std::size_t>(cmd_type));
-        this->commandPatternMap[static_cast<std::size_t>(cmd_type)] = commandPattern_t(pattern);
-    }
-
-    template <CommandEnum cmd_type>
-    void registerPattern(const commandPattern_t &pattern)
-    {
-        this->commandPatternMap[static_cast<std::size_t>(cmd_type)] = pattern;
-    }
-
-    const commandPattern_t& getPattern(CmdType cmd_type)
-    {
-        return this->commandPatternMap[static_cast<std::size_t>(cmd_type)];
-    }
-
-    std::size_t implicitCommandCount() const { return this->implicitCommandList.size(); };
-
+// ImplicitCommandHandler forwards
+public:
+    // Forward implicit command count
+    std::size_t implicitCommandCount() const { return m_ImplicitCommandHandler.implicitCommandCount(); }
+protected:
     void processImplicitCommandQueue(timestamp_t timestamp)
     {
-        // Process implicit command list
-        while (!implicitCommandList.empty() && implicitCommandList.front().first <= timestamp) {
-            // Execute implicit command functor
-            auto& [timestamp, implicitCommand] = implicitCommandList.front();
-            implicitCommand();
-            this->last_command_time = timestamp;
-            implicitCommandList.pop_front();
-        };
+        m_ImplicitCommandHandler.processImplicitCommandQueue(timestamp, m_last_command_time);
     }
 
-public:
-    
-    void doCoreCommand(const Command& command)
+
+// Private member functions
+private:
+    void doCommand(const Command& command, commandCount_t& commandCount, commandRouter_t& commandRouter)
     {
         assert(commandCount.size() > static_cast<std::size_t>(command.type));
-        assert(commandCoreRouter.size() > static_cast<std::size_t>(command.type));
+        assert(commandRouter.size() > static_cast<std::size_t>(command.type));
 
         // Process implicit command list
-        processImplicitCommandQueue(command.timestamp);
+        m_ImplicitCommandHandler.processImplicitCommandQueue(command.timestamp, m_last_command_time);
 
-        this->commandCount[static_cast<std::size_t>(command.type)]++;
-        this->commandCoreRouter[static_cast<std::size_t>(command.type)](command);
+        commandCount[static_cast<std::size_t>(command.type)]++;
+        commandRouter.executeCommand(command);
 
-        this->last_command_time = command.timestamp;
-    };
+        m_last_command_time = command.timestamp;
+    }
+
+// Public member functions
+public:
+    void doCoreCommand(const Command& command)
+    {
+        doCommand(command, m_commandCoreCount, m_commandCoreRouter);
+    }
+
+    void doInterfaceCommand(const Command& command)
+    {
+        doCommand(command, m_commandInterfaceCount, m_commandInterfaceRouter);
+    }
+
+    void doCoreInterfaceCommand(const Command& command)
+    {
+        doCoreCommand(command);
+        doInterfaceCommand(command);
+    }
 
     void setToggleRate(timestamp_t timestamp, const std::optional<ToggleRateDefinition> &toggleRateDefinition)
     {
         update_toggling_rate(timestamp, toggleRateDefinition);
     }
 
-    void doInterfaceCommand(const Command& command)
+    auto getCommandCoreCount(commandEnum_t cmd) const
     {
-        assert(commandInterfaceRouter.size() > static_cast<std::size_t>(command.type));
+        assert(m_commandCoreCount.size() > static_cast<std::size_t>(cmd));
 
-        this->commandInterfaceRouter[static_cast<std::size_t>(command.type)](command);
-
-        this->last_command_time = command.timestamp;
-    };
-
-    void doCoreInterfaceCommand(const Command& command)
-    {
-        doCoreCommand(command);
-        doInterfaceCommand(command);
-        this->last_command_time = command.timestamp;
+        return this->m_commandCoreCount[static_cast<std::size_t>(cmd)];
     }
 
-    auto getCommandCount(CommandEnum cmd) const
+    auto getCommandInterfaceCount(commandEnum_t cmd) const
     {
-        assert(commandCount.size() > static_cast<std::size_t>(cmd));
+        assert(m_commandInterfaceCount.size() > static_cast<std::size_t>(cmd));
 
-        return this->commandCount[static_cast<std::size_t>(cmd)];
+        return this->m_commandInterfaceCount[static_cast<std::size_t>(cmd)];
+    }
+
+    timestamp_t getLastCommandTime() const
+    {
+        return m_last_command_time;
+    }
+
+    double getTotalEnergy(timestamp_t timestamp)
+    {
+        return calcCoreEnergy(timestamp).total() + calcInterfaceEnergy(timestamp).total();
     };
 
-    timestamp_t getLastCommandTime() const { return this->last_command_time; };
+    SimulationStats getStats() {
+        return getWindowStats(getLastCommandTime());
+    }
+
+// Private member variables
+private:
+    // Counter
+    commandCount_t m_commandCoreCount;
+    commandCount_t m_commandInterfaceCount;
+    // Router
+    commandRouter_t m_commandCoreRouter;
+    commandRouter_t m_commandInterfaceRouter;
+    // ExtensionManager
+    extension_manager_t m_extensionManager;
+    // ImplicitCommandHandler
+    ImplicitCommandHandler_t m_ImplicitCommandHandler;
+    // Last command time
+    timestamp_t m_last_command_time;
+
 };
 
 template <typename CommandEnum>

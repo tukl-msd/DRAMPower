@@ -7,6 +7,7 @@
 #include <DRAMUtils/config/toggling_rate.h>
 
 #include "DRAMPower/standards/ddr4/DDR4.h"
+#include "DRAMPower/standards/test_accessor.h"
 #include "DRAMPower/memspec/MemSpecDDR4.h"
 #include "DRAMPower/standards/ddr4/interface_calculation_DDR4.h"
 
@@ -105,7 +106,7 @@ TEST_F(DDR4_TogglingRate_Tests, Pattern_0_LH) {
     SimulationStats stats = ddr->getStats();
     
     EXPECT_EQ(spec->dataRate, 2);
-    EXPECT_EQ(ddr->dataBus.getWidth(), spec->bitWidth);
+    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
 
 // Data bus
     // Read bus
@@ -212,7 +213,7 @@ TEST_F(DDR4_TogglingRate_Tests, Pattern_0_HZ) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(spec->dataRate, 2);
-    EXPECT_EQ(ddr->dataBus.getWidth(), spec->bitWidth);
+    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
 
 // Data bus
     // Read bus
@@ -348,7 +349,7 @@ TEST_F(DDR4_TogglingRate_Tests, Pattern_1) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(spec->dataRate, 2);
-    EXPECT_EQ(ddr->dataBus.getWidth(), spec->bitWidth);
+    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
 
 // Toggling rate
     uint64_t toggles_read = 16;

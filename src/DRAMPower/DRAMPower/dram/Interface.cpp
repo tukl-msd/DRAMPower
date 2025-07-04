@@ -89,6 +89,7 @@ void TogglingHandle::setDataRate(const uint64_t datarate)
 {
     this->datarate = datarate;
 }
+
 void TogglingHandle::setTogglingRateAndDutyCycle(const double toggling_rate, const double duty_cycle, const TogglingRateIdlePattern idlepattern)
 {
     this->toggling_rate = toggling_rate;
@@ -125,6 +126,7 @@ void TogglingHandle::incCountBurstLength(timestamp_t timestamp, uint64_t burstle
     );
     // Add last burst
     if (!this->last_burst.handled) {
+        // Add last burst to count
         this->count += this->last_burst.last_length;
     }
     // Store burst in last_length and last_load if enabled

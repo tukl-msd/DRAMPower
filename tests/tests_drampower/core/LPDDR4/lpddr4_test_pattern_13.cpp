@@ -3,6 +3,7 @@
 #include "DRAMPower/command/Command.h"
 
 #include <DRAMPower/standards/lpddr4/LPDDR4.h>
+#include <DRAMPower/standards/test_accessor.h>
 
 #include <memory>
 #include <fstream>
@@ -85,7 +86,7 @@ TEST_F(DramPowerTest_LPDDR4_13, Test)
         ddr->doCoreCommand(command);
     };
 
-	Rank & rank_1 = ddr->ranks[0];
+	const Rank & rank_1 = internal::LPDDR4TestAccessor.getCore(*ddr).m_ranks[0];
 	auto stats = ddr->getStats();
 
 	// Check global command count

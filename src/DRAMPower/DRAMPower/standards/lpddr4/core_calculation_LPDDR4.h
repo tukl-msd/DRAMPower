@@ -1,9 +1,11 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR4_CALCULATION_LPDDR4_H
 #define DRAMPOWER_STANDARDS_LPDDR4_CALCULATION_LPDDR4_H
 
+#include "DRAMPower/data/stats.h"
 #pragma once
 
 #include <DRAMPower/data/energy.h>
+#include <DRAMPower/memspec/MemSpecLPDDR4.h>
 
 #include <DRAMPower/Types.h>
 
@@ -17,6 +19,9 @@ class LPDDR4;
 
 class Calculation_LPDDR4
 {
+public:
+    Calculation_LPDDR4(const MemSpecLPDDR4 &memSpec);
+
 private:
     double E_act(double VDD, double I_theta, double IDD3N, double tRAS, uint64_t N_act);
     double E_pre(double VDD, double IBeta, double IDD2N, double tRP, uint64_t N_pre);
@@ -29,7 +34,10 @@ private:
     double E_ref_pb(double VDD, double IDD5PB_B, double IDD3N, double tRFCPB, uint64_t N_PB_REF);
 
 public:
-	energy_t calcEnergy(timestamp_t timestamp, LPDDR4 & dram);
+	energy_t calcEnergy(const SimulationStats &stats);
+
+private:
+    const MemSpecLPDDR4 &m_memSpec;
 };
 
 };

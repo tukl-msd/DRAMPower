@@ -37,8 +37,6 @@ TEST_F(PatternTest, Test_Override_Low)
 {
 	using namespace pattern_descriptor;
 
-	std::bitset<64> bitset;
-
 	auto encoder = PatternEncoder(PatternEncoderOverrides{
 		{X, PatternEncoderBitSpec::L},
 		{V, PatternEncoderBitSpec::L},
@@ -55,8 +53,6 @@ TEST_F(PatternTest, Test_Override_High)
 {
 	using namespace pattern_descriptor;
 
-	std::bitset<64> bitset;
-
 	auto encoder = PatternEncoder(PatternEncoderOverrides{
 		{X, PatternEncoderBitSpec::H},
 		{V, PatternEncoderBitSpec::H},
@@ -72,8 +68,6 @@ TEST_F(PatternTest, Test_Override_High)
 TEST_F(PatternTest, Test_Override_Last)
 {
 	using namespace pattern_descriptor;
-
-	std::bitset<64> bitset;
 
 	auto encoder = PatternEncoder(PatternEncoderOverrides{
 		{X, PatternEncoderBitSpec::LAST_BIT},
@@ -93,8 +87,6 @@ TEST_F(PatternTest, Test_Override_Last)
 TEST_F(PatternTest, Test_Override_2_Patterns)
 {
 	using namespace pattern_descriptor;
-
-	std::bitset<64> bitset;
 
 	auto encoder = PatternEncoder(PatternEncoderOverrides{
 		{X, PatternEncoderBitSpec::LAST_BIT},

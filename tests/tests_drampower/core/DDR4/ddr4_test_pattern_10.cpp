@@ -3,6 +3,7 @@
 #include <DRAMPower/command/Command.h>
 
 #include <DRAMPower/standards/ddr4/DDR4.h>
+#include <DRAMPower/standards/test_accessor.h>
 
 #include <memory>
 
@@ -82,7 +83,7 @@ TEST_F(DramPowerTest_DDR4_10, Pattern1)
     };
 
 	// Inspect first rank
-	auto & rank_1 = ddr->ranks[0];
+	const auto & rank_1 = internal::DDR4TestAccessor.getCore(*ddr).m_ranks[0];
 	auto stats = ddr->getStats();
 
 	// Check global count

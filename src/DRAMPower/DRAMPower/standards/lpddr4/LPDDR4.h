@@ -1,6 +1,10 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR4_LPDDR4_H
 #define DRAMPOWER_STANDARDS_LPDDR4_LPDDR4_H
 
+#include "DRAMPower/data/stats.h"
+#include "DRAMPower/standards/lpddr4/LPDDR4Interface.h"
+#include "DRAMPower/standards/lpddr4/LPDDR4Core.h"
+#include "DRAMPower/util/cli_architecture_config.h"
 #include <DRAMPower/util/bus.h>
 #include <DRAMPower/util/databus.h>
 #include <DRAMPower/util/databus_presets.h>
@@ -19,122 +23,64 @@
 
 #include <DRAMUtils/config/toggling_rate.h>
 
-#include <deque>
-#include <algorithm>
+#include <memory>
 #include <stdint.h>
-#include <vector>
+#include <optional>
 
 namespace DRAMPower {
 
+namespace internal {
+    template<typename Standard, typename Core, typename Interface>
+    class TestAccessor;
+}
+
 class LPDDR4 : public dram_base<CmdType>{
+// Friend classes
+friend class internal::TestAccessor<LPDDR4, LPDDR4Core, LPDDR4Interface>;
+
+// public constructors and assignment operators
 public:
+    LPDDR4() = delete; // No default constructor
+    LPDDR4(const LPDDR4&) = default; // copy constructor
+    LPDDR4& operator=(const LPDDR4&) = default; // copy assignment operator
+    LPDDR4(LPDDR4&&) = default; // move constructor
+    LPDDR4& operator=(LPDDR4&&) = default; // move assignment operator
+    ~LPDDR4() override = default;
+    
     LPDDR4(const MemSpecLPDDR4& memSpec);
-    virtual ~LPDDR4() = default;
-public:
-    using commandbus_t = util::Bus<6>;
-    using databus_t =  util::databus_presets::databus_preset_t;
-    MemSpecLPDDR4 memSpec;
-    std::vector<Rank> ranks;
-    commandbus_t commandBus;
-    databus_t dataBus;
-    util::Clock readDQS;
-    util::Clock writeDQS;
 
-    util::Clock clock;
-
-protected:
-
-    template<dram_base::commandEnum_t Cmd, typename Func>
-    void registerInterfaceMember(Func && member_func) {
-        this->routeInterfaceCommand<Cmd>([this, member_func](const Command & command) {
-            (this->*member_func)(command);
-        });
-    }
-
-    template<dram_base::commandEnum_t Cmd, typename Func>
-    void registerBankHandler(Func && member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command & command) {
-            assert(this->ranks.size()>command.targetCoordinate.rank);
-            auto & rank = this->ranks.at(command.targetCoordinate.rank);
-
-            assert(rank.banks.size()>command.targetCoordinate.bank);
-            auto & bank = rank.banks.at(command.targetCoordinate.bank);
-
-            rank.commandCounter.inc(command.type);
-            (this->*member_func)(rank, bank, command.timestamp);
-        });
-    }
-
-    template<dram_base::commandEnum_t Cmd, typename Func>
-    void registerRankHandler(Func && member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command & command) {
-            assert(this->ranks.size()>command.targetCoordinate.rank);
-            auto & rank = this->ranks.at(command.targetCoordinate.rank);
-
-            rank.commandCounter.inc(command.type);
-            (this->*member_func)(rank, command.timestamp);
-        });
-    }
-
-    template<dram_base::commandEnum_t Cmd, typename Func>
-    void registerHandler(Func && member_func) {
-        this->routeCommand<Cmd>([this, member_func](const Command & command) {
-            (this->*member_func)(command.timestamp);
-        });
-    }
-
-    void registerCommands();
-public:
-    timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) {
-        timestamp_t entryTime = 0;
-
-        for (const auto & bank : rank.banks) {
-            entryTime = std::max({ entryTime,
-                                   bank.counter.act == 0 ? 0 :  bank.cycles.act.get_start() + memSpec.memTimingSpec.tRCD,
-                                   bank.counter.pre == 0 ? 0 : bank.latestPre + memSpec.memTimingSpec.tRP,
-                                   bank.refreshEndTime
-                                 });
-        }
-
-        return entryTime;
-    };
-public:
-    SimulationStats getStats() override;
-    uint64_t getBankCount() override;
-    uint64_t getRankCount() override;
-    uint64_t getDeviceCount() override;
-
-
-    void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handlePre(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handlePreAll(Rank & rank, timestamp_t timestamp);
-    void handleRead(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleWrite(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleReadAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleWriteAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleRefAll(Rank & rank, timestamp_t timestamp);
-    void handleRefPerBank(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleRefreshOnBank(Rank & rank, Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t & counter);
-    void handleSelfRefreshEntry(Rank & rank, timestamp_t timestamp);
-    void handleSelfRefreshExit(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownActEntry(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownActExit(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownPreEntry(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownPreExit(Rank & rank, timestamp_t timestamp);
-
-    void endOfSimulation(timestamp_t timestamp);
+// Overrides
 private:
     timestamp_t update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition) override;
-    void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
-    void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
-    void handleInterfaceDQs(const Command& cmd, util::Clock &dqs, size_t length);
-    void handleInterfaceOverrides(size_t length, bool read);
-    void handleInterfaceCommandBus(const Command& cmd);
-    void handleInterfaceData(const Command &cmd, bool read);
 public:
-    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
     energy_t calcCoreEnergy(timestamp_t timestamp) override;
-    SimulationStats getWindowStats(timestamp_t timestamp);
+    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
+    SimulationStats getWindowStats(timestamp_t timestamp) override;
+    util::CLIArchitectureConfig getCLIArchitectureConfig() override;
+
+// Private member functions
+private:
+    LPDDR4Core& getCore() {
+        return m_core;
+    }
+    const LPDDR4Core& getCore() const {
+        return m_core;
+    }
+    LPDDR4Interface& getInterface() {
+        return m_interface;
+    }
+    const LPDDR4Interface& getInterface() const {
+        return m_interface;
+    }
+    void registerCommands();
+    void registerExtensions();
+    void endOfSimulation(timestamp_t timestamp);
+
+// Private member variables
+private:
+    std::shared_ptr<MemSpecLPDDR4> m_memSpec;
+    LPDDR4Interface m_interface;
+    LPDDR4Core m_core;
 };
 
 } // namespace DRAMPower

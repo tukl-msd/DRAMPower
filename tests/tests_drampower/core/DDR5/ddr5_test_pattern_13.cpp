@@ -3,6 +3,7 @@
 #include "DRAMPower/command/Command.h"
 
 #include <DRAMPower/standards/ddr5/DDR5.h>
+#include <DRAMPower/standards/test_accessor.h>
 
 #include <memory>
 #include <fstream>
@@ -90,7 +91,7 @@ TEST_F(DramPowerTest_DDR5_13, Pattern_2)
     };
 
 	// Inspect first rank
-	Rank & rank_1 = ddr->ranks[0];
+	const Rank & rank_1 = internal::DDR5TestAccessor.getCore(*ddr).m_ranks[0];
 
 	// Check global command count
 	ASSERT_EQ(rank_1.commandCounter.get(CmdType::RD), 13);

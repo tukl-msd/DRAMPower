@@ -53,18 +53,19 @@ protected:
 
 
     // Test variables
+    std::unique_ptr<DRAMPower::MemSpecDDR5> memSpec;
     std::unique_ptr<DRAMPower::DDR5> ddr;
     uint64_t numberOfDevices;
 
     virtual void SetUp()
     {
         auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr5.json");
-        auto memSpec = DRAMPower::MemSpecDDR5::from_memspec(*data);
+        memSpec = std::make_unique<DRAMPower::MemSpecDDR5>(DRAMPower::MemSpecDDR5::from_memspec(*data));
 
-        memSpec.numberOfDevices = 5;
+        memSpec->numberOfDevices = 5;
 
-        numberOfDevices = memSpec.numberOfDevices;
-        ddr = std::make_unique<DDR5>(memSpec);
+        numberOfDevices = memSpec->numberOfDevices;
+        ddr = std::make_unique<DDR5>(*memSpec);
     }
 
     virtual void TearDown()
@@ -80,7 +81,7 @@ TEST_F(DramPowerTest_DDR5_MultiDevice, Counters_and_Cycles){
     auto stats = ddr->getStats();
 
     // Check bank command count: ACT
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++){
         if(b == 0 || b == 3)
             ASSERT_EQ(stats.bank[b].counter.act, 1);
         else
@@ -88,7 +89,7 @@ TEST_F(DramPowerTest_DDR5_MultiDevice, Counters_and_Cycles){
     }
 
     // Check bank command count: RD
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++){
         if (b == 0)
             ASSERT_EQ(stats.bank[b].counter.reads, 2);
         else if(b == 3)
@@ -98,7 +99,7 @@ TEST_F(DramPowerTest_DDR5_MultiDevice, Counters_and_Cycles){
     };
 
     // Check bank command count: PRE
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++){
         if(b == 0 || b == 3)
             ASSERT_EQ(stats.bank[b].counter.pre, 1);
         else
@@ -110,7 +111,7 @@ TEST_F(DramPowerTest_DDR5_MultiDevice, Counters_and_Cycles){
     ASSERT_EQ(stats.rank_total[0].cycles.pre, 20);
 
     // Check bank specific ACT cycle count;
-    for(uint64_t b = 0; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 0; b < memSpec->numberOfBanks; b++){
         if (b == 0)
             ASSERT_EQ(stats.bank[b].cycles.act, 50);
         else if(b == 3)
@@ -120,7 +121,7 @@ TEST_F(DramPowerTest_DDR5_MultiDevice, Counters_and_Cycles){
     }
 
     // Check bank specific PRE cycle count
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++){
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++){
         if(b == 0)
             ASSERT_EQ(stats.bank[b].cycles.pre, 20);
         else if (b == 3)
@@ -138,16 +139,16 @@ TEST_F(DramPowerTest_DDR5_MultiDevice, Energy) {
     auto energy = ddr->calcCoreEnergy(testPattern.back().timestamp);
     auto total_energy = energy.total_energy();
 
-    ASSERT_EQ(energy.bank_energy.size(), numberOfDevices * ddr->memSpec.numberOfBanks);
+    ASSERT_EQ(energy.bank_energy.size(), numberOfDevices * memSpec->numberOfBanks);
 
     // Validate every device has the same bank energy
     for(size_t i = 0; i < numberOfDevices; i++){
-        for(size_t j = 0; j < ddr->memSpec.numberOfBanks; j++){
-            ASSERT_EQ(energy.bank_energy[i * ddr->memSpec.numberOfBanks + j].E_act, energy.bank_energy[j].E_act);
-            ASSERT_EQ(energy.bank_energy[i * ddr->memSpec.numberOfBanks + j].E_pre, energy.bank_energy[j].E_pre);
-            ASSERT_EQ(energy.bank_energy[i * ddr->memSpec.numberOfBanks + j].E_RD, energy.bank_energy[j].E_RD);
-            ASSERT_EQ(energy.bank_energy[i * ddr->memSpec.numberOfBanks + j].E_bg_act, energy.bank_energy[j].E_bg_act);
-            ASSERT_EQ(energy.bank_energy[i * ddr->memSpec.numberOfBanks + j].E_bg_pre, energy.bank_energy[j].E_bg_pre);
+        for(size_t j = 0; j < memSpec->numberOfBanks; j++){
+            ASSERT_EQ(energy.bank_energy[i * memSpec->numberOfBanks + j].E_act, energy.bank_energy[j].E_act);
+            ASSERT_EQ(energy.bank_energy[i * memSpec->numberOfBanks + j].E_pre, energy.bank_energy[j].E_pre);
+            ASSERT_EQ(energy.bank_energy[i * memSpec->numberOfBanks + j].E_RD, energy.bank_energy[j].E_RD);
+            ASSERT_EQ(energy.bank_energy[i * memSpec->numberOfBanks + j].E_bg_act, energy.bank_energy[j].E_bg_act);
+            ASSERT_EQ(energy.bank_energy[i * memSpec->numberOfBanks + j].E_bg_pre, energy.bank_energy[j].E_bg_pre);
         }
     }
 

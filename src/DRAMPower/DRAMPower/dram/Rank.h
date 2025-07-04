@@ -45,15 +45,6 @@ public:
 	timestamp_t endRefreshTime = 0;
 	std::vector<Bank> banks;
 
-	uint64_t 	seamlessPrePostambleCounter_read	= 0;
-	uint64_t 	seamlessPrePostambleCounter_write	= 0;
-	uint64_t	mergedPrePostambleCounter_read		= 0;
-	uint64_t	mergedPrePostambleCounter_write		= 0;
-	timestamp_t	mergedPrePostambleTime_read			= 0;
-	timestamp_t	mergedPrePostambleTime_write		= 0;
-	timestamp_t lastReadEnd = 0;
-	timestamp_t lastWriteEnd = 0;
-
 public:
 // Constructors
 	Rank(std::size_t numBanks);
@@ -63,6 +54,17 @@ public:
 	bool isActive(timestamp_t timestamp);
 	std::size_t countActiveBanks() const;
 
+};
+
+struct RankInterface {
+	uint64_t 	seamlessPrePostambleCounter_read	= 0;
+	uint64_t 	seamlessPrePostambleCounter_write	= 0;
+	uint64_t	mergedPrePostambleCounter_read		= 0;
+	uint64_t	mergedPrePostambleCounter_write		= 0;
+	timestamp_t	mergedPrePostambleTime_read			= 0;
+	timestamp_t	mergedPrePostambleTime_write		= 0;
+	timestamp_t lastReadEnd = 0;
+	timestamp_t lastWriteEnd = 0;
 };
 
 } // namespace DRAMPower

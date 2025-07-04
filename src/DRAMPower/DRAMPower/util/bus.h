@@ -4,7 +4,10 @@
 #include <DRAMPower/util/binary_ops.h>
 #include <DRAMPower/util/burst_storage.h>
 #include <DRAMPower/util/bus_types.h>
+#include <DRAMPower/util/pending_stats.h>
 #include <DRAMPower/Types.h>
+
+#include <DRAMUtils/util/types.h>
 
 #include <optional>
 
@@ -13,6 +16,7 @@
 #include <limits>
 #include <cassert>
 #include <limits.h>
+#include <type_traits>
 
 #include <iostream>
 
@@ -31,47 +35,11 @@ private:
 		CUSTOM = 3
 	};
 
-	class PendingStats
-	{
-		private:
-		timestamp_t timestamp;
-		bus_stats_t stats;
-		bool 		pending;
-
-		public:
-		PendingStats() : timestamp(0), stats(), pending(false) {}
-		void setPendingStats(timestamp_t timestamp, bus_stats_t stats)
-		{
-			this->timestamp = timestamp;
-			this->stats = stats;
-			this->pending = true;
-		}
-
-		bool isPending() const
-		{
-			return this->pending;
-		}
-
-		void clear()
-		{
-			this->pending = false;
-		}
-
-		timestamp_t getTimestamp() const
-		{
-			return this->timestamp;
-		}
-
-		bus_stats_t getStats() const
-		{
-			return this->stats;
-		}
-	};
-
 public:
 	
 	using burst_storage_t = util::burst_storage<max_bitset_size>;
 	using burst_t = typename burst_storage_t::burst_t;
+
 	bus_stats_t stats;
 
 private:
@@ -84,7 +52,7 @@ private:
 	uint64_t datarate = 1;
 	bool init_load = false;
 	
-	PendingStats pending_stats;
+	PendingStats<bus_stats_t> pending_stats;
 	
 	std::optional<burst_t> last_pattern;
 
@@ -145,17 +113,6 @@ private:
 				this->last_pattern = std::nullopt;
 		}
 	};
-public: // Ensure type safety for init_pattern with 2 seperate constructors
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
-		: Bus(width, datarate, idle_pattern, static_cast<BusInitPatternSpec_>(init_pattern)) {} // TODO alternative to static_cast ??
-	
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
-		: Bus(width, datarate, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern) {}
-
-	void set_idle_pattern(BusIdlePatternSpec idle_pattern)
-	{
-		this->idle_pattern = idle_pattern;
-	}
 
 	void add_previous_stats(timestamp_t virtual_timestamp)
 	{
@@ -194,6 +151,18 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		if (this->burst_storage.size() != 0) {
 			this->last_pattern = this->burst_storage.get_burst(this->burst_storage.size()-1);
 		}
+	}
+
+public: // Ensure type safety for init_pattern with 2 seperate constructors
+	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
+		: Bus(width, datarate, idle_pattern, static_cast<BusInitPatternSpec_>(init_pattern)) {} // TODO alternative to static_cast ??
+	
+	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
+		: Bus(width, datarate, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern) {}
+
+	void set_idle_pattern(BusIdlePatternSpec idle_pattern)
+	{
+		this->idle_pattern = idle_pattern;
 	}
 
 	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {

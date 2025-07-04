@@ -26,13 +26,12 @@ public:
 	MemSpecLPDDR4(json_t &data) = delete;
 	MemSpecLPDDR4(const json_t &data) = delete;
 
-    // Copy constructor
+    // Copy constructor and assignment operator
     MemSpecLPDDR4(const MemSpecLPDDR4&) = default;
+	MemSpecLPDDR4& operator=(const MemSpecLPDDR4&) = default;
 
-    // Move constructor
+    // Move constructor and assignment operator
     MemSpecLPDDR4(MemSpecLPDDR4&&) = default;
-
-    // Move assignment operator
     MemSpecLPDDR4& operator=(MemSpecLPDDR4&&) = default;
 
 	~MemSpecLPDDR4() = default;

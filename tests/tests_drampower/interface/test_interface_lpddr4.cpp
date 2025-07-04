@@ -12,6 +12,7 @@
 
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
+#include <DRAMPower/standards/test_accessor.h>
 #include <variant>
 
 using namespace DRAMPower;
@@ -166,7 +167,7 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestPower)
 
 	// TODO add tests
 
-	InterfaceCalculation_LPDDR4 interface_calc(this->ddr->memSpec);
+	InterfaceCalculation_LPDDR4 interface_calc(*spec);
 
 	// auto interface_stats = interface_calc.calcEnergy(stats);
 	// auto dqs_stats = interface_calc.calcDQSEnergy(stats);
@@ -184,7 +185,7 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestDQS)
 	auto stats = ddr->getStats();
 	// DQs bus
     EXPECT_EQ(sizeof(wr_data), sizeof(rd_data));
-    EXPECT_EQ(ddr->dataBus.getWidth(), spec->bitWidth);
+    EXPECT_EQ(DRAMPower::internal::LPDDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     int number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
 	uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)

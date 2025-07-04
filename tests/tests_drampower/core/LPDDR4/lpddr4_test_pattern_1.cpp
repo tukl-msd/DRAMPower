@@ -27,14 +27,15 @@ protected:
 
 
     // Test variables
+    std::unique_ptr<DRAMPower::MemSpecLPDDR4> memSpec;
     std::unique_ptr<DRAMPower::LPDDR4> ddr;
 
     virtual void SetUp()
     {
         auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr4.json");
-        auto memSpec = DRAMPower::MemSpecLPDDR4::from_memspec(*data);
+        memSpec = std::make_unique<DRAMPower::MemSpecLPDDR4>(DRAMPower::MemSpecLPDDR4::from_memspec(*data));
 
-        ddr = std::make_unique<LPDDR4>(memSpec);
+        ddr = std::make_unique<LPDDR4>(*memSpec);
     }
 
     virtual void TearDown()
@@ -51,17 +52,17 @@ TEST_F(DramPowerTest_LPDDR4_1, Counters_and_Cycles){
 
     // Check bank command count: ACT
     ASSERT_EQ(stats.bank[0].counter.act, 1);
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].counter.act, 0);
 
     // Check bank command count: RD
     ASSERT_EQ(stats.bank[0].counter.reads, 1);
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].counter.reads, 0);
 
     // Check bank command count: PRE
     ASSERT_EQ(stats.bank[0].counter.pre, 1);
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].counter.pre, 0);
 
     // Check cycles count
@@ -70,12 +71,12 @@ TEST_F(DramPowerTest_LPDDR4_1, Counters_and_Cycles){
 
     // Check bank specific ACT cycle count
     ASSERT_EQ(stats.bank[0].cycles.act, 35);
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].cycles.act, 0);
 
     // Check bank specific PRE cycle count
     ASSERT_EQ(stats.bank[0].cycles.pre, 0);
-    for(uint64_t b = 1; b < ddr->memSpec.numberOfBanks; b++)
+    for(uint64_t b = 1; b < memSpec->numberOfBanks; b++)
         ASSERT_EQ(stats.bank[b].cycles.pre, 35);
 }
 

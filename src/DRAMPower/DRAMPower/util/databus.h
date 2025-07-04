@@ -2,8 +2,12 @@
 #define DRAMPOWER_UTIL_DATABUS
 
 #include <cstddef>
+#include <type_traits>
+#include <utility>
+
 
 #include <DRAMPower/util/bus.h>
+#include <DRAMPower/util/databus_types.h>
 #include <DRAMPower/util/databus_types.h>
 #include <DRAMPower/dram/Interface.h>
 
@@ -55,13 +59,14 @@ public:
 private:
     void load(Bus_t &bus, TogglingHandle &togglingHandle, timestamp_t timestamp, std::size_t n_bits, const uint8_t *data = nullptr) {
         switch(busType) {
-            case DataBusMode::Bus:
+            case DataBusMode::Bus: {
                 if (nullptr == data || 0 == n_bits) {
                     // No data to load, skip burst
                     return;
                 }
                 bus.load(timestamp, data, n_bits);
                 break;
+            }
             case DataBusMode::TogglingRate:
                 togglingHandle.incCountBitLength(timestamp, n_bits);
                 break;
@@ -286,7 +291,6 @@ public:
             arg.get_stats(timestamp, busReadStats, busWriteStats, togglingReadState, togglingWriteState);
         }, m_dataBusContainer.getVariant());
     }
-
 };
 
 } // namespace DRAMPower::util

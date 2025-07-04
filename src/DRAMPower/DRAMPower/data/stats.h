@@ -32,7 +32,7 @@ namespace DRAMPower
 			uint64_t powerDownPre = 0;
 			uint64_t selfRefresh = 0;
 			uint64_t deepSleepMode = 0;
-			uint64_t activeTime() { return act; };
+			uint64_t activeTime() const { return act; };
 			//uint64_t prechargeTime;
 		} cycles;
 
@@ -59,6 +59,9 @@ namespace DRAMPower
 		util::bus_stats_t writeBus;
 		util::bus_stats_t clockStats;
 		util::bus_stats_t wClockStats;
+
+		util::bus_stats_t readDBI;
+		util::bus_stats_t writeDBI;
 
         TogglingStats togglingStats;
 
