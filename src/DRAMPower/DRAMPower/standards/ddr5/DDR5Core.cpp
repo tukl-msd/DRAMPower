@@ -230,8 +230,6 @@ void DDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) con
             stats.bank[bank_offset + j].counter = rank.banks[j].counter;
             stats.bank[bank_offset + j].cycles.act =
                 rank.banks[j].cycles.act.get_count_at(timestamp);
-            stats.bank[bank_offset + j].cycles.ref =
-                rank.banks[j].cycles.ref.get_count_at(timestamp);
             stats.bank[bank_offset + j].cycles.selfRefresh =
                 rank.cycles.sref.get_count_at(timestamp);
             stats.bank[bank_offset + j].cycles.powerDownAct =
@@ -251,8 +249,6 @@ void DDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) con
                                     rank.cycles.powerDownPre.get_count_at(timestamp) +
                                     rank.cycles.sref.get_count_at(timestamp));
         stats.rank_total[i].cycles.act = rank.cycles.act.get_count_at(timestamp);
-        stats.rank_total[i].cycles.ref = rank.cycles.act.get_count_at(
-            timestamp);  // TODO: I think this counter is never updated
         stats.rank_total[i].cycles.powerDownAct =
             rank.cycles.powerDownAct.get_count_at(timestamp);
         stats.rank_total[i].cycles.powerDownPre =

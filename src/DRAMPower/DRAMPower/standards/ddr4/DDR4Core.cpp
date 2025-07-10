@@ -225,8 +225,6 @@ void DDR4Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) con
             stats.bank[bank_offset + j].counter = rank.banks[j].counter;
             stats.bank[bank_offset + j].cycles.act =
                 rank.banks[j].cycles.act.get_count_at(timestamp);
-            stats.bank[bank_offset + j].cycles.ref =
-                rank.banks[j].cycles.ref.get_count_at(timestamp);
             stats.bank[bank_offset + j].cycles.selfRefresh =
                 rank.cycles.sref.get_count_at(timestamp);
             stats.bank[bank_offset + j].cycles.powerDownAct =
