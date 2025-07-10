@@ -16,6 +16,7 @@ using DRAMPower::Command;
 using DRAMPower::DDR5;
 using DRAMPower::MemSpecDDR5;
 using DRAMPower::SimulationStats;
+using DRAMPower::TargetCoordinate;
 
 #define SZ_BITS(x) sizeof(x)*8
 
@@ -82,30 +83,45 @@ TEST_F(DDR5_MultirankTests, Pattern_1) {
 }
 
 TEST_F(DDR5_MultirankTests, Pattern_2) {
-    runCommands({
-        {0, CmdType::ACT, {0, 0, 0}},
-        {5, CmdType::ACT, {0, 0, 1}},  // r1
-        {15, CmdType::RDA, {0, 0, 0, 0, 4}, rd_data, SZ_BITS(rd_data)},
-        {20, CmdType::ACT, {3, 0, 1}},  // r1
-        {35, CmdType::RD, {3, 0, 1, 0, 0}, rd_data, SZ_BITS(rd_data)},  // r1
-        {40, CmdType::RD, {0, 0, 0, 0, 3}, rd_data, SZ_BITS(rd_data)},
-        {50, CmdType::PREA, {0, 0, 0}},
-        {55, CmdType::PREA, {0, 0, 1}},  // r1
-        {65, CmdType::REFA, {0, 0, 0}},
-        {70, CmdType::REFA, {0, 0, 1}},  // r1
-        {100, CmdType::END_OF_SIMULATION},
+    runCommands({ // TODO invalid state traversal
+        {0, CmdType::ACT,   TargetCoordinate{0, 0, 0}}, // r0
+        {5, CmdType::ACT,   TargetCoordinate{0, 0, 1}}, // r1
+        {15, CmdType::RDA,  TargetCoordinate{0, 0, 0, 0, 4}, rd_data, SZ_BITS(rd_data)}, // r0
+        {22, CmdType::ACT,  TargetCoordinate{3, 0, 0}},  // r0
+        {35, CmdType::RD,   TargetCoordinate{0, 0, 1, 0, 0}, rd_data, SZ_BITS(rd_data)}, // r1
+        {55, CmdType::RD,   TargetCoordinate{3, 0, 0, 0, 3}, rd_data, SZ_BITS(rd_data)}, // r0
+        {60, CmdType::PREA, TargetCoordinate{0, 0, 0}}, // r0
+        {65, CmdType::PREA, TargetCoordinate{0, 0, 1}}, // r1
+        {75, CmdType::REFA, TargetCoordinate{0, 0, 0}}, // r0
+        {80, CmdType::REFA, TargetCoordinate{0, 0, 1}}, // r1
+        {130, CmdType::END_OF_SIMULATION},
     });
+
+    // t = 0 ACT               -> Start activate // r0, b0
+    // t = 5 ACT               -> Start activate // r1, b0
+    // t = 15 RDA              -> delayed pre after 5 cycles // r0, b0
+    // t = 20 RDA (implicit)   -> End activate // r0, b0
+    // t = 22 ACT              -> Start activate // r0, b3
+    // t = 35 RD               -> Read // r1, b0
+    // t = 55 RD               -> Read // r0, b3
+    // t = 60 PREA             -> End activate // r0, b0, b3
+    // t = 65 PREA             -> End activate // r1, b0
+    // t = 75 REFA             -> Start activate // r0, b0, b3
+    // t = 80 REFA             -> Start activate // r1, b0
+    // t = 100 REFA (implicit) -> End activate // r0, b0, b3
+    // t = 105 REFA (implicit) -> End activate // r1, b0
+    // t = 130 END_OF_SIMULATION
 
     SimulationStats stats = ddr->getStats();
     EXPECT_EQ(stats.bank.size(), spec->numberOfBanks * spec->numberOfRanks);
     EXPECT_EQ(stats.bank[bankIndex(0, 0)].cycles.act, 45);
-    EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.act, 75);
-    EXPECT_EQ(stats.bank[bankIndex(3, 1)].cycles.act, 60);
+    EXPECT_EQ(stats.bank[bankIndex(3, 0)].cycles.act, 63);
+    EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.act, 85);
 
-    EXPECT_EQ(stats.bank[bankIndex(0, 0)].cycles.pre, 55);
-    EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.pre, 25);
-    EXPECT_EQ(stats.bank[bankIndex(3, 1)].cycles.pre, 40);
+    EXPECT_EQ(stats.bank[bankIndex(0, 0)].cycles.pre, 130 - 45);
+    EXPECT_EQ(stats.bank[bankIndex(3, 0)].cycles.pre, 130 - 63);
+    EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.pre, 130 - 85);
 
-    EXPECT_EQ(stats.rank_total[0].cycles.act, 45);
-    EXPECT_EQ(stats.rank_total[1].cycles.act, 75);
+    EXPECT_EQ(stats.rank_total[0].cycles.act, 83);
+    EXPECT_EQ(stats.rank_total[1].cycles.act, 85);
 }

@@ -117,7 +117,7 @@ private:
 	void add_previous_stats(timestamp_t virtual_timestamp)
 	{
 		// Add pending stats from last load
-		// TODO implicit this->pending.getTimestamp() > virtual_timestamp -> see assume no interleaved commands appear
+		assert(this->pending_stats.getTimestamp() <= virtual_timestamp); // No interleaved commands
 		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < virtual_timestamp)
 		{
 			this->stats += this->pending_stats.getStats();
@@ -169,8 +169,6 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		if (!this->enableflag) {
 			return;
 		}
-		// assume no interleaved commands appear, but the old one already finishes cleanly before the next
-		// assert(this->last_load + burst_storage.size() <= timestamp); // TODO add this assert??
 		
 		// check timestamp * this->datarate no overflow
 		assert(timestamp <= std::numeric_limits<timestamp_t>::max() / this->datarate);
@@ -179,6 +177,8 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 			std::cout << "[Error] timestamp * datarate overflows" << std::endl;
 		}
 		timestamp_t virtual_timestamp = timestamp * this->datarate;
+
+		assert(this->last_load + burst_storage.size() <= virtual_timestamp); // No interleaved commands
 		
 		// Init stats
 		if(!this->init_load && virtual_timestamp == 0) {
