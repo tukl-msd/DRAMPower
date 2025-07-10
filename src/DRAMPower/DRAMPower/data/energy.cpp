@@ -110,8 +110,7 @@ void DRAMPower::energy_t::to_json(json_t &j) const
     j[this->get_Bank_energy_keyword()] = energy_arr;
 }
 
-// TODO rename
-energy_info_t DRAMPower::energy_t::total_energy() const
+energy_info_t DRAMPower::energy_t::aggregated_bank_energy() const
 {
     energy_info_t total;
 
