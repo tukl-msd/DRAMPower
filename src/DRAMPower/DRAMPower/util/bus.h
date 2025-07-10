@@ -16,7 +16,6 @@
 #include <limits>
 #include <cassert>
 #include <limits.h>
-#include <type_traits>
 
 #include <iostream>
 
@@ -114,6 +113,17 @@ private:
 		}
 	};
 
+	static BusInitPatternSpec_ convertInitPattern(BusInitPatternSpec pattern) {
+		switch(pattern) {
+			case BusInitPatternSpec::L: return BusInitPatternSpec_::L;
+			case BusInitPatternSpec::H: return BusInitPatternSpec_::H;
+			case BusInitPatternSpec::Z: return BusInitPatternSpec_::Z;
+			default: 
+				assert(false); // Invalid init pattern
+				return BusInitPatternSpec_::Z;
+		}
+	}
+
 	void add_previous_stats(timestamp_t virtual_timestamp)
 	{
 		// Add pending stats from last load
@@ -155,7 +165,7 @@ private:
 
 public: // Ensure type safety for init_pattern with 2 seperate constructors
 	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
-		: Bus(width, datarate, idle_pattern, static_cast<BusInitPatternSpec_>(init_pattern)) {} // TODO alternative to static_cast ??
+		: Bus(width, datarate, idle_pattern, convertInitPattern(init_pattern), std::nullopt) {}
 	
 	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
 		: Bus(width, datarate, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern) {}
@@ -199,9 +209,20 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 
 		add_data(virtual_timestamp, data, n_bits);
 	};
+	
+	void load(timestamp_t timestamp, uint64_t data, std::size_t burst_length) {
+		const std::size_t n_bits = burst_length * width;
+		
+		assert(n_bits <= std::numeric_limits<uint64_t>::digits); // Ensure data fits in a uint64_t
+		
+		const std::size_t n_bytes = (n_bits + 7) / 8; // Round up to nearest byte
+		std::array<uint8_t, 8> bytes;
 
-	void load(timestamp_t timestamp, uint64_t data, std::size_t length) {
-		this->load(timestamp, (uint8_t*)&data, (width * length)); // TODO: is this endianess dependend?
+		// Extract bytes in little-endian order for consistency across platforms
+		for (std::size_t i = 0; i < n_bytes; ++i) {
+			bytes[i] = static_cast<uint8_t>((data >> (i * 8)) & 0xFF);
+		}
+		this->load(timestamp, bytes.data(), n_bits);
 	};
 
 	// Returns optional burst (std::nullopt if idle pattern is Z)
