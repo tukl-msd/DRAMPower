@@ -1,13 +1,16 @@
 #include "LPDDR5.h"
 #include "DRAMPower/Types.h"
+#include "DRAMPower/command/CmdType.h"
 #include "DRAMPower/data/stats.h"
 
 #include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/standards/lpddr5/core_calculation_LPDDR5.h>
 #include <DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.h>
 #include <DRAMPower/util/extensions.h>
+#include <DRAMPower/Exceptions.h>
 
 #include <iostream>
+#include <string>
 
 
 namespace DRAMPower {
@@ -58,6 +61,14 @@ namespace DRAMPower {
         if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG || m_memSpec->bank_arch == MemSpecLPDDR5::M16B) {
             routeCoreCommand<CmdType::REFP2B>(coreregistrar.registerBankGroupHandler(&LPDDR5Core::handleRefPerTwoBanks));
             routeInterfaceCommand<CmdType::REFP2B>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
+        } else {
+            // If the command is executed for an invalid bank architecture, throw an exception
+            routeCoreCommand<CmdType::REFP2B>([](const Command &) {
+                throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
+            });
+            routeInterfaceCommand<CmdType::REFP2B>([](const Command &) {
+                throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
+            });
         }
         // REFA
         routeCoreCommand<CmdType::REFA>(coreregistrar.registerRankHandler(&LPDDR5Core::handleRefAll));
