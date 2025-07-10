@@ -40,7 +40,6 @@ void DDR4Core::handleRefAll(Rank &rank, timestamp_t timestamp) {
     rank.endRefreshTime = timestamp_end;
     rank.cycles.act.start_interval_if_not_running(timestamp);
     //rank.cycles.pre.close_interval(timestamp);
-    // TODO loop over all banks and implicit commands for all banks can be simplified
     for (auto& bank : rank.banks) {
         bank.bankState = Bank::BankState::BANK_ACTIVE;
         
