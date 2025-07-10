@@ -81,24 +81,6 @@ MemSpecDDR5::MemSpecDDR5(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec)
     parseDataRateSpec(memspec);
 }
 
-// TODO: is this being used?
-uint64_t MemSpecDDR5::timeToCompletion(DRAMPower::CmdType type)
-{
-    uint64_t offset = 0;
-    if (type == DRAMPower::CmdType::ACT)
-        offset = memTimingSpec.tRCD;
-    else if (type == DRAMPower::CmdType::RD)
-        offset = memTimingSpec.tRL + ((burstLength)/(dataRate));
-    else if (type == DRAMPower::CmdType::WR)
-        offset = memTimingSpec.tWL + ((burstLength)/(dataRate));
-    else if (type == CmdType::REFA)
-        offset = memTimingSpec.tRFC;
-    else if (type == CmdType::PRE || type == CmdType::PREA)
-        return memTimingSpec.tRP;
-
-    return offset;
-}
-
 void MemSpecDDR5::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec) {
     memImpedanceSpec = memspec.memimpedancespec;
 }

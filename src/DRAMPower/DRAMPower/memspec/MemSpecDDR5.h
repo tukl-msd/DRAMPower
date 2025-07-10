@@ -33,9 +33,6 @@ class MemSpecDDR5 final : public MemSpec<DRAMUtils::MemSpec::MemSpecDDR5> {
         MemSpecDDR5(MemSpecDDR5&&) = default;
         MemSpecDDR5& operator=(MemSpecDDR5&&) = default;
 
-        uint64_t timeToCompletion(CmdType type) override;
-
-
         uint64_t numberOfBankGroups;
         uint64_t banksPerGroup;
         uint64_t numberOfRanks;

@@ -137,25 +137,6 @@ void MemSpecDDR4::parsePrePostamble(const DRAMUtils::MemSpec::MemSpecDDR4 &memsp
     prePostamble.writeMinTccd = memspec.prepostamble.writeMinTccd;;
 }
 
-// TODO: is this being used?
-uint64_t MemSpecDDR4::timeToCompletion(DRAMPower::CmdType type)
-{
-    uint64_t offset = 0;
-
-    if (type == DRAMPower::CmdType::ACT)
-        offset = memTimingSpec.tRCD;
-    else if (type == DRAMPower::CmdType::RD)
-        offset = memTimingSpec.tRL + ((burstLength)/(dataRate));
-    else if (type == DRAMPower::CmdType::WR)
-        offset = memTimingSpec.tWL + ((burstLength)/(dataRate));
-    else if (type == CmdType::REFA)
-        offset = memTimingSpec.tRFC;
-    else if (type == CmdType::PRE || type == CmdType::PREA)
-        return memTimingSpec.tRP;
-
-    return offset;
-}
-
 MemSpecDDR4 MemSpecDDR4::from_memspec(const DRAMUtils::MemSpec::MemSpecVariant& memSpec)
 {
     return std::get<DRAMUtils::MemSpec::MemSpecDDR4>(memSpec.getVariant());

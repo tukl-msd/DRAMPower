@@ -35,7 +35,6 @@ public:
     MemSpecLPDDR4& operator=(MemSpecLPDDR4&&) = default;
 
 	~MemSpecLPDDR4() = default;
-	uint64_t timeToCompletion(CmdType type) override;
 
     uint64_t numberOfBankGroups;
     uint64_t banksPerGroup;

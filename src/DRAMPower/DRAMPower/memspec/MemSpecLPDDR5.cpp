@@ -128,25 +128,6 @@ MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec)
     parseImpedanceSpec(memspec);
 }
 
-// TODO: is this being used?
-uint64_t MemSpecLPDDR5::timeToCompletion(DRAMPower::CmdType type)
-{
-    uint64_t offset = 0;
-
-    if (type == DRAMPower::CmdType::ACT)
-        offset = memTimingSpec.tRCD;
-    else if (type == DRAMPower::CmdType::RD)
-        offset = memTimingSpec.tRL + ((burstLength)/(dataRate));
-    else if (type == DRAMPower::CmdType::WR)
-        offset = memTimingSpec.tWL + ((burstLength)/(dataRate));
-    else if (type == CmdType::REFA)
-        offset = memTimingSpec.tRFC;
-    else if (type == CmdType::PRE || type == CmdType::PREA)
-        return memTimingSpec.tRP;
-
-    return offset;
-}
-
 void MemSpecLPDDR5::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec) {
 
     memImpedanceSpec = memspec.memimpedancespec;

@@ -83,7 +83,6 @@ public:
     uint64_t prechargeOffsetWR;
     MemSpec() = delete;
     virtual ~MemSpec() = default;
-    virtual uint64_t timeToCompletion(DRAMPower::CmdType type) = 0;
 
 	// MemSpec() = default;
     MemSpec(const T &memspec) : rawmemspec(memspec)

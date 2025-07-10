@@ -73,8 +73,6 @@ public:
     MemSpecDDR4(MemSpecDDR4&&) = default;
 	MemSpecDDR4& operator=(MemSpecDDR4&&) = default;
 
-    uint64_t timeToCompletion(CmdType type) override;
-
 	uint64_t numberOfBankGroups;
 	uint64_t numberOfRanks;
 
