@@ -105,7 +105,6 @@ void LPDDR4Core::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
 }
 
 void LPDDR4Core::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
-    // TODO: Is this computation necessary?
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
@@ -139,7 +138,6 @@ void LPDDR4Core::handlePowerDownPreEntry(Rank &rank, timestamp_t timestamp) {
 }
 
 void LPDDR4Core::handlePowerDownPreExit(Rank &rank, timestamp_t timestamp) {
-    // TODO: Is this computation necessary?
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
