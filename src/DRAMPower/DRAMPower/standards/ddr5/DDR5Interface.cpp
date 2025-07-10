@@ -27,7 +27,7 @@ namespace DRAMPower {
     , m_memSpec(memSpec)
     , m_patternHandler(PatternEncoderOverrides{
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
-            {pattern_descriptor::X, PatternEncoderBitSpec::H}, // TODO high impedance ???
+            {pattern_descriptor::X, PatternEncoderBitSpec::H},
             {pattern_descriptor::C0, PatternEncoderBitSpec::H},
             {pattern_descriptor::C1, PatternEncoderBitSpec::H},
             // Default value for CID0-3 is H in Pattern.h
