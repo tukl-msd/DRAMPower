@@ -8,7 +8,6 @@ namespace DRAMPower
 {
 
 // Taken from DRAM 4.0
-// ToDo: Look in DRAMSys; Mit Lukas absprechen
 //												DRAMSys  
 //												\	\__>  DRAMPower
 //												 \            \_v

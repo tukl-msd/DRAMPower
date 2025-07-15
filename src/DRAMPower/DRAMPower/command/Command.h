@@ -32,7 +32,7 @@ public:
     TargetCoordinate targetCoordinate;
 
 
-    const uint8_t * data = 0x00; // ToDo: buffer{ptr, sz} / TLM Standard
+    const uint8_t * data = 0x00;
 	std::size_t sz_bits;
     //uint64_t burstLength;
 public:
