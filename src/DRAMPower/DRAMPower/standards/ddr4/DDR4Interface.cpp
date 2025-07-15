@@ -222,7 +222,6 @@ namespace DRAMPower {
         bool                read
     )
     {
-        // uint64_t minTccd = prepostambleWriteMinTccd; // Todo use minTccd
         uint64_t *lastAccess = &rank.lastWriteEnd;
         uint64_t diff = 0;
 
