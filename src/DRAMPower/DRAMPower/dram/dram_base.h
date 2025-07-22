@@ -13,6 +13,8 @@
 #include <DRAMPower/util/PatternHandler.h>
 #include <DRAMPower/util/ImplicitCommandHandler.h>
 #include <DRAMPower/util/cli_architecture_config.h>
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
 
@@ -29,7 +31,8 @@ namespace DRAMPower {
 using namespace DRAMUtils::Config;
 
 template <typename CommandEnum>
-class dram_base {
+class dram_base : public util::Serialize, public util::Deserialize
+{
 // Public type definitions
 public:
     using commandEnum_t = CommandEnum;
@@ -69,6 +72,58 @@ public:
     virtual interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) = 0;
     virtual SimulationStats getWindowStats(timestamp_t timestamp) = 0;
     virtual util::CLIArchitectureConfig getCLIArchitectureConfig() = 0;
+public:
+    virtual void serialize_impl(std::ostream& stream) const = 0;
+    void serialize(std::ostream& stream) const override
+    {
+        // Serialize the command counts
+        const auto& m_commandCoreCountSize = m_commandCoreCount.size();
+        stream.write(reinterpret_cast<const char*>(&m_commandCoreCountSize), sizeof(m_commandCoreCountSize));
+        for (const auto& count : m_commandCoreCount) {
+            stream.write(reinterpret_cast<const char*>(&count), sizeof(count));
+        }
+        const auto& m_commandInterfaceCountSize = m_commandInterfaceCount.size();
+        stream.write(reinterpret_cast<const char*>(&m_commandInterfaceCountSize), sizeof(m_commandInterfaceCountSize));
+        for (const auto& count : m_commandInterfaceCount) {
+            stream.write(reinterpret_cast<const char*>(&count), sizeof(count));
+        }
+        // Serialize the last command time
+        stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
+        // Serialize the extension manager
+        m_extensionManager.serialize(stream);
+        serialize_impl(stream);
+    }
+    virtual void deserialize_impl(std::istream& stream) = 0;
+    void deserialize(std::istream& stream) override
+    {
+        // Deserialize the command counts
+        std::size_t m_commandCoreCountSize = 0;
+        stream.read(reinterpret_cast<char*>(&m_commandCoreCountSize), sizeof(m_commandCoreCountSize));
+        m_commandCoreCount.clear();
+        m_commandCoreCount.resize(m_commandCoreCountSize);
+        for (std::size_t i = 0; i < m_commandCoreCountSize; ++i) {
+            std::size_t count = 0;
+            stream.read(reinterpret_cast<char*>(&count), sizeof(count));
+            m_commandCoreCount[i] = count;
+        }
+        std::size_t m_commandInterfaceCountSize = 0;
+        stream.read(reinterpret_cast<char*>(&m_commandInterfaceCountSize), sizeof(m_commandInterfaceCountSize));
+        m_commandInterfaceCount.clear();
+        m_commandInterfaceCount.resize(m_commandInterfaceCountSize);
+        for (std::size_t i = 0; i < m_commandInterfaceCountSize; ++i) {
+            std::size_t count = 0;
+            stream.read(reinterpret_cast<char*>(&count), sizeof(count));
+            m_commandInterfaceCount[i] = count;
+        }
+        // Deserialize the last command time
+        stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
+        // Deserialize the extension manager
+        m_extensionManager.deserialize(stream);
+        deserialize_impl(stream);
+    }
+    bool isSerializable() {
+        return 0 == m_ImplicitCommandHandler.implicitCommandCount();
+    }
 
 // Getters for member variables
 public:

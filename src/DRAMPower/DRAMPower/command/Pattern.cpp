@@ -26,6 +26,10 @@ namespace DRAMPower {
     {
         return this->settings;
     }
+    
+    const std::unordered_map<pattern_descriptor::t, PatternEncoderBitSpec>& PatternEncoderOverrides::getSettings() const {
+        return this->settings;
+    }
 
     PatternEncoderBitSpec PatternEncoderOverrides::getSetting(pattern_descriptor::t descriptor)
     {
@@ -285,6 +289,47 @@ namespace DRAMPower {
         }
 
         return bitset.to_ullong();
+    }
+
+    void PatternEncoder::setOpcode(uint64_t opcode, uint16_t opcodeLength) {
+        m_opcode = opcode;
+        m_opcodeLength = opcodeLength;
+    }
+
+    uint64_t PatternEncoder::getOpcode() const {
+        return m_opcode;
+    }
+
+    uint16_t PatternEncoder::getOpcodeLength() const {
+        return m_opcodeLength;
+    }
+
+    void PatternEncoder::serialize(std::ostream& stream) const {
+        stream.write(reinterpret_cast<const char*>(&m_opcode), sizeof(m_opcode));
+        stream.write(reinterpret_cast<const char*>(&m_opcodeLength), sizeof(m_opcodeLength));
+        // settings
+        const std::size_t settingsSize = settings.getSettings().size();
+        stream.write(reinterpret_cast<const char*>(&settingsSize), sizeof(settingsSize));
+        for (const auto& [descriptor, bitSpec] : settings.getSettings()) {
+            stream.write(reinterpret_cast<const char*>(&descriptor), sizeof(descriptor));
+            stream.write(reinterpret_cast<const char*>(&bitSpec), sizeof(bitSpec));
+        }
+    }
+
+    void PatternEncoder::deserialize(std::istream& stream) {
+        stream.read(reinterpret_cast<char*>(&m_opcode), sizeof(m_opcode));
+        stream.read(reinterpret_cast<char*>(&m_opcodeLength), sizeof(m_opcodeLength));
+        // settings
+        std::size_t settingsSize = 0;
+        stream.read(reinterpret_cast<char*>(&settingsSize), sizeof(settingsSize));
+        settings = PatternEncoderOverrides{};
+        for (std::size_t i = 0; i < settingsSize; ++i) {
+            pattern_descriptor::t descriptor;
+            PatternEncoderBitSpec bitSpec;
+            stream.read(reinterpret_cast<char*>(&descriptor), sizeof(descriptor));
+            stream.read(reinterpret_cast<char*>(&bitSpec), sizeof(bitSpec));
+            settings.updateSettings({{descriptor, bitSpec}});
+        }
     }
 
 } // namespace DRAMPower

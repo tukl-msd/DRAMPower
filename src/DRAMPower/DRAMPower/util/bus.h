@@ -5,6 +5,8 @@
 #include <DRAMPower/util/burst_storage.h>
 #include <DRAMPower/util/bus_types.h>
 #include <DRAMPower/util/pending_stats.h>
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
 #include <DRAMPower/Types.h>
 
 #include <DRAMUtils/util/types.h>
@@ -19,11 +21,11 @@
 
 #include <iostream>
 
-namespace DRAMPower::util 
+namespace DRAMPower::util
 {
 
 template <std::size_t max_bitset_size = 0>
-class Bus {
+class Bus : public Serialize, public Deserialize {
 
 private:
 	enum class BusInitPatternSpec_
@@ -376,6 +378,47 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 
 	bus_stats_t diff(std::optional<burst_t> high, burst_t low) const {
 		return diff(high, std::make_optional(low));
+	};
+
+	void serialize(std::ostream& stream) const override {
+		this->stats.serialize(stream);
+		this->burst_storage.serialize(stream);
+		stream.write(reinterpret_cast<const char*>(&this->last_load), sizeof(this->last_load));
+		stream.write(reinterpret_cast<const char*>(&this->enableflag), sizeof(this->enableflag));
+		stream.write(reinterpret_cast<const char*>(&this->virtual_disable_timestamp), sizeof(this->virtual_disable_timestamp));
+		stream.write(reinterpret_cast<const char*>(&this->width), sizeof(this->width));
+		stream.write(reinterpret_cast<const char*>(&this->datarate), sizeof(this->datarate));
+		stream.write(reinterpret_cast<const char*>(&this->init_load), sizeof(this->init_load));
+		this->pending_stats.serialize(stream);
+		stream.write(reinterpret_cast<const char*>(&this->idle_pattern), sizeof(this->idle_pattern));
+		stream.write(reinterpret_cast<const char*>(&this->init_pattern), sizeof(this->init_pattern));
+		bool hasValue = this->custom_init_pattern.has_value();
+		stream.write(reinterpret_cast<const char*>(&hasValue), sizeof(hasValue));
+		if (hasValue) {
+			this->burst_storage.serializeBurst(stream, this->custom_init_pattern.value());
+		}
+	};
+
+	void deserialize(std::istream& stream) override {
+		this->stats.deserialize(stream);
+		this->burst_storage.deserialize(stream);
+		stream.read(reinterpret_cast<char*>(&this->last_load), sizeof(this->last_load));
+		stream.read(reinterpret_cast<char*>(&this->enableflag), sizeof(this->enableflag));
+		stream.read(reinterpret_cast<char*>(&this->virtual_disable_timestamp), sizeof(this->virtual_disable_timestamp));
+		stream.read(reinterpret_cast<char*>(&this->width), sizeof(this->width));
+		stream.read(reinterpret_cast<char*>(&this->datarate), sizeof(this->datarate));
+		stream.read(reinterpret_cast<char*>(&this->init_load), sizeof(this->init_load));
+		this->pending_stats.deserialize(stream);
+		stream.read(reinterpret_cast<char*>(&this->idle_pattern), sizeof(this->idle_pattern));
+		stream.read(reinterpret_cast<char*>(&this->init_pattern), sizeof(this->init_pattern));
+		bool hasValue = false;
+		stream.read(reinterpret_cast<char*>(&hasValue), sizeof(hasValue));
+		if (hasValue) {
+			this->custom_init_pattern = burst_t();
+			this->burst_storage.deserializeBurst(stream, this->custom_init_pattern.value());
+		} else {
+			this->custom_init_pattern = std::nullopt;
+		}
 	};
 };
 

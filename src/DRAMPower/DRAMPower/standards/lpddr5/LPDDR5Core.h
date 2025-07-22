@@ -5,6 +5,8 @@
 #include "DRAMPower/util/RegisterHelper.h"
 #include "DRAMPower/util/RegisterHelper.h"
 #include "DRAMPower/util/ImplicitCommandHandler.h"
+#include "DRAMPower/util/Serialize.h"
+#include "DRAMPower/util/Deserialize.h"
 
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
 
@@ -12,7 +14,7 @@
 
 namespace DRAMPower {
 
-class LPDDR5Core {
+class LPDDR5Core : public util::Serialize, public util::Deserialize {
 // Public type definitions
 public:
     using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
@@ -59,6 +61,11 @@ public:
     timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) const;
 
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+
+// Overrides
+public:
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
 
 // Public member variables:
 public:

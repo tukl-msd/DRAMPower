@@ -4,11 +4,14 @@
 #include <stdint.h>
 #include <optional>
 
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
+
 namespace DRAMPower::util
 {
 
 template<typename T>
-class interval_counter
+class interval_counter : public Serialize, public Deserialize
 {
 private:
 	T count{ 0 };
@@ -70,6 +73,37 @@ public:
 	void start_interval_if_not_running(T start) {
 		if(!is_open())
 			start_interval(start);
+	}
+
+	void serialize(std::ostream& stream) const override  {
+		stream.write(reinterpret_cast<const char *>(&count), sizeof(count));
+		bool starthasValue = start.has_value();
+		stream.write(reinterpret_cast<const char *>(&starthasValue), sizeof(starthasValue));
+		if (starthasValue) {
+			stream.write(reinterpret_cast<const char *>(&start), sizeof(start));
+		}
+		bool endhasValue = end.has_value();
+		stream.write(reinterpret_cast<const char *>(&endhasValue), sizeof(endhasValue));
+		if (endhasValue) {
+			stream.write(reinterpret_cast<const char *>(&end), sizeof(end));
+		}
+	}
+	void deserialize(std::istream& stream) override {
+		stream.read(reinterpret_cast<char *>(&count), sizeof(count));
+		bool starthasValue = false;
+		stream.read(reinterpret_cast<char *>(&starthasValue), sizeof(starthasValue));
+		if (starthasValue) {
+			stream.read(reinterpret_cast<char *>(&start), sizeof(start));
+		} else {
+			start.reset();
+		}
+		bool endhasValue = false;
+		stream.read(reinterpret_cast<char *>(&endhasValue), sizeof(endhasValue));
+		if (endhasValue) {
+			stream.read(reinterpret_cast<char *>(&end), sizeof(end));
+		} else {
+			end.reset();
+		}
 	}
 };
 

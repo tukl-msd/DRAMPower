@@ -127,4 +127,16 @@ namespace DRAMPower {
         m_interface.getWindowStats(timestamp, stats);
         return stats;
     }
-}
+
+// Serialization
+    void DDR5::serialize_impl(std::ostream &stream) const {
+        m_core.serialize(stream);
+        m_interface.serialize(stream);
+    }
+
+    void DDR5::deserialize_impl(std::istream &stream) {
+        m_core.deserialize(stream);
+        m_interface.deserialize(stream);
+    }
+
+} // namespace DRAMPower

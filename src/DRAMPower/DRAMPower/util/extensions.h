@@ -5,14 +5,26 @@
 #include <DRAMPower/util/extension_base.h>
 #include <DRAMPower/util/databus_presets.h>
 #include <DRAMPower/Types.h>
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
 
 #include <functional>
 #include <optional>
 
 namespace DRAMPower::extensions {
 
-class Base {
+class Base : public util::Serialize, public util::Deserialize {
+protected:
+    // Protected constructor to prevent instantiation of Base class
+    Base() = default;
 
+    Base(const Base&) = default;
+    Base(Base&&) = default;
+    Base& operator=(const Base&) = default;
+    Base& operator=(Base&&) = default;
+
+public:
+    virtual ~Base() = default;
 };
 
 class DBI : public Base {
@@ -34,6 +46,11 @@ public:
 public:
     bool enable(timestamp_t timestamp, bool enable);
     bool isEnabled() const;
+
+// Overrides
+public:
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
 
 // Private member variables
 private:
