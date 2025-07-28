@@ -22,6 +22,12 @@ LPDDR5Interface::LPDDR5Interface(const std::shared_ptr<const MemSpecLPDDR5>& mem
     }
     , m_readDQS(memSpec->dataRate, true)
     , m_wck(memSpec->dataRate / memSpec->memTimingSpec.WCKtoCK, !memSpec->wckAlwaysOnMode)
+    , m_dbi(memSpec->numberOfDevices * memSpec->bitWidth, util::DBI::IdlePattern_t::L, 8,
+        [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
+        this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
+    }, false)
+    , m_dbiread(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
+    , m_dbiwrite(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
     , m_memSpec(memSpec)
     , m_patternHandler(PatternEncoderOverrides{}) // No overrides
     , m_implicitCommandInserter(std::move(implicitCommandInserter))
@@ -226,6 +232,85 @@ void LPDDR5Interface::registerPatterns() {
     });
 }
 
+void LPDDR5Interface::enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp) {
+    // Change from bus to toggling rate
+    assert(enable_timestamp >= timestamp);
+    if ( enable_timestamp > timestamp ) {
+        // Schedule toggling rate enable
+        m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+            m_dataBus.enableTogglingRate(enable_timestamp);
+        });
+    } else {
+        m_dataBus.enableTogglingRate(enable_timestamp);
+    }
+}
+
+void LPDDR5Interface::enableBus(timestamp_t timestamp, timestamp_t enable_timestamp) {
+    // Change from toggling rate to bus
+    assert(enable_timestamp >= timestamp);
+    if ( enable_timestamp > timestamp ) {
+        // Schedule toggling rate disable
+        m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
+            m_dataBus.enableBus(enable_timestamp);
+        });
+    } else {
+        m_dataBus.enableBus(enable_timestamp);
+    }
+}
+
+timestamp_t LPDDR5Interface::updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleratedefinition) {
+    if (toggleratedefinition) {
+        m_dataBus.setTogglingRateDefinition(*toggleratedefinition);
+        if (m_dataBus.isTogglingRate()) {
+            // toggling rate already enabled
+            return timestamp;
+        }
+        // Enable toggling rate
+        timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
+        enableTogglingHandle(timestamp, enable_timestamp);
+        return enable_timestamp;
+    } else {
+        if (m_dataBus.isBus()) {
+            // Bus already enabled
+            return timestamp;
+        }
+        // Enable bus
+        timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
+        enableBus(timestamp, enable_timestamp);
+        return enable_timestamp;
+    }
+    return timestamp;
+}
+
+void LPDDR5Interface::handleDBIPinChange(const timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool state, bool read) {
+    assert(pin < m_dbiread.size() || pin < m_dbiwrite.size());
+    auto updatePinCallback = [this, chunk_timestamp, pin, state, read](){
+        if (read) {
+            this->m_dbiread[pin].set(chunk_timestamp, state ? util::PinState::H : util::PinState::L, 1);
+        } else {
+            this->m_dbiwrite[pin].set(chunk_timestamp, state ? util::PinState::H : util::PinState::L, 1);
+        }
+    };
+
+    if (chunk_timestamp > load_timestamp) {
+        // Schedule the pin state change
+        m_implicitCommandInserter.addImplicitCommand(chunk_timestamp / m_memSpec->dataRate, updatePinCallback);
+    } else {
+        // chunk_timestamp <= load_timestamp
+        updatePinCallback();
+    }
+}
+
+std::optional<const uint8_t *> LPDDR5Interface::handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read) {
+    if (0 == n_bits || !data || !m_dbi.isEnabled()) {
+        // No DBI or no data to process
+        return std::nullopt;
+    }
+    timestamp_t virtual_time = timestamp * m_memSpec->dataRate;
+    // updateDBI calls the given callback to handle pin changes
+    return m_dbi.updateDBI(virtual_time, n_bits, data, read);
+}
+
 void LPDDR5Interface::handleOverrides(size_t length, bool /*read*/) {
     // Set command bus pattern overrides
     switch(length) {
@@ -285,6 +370,9 @@ void LPDDR5Interface::handleData(const Command &cmd, bool read) {
 }
 
 void LPDDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
+    // Reset the DBI interface pins to idle state
+    m_dbi.dispatchResetCallback(timestamp * m_memSpec->dataRate, true);
+
     stats.commandBus = m_commandBus.get_stats(timestamp);
 
     m_dataBus.get_stats(timestamp,
@@ -297,55 +385,11 @@ void LPDDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &sta
     stats.clockStats = 2.0 * m_clock.get_stats_at(timestamp);
     stats.wClockStats = 2.0 * m_wck.get_stats_at(timestamp);
     stats.readDQSStats = 2.0 * m_readDQS.get_stats_at(timestamp);
-}
-
-timestamp_t LPDDR5Interface::updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleratedefinition) {
-    if (toggleratedefinition) {
-        m_dataBus.setTogglingRateDefinition(*toggleratedefinition);
-        if (m_dataBus.isTogglingRate()) {
-            // toggling rate already enabled
-            return timestamp;
-        }
-        // Enable toggling rate
-        timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
-        enableTogglingHandle(timestamp, enable_timestamp);
-        return enable_timestamp;
-    } else {
-        if (m_dataBus.isBus()) {
-            // Bus already enabled
-            return timestamp;
-        }
-        // Enable bus
-        timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
-        enableBus(timestamp, enable_timestamp);
-        return enable_timestamp;
+    for (const auto &dbi_pin : m_dbiread) {
+        stats.readDBI += dbi_pin.get_stats_at(timestamp, 2);
     }
-    return timestamp;
-}
-
-void LPDDR5Interface::enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp) {
-    // Change from bus to toggling rate
-    assert(enable_timestamp >= timestamp);
-    if ( enable_timestamp > timestamp ) {
-        // Schedule toggling rate enable
-        m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-            m_dataBus.enableTogglingRate(enable_timestamp);
-        });
-    } else {
-        m_dataBus.enableTogglingRate(enable_timestamp);
-    }
-}
-
-void LPDDR5Interface::enableBus(timestamp_t timestamp, timestamp_t enable_timestamp) {
-    // Change from toggling rate to bus
-    assert(enable_timestamp >= timestamp);
-    if ( enable_timestamp > timestamp ) {
-        // Schedule toggling rate disable
-        m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-            m_dataBus.enableBus(enable_timestamp);
-        });
-    } else {
-        m_dataBus.enableBus(enable_timestamp);
+    for (const auto &dbi_pin : m_dbiwrite) {
+        stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2);
     }
 }
 

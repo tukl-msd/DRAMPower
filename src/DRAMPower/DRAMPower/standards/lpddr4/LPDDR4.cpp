@@ -22,7 +22,12 @@ namespace DRAMPower {
 
 // Extensions
     void LPDDR4::registerExtensions() {
-
+        getExtensionManager().registerExtension<extensions::DBI>([this](const timestamp_t, const bool enable){
+            // Assumption: the enabling of the DBI does not interleave with previous data on the bus
+            // x8,x16 devices: support dbi
+            m_interface.m_dbi.enable(enable);
+            return true;
+        }, false);
     }
 
 // Commands

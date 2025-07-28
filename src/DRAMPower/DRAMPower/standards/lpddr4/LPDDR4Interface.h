@@ -1,6 +1,7 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR4_LPDDR4INTERFACE_H
 #define DRAMPOWER_STANDARDS_LPDDR4_LPDDR4INTERFACE_H
 
+#include "DRAMPower/util/pin.h"
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
@@ -12,6 +13,7 @@
 
 #include "DRAMPower/util/PatternHandler.h"
 #include "DRAMPower/util/ImplicitCommandHandler.h"
+#include "DRAMPower/util/dbi.h"
 
 #include "DRAMPower/memspec/MemSpecLPDDR4.h"
 
@@ -19,6 +21,7 @@
 
 #include <stdint.h>
 #include <cstddef>
+#include <vector>
 
 namespace DRAMPower {
 
@@ -49,6 +52,8 @@ public:
 // Private Member functions
 private:
     void registerPatterns();
+    std::optional<const uint8_t *> handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
+    void handleDBIPinChange(const timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool state, bool read);
 
 // Public member functions
 public:
@@ -72,6 +77,9 @@ public:
     util::Clock m_readDQS;
     util::Clock m_writeDQS;
     util::Clock m_clock;
+    util::DBI m_dbi;
+    std::vector<util::Pin> m_dbiread;
+    std::vector<util::Pin> m_dbiwrite;
 
 // Private member variables
 private:

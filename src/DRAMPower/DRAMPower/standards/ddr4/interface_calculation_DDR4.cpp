@@ -84,7 +84,6 @@ interface_energy_info_t InterfaceCalculation_DDR4::calcDQSEnergy(const Simulatio
     }
     
     // PrePostamble
-    // TODO add test for x16 devices
     if (impedances_.wdqs_termination == true) {
         // Write
         result.controller.staticEnergy +=

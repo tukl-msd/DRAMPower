@@ -20,13 +20,17 @@ namespace DRAMPower {
         , m_interface(m_memSpec, getImplicitCommandHandler().createInserter())
         , m_core(m_memSpec, getImplicitCommandHandler().createInserter())
     {
-        this->registerCommands();
-        this->registerExtensions();
+        registerCommands();
+        registerExtensions();
     }
 
 // Extensions
     void LPDDR5::registerExtensions() {
-
+        getExtensionManager().registerExtension<extensions::DBI>([this](const timestamp_t, const bool enable){
+            // Assumption: the enabling of the DBI does not interleave with previous data on the bus
+            m_interface.m_dbi.enable(enable);
+            return true;
+        }, false);
     }
 
 // Commands

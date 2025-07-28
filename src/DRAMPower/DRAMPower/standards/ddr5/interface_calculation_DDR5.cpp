@@ -31,7 +31,6 @@ interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(const Simulat
     interface_energy_info_t DQ_energy = calcDQEnergy(stats);
     DQ_energy += calcDQEnergyTogglingRate(stats.togglingStats);
     interface_energy_info_t CA_energy = calcCAEnergy(stats);
-    // TODO: CA Bus inversion energy
 
     interface_energy_info_t result;
     result += clock_energy;

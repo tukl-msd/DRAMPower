@@ -5,13 +5,17 @@ namespace DRAMPower::extensions {
 
 using namespace DRAMPower::util;
 
-void DBI::enable(timestamp_t timestamp, bool enable) {
+bool DBI::enable(timestamp_t timestamp, bool enable) {
+    bool result = true;
     // Dispatch callback if set
     if (m_callback) {
-        (*m_callback)(timestamp, enable);
+        result = (*m_callback)(timestamp, enable);
     }
-    // Update member
-    m_enabled = enable;
+    if (result) {
+        // Update member
+        m_enabled = enable;
+    }
+    return result;
 }
 
 bool DBI::isEnabled() const {
