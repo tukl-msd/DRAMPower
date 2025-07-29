@@ -38,6 +38,7 @@ private:
 	interface_energy_info_t calcCAEnergy(const SimulationStats& bus_stats);
 	interface_energy_info_t calcDQEnergy(const SimulationStats& bus_stats);
 	interface_energy_info_t calcDQEnergyTogglingRate(const TogglingStats &stats);
+    interface_energy_info_t calcDBIEnergy(const SimulationStats &stats);
 
 public:
 	interface_energy_info_t calculateEnergy(const SimulationStats& stats);

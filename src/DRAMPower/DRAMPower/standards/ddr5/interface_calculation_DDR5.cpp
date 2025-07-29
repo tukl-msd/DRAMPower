@@ -1,4 +1,5 @@
 #include "DRAMPower/standards/ddr5/interface_calculation_DDR5.h"
+#include "DRAMPower/data/energy.h"
 
 namespace DRAMPower {
 
@@ -31,12 +32,14 @@ interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(const Simulat
     interface_energy_info_t DQ_energy = calcDQEnergy(stats);
     DQ_energy += calcDQEnergyTogglingRate(stats.togglingStats);
     interface_energy_info_t CA_energy = calcCAEnergy(stats);
+    interface_energy_info_t DBI_energy = calcDBIEnergy(stats);
 
     interface_energy_info_t result;
     result += clock_energy;
     result += DQS_energy;
     result += CA_energy;
     result += DQ_energy;
+    result += DBI_energy;
 
     return result;
 }
@@ -111,6 +114,23 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcCAEnergy(const Simulation
 
     result.controller.dynamicEnergy =
         calc_dynamic_energy(stats.commandBus.zeroes_to_ones, impedances_.ca_dyn_E);
+
+    return result;
+}
+
+interface_energy_info_t InterfaceCalculation_DDR5::calcDBIEnergy(const SimulationStats &stats) {
+    interface_energy_info_t result;
+    // Read
+    result.dram.staticEnergy +=
+        calcStaticTermination(impedances_.rdbi_termination, stats.readDBI, impedances_.rdbi_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
+    result.dram.dynamicEnergy +=
+        calc_dynamic_energy(stats.readDBI.zeroes_to_ones, impedances_.rdbi_dyn_E);
+
+    // Write
+    result.controller.staticEnergy +=
+        calcStaticTermination(impedances_.wdbi_termination, stats.writeDBI, impedances_.wdbi_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
+    result.controller.dynamicEnergy +=
+        calc_dynamic_energy(stats.writeDBI.zeroes_to_ones, impedances_.wdbi_dyn_E);
 
     return result;
 }

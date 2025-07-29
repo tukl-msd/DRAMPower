@@ -1,4 +1,5 @@
 #include "DRAMPower/standards/ddr4/interface_calculation_DDR4.h"
+#include "DRAMPower/data/energy.h"
 
 namespace DRAMPower {
 
@@ -34,6 +35,7 @@ interface_energy_info_t InterfaceCalculation_DDR4::calculateEnergy(const Simulat
     result += calcDQEnergyTogglingRate(stats.togglingStats);
     result += calcDQEnergy(stats);
     result += calcCAEnergy(stats);
+    result += calcDBIEnergy(stats);
 
     return result;
 }
@@ -159,6 +161,23 @@ interface_energy_info_t InterfaceCalculation_DDR4::calcCAEnergy(const Simulation
 
     result.controller.dynamicEnergy =
         calc_dynamic_energy(stats.commandBus.zeroes_to_ones, impedances_.ca_dyn_E);
+
+    return result;
+}
+
+interface_energy_info_t InterfaceCalculation_DDR4::calcDBIEnergy(const SimulationStats &stats) {
+    interface_energy_info_t result;
+    // Read
+    result.dram.staticEnergy +=
+        calcStaticTermination(impedances_.rdbi_termination, stats.readDBI, impedances_.rdbi_R_eq, t_CK_, memspec_.dataRate, VDD_);
+    result.dram.dynamicEnergy +=
+        calc_dynamic_energy(stats.readDBI.zeroes_to_ones, impedances_.rdbi_dyn_E);
+
+    // Write
+    result.controller.staticEnergy +=
+        calcStaticTermination(impedances_.wdbi_termination, stats.writeDBI, impedances_.wdbi_R_eq, t_CK_, memspec_.dataRate, VDD_);
+    result.controller.dynamicEnergy +=
+        calc_dynamic_energy(stats.writeDBI.zeroes_to_ones, impedances_.wdbi_dyn_E);
 
     return result;
 }
