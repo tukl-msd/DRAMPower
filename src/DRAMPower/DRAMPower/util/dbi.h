@@ -75,7 +75,7 @@ public:
     void resetDBI();
 
     template<typename Func>
-    Self setStateCallback(Func&& func) {
+    void setStateCallback(Func&& func) {
         m_changeCallback = std::forward<Func>(func);
     }
 
