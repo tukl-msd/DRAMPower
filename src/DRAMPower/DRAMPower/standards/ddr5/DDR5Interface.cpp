@@ -4,15 +4,15 @@
 
 namespace DRAMPower {
 
- DDR5Interface::DDR5Interface(const std::shared_ptr<const MemSpecDDR5>& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
+ DDR5Interface::DDR5Interface(const MemSpecDDR5& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
     : m_commandBus{cmdBusWidth, 1,
         util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
     , m_dataBus{
         util::databus_presets::getDataBusPreset(
-            memSpec->bitWidth * memSpec->numberOfDevices,
+            memSpec.bitWidth * memSpec.numberOfDevices,
             util::DataBusConfig {
-                memSpec->bitWidth * memSpec->numberOfDevices,
-                memSpec->dataRate,
+                memSpec.bitWidth * memSpec.numberOfDevices,
+                memSpec.dataRate,
                 util::BusIdlePatternSpec::H,
                 util::BusInitPatternSpec::H,
                 DRAMUtils::Config::TogglingRateIdlePattern::H,
@@ -22,9 +22,9 @@ namespace DRAMPower {
             }
         )
     }
-    , m_readDQS(memSpec->dataRateSpec.dqsBusRate, true)
-    , m_writeDQS(memSpec->dataRateSpec.dqsBusRate, true)
-    , m_dbi(memSpec->numberOfDevices * memSpec->bitWidth, util::DBI::IdlePattern_t::H, 8,
+    , m_readDQS(memSpec.dataRateSpec.dqsBusRate, true)
+    , m_writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
+    , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, util::DBI::IdlePattern_t::H, 8,
         [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
         this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
     }, false)
@@ -184,7 +184,7 @@ void DDR5Interface::handleDBIPinChange(const timestamp_t load_timestamp, timesta
 
     if (chunk_timestamp > load_timestamp) {
         // Schedule the pin state change
-        m_implicitCommandInserter.addImplicitCommand(chunk_timestamp / m_memSpec->dataRate, updatePinCallback);
+        m_implicitCommandInserter.addImplicitCommand(chunk_timestamp / m_memSpec.dataRate, updatePinCallback);
     } else {
         // chunk_timestamp <= load_timestamp
         updatePinCallback();
@@ -196,7 +196,7 @@ std::optional<const uint8_t *> DDR5Interface::handleDBIInterface(timestamp_t tim
         // No DBI or no data to process
         return std::nullopt;
     }
-    timestamp_t virtual_time = timestamp * m_memSpec->dataRate;
+    timestamp_t virtual_time = timestamp * m_memSpec.dataRate;
     // updateDBI calls the given callback to handle pin changes
     return m_dbi.updateDBI(virtual_time, n_bits, data, read);
 }
@@ -279,7 +279,7 @@ void DDR5Interface::handleCommandBus(const Command& cmd) {
 
 void DDR5Interface::handleDQs(const Command& cmd, util::Clock &dqs, size_t length) {
     dqs.start(cmd.timestamp);
-    dqs.stop(cmd.timestamp + length / m_memSpec->dataRate);
+    dqs.stop(cmd.timestamp + length / m_memSpec.dataRate);
 }
 
 void DDR5Interface::handleData(const Command &cmd, bool read) {
@@ -290,7 +290,7 @@ void DDR5Interface::handleData(const Command &cmd, bool read) {
         // No data provided by command
         // Use default burst length
         if (m_dataBus.isTogglingRate()) {
-            length = m_memSpec->burstLength;
+            length = m_memSpec.burstLength;
             (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
         }
     } else {
@@ -310,7 +310,7 @@ void DDR5Interface::handleData(const Command &cmd, bool read) {
 
 void DDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
     // Reset the DBI interface pins to idle state
-    m_dbi.dispatchResetCallback(timestamp * m_memSpec->dataRate);
+    m_dbi.dispatchResetCallback(timestamp * m_memSpec.dataRate);
     
     stats.commandBus = m_commandBus.get_stats(timestamp);
 
@@ -332,7 +332,7 @@ void DDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats
     }
 
     // x16 devices have two dqs pairs
-    if(m_memSpec->bitWidth == 16)
+    if(m_memSpec.bitWidth == 16)
     {
         stats.readDQSStats *= 2;
         stats.writeDQSStats *= 2;

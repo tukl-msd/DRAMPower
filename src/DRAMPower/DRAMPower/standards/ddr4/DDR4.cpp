@@ -17,7 +17,7 @@ namespace DRAMPower {
 
     DDR4::DDR4(const MemSpecDDR4 &memSpec)
         : dram_base<CmdType>()
-        , m_memSpec(std::make_shared<MemSpecDDR4>(memSpec))
+        , m_memSpec(memSpec)
         , m_interface(m_memSpec, getImplicitCommandHandler().createInserter())
         , m_core(m_memSpec, getImplicitCommandHandler().createInserter())
     {
@@ -32,7 +32,7 @@ namespace DRAMPower {
         getExtensionManager().registerExtension<extensions::DBI>([this](const timestamp_t, const bool enable) {
             // Assumption: the enabling of the DBI does not interleave with previous data on the bus
             // x4,x8,x16 devices: only x8 and x16 support dbi
-            if (4 == m_memSpec->bitWidth) {
+            if (4 == m_memSpec.bitWidth) {
                 std::cout << "[WARN] x4 devices don't support DBI" << std::endl;
                 return false;
             }
@@ -99,9 +99,9 @@ namespace DRAMPower {
 // Getters for CLI
     util::CLIArchitectureConfig DDR4::getCLIArchitectureConfig() {
         return util::CLIArchitectureConfig{
-            m_memSpec->numberOfDevices,
-            m_memSpec->numberOfRanks,
-            m_memSpec->numberOfBanks
+            m_memSpec.numberOfDevices,
+            m_memSpec.numberOfRanks,
+            m_memSpec.numberOfBanks
         };
     }
 
@@ -111,12 +111,12 @@ namespace DRAMPower {
 
 // Calculation
     energy_t DDR4::calcCoreEnergy(timestamp_t timestamp) {
-        Calculation_DDR4 calculation(*m_memSpec);
+        Calculation_DDR4 calculation(m_memSpec);
         return calculation.calcEnergy(getWindowStats(timestamp));
     }
 
     interface_energy_info_t DDR4::calcInterfaceEnergy(timestamp_t timestamp) {
-        InterfaceCalculation_DDR4 calculation(*m_memSpec);
+        InterfaceCalculation_DDR4 calculation(m_memSpec);
         return calculation.calculateEnergy(getWindowStats(timestamp));
     }
 

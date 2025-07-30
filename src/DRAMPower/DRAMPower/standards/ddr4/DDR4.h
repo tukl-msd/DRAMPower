@@ -38,9 +38,9 @@ friend class internal::TestAccessor<DDR4, DDR4Core, DDR4Interface>;
 public:
     DDR4() = delete; // No default constructor
     DDR4(const DDR4&) = default; // copy constructor
-    DDR4& operator=(const DDR4&) = default; // copy assignment operator
+    DDR4& operator=(const DDR4&) = delete; // copy assignment operator
     DDR4(DDR4&&) = default; // move constructor
-    DDR4& operator=(DDR4&&) = default; // move assignment operator
+    DDR4& operator=(DDR4&&) = delete; // move assignment operator
     ~DDR4() override = default;
     
     DDR4(const MemSpecDDR4 &memSpec);
@@ -75,7 +75,7 @@ private:
 
 // Private member variables
 private:
-    std::shared_ptr<MemSpecDDR4> m_memSpec;
+    MemSpecDDR4 m_memSpec;
     DDR4Interface m_interface;
     DDR4Core m_core;
 };

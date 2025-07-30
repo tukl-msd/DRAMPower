@@ -43,35 +43,31 @@ class Inserter {
 // Private constructors and assignment operators
 private:
     // Constructor that takes a reference to the implicit command list
-    explicit Inserter(const std::shared_ptr<implicitCommandList_t>& implicitCommandList);
+    explicit Inserter(implicitCommandList_t& implicitCommandList);
 
 // Public constructors and assignment operators
 public:
     Inserter() = delete; // No default constructor
     Inserter(const Inserter&) = default; // copy constructor
-    Inserter& operator=(const Inserter&) = default; // copy assignment operator
+    Inserter& operator=(const Inserter&) = delete; // copy assignment operator
 
     Inserter(Inserter&&) = default; // move constructor
-    Inserter& operator=(Inserter&&) = default; // move assignment operator
+    Inserter& operator=(Inserter&&) = delete; // move assignment operator
 
 // Public member functions
 public:
     // Add an implicit command to the list
     template <typename Func>
-    bool addImplicitCommand(timestamp_t timestamp, Func&& func)
+    void addImplicitCommand(timestamp_t timestamp, Func&& func)
     {
-        if (m_implicitCommandList.expired()) {
-            return false; // No implicit command list available
-        }
-        details::addImplicitCommand(*m_implicitCommandList.lock(), timestamp, std::forward<Func>(func));
-        return true; // Command added successfully
+        details::addImplicitCommand(m_implicitCommandList, timestamp, std::forward<Func>(func));
     }
 
     std::size_t implicitCommandCount() const;
 
 // Private member variables
 private:
-    std::weak_ptr<implicitCommandList_t> m_implicitCommandList;
+    implicitCommandList_t& m_implicitCommandList;
 };
 
 // Helper type definitions
@@ -80,20 +76,20 @@ public:
 
 // Constructors and assignment operators
 public:
+    ImplicitCommandHandler() = default; // default constructor
     ImplicitCommandHandler(const ImplicitCommandHandler&) = default; // copy constructor
     ImplicitCommandHandler& operator=(const ImplicitCommandHandler&) = default; // copy assignment operator
     ImplicitCommandHandler(ImplicitCommandHandler&&) = default; // move constructor
     ImplicitCommandHandler& operator=(ImplicitCommandHandler&&) = default; // move assignment operator
     ~ImplicitCommandHandler() = default;
 
-    ImplicitCommandHandler();
 
 // Inserter forwards
 public:
     template <typename Func>
     void addImplicitCommand(timestamp_t timestamp, Func&& func)
     {
-        details::addImplicitCommand(*m_implicitCommandList, timestamp, std::forward<Func>(func));
+        details::addImplicitCommand(m_implicitCommandList, timestamp, std::forward<Func>(func));
     }
 
 // Public member functions
@@ -107,7 +103,7 @@ public:
 
 // Private member variables
 private:
-    std::shared_ptr<implicitCommandList_t> m_implicitCommandList;
+    implicitCommandList_t m_implicitCommandList;
 };
 
 } // namespace DRAMPower

@@ -43,11 +43,11 @@ public:
 public:
     LPDDR5Interface() = delete; // no default constructor
     LPDDR5Interface(const LPDDR5Interface&) = default; // copy constructor
-    LPDDR5Interface& operator=(const LPDDR5Interface&) = default; // copy assignment operator
+    LPDDR5Interface& operator=(const LPDDR5Interface&) = delete; // copy assignment operator
     LPDDR5Interface(LPDDR5Interface&&) = default; // move constructor
-    LPDDR5Interface& operator=(LPDDR5Interface&&) = default; // move assignment operator
+    LPDDR5Interface& operator=(LPDDR5Interface&&) = delete; // move assignment operator
 
-    LPDDR5Interface(const std::shared_ptr<const MemSpecLPDDR5>& memSpec, implicitCommandInserter_t&& implicitCommandInserter);
+    LPDDR5Interface(const MemSpecLPDDR5& memSpec, implicitCommandInserter_t&& implicitCommandInserter);
 
 // Private member functions
 private:
@@ -83,7 +83,7 @@ public:
 
 // Private member variables
 private:
-    std::shared_ptr<const MemSpecLPDDR5> m_memSpec;
+    const MemSpecLPDDR5& m_memSpec;
     patternHandler_t m_patternHandler;
     implicitCommandInserter_t m_implicitCommandInserter;
 };
