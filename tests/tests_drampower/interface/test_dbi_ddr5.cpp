@@ -3,21 +3,21 @@
 #include <memory>
 
 #include <DRAMPower/memspec/MemSpec.h>
-#include <DRAMPower/standards/ddr4/interface_calculation_DDR4.h>
-#include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
+#include <DRAMPower/standards/ddr5/interface_calculation_DDR5.h>
+#include <DRAMUtils/memspec/standards/MemSpecDDR5.h>
 
 #include "DRAMPower/data/stats.h"
-#include "DRAMPower/memspec/MemSpecDDR4.h"
-#include "DRAMPower/standards/ddr4/DDR4.h"
+#include "DRAMPower/memspec/MemSpecDDR5.h"
+#include "DRAMPower/standards/ddr5/DDR5.h"
 #include "DRAMPower/util/extensions.h"
 
 
 using DRAMPower::interface_energy_info_t;
-using DRAMPower::InterfaceCalculation_DDR4;
+using DRAMPower::InterfaceCalculation_DDR5;
 using DRAMPower::CmdType;
 using DRAMPower::Command;
-using DRAMPower::DDR4;
-using DRAMPower::MemSpecDDR4;
+using DRAMPower::DDR5;
+using DRAMPower::MemSpecDDR5;
 using DRAMPower::SimulationStats;
 
 #define SZ_BITS(x) sizeof(x)*8
@@ -80,9 +80,9 @@ static constexpr uint8_t rd_data[] = {
     // ones to zeroes: 1, zeroes to ones: 1, zeroes 1
 };
 
-class DDR4_DBI_Tests : public ::testing::Test {
+class DDR5_DBI_Tests : public ::testing::Test {
    public:
-    DDR4_DBI_Tests() {
+    DDR5_DBI_Tests() {
         test_patterns.push_back({
             {0, CmdType::ACT, {1, 0, 0, 2}},
             {4, CmdType::WR, {1, 0, 0, 0, 16}, wr_data, SZ_BITS(wr_data)},
@@ -100,12 +100,12 @@ class DDR4_DBI_Tests : public ::testing::Test {
         });
 
         initSpec();
-        ddr = std::make_unique<DDR4>(*spec);
+        ddr = std::make_unique<DDR5>(*spec);
     }
 
     void initSpec() {
-        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
-        spec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr5.json");
+        spec = std::make_unique<DRAMPower::MemSpecDDR5>(DRAMPower::MemSpecDDR5::from_memspec(*data));
     }
 
     void runCommands(const std::vector<Command> &commands) {
@@ -116,12 +116,12 @@ class DDR4_DBI_Tests : public ::testing::Test {
     }
 
     std::vector<std::vector<Command>> test_patterns;
-    std::unique_ptr<MemSpecDDR4> spec;
-    std::unique_ptr<DDR4> ddr;
+    std::unique_ptr<MemSpecDDR5> spec;
+    std::unique_ptr<DDR5> ddr;
 };
 
 // Test patterns for stats (counter)
-TEST_F(DDR4_DBI_Tests, Pattern_0) {
+TEST_F(DDR5_DBI_Tests, Pattern_0) {
     ddr->getExtensionManager().withExtension<DRAMPower::extensions::DBI>([](DRAMPower::extensions::DBI& dbi) {
         dbi.enable(0, true);
     });
@@ -155,7 +155,7 @@ TEST_F(DDR4_DBI_Tests, Pattern_0) {
 
 }
 
-TEST_F(DDR4_DBI_Tests, Pattern_1) {
+TEST_F(DDR5_DBI_Tests, Pattern_1) {
     ddr->getExtensionManager().withExtension<DRAMPower::extensions::DBI>([](DRAMPower::extensions::DBI& dbi) {
         dbi.enable(0, true);
     });
@@ -187,11 +187,11 @@ TEST_F(DDR4_DBI_Tests, Pattern_1) {
     EXPECT_EQ(stats.writeDBI.ones_to_zeroes, 2);
     EXPECT_EQ(stats.writeDBI.zeroes_to_ones, 2);
 }
-class DDR4_DBI_Energy_Tests : public ::testing::Test {
+class DDR5_DBI_Energy_Tests : public ::testing::Test {
    public:
-    DDR4_DBI_Energy_Tests() {
-        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
-        spec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
+    DDR5_DBI_Energy_Tests() {
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr5.json");
+        spec = std::make_unique<DRAMPower::MemSpecDDR5>(DRAMPower::MemSpecDDR5::from_memspec(*data));
 
         t_CK = spec->memTimingSpec.tCK;
         voltage = spec->vddq;
@@ -203,16 +203,16 @@ class DDR4_DBI_Energy_Tests : public ::testing::Test {
         spec->memImpedanceSpec.rdbi_dyn_E = 3;
         spec->memImpedanceSpec.wdbi_dyn_E = 4;
 
-        io_calc = std::make_unique<InterfaceCalculation_DDR4>(*spec);
+        io_calc = std::make_unique<InterfaceCalculation_DDR5>(*spec);
     }
 
-    std::unique_ptr<MemSpecDDR4> spec;
+    std::unique_ptr<MemSpecDDR5> spec;
     double t_CK;
     double voltage;
-    std::unique_ptr<InterfaceCalculation_DDR4> io_calc;
+    std::unique_ptr<InterfaceCalculation_DDR5> io_calc;
 };
 
-TEST_F(DDR4_DBI_Energy_Tests, Energy) {
+TEST_F(DDR5_DBI_Energy_Tests, Energy) {
     SimulationStats stats;
     stats.readDBI.ones = 1;
     stats.readDBI.zeroes = 2;
