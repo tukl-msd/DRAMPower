@@ -345,9 +345,14 @@ void LPDDR5Interface::handleData(const Command &cmd, bool read) {
             (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
         }
     } else {
+        std::optional<const uint8_t *> dbi_data = std::nullopt;
         // Data provided by command
-        length = cmd.sz_bits / m_dataBus.getWidth();
-        (m_dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
+        if (m_dataBus.isBus() && m_dbi.isEnabled()) {
+            // Only compute dbi for bus mode
+            dbi_data = handleDBIInterface(cmd.timestamp, cmd.sz_bits, cmd.data, read);
+        }
+        length = cmd.sz_bits / (m_dataBus.getWidth());
+        (m_dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, dbi_data.value_or(cmd.data));
     }
     // DQS
     if (read) {
@@ -371,7 +376,7 @@ void LPDDR5Interface::handleData(const Command &cmd, bool read) {
 
 void LPDDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
     // Reset the DBI interface pins to idle state
-    m_dbi.dispatchResetCallback(timestamp * m_memSpec->dataRate, true);
+    m_dbi.dispatchResetCallback(timestamp * m_memSpec->dataRate);
 
     stats.commandBus = m_commandBus.get_stats(timestamp);
 

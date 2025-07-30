@@ -348,7 +348,7 @@ namespace DRAMPower {
 
     void DDR4Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
         // Reset the DBI interface pins to idle state
-        m_dbi.dispatchResetCallback(timestamp * m_memSpec->dataRate, true);
+        m_dbi.dispatchResetCallback(timestamp * m_memSpec->dataRate);
 
         // DDR4 x16 have 2 DQs differential pairs
         uint_fast8_t NumDQsPairs = 1;

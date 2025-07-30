@@ -252,7 +252,7 @@ void LPDDR4Interface::handleData(const Command &cmd, bool read) {
 
 void LPDDR4Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
     // Reset the DBI interface pins to idle state
-    m_dbi.dispatchResetCallback(timestamp * m_memSpec->dataRate, true);
+    m_dbi.dispatchResetCallback(timestamp * m_memSpec->dataRate);
 
     stats.commandBus = m_commandBus.get_stats(timestamp);
     

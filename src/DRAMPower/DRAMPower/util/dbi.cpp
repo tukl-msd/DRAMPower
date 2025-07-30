@@ -53,6 +53,11 @@ void DBI::resetDBI() {
     m_lastInvert_write.clear();
 }
 
+void DBI::dispatchResetCallback(timestamp_t timestamp) const {
+    dispatchResetCallback(timestamp, true);
+    dispatchResetCallback(timestamp, false);
+}
+
 void DBI::dispatchResetCallback(timestamp_t timestamp, bool read) const {
     auto &m_lastBurst = read ? m_lastBurst_read : m_lastBurst_write;
     auto &m_lastInvert = read ? m_lastInvert_read : m_lastInvert_write;
