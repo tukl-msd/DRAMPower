@@ -106,7 +106,7 @@ public:
 	}
 	void deserializeBurst(std::istream& stream, burst_t& burst) {
 		// TODO think about shift direction
-		std::array<uint8_t, (bitset_size +7) / 8> burst_data;
+		std::array<uint8_t, (bitset_size +7) / 8> burst_data{};
 		stream.read(reinterpret_cast<char*>(burst_data.data()), burst_data.size());
 		for (std::size_t i = 0; i < burst_data.size(); ++i) {
 			for (std::size_t j = 0; j < 8 && (i * 8 + j) < bitset_size; ++j) {
