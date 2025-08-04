@@ -23,16 +23,6 @@ namespace DRAMPower {
 
 // Extensions
     void DDR5::registerExtensions() {
-        getExtensionManager().registerExtension<extensions::DBI>([this](const timestamp_t, const bool enable){
-            // Assumption: the enabling of the DBI does not interleave with previous data on the bus
-            // x4,x8,x16 devices: only x8 and x16 support dbi
-            if (4 == m_memSpec.bitWidth) {
-                std::cout << "[WARN] x4 devices don't support DBI" << std::endl;
-                return false;
-            }
-            m_interface.m_dbi.enable(enable);
-            return true;
-        }, false);
     }
 
 // Commands

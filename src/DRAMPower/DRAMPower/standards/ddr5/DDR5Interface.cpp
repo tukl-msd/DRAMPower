@@ -24,12 +24,6 @@ namespace DRAMPower {
     }
     , m_readDQS(memSpec.dataRateSpec.dqsBusRate, true)
     , m_writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
-    , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, util::DBI::IdlePattern_t::H, 8,
-        [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
-        this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
-    }, false)
-    , m_dbiread(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
-    , m_dbiwrite(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
     , m_memSpec(memSpec)
     , m_patternHandler(PatternEncoderOverrides{
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
@@ -172,35 +166,6 @@ timestamp_t DDR5Interface::updateTogglingRate(timestamp_t timestamp, const std::
     return timestamp;
 }
 
-void DDR5Interface::handleDBIPinChange(const timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool state, bool read) {
-    assert(pin < m_dbiread.size() || pin < m_dbiwrite.size());
-    auto updatePinCallback = [this, chunk_timestamp, pin, state, read](){
-        if (read) {
-            this->m_dbiread[pin].set(chunk_timestamp, state ? util::PinState::L : util::PinState::H, 1);
-        } else {
-            this->m_dbiwrite[pin].set(chunk_timestamp, state ? util::PinState::L : util::PinState::H, 1);
-        }
-    };
-
-    if (chunk_timestamp > load_timestamp) {
-        // Schedule the pin state change
-        m_implicitCommandInserter.addImplicitCommand(chunk_timestamp / m_memSpec.dataRate, updatePinCallback);
-    } else {
-        // chunk_timestamp <= load_timestamp
-        updatePinCallback();
-    }
-}
-
-std::optional<const uint8_t *> DDR5Interface::handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read) {
-    if (0 == n_bits || !data || !m_dbi.isEnabled()) {
-        // No DBI or no data to process
-        return std::nullopt;
-    }
-    timestamp_t virtual_time = timestamp * m_memSpec.dataRate;
-    // updateDBI calls the given callback to handle pin changes
-    return m_dbi.updateDBI(virtual_time, n_bits, data, read);
-}
-
 // Interface
 void DDR5Interface::handleOverrides(size_t length, bool read)
 {
@@ -294,14 +259,9 @@ void DDR5Interface::handleData(const Command &cmd, bool read) {
             (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
         }
     } else {
-        std::optional<const uint8_t *> dbi_data = std::nullopt;
         // Data provided by command
-        if (m_dataBus.isBus() && m_dbi.isEnabled()) {
-            // Only compute dbi for bus mode
-            dbi_data = handleDBIInterface(cmd.timestamp, cmd.sz_bits, cmd.data, read);
-        }
         length = cmd.sz_bits / (m_dataBus.getWidth());
-        (m_dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, dbi_data.value_or(cmd.data));
+        (m_dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
     }
     handleDQs(cmd, dqs, length);
     handleOverrides(length, read);
@@ -309,12 +269,9 @@ void DDR5Interface::handleData(const Command &cmd, bool read) {
 }
 
 void DDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
-    // Reset the DBI interface pins to idle state
-    m_dbi.dispatchResetCallback(timestamp * m_memSpec.dataRate);
-    
     stats.commandBus = m_commandBus.get_stats(timestamp);
 
-    m_dataBus.get_stats(timestamp, 
+    m_dataBus.get_stats(timestamp,
         stats.readBus,
         stats.writeBus,
         stats.togglingStats.read,
@@ -324,12 +281,6 @@ void DDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats
     stats.clockStats = 2 * m_clock.get_stats_at(timestamp);
     stats.readDQSStats = 2 * m_readDQS.get_stats_at(timestamp);
     stats.writeDQSStats = 2 * m_writeDQS.get_stats_at(timestamp);
-    for (const auto &dbi_pin : m_dbiread) {
-        stats.readDBI += dbi_pin.get_stats_at(timestamp, 2);
-    }
-    for (const auto &dbi_pin : m_dbiwrite) {
-        stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2);
-    }
 
     // x16 devices have two dqs pairs
     if(m_memSpec.bitWidth == 16)
