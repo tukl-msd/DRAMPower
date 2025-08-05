@@ -33,7 +33,6 @@ private:
         timestamp_t end; // End timestamp of the last burst
         bool read; // True if the last burst was a read operation
 
-        bool consumed = false;
         bool init = false;
     };
 
