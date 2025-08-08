@@ -31,9 +31,9 @@ friend class internal::TestAccessor<DDR5, DDR5Core, DDR5Interface>;
 public:
     DDR5() = delete; // No default constructor
     DDR5(const DDR5&) = default; // copy constructor
-    DDR5& operator=(const DDR5&) = default; // copy assignment operator
+    DDR5& operator=(const DDR5&) = delete; // copy assignment operator
     DDR5(DDR5&&) = default; // move constructor
-    DDR5& operator=(DDR5&&) = default; // move assignment operator
+    DDR5& operator=(DDR5&&) = delete; // move assignment operator
     ~DDR5() override = default;
 
     DDR5(const MemSpecDDR5& memSpec);
@@ -67,7 +67,7 @@ private:
 
 // Private member variables
 private:
-    std::shared_ptr<MemSpecDDR5> m_memSpec;
+    MemSpecDDR5 m_memSpec;
     DDR5Interface m_interface;
     DDR5Core m_core;
 };

@@ -35,21 +35,21 @@ void LPDDR5Core::handlePreAll(Rank &rank, timestamp_t timestamp) {
 }
 
 void LPDDR5Core::handleRefPerBank(Rank & rank, Bank & bank, timestamp_t timestamp) {
-    handleRefreshOnBank(rank, bank, timestamp, m_memSpec->memTimingSpec.tRFCPB, bank.counter.refPerBank);
+    handleRefreshOnBank(rank, bank, timestamp, m_memSpec.memTimingSpec.tRFCPB, bank.counter.refPerBank);
 }
 
 void LPDDR5Core::handleRefPerTwoBanks(Rank & rank, std::size_t bank_id, timestamp_t timestamp) {
     Bank & bank_1 = rank.banks[bank_id];
-    Bank & bank_2 = rank.banks[(bank_id + m_memSpec->perTwoBankOffset)%16];
-    handleRefreshOnBank(rank, bank_1, timestamp, m_memSpec->memTimingSpec.tRFCPB, bank_1.counter.refPerTwoBanks);
-    handleRefreshOnBank(rank, bank_2, timestamp, m_memSpec->memTimingSpec.tRFCPB, bank_2.counter.refPerTwoBanks);
+    Bank & bank_2 = rank.banks[(bank_id + m_memSpec.perTwoBankOffset)%16];
+    handleRefreshOnBank(rank, bank_1, timestamp, m_memSpec.memTimingSpec.tRFCPB, bank_1.counter.refPerTwoBanks);
+    handleRefreshOnBank(rank, bank_2, timestamp, m_memSpec.memTimingSpec.tRFCPB, bank_2.counter.refPerTwoBanks);
 }
 
 void LPDDR5Core::handleRefAll(Rank &rank, timestamp_t timestamp) {
     for (auto& bank : rank.banks) {
-        handleRefreshOnBank(rank, bank, timestamp, m_memSpec->memTimingSpec.tRFC, bank.counter.refAllBank);
+        handleRefreshOnBank(rank, bank, timestamp, m_memSpec.memTimingSpec.tRFC, bank.counter.refAllBank);
     }
-    rank.endRefreshTime = timestamp + m_memSpec->memTimingSpec.tRFC;
+    rank.endRefreshTime = timestamp + m_memSpec.memTimingSpec.tRFC;
 }
 
 void LPDDR5Core::handleRefreshOnBank(Rank & rank, Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t & counter){
@@ -81,8 +81,8 @@ void LPDDR5Core::handleRead(Rank&, Bank &bank, timestamp_t) {
 void LPDDR5Core::handleReadAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
     ++bank.counter.readAuto;
 
-    auto minBankActiveTime = bank.cycles.act.get_start() + this->m_memSpec->memTimingSpec.tRAS;
-    auto minReadActiveTime = timestamp + this->m_memSpec->prechargeOffsetRD;
+    auto minBankActiveTime = bank.cycles.act.get_start() + this->m_memSpec.memTimingSpec.tRAS;
+    auto minReadActiveTime = timestamp + this->m_memSpec.prechargeOffsetRD;
 
     auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
@@ -99,8 +99,8 @@ void LPDDR5Core::handleWrite(Rank&, Bank &bank, timestamp_t) {
 void LPDDR5Core::handleWriteAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
     ++bank.counter.writeAuto;
 
-    auto minBankActiveTime = bank.cycles.act.get_start() + this->m_memSpec->memTimingSpec.tRAS;
-    auto minWriteActiveTime = timestamp + this->m_memSpec->prechargeOffsetWR;
+    auto minBankActiveTime = bank.cycles.act.get_start() + this->m_memSpec.memTimingSpec.tRAS;
+    auto minWriteActiveTime = timestamp + this->m_memSpec.prechargeOffsetWR;
 
     auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
     // Execute PRE after minimum active time
@@ -113,7 +113,7 @@ void LPDDR5Core::handleSelfRefreshEntry(Rank &rank, timestamp_t timestamp) {
     // Issue implicit refresh
     handleRefAll(rank, timestamp);
     // Handle self-refresh entry after tRFC
-    auto timestampSelfRefreshStart = timestamp + m_memSpec->memTimingSpec.tRFC;
+    auto timestampSelfRefreshStart = timestamp + m_memSpec.memTimingSpec.tRFC;
     m_implicitCommandInserter.addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
         rank.counter.selfRefresh++;
         rank.cycles.sref.start_interval(timestampSelfRefreshStart);
@@ -145,7 +145,6 @@ void LPDDR5Core::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
 }
 
 void LPDDR5Core::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
-    // TODO: Is this computation necessary?
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
@@ -179,7 +178,6 @@ void LPDDR5Core::handlePowerDownPreEntry(Rank &rank, timestamp_t timestamp) {
 }
 
 void LPDDR5Core::handlePowerDownPreExit(Rank &rank, timestamp_t timestamp) {
-    // TODO: Is this computation necessary?
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
@@ -209,8 +207,8 @@ timestamp_t LPDDR5Core::earliestPossiblePowerDownEntryTime(Rank & rank) const {
         entryTime = std::max(
             {entryTime,
                 bank.counter.act == 0 ? 0
-                                    : bank.cycles.act.get_start() + m_memSpec->memTimingSpec.tRCD,
-                bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec->memTimingSpec.tRP,
+                                    : bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRCD,
+                bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.memTimingSpec.tRP,
                 bank.refreshEndTime});
     }
 
@@ -218,20 +216,18 @@ timestamp_t LPDDR5Core::earliestPossiblePowerDownEntryTime(Rank & rank) const {
 }
 
 void LPDDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
-    stats.bank.resize(m_memSpec->numberOfBanks * m_memSpec->numberOfRanks);
-    stats.rank_total.resize(m_memSpec->numberOfRanks);
+    stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks);
+    stats.rank_total.resize(m_memSpec.numberOfRanks);
 
     auto simulation_duration = timestamp;
-    for (size_t i = 0; i < m_memSpec->numberOfRanks; ++i) {
+    for (size_t i = 0; i < m_memSpec.numberOfRanks; ++i) {
         const Rank &rank = m_ranks[i];
-        size_t bank_offset = i * m_memSpec->numberOfBanks;
+        size_t bank_offset = i * m_memSpec.numberOfBanks;
 
-        for (std::size_t j = 0; j < m_memSpec->numberOfBanks; ++j) {
+        for (std::size_t j = 0; j < m_memSpec.numberOfBanks; ++j) {
             stats.bank[bank_offset + j].counter = rank.banks[j].counter;
             stats.bank[bank_offset + j].cycles.act =
                 rank.banks[j].cycles.act.get_count_at(timestamp);
-            stats.bank[bank_offset + j].cycles.ref =
-                rank.banks[j].cycles.ref.get_count_at(timestamp);
             stats.bank[bank_offset + j].cycles.selfRefresh =
                 rank.cycles.sref.get_count_at(timestamp) -
                 rank.cycles.deepSleepMode.get_count_at(timestamp);
@@ -255,8 +251,6 @@ void LPDDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) c
                                     rank.cycles.sref.get_count_at(timestamp));
 
         stats.rank_total[i].cycles.act = rank.cycles.act.get_count_at(timestamp);
-        stats.rank_total[i].cycles.ref = rank.cycles.act.get_count_at(
-            timestamp);  // TODO: I think this counter is never updated
         stats.rank_total[i].cycles.powerDownAct =
             rank.cycles.powerDownAct.get_count_at(timestamp);
         stats.rank_total[i].cycles.powerDownPre =

@@ -47,7 +47,7 @@ add_executable(tests_drampower
 	core/DDR5/ddr5_test_pattern_16.cpp
 	core/DDR5/ddr5_test_pattern_17.cpp
 	core/DDR5/ddr5_test_pattern_18.cpp
-	
+
 	core/LPDDR4/lpddr4_multidevice_tests.cpp
 	core/LPDDR4/lpddr4_multirank_tests.cpp
 	core/LPDDR4/lpddr4_test_pattern_0.cpp
@@ -94,18 +94,20 @@ add_executable(tests_drampower
 	core/LPDDR5/lpddr5_test_pattern_19.cpp
 	core/LPDDR5/lpddr5_test_pattern_20.cpp
 	core/LPDDR5/lpddr5_test_pattern_21.cpp
-	
+
 	interface/test_interface_ddr4.cpp
 	interface/test_interface_ddr5.cpp
 	interface/test_interface_lpddr4.cpp
 	interface/test_interface_lpddr5.cpp
-	
+
 	interface/test_togglingrate_ddr4.cpp
 	interface/test_togglingrate_ddr5.cpp
 	interface/test_togglingrate_lpddr4.cpp
 	interface/test_togglingrate_lpddr5.cpp
 
 	interface/test_dbi_ddr4.cpp
+	interface/test_dbi_lpddr4.cpp
+	interface/test_dbi_lpddr5.cpp
 )
 
 set_target_properties(tests_drampower PROPERTIES FOLDER tests/drampower)

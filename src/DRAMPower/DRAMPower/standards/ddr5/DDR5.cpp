@@ -13,20 +13,16 @@ namespace DRAMPower {
     using namespace DRAMUtils::Config;
 
     DDR5::DDR5(const MemSpecDDR5 &memSpec)
-        : m_memSpec(std::make_shared<MemSpecDDR5>(memSpec))
+        : m_memSpec(memSpec)
         , m_interface(m_memSpec, getImplicitCommandHandler().createInserter())
         , m_core(m_memSpec, getImplicitCommandHandler().createInserter())
     {
-        this->registerCommands();
-        getExtensionManager().registerExtension<extensions::DBI>([](const timestamp_t, const bool){
-            // Assumption: the enabling of the DBI does not interleave with previous data on the bus
-            // TODO add DBI
-        }, false);
+        registerCommands();
+        registerExtensions();
     }
 
 // Extensions
     void DDR5::registerExtensions() {
-
     }
 
 // Commands
@@ -101,9 +97,9 @@ namespace DRAMPower {
 // Getters for CLI
     util::CLIArchitectureConfig DDR5::getCLIArchitectureConfig() {
         return util::CLIArchitectureConfig{
-            m_memSpec->numberOfDevices,
-            m_memSpec->numberOfRanks,
-            m_memSpec->numberOfBanks
+            m_memSpec.numberOfDevices,
+            m_memSpec.numberOfRanks,
+            m_memSpec.numberOfBanks
         };
     }
 
@@ -113,12 +109,12 @@ namespace DRAMPower {
 
 // Calculation
     energy_t DDR5::calcCoreEnergy(timestamp_t timestamp) {
-        Calculation_DDR5 calculation(*m_memSpec);
+        Calculation_DDR5 calculation(m_memSpec);
         return calculation.calcEnergy(getWindowStats(timestamp));
     }
 
     interface_energy_info_t DDR5::calcInterfaceEnergy(timestamp_t timestamp) {
-        InterfaceCalculation_DDR5 calculation(*m_memSpec);
+        InterfaceCalculation_DDR5 calculation(m_memSpec);
         return calculation.calculateEnergy(getWindowStats(timestamp));
     }
 

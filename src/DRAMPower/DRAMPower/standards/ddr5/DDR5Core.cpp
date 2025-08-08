@@ -29,9 +29,9 @@ void DDR5Core::handlePre(Rank &rank, Bank &bank, timestamp_t timestamp) {
 }
 
 void DDR5Core::handlePreSameBank(Rank & rank, std::size_t bank_id, timestamp_t timestamp) {
-    auto bank_id_inside_bg = bank_id % m_memSpec->banksPerGroup;
-    for(unsigned bank_group = 0; bank_group < m_memSpec->numberOfBankGroups; bank_group++) {
-        auto & bank = rank.banks[bank_group * m_memSpec->banksPerGroup + bank_id_inside_bg];
+    auto bank_id_inside_bg = bank_id % m_memSpec.banksPerGroup;
+    for(unsigned bank_group = 0; bank_group < m_memSpec.numberOfBankGroups; bank_group++) {
+        auto & bank = rank.banks[bank_group * m_memSpec.banksPerGroup + bank_id_inside_bg];
         handlePre(rank, bank, timestamp);
     }
 }
@@ -43,19 +43,19 @@ void DDR5Core::handlePreAll(Rank &rank, timestamp_t timestamp) {
 }
 
 void DDR5Core::handleRefSameBank(Rank & rank, std::size_t bank_id, timestamp_t timestamp) {
-    auto bank_id_inside_bg = bank_id % m_memSpec->banksPerGroup;
-    for(unsigned bank_group = 0; bank_group < m_memSpec->numberOfBankGroups; bank_group++) {
-        auto & bank = rank.banks[bank_group * m_memSpec->banksPerGroup + bank_id_inside_bg];
-        handleRefreshOnBank(rank, bank, timestamp, m_memSpec->memTimingSpec.tRFCsb, bank.counter.refSameBank);
+    auto bank_id_inside_bg = bank_id % m_memSpec.banksPerGroup;
+    for(unsigned bank_group = 0; bank_group < m_memSpec.numberOfBankGroups; bank_group++) {
+        auto & bank = rank.banks[bank_group * m_memSpec.banksPerGroup + bank_id_inside_bg];
+        handleRefreshOnBank(rank, bank, timestamp, m_memSpec.memTimingSpec.tRFCsb, bank.counter.refSameBank);
     }
 }
 
 void DDR5Core::handleRefAll(Rank &rank, timestamp_t timestamp) {
     for (auto& bank : rank.banks) {
-        handleRefreshOnBank(rank, bank, timestamp, m_memSpec->memTimingSpec.tRFC, bank.counter.refAllBank);
+        handleRefreshOnBank(rank, bank, timestamp, m_memSpec.memTimingSpec.tRFC, bank.counter.refAllBank);
     }
 
-    rank.endRefreshTime = timestamp + m_memSpec->memTimingSpec.tRFC;
+    rank.endRefreshTime = timestamp + m_memSpec.memTimingSpec.tRFC;
 }
 
 void DDR5Core::handleRefreshOnBank(Rank & rank, Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t & counter){
@@ -92,8 +92,8 @@ void DDR5Core::handleRead(Rank&, Bank &bank, timestamp_t){
 void DDR5Core::handleReadAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
     ++bank.counter.readAuto;
 
-    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec->memTimingSpec.tRAS;
-    auto minReadActiveTime = timestamp + m_memSpec->prechargeOffsetRD;
+    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
+    auto minReadActiveTime = timestamp + m_memSpec.prechargeOffsetRD;
 
     auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
@@ -110,8 +110,8 @@ void DDR5Core::handleWrite(Rank&, Bank &bank, timestamp_t) {
 void DDR5Core::handleWriteAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
     ++bank.counter.writeAuto;
 
-    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec->memTimingSpec.tRAS;
-    auto minWriteActiveTime = timestamp + m_memSpec->prechargeOffsetWR;
+    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
+    auto minWriteActiveTime = timestamp + m_memSpec.prechargeOffsetWR;
 
     auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
 
@@ -126,7 +126,7 @@ void DDR5Core::handleSelfRefreshEntry(Rank &rank, timestamp_t timestamp) {
     handleRefAll(rank, timestamp);
 
     // Handle self-refresh entry after tRFC
-    auto timestampSelfRefreshStart = timestamp + m_memSpec->memTimingSpec.tRFC;
+    auto timestampSelfRefreshStart = timestamp + m_memSpec.memTimingSpec.tRFC;
 
     m_implicitCommandInserter.addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
         rank.counter.selfRefresh++;
@@ -209,8 +209,8 @@ timestamp_t DDR5Core::earliestPossiblePowerDownEntryTime(Rank &rank) {
         entryTime = std::max(
             {entryTime,
                 bank.counter.act == 0 ? 0
-                                    : bank.cycles.act.get_start() + m_memSpec->memTimingSpec.tRCD,
-                bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec->memTimingSpec.tRP,
+                                    : bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRCD,
+                bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.memTimingSpec.tRP,
                 bank.refreshEndTime});
     }
 
@@ -218,20 +218,18 @@ timestamp_t DDR5Core::earliestPossiblePowerDownEntryTime(Rank &rank) {
 }
 
 void DDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
-    stats.bank.resize(m_memSpec->numberOfBanks * m_memSpec->numberOfRanks);
-    stats.rank_total.resize(m_memSpec->numberOfRanks);
+    stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks);
+    stats.rank_total.resize(m_memSpec.numberOfRanks);
 
     auto simulation_duration = timestamp;
-    for (size_t i = 0; i < m_memSpec->numberOfRanks; ++i) {
+    for (size_t i = 0; i < m_memSpec.numberOfRanks; ++i) {
         const Rank &rank = m_ranks[i];
-        size_t bank_offset = i * m_memSpec->numberOfBanks;
+        size_t bank_offset = i * m_memSpec.numberOfBanks;
 
-        for (std::size_t j = 0; j < m_memSpec->numberOfBanks; ++j) {
+        for (std::size_t j = 0; j < m_memSpec.numberOfBanks; ++j) {
             stats.bank[bank_offset + j].counter = rank.banks[j].counter;
             stats.bank[bank_offset + j].cycles.act =
                 rank.banks[j].cycles.act.get_count_at(timestamp);
-            stats.bank[bank_offset + j].cycles.ref =
-                rank.banks[j].cycles.ref.get_count_at(timestamp);
             stats.bank[bank_offset + j].cycles.selfRefresh =
                 rank.cycles.sref.get_count_at(timestamp);
             stats.bank[bank_offset + j].cycles.powerDownAct =
@@ -251,8 +249,6 @@ void DDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) con
                                     rank.cycles.powerDownPre.get_count_at(timestamp) +
                                     rank.cycles.sref.get_count_at(timestamp));
         stats.rank_total[i].cycles.act = rank.cycles.act.get_count_at(timestamp);
-        stats.rank_total[i].cycles.ref = rank.cycles.act.get_count_at(
-            timestamp);  // TODO: I think this counter is never updated
         stats.rank_total[i].cycles.powerDownAct =
             rank.cycles.powerDownAct.get_count_at(timestamp);
         stats.rank_total[i].cycles.powerDownPre =

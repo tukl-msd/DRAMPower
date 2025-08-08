@@ -3,6 +3,7 @@
 #include <memory>
 
 #include <DRAMPower/memspec/MemSpec.h>
+#include <DRAMPower/standards/ddr4/interface_calculation_DDR4.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
 
 #include "DRAMPower/data/stats.h"
@@ -10,6 +11,9 @@
 #include "DRAMPower/standards/ddr4/DDR4.h"
 #include "DRAMPower/util/extensions.h"
 
+
+using DRAMPower::interface_energy_info_t;
+using DRAMPower::InterfaceCalculation_DDR4;
 using DRAMPower::CmdType;
 using DRAMPower::Command;
 using DRAMPower::DDR4;
@@ -182,5 +186,58 @@ TEST_F(DDR4_DBI_Tests, Pattern_1) {
     EXPECT_EQ(stats.writeDBI.zeroes, 2);
     EXPECT_EQ(stats.writeDBI.ones_to_zeroes, 2);
     EXPECT_EQ(stats.writeDBI.zeroes_to_ones, 2);
+}
+class DDR4_DBI_Energy_Tests : public ::testing::Test {
+   public:
+    DDR4_DBI_Energy_Tests() {
+        auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
+        spec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
 
+        t_CK = spec->memTimingSpec.tCK;
+        voltage = spec->vddq;
+
+        // Change impedances to different values from each other
+        spec->memImpedanceSpec.rdbi_R_eq = 1;
+        spec->memImpedanceSpec.wdbi_R_eq = 2;
+
+        spec->memImpedanceSpec.rdbi_dyn_E = 3;
+        spec->memImpedanceSpec.wdbi_dyn_E = 4;
+
+        io_calc = std::make_unique<InterfaceCalculation_DDR4>(*spec);
+    }
+
+    std::unique_ptr<MemSpecDDR4> spec;
+    double t_CK;
+    double voltage;
+    std::unique_ptr<InterfaceCalculation_DDR4> io_calc;
+};
+
+TEST_F(DDR4_DBI_Energy_Tests, Energy) {
+    SimulationStats stats;
+    stats.readDBI.ones = 1;
+    stats.readDBI.zeroes = 2;
+    stats.readDBI.ones_to_zeroes = 3;
+    stats.readDBI.zeroes_to_ones = 4;
+
+    // Controller -> write power
+    // Dram -> read power
+    // data rate dbi is 2 -> t_per_bit = 0.5 * t_CK
+    double expected_static_controller =
+        stats.writeDBI.zeroes * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.wdbi_R_eq;
+    double expected_static_dram =
+        stats.readDBI.zeroes * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.rdbi_R_eq;
+
+    // Dynamic power is consumed on 0 -> 1 transition
+    double expected_dynamic_controller = stats.writeDBI.zeroes_to_ones *
+                            spec->memImpedanceSpec.wdbi_dyn_E;
+    double expected_dynamic_dram = stats.readDBI.zeroes_to_ones *
+                            spec->memImpedanceSpec.rdbi_dyn_E;
+
+
+    // DBI
+    interface_energy_info_t result = io_calc->calculateEnergy(stats);
+    EXPECT_DOUBLE_EQ(result.controller.staticEnergy, expected_static_controller);
+    EXPECT_DOUBLE_EQ(result.controller.dynamicEnergy, expected_dynamic_controller);
+    EXPECT_DOUBLE_EQ(result.dram.staticEnergy, expected_static_dram);
+    EXPECT_DOUBLE_EQ(result.dram.dynamicEnergy, expected_dynamic_dram);
 }

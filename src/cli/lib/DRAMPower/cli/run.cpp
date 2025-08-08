@@ -230,7 +230,7 @@ bool stdoutResult(const std::unique_ptr<dram_base<CmdType>> &ddr, const energy_t
 			}
 		}
 	}
-	spdlog::info("Cumulated bank energy with bg_act_shared -> {}", core_energy.total_energy());
+	spdlog::info("Cumulated bank energy with bg_act_shared -> {}", core_energy.aggregated_bank_energy());
 	spdlog::info("Shared energy -> {}", core_energy);
 	spdlog::info("Interface Energy:\n{}", interface_energy);
 	spdlog::info("Total Energy -> {}", core_energy.total() + interface_energy.total());

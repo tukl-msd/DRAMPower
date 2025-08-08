@@ -45,11 +45,11 @@ public:
 public:
     DDR4Interface() = delete; // no default constructor
     DDR4Interface(const DDR4Interface&) = default; // copy constructor
-    DDR4Interface& operator=(const DDR4Interface&) = default; // copy assignment operator
+    DDR4Interface& operator=(const DDR4Interface&) = delete; // copy assignment operator
     DDR4Interface(DDR4Interface&&) = default; // move constructor
-    DDR4Interface& operator=(DDR4Interface&&) = default; // move assignment operator
+    DDR4Interface& operator=(DDR4Interface&&) = delete; // move assignment operator
 
-    DDR4Interface(const std::shared_ptr<const MemSpecDDR4>& memSpec, implicitCommandInserter_t&& implicitCommandInserter);
+    DDR4Interface(const MemSpecDDR4& memSpec, implicitCommandInserter_t&& implicitCommandInserter);
 
 // Private member functions
 private:
@@ -94,7 +94,7 @@ public:
 
 // Private member variables
 private:
-    std::shared_ptr<const MemSpecDDR4> m_memSpec;
+    const MemSpecDDR4& m_memSpec;
     patternHandler_t m_patternHandler;
     implicitCommandInserter_t m_implicitCommandInserter;
 };

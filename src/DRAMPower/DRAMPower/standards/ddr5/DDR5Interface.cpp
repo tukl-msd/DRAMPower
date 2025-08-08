@@ -4,15 +4,15 @@
 
 namespace DRAMPower {
 
- DDR5Interface::DDR5Interface(const std::shared_ptr<const MemSpecDDR5>& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
+ DDR5Interface::DDR5Interface(const MemSpecDDR5& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
     : m_commandBus{cmdBusWidth, 1,
         util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
     , m_dataBus{
         util::databus_presets::getDataBusPreset(
-            memSpec->bitWidth * memSpec->numberOfDevices,
+            memSpec.bitWidth * memSpec.numberOfDevices,
             util::DataBusConfig {
-                memSpec->bitWidth * memSpec->numberOfDevices,
-                memSpec->dataRate,
+                memSpec.bitWidth * memSpec.numberOfDevices,
+                memSpec.dataRate,
                 util::BusIdlePatternSpec::H,
                 util::BusInitPatternSpec::H,
                 DRAMUtils::Config::TogglingRateIdlePattern::H,
@@ -22,12 +22,12 @@ namespace DRAMPower {
             }
         )
     }
-    , m_readDQS(memSpec->dataRateSpec.dqsBusRate, true)
-    , m_writeDQS(memSpec->dataRateSpec.dqsBusRate, true)
+    , m_readDQS(memSpec.dataRateSpec.dqsBusRate, true)
+    , m_writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
     , m_memSpec(memSpec)
     , m_patternHandler(PatternEncoderOverrides{
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
-            {pattern_descriptor::X, PatternEncoderBitSpec::H}, // TODO high impedance ???
+            {pattern_descriptor::X, PatternEncoderBitSpec::H},
             {pattern_descriptor::C0, PatternEncoderBitSpec::H},
             {pattern_descriptor::C1, PatternEncoderBitSpec::H},
             // Default value for CID0-3 is H in Pattern.h
@@ -244,7 +244,7 @@ void DDR5Interface::handleCommandBus(const Command& cmd) {
 
 void DDR5Interface::handleDQs(const Command& cmd, util::Clock &dqs, size_t length) {
     dqs.start(cmd.timestamp);
-    dqs.stop(cmd.timestamp + length / m_memSpec->dataRate);
+    dqs.stop(cmd.timestamp + length / m_memSpec.dataRate);
 }
 
 void DDR5Interface::handleData(const Command &cmd, bool read) {
@@ -255,12 +255,12 @@ void DDR5Interface::handleData(const Command &cmd, bool read) {
         // No data provided by command
         // Use default burst length
         if (m_dataBus.isTogglingRate()) {
-            length = m_memSpec->burstLength;
+            length = m_memSpec.burstLength;
             (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
         }
     } else {
         // Data provided by command
-        length = cmd.sz_bits / m_dataBus.getWidth();
+        length = cmd.sz_bits / (m_dataBus.getWidth());
         (m_dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, cmd.data);
     }
     handleDQs(cmd, dqs, length);
@@ -271,7 +271,7 @@ void DDR5Interface::handleData(const Command &cmd, bool read) {
 void DDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
     stats.commandBus = m_commandBus.get_stats(timestamp);
 
-    m_dataBus.get_stats(timestamp, 
+    m_dataBus.get_stats(timestamp,
         stats.readBus,
         stats.writeBus,
         stats.togglingStats.read,
@@ -283,7 +283,7 @@ void DDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats
     stats.writeDQSStats = 2 * m_writeDQS.get_stats_at(timestamp);
 
     // x16 devices have two dqs pairs
-    if(m_memSpec->bitWidth == 16)
+    if(m_memSpec.bitWidth == 16)
     {
         stats.readDQSStats *= 2;
         stats.writeDQSStats *= 2;

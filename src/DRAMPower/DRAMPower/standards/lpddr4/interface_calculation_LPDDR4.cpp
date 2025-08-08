@@ -111,6 +111,24 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calculateEnergy(const Simul
     result += calcDQEnergyTogglingRate(stats.togglingStats);
     result += calcDQEnergy(stats);
     result += calcCAEnergy(stats);
+    result += calcDBIEnergy(stats);
+
+    return result;
+}
+
+interface_energy_info_t InterfaceCalculation_LPDDR4::calcDBIEnergy(const SimulationStats &stats) {
+    interface_energy_info_t result;
+    // Read
+    result.dram.staticEnergy +=
+        calcStaticTermination(impedances_.rdbi_termination, stats.readDBI, impedances_.rdbi_R_eq, t_CK, memspec_.dataRate, VDDQ);
+    result.dram.dynamicEnergy +=
+        calc_dynamic_energy(stats.readDBI.zeroes_to_ones, impedances_.rdbi_dyn_E);
+
+    // Write
+    result.controller.staticEnergy +=
+        calcStaticTermination(impedances_.wdbi_termination, stats.writeDBI, impedances_.wdbi_R_eq, t_CK, memspec_.dataRate, VDDQ);
+    result.controller.dynamicEnergy +=
+        calc_dynamic_energy(stats.writeDBI.zeroes_to_ones, impedances_.wdbi_dyn_E);
 
     return result;
 }

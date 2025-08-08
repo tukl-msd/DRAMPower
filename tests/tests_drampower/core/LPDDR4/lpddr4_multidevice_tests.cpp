@@ -137,7 +137,7 @@ TEST_F(DramPowerTest_LPDDR4_MultiDevice, Energy) {
     }
 
     auto energy = ddr->calcCoreEnergy(testPattern.back().timestamp);
-    auto total_energy = energy.total_energy();
+    auto total_energy = energy.aggregated_bank_energy();
 
     ASSERT_EQ(energy.bank_energy.size(), numberOfDevices * memSpec->numberOfBanks);
 

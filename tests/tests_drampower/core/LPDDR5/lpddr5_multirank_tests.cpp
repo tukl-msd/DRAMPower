@@ -16,6 +16,7 @@ using DRAMPower::Command;
 using DRAMPower::LPDDR5;
 using DRAMPower::MemSpecLPDDR5;
 using DRAMPower::SimulationStats;
+using DRAMPower::TargetCoordinate;
 
 #define SZ_BITS(x) sizeof(x)*8
 
@@ -82,28 +83,28 @@ TEST_F(LPDDR5_MultirankTests, Pattern_1) {
 
 TEST_F(LPDDR5_MultirankTests, Pattern_2) {
     runCommands({
-        {0, CmdType::ACT, {0, 0, 0}},
-        {5, CmdType::ACT, {0, 0, 1}},  // r1
-        {20, CmdType::ACT, {3, 0, 1}},  // r1
-        {35, CmdType::RD, {3, 0, 1, 0, 0}, rd_data, SZ_BITS(rd_data)},  // r1
-        {40, CmdType::RD, {0, 0, 0, 0, 3}, rd_data, SZ_BITS(rd_data)},
-        {50, CmdType::PREA, {0, 0, 0}},
-        {55, CmdType::PREA, {0, 0, 1}},  // r1
-        {65, CmdType::REFA, {0, 0, 0}},
-        {70, CmdType::REFA, {0, 0, 1}},  // r1
-        {100, CmdType::END_OF_SIMULATION},
+        {0, CmdType::ACT,   TargetCoordinate{0, 0, 0}}, // r0
+        {5, CmdType::ACT,   TargetCoordinate{0, 0, 1}}, // r1
+        {22, CmdType::ACT,  TargetCoordinate{3, 0, 1}}, // r1
+        {35, CmdType::RD,   TargetCoordinate{3, 0, 1, 0, 0}, rd_data, SZ_BITS(rd_data)}, // r1
+        {55, CmdType::RD,   TargetCoordinate{0, 0, 0, 0, 3}, rd_data, SZ_BITS(rd_data)}, // r0
+        {60, CmdType::PREA, TargetCoordinate{0, 0, 0}}, // r0
+        {65, CmdType::PREA, TargetCoordinate{0, 0, 1}}, // r1
+        {75, CmdType::REFA, TargetCoordinate{0, 0, 0}}, // r0
+        {80, CmdType::REFA, TargetCoordinate{0, 0, 1}}, // r1
+        {130, CmdType::END_OF_SIMULATION},
     });
 
     SimulationStats stats = ddr->getStats();
     EXPECT_EQ(stats.bank.size(), spec->numberOfBanks * spec->numberOfRanks);
-    EXPECT_EQ(stats.bank[bankIndex(0, 0)].cycles.act, 75);
-    EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.act, 75);
-    EXPECT_EQ(stats.bank[bankIndex(3, 1)].cycles.act, 60);
+    EXPECT_EQ(stats.bank[bankIndex(0, 0)].cycles.act, 85);
+    EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.act, 85);
+    EXPECT_EQ(stats.bank[bankIndex(3, 1)].cycles.act, 68);
 
-    EXPECT_EQ(stats.bank[bankIndex(0, 0)].cycles.pre, 25);
-    EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.pre, 25);
-    EXPECT_EQ(stats.bank[bankIndex(3, 1)].cycles.pre, 40);
+    EXPECT_EQ(stats.bank[bankIndex(0, 0)].cycles.pre, 130 - 85);
+    EXPECT_EQ(stats.bank[bankIndex(0, 1)].cycles.pre,  130 - 85);
+    EXPECT_EQ(stats.bank[bankIndex(3, 1)].cycles.pre,  130 - 68);
 
-    EXPECT_EQ(stats.rank_total[0].cycles.act, 75);
-    EXPECT_EQ(stats.rank_total[1].cycles.act, 75);
+    EXPECT_EQ(stats.rank_total[0].cycles.act, 85);
+    EXPECT_EQ(stats.rank_total[1].cycles.act, 85);
 }

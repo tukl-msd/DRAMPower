@@ -149,7 +149,7 @@ TEST_F(DramPowerTest_DDR5_12, CalcEnergy)
 	auto command = testPattern.begin();
 	iterate_to_timestamp(command, testPattern, 125);
     auto energy = ddr->calcCoreEnergy(125);
-	auto total_energy = energy.total_energy();
+	auto total_energy = energy.aggregated_bank_energy();
 
     ASSERT_EQ((int)total_energy.E_act, 3220);
 	ASSERT_EQ((int)energy.bank_energy[0].E_act, 920);

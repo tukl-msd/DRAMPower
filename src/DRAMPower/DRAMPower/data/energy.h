@@ -57,7 +57,7 @@ struct energy_info_t
 struct energy_t
 {
 	std::vector<energy_info_t> bank_energy;
-	energy_info_t total_energy() const; // TODO rename
+	energy_info_t aggregated_bank_energy() const;
 	void to_json(json_t &j) const;
 	constexpr inline const char * get_Bank_energy_keyword() const
 	{

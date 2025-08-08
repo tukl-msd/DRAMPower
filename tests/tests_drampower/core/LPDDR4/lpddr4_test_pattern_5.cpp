@@ -117,7 +117,7 @@ TEST_F(DramPowerTest_LPDDR4_5, Energy) {
     }
 
     auto energy = ddr->calcCoreEnergy(testPattern.back().timestamp);
-    auto total_energy = energy.total_energy();
+    auto total_energy = energy.aggregated_bank_energy();
 
     ASSERT_EQ(std::round(total_energy.E_act*1e12), 392);
     ASSERT_EQ(std::round(total_energy.E_pre*1e12), 415);

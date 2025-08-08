@@ -19,7 +19,6 @@ public:
 
     struct {
         interval_t act;
-        interval_t ref;
         interval_t powerDownAct;
         interval_t powerDownPre;
     } cycles;

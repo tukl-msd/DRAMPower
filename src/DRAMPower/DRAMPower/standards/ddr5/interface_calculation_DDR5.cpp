@@ -1,4 +1,5 @@
 #include "DRAMPower/standards/ddr5/interface_calculation_DDR5.h"
+#include "DRAMPower/data/energy.h"
 
 namespace DRAMPower {
 
@@ -15,7 +16,7 @@ static double calcStaticTermination(const bool termination, const DRAMPower::uti
     if (termination == false) {
         return 0; // No static termination
     }
-    // zeroes 
+    // zeroes
     return calc_static_energy(stats.zeroes, R_eq, t_CK / datarate, voltage);
 }
 
@@ -31,7 +32,6 @@ interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(const Simulat
     interface_energy_info_t DQ_energy = calcDQEnergy(stats);
     DQ_energy += calcDQEnergyTogglingRate(stats.togglingStats);
     interface_energy_info_t CA_energy = calcCAEnergy(stats);
-    // TODO: CA Bus inversion energy
 
     interface_energy_info_t result;
     result += clock_energy;
@@ -83,7 +83,7 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcDQEnergyTogglingRate(cons
         calcStaticTermination(impedances_.wdq_R_eq, stats.write, impedances_.wdq_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
     result.controller.dynamicEnergy +=
         calc_dynamic_energy(stats.write.zeroes_to_ones, impedances_.wdq_dyn_E);
-    
+
     return result;
 }
 

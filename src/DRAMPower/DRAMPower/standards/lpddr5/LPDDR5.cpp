@@ -1,29 +1,36 @@
 #include "LPDDR5.h"
 #include "DRAMPower/Types.h"
+#include "DRAMPower/command/CmdType.h"
 #include "DRAMPower/data/stats.h"
 
 #include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/standards/lpddr5/core_calculation_LPDDR5.h>
 #include <DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.h>
 #include <DRAMPower/util/extensions.h>
+#include <DRAMPower/Exceptions.h>
 
 #include <iostream>
+#include <string>
 
 
 namespace DRAMPower {
 
     LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
-        : m_memSpec(std::make_shared<MemSpecLPDDR5>(memSpec))
+        : m_memSpec(memSpec)
         , m_interface(m_memSpec, getImplicitCommandHandler().createInserter())
         , m_core(m_memSpec, getImplicitCommandHandler().createInserter())
     {
-        this->registerCommands();
-        this->registerExtensions();
+        registerCommands();
+        registerExtensions();
     }
 
 // Extensions
     void LPDDR5::registerExtensions() {
-
+        getExtensionManager().registerExtension<extensions::DBI>([this](const timestamp_t, const bool enable){
+            // Assumption: the enabling of the DBI does not interleave with previous data on the bus
+            m_interface.m_dbi.enable(enable);
+            return true;
+        }, false);
     }
 
 // Commands
@@ -54,10 +61,18 @@ namespace DRAMPower {
         // WRA
         routeCoreCommand<CmdType::WRA>(coreregistrar.registerBankHandler(&LPDDR5Core::handleWriteAuto));
         routeInterfaceCommand<CmdType::WRA>([this](const Command &cmd) { m_interface.handleData(cmd, false); });
-        // REFP2B TODO
-        routeCoreCommand<CmdType::REFP2B>(coreregistrar.registerBankGroupHandler(&LPDDR5Core::handleRefPerTwoBanks));
-        if (m_memSpec->bank_arch == MemSpecLPDDR5::MBG || m_memSpec->bank_arch == MemSpecLPDDR5::M16B) {
+        // REFP2B
+        if (m_memSpec.bank_arch == MemSpecLPDDR5::MBG || m_memSpec.bank_arch == MemSpecLPDDR5::M16B) {
+            routeCoreCommand<CmdType::REFP2B>(coreregistrar.registerBankGroupHandler(&LPDDR5Core::handleRefPerTwoBanks));
             routeInterfaceCommand<CmdType::REFP2B>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
+        } else {
+            // If the command is executed for an invalid bank architecture, throw an exception
+            routeCoreCommand<CmdType::REFP2B>([](const Command &) {
+                throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
+            });
+            routeInterfaceCommand<CmdType::REFP2B>([](const Command &) {
+                throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
+            });
         }
         // REFA
         routeCoreCommand<CmdType::REFA>(coreregistrar.registerRankHandler(&LPDDR5Core::handleRefAll));
@@ -100,9 +115,9 @@ namespace DRAMPower {
 // Getters for CLI
     util::CLIArchitectureConfig LPDDR5::getCLIArchitectureConfig() {
         return util::CLIArchitectureConfig{
-            m_memSpec->numberOfDevices,
-            m_memSpec->numberOfRanks,
-            m_memSpec->numberOfBanks
+            m_memSpec.numberOfDevices,
+            m_memSpec.numberOfRanks,
+            m_memSpec.numberOfBanks
         };
     }
 
@@ -114,12 +129,12 @@ namespace DRAMPower {
 
 // Calculation
     energy_t LPDDR5::calcCoreEnergy(timestamp_t timestamp) {
-        Calculation_LPDDR5 calculation(*m_memSpec);
+        Calculation_LPDDR5 calculation(m_memSpec);
         return calculation.calcEnergy(getWindowStats(timestamp));
     }
 
     interface_energy_info_t LPDDR5::calcInterfaceEnergy(timestamp_t timestamp) {
-        InterfaceCalculation_LPDDR5 calculation(*m_memSpec);
+        InterfaceCalculation_LPDDR5 calculation(m_memSpec);
         return calculation.calculateEnergy(getWindowStats(timestamp));
     }
 

@@ -393,7 +393,6 @@ TEST_F(LPDDR4_Energy_Tests, Parameters) {
 }
 
 TEST_F(LPDDR4_Energy_Tests, Clock_Energy) {
-	// TODO implement test with new interface model
 	SimulationStats stats;
 	stats.clockStats.ones = 43;
 	stats.clockStats.zeroes_to_ones = 47;
@@ -458,7 +457,6 @@ TEST_F(LPDDR4_Energy_Tests, DQS_Energy) {
 }
 
 TEST_F(LPDDR4_Energy_Tests, DQ_Energy) {
-	// TODO implement test with new interface model
 	SimulationStats stats;
 	stats.readBus.ones = 7;
 	stats.readBus.zeroes = 11;
@@ -495,7 +493,6 @@ TEST_F(LPDDR4_Energy_Tests, DQ_Energy) {
 }
 
 TEST_F(LPDDR4_Energy_Tests, CA_Energy) {
-	// TODO implement test with new interface model
 	SimulationStats stats;
 	stats.commandBus.ones = 11;
 	stats.commandBus.zeroes = 29;

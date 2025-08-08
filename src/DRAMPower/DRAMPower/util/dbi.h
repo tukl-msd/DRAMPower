@@ -33,7 +33,6 @@ private:
         timestamp_t end; // End timestamp of the last burst
         bool read; // True if the last burst was a read operation
 
-        bool consumed = false;
         bool init = false;
     };
 
@@ -75,13 +74,14 @@ public:
     void resetDBI();
 
     template<typename Func>
-    Self setStateCallback(Func&& func) {
+    void setStateCallback(Func&& func) {
         m_changeCallback = std::forward<Func>(func);
     }
 
     std::optional<const uint8_t *> updateDBI(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
     std::tuple<const uint8_t *, std::size_t> getInvertedData() const;
     void dispatchResetCallback(timestamp_t timestamp, bool read) const;
+    void dispatchResetCallback(timestamp_t timestamp) const;
 
 // Private member variables
 private:

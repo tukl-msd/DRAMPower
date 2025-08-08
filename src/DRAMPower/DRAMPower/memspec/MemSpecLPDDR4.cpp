@@ -197,25 +197,6 @@ bool MemSpecLPDDR4::BankWiseParams::isBankActiveInPasr(const unsigned bankIdx) c
             != activeBanks.end());
 }
 
-uint64_t MemSpecLPDDR4::timeToCompletion(DRAMPower::CmdType type)
-{
-    uint64_t offset = 0;
-
-    if (type == DRAMPower::CmdType::ACT)
-        offset = memTimingSpec.tRCD;
-    else if (type == DRAMPower::CmdType::RD)
-        offset = memTimingSpec.tRL + ((burstLength)/(dataRate));
-    else if (type == DRAMPower::CmdType::WR)
-        offset = memTimingSpec.tWL + ((burstLength)/(dataRate));
-    else if (type == CmdType::REFA)
-        offset = memTimingSpec.tRFC;
-    else if (type == CmdType::PRE || type == CmdType::PREA)
-        return memTimingSpec.tRP;
-    //else
-        //PRINTDEBUGMESSAGE("timeToCompletion not available for given Command Type", 0, type, 0);
-    return offset;
-} // MemSpecLPDDR4::timeToCompletion
-
 void MemSpecLPDDR4::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec) {
     memImpedanceSpec = memspec.memimpedancespec;
 }

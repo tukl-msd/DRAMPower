@@ -30,9 +30,9 @@ friend class internal::TestAccessor<LPDDR5, LPDDR5Core, LPDDR5Interface>;
 public:
     LPDDR5() = delete; // No default constructor
     LPDDR5(const LPDDR5&) = default; // copy constructor
-    LPDDR5& operator=(const LPDDR5&) = default; // copy assignment operator
+    LPDDR5& operator=(const LPDDR5&) = delete; // copy assignment operator
     LPDDR5(LPDDR5&&) = default; // move constructor
-    LPDDR5& operator=(LPDDR5&&) = default; // move assignment operator
+    LPDDR5& operator=(LPDDR5&&) = delete; // move assignment operator
     ~LPDDR5() override = default;
     LPDDR5(const MemSpecLPDDR5& memSpec);
 
@@ -65,7 +65,7 @@ private:
 
 // Private member variables
 private:
-    std::shared_ptr<MemSpecLPDDR5> m_memSpec;
+    MemSpecLPDDR5 m_memSpec;
     LPDDR5Interface m_interface;
     LPDDR5Core m_core;
 

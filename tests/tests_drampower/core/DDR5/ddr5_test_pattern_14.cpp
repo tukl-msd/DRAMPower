@@ -163,7 +163,7 @@ TEST_F(DramPowerTest_DDR5_14, CalcEnergy)
 	auto command = testPattern.begin();
 	iterate_to_timestamp(command, testPattern, 125);
 	auto energy = ddr->calcCoreEnergy(125);
-	auto total_energy = energy.total_energy();
+	auto total_energy = energy.aggregated_bank_energy();
 
 	ASSERT_EQ(std::round(total_energy.E_bg_act), 1970);
 	ASSERT_EQ(std::round(energy.E_bg_act_shared), 1600);

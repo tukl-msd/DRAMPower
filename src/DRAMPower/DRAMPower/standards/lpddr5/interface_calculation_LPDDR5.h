@@ -26,6 +26,7 @@ class InterfaceCalculation_LPDDR5 {
     interface_energy_info_t calcDQEnergy(const SimulationStats &stats);
     interface_energy_info_t calcCAEnergy(const SimulationStats &stats);
     interface_energy_info_t calcDQEnergyTogglingRate(const TogglingStats &stats);
+    interface_energy_info_t calcDBIEnergy(const SimulationStats &stats);
 };
 
 }  // namespace DRAMPower

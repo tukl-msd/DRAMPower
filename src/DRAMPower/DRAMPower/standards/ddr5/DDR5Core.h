@@ -21,11 +21,11 @@ public:
 public:
     DDR5Core() = delete; // No default constructor
     DDR5Core(const DDR5Core&) = default; // copy constructor
-    DDR5Core& operator=(const DDR5Core&) = default; // copy assignment operator
+    DDR5Core& operator=(const DDR5Core&) = delete; // copy assignment operator
     DDR5Core(DDR5Core&&) = default; // move constructor
-    DDR5Core& operator=(DDR5Core&&) = default; // move assignment operator
-    DDR5Core(const std::shared_ptr<const MemSpecDDR5>& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
-        : m_ranks(memSpec->numberOfRanks, {static_cast<std::size_t>(memSpec->numberOfBanks)})
+    DDR5Core& operator=(DDR5Core&&) = delete; // move assignment operator
+    DDR5Core(const MemSpecDDR5& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
+        : m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
         , m_memSpec(memSpec)
         , m_implicitCommandInserter(std::move(implicitCommandInserter))
     {}
@@ -64,7 +64,7 @@ public:
 
 // Private member variables
 private:
-    std::shared_ptr<const MemSpecDDR5> m_memSpec;
+    const MemSpecDDR5& m_memSpec;
     implicitCommandInserter_t m_implicitCommandInserter;
 };
 

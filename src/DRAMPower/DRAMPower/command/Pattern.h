@@ -18,7 +18,7 @@ namespace pattern_descriptor {
         CID0, CID1, CID2, CID3,
         AP,
         BL,
-        OPCODE,
+        OPCODE, // Example: opcode 0x03 pattern: {H, L, OPCODE, OPCODE, OPCODE, OPCODE} result in 0b100011
     };
 }
 
@@ -55,7 +55,6 @@ public:
     bool removeSetting(pattern_descriptor::t descriptor);
 };
 
-// TODO: Has to be standard specific
 class PatternEncoder // Currently LPDDR4
 {
 public:
@@ -81,7 +80,6 @@ public:
         return m_opcodeLength;
     }
 
-// TODO test shift direction for LAST_BIT
 public:
     uint64_t encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern);
     uint64_t encode(const TargetCoordinate& coordinate, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern);

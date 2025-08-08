@@ -12,7 +12,7 @@ namespace DRAMPower {
     using namespace DRAMUtils::Config;
 
     LPDDR4::LPDDR4(const MemSpecLPDDR4 &memSpec)
-        : m_memSpec(std::make_shared<MemSpecLPDDR4>(memSpec))
+        : m_memSpec(memSpec)
         , m_interface(m_memSpec, getImplicitCommandHandler().createInserter())
         , m_core(m_memSpec, getImplicitCommandHandler().createInserter())
     {
@@ -22,7 +22,12 @@ namespace DRAMPower {
 
 // Extensions
     void LPDDR4::registerExtensions() {
-
+        getExtensionManager().registerExtension<extensions::DBI>([this](const timestamp_t, const bool enable){
+            // Assumption: the enabling of the DBI does not interleave with previous data on the bus
+            // x8,x16 devices: support dbi
+            m_interface.m_dbi.enable(enable);
+            return true;
+        }, false);
     }
 
 // Commands
@@ -78,9 +83,9 @@ namespace DRAMPower {
 // Getters for CLI
     util::CLIArchitectureConfig LPDDR4::getCLIArchitectureConfig() {
         return util::CLIArchitectureConfig{
-            m_memSpec->numberOfDevices,
-            m_memSpec->numberOfRanks,
-            m_memSpec->numberOfBanks
+            m_memSpec.numberOfDevices,
+            m_memSpec.numberOfRanks,
+            m_memSpec.numberOfBanks
         };
     }
 
@@ -100,12 +105,12 @@ namespace DRAMPower {
 
 // Calculation
     energy_t LPDDR4::calcCoreEnergy(timestamp_t timestamp) {
-        Calculation_LPDDR4 calculation(*m_memSpec);
+        Calculation_LPDDR4 calculation(m_memSpec);
         return calculation.calcEnergy(getWindowStats(timestamp));
     }
 
     interface_energy_info_t LPDDR4::calcInterfaceEnergy(timestamp_t timestamp) {
-        InterfaceCalculation_LPDDR4 interface_calc(*m_memSpec);
+        InterfaceCalculation_LPDDR4 interface_calc(m_memSpec);
         return interface_calc.calculateEnergy(getWindowStats(timestamp));
     }
 
