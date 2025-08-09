@@ -8,7 +8,6 @@ void DBI::LastBurst_t::serialize(std::ostream &stream) const {
     stream.write(reinterpret_cast<const char*>(&start), sizeof(start));
     stream.write(reinterpret_cast<const char*>(&end), sizeof(end));
     stream.write(reinterpret_cast<const char*>(&read), sizeof(read));
-    stream.write(reinterpret_cast<const char*>(&consumed), sizeof(consumed));
     stream.write(reinterpret_cast<const char*>(&init), sizeof(init));
 }
 
@@ -16,7 +15,6 @@ void DBI::LastBurst_t::deserialize(std::istream& stream) {
     stream.read(reinterpret_cast<char*>(&start), sizeof(start));
     stream.read(reinterpret_cast<char*>(&end), sizeof(end));
     stream.read(reinterpret_cast<char*>(&read), sizeof(read));
-    stream.read(reinterpret_cast<char*>(&consumed), sizeof(consumed));
     stream.read(reinterpret_cast<char*>(&init), sizeof(init));
 }
 
