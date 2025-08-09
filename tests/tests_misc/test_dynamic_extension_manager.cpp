@@ -1,3 +1,4 @@
+#include "DRAMPower/util/Serialize.h"
 #include <gtest/gtest.h>
 #include <cstddef>
 #include <cstdint>
@@ -13,9 +14,21 @@ using namespace DRAMPower::util;
 
 
 // dynamic extension example without hooks
-class DynamicExtensionBase {
+class DynamicExtensionBase : public util::Serialize, public util::Deserialize {
 protected:
     int m_base_variable = 47;
+
+    virtual void serialize_impl(std::ostream& stream) const = 0;
+    virtual void deserialize_impl(std::istream& stream) = 0;
+public:
+    void serialize(std::ostream& stream) const override {
+        stream.write(reinterpret_cast<const char*>(&m_base_variable), sizeof(m_base_variable));
+        serialize_impl(stream);
+    }
+    void deserialize(std::istream& stream) override {
+        stream.read(reinterpret_cast<char*>(&m_base_variable), sizeof(m_base_variable));
+        deserialize_impl(stream);
+    }
 };
 // dynamic extension example without hooks
 // This class can also inherit from extension_manager::Extension
@@ -38,6 +51,16 @@ public:
     }
     int getBaseVariable() const {
         return m_base_variable;
+    }
+    void serialize_impl(std::ostream& stream) const override {
+        // Serialize additional data if needed
+        stream.write(reinterpret_cast<const char*>(&m_state), sizeof(m_state));
+        stream.write(reinterpret_cast<const char*>(&m_captured_int), sizeof(m_captured_int));
+    }
+    void deserialize_impl(std::istream& stream) override {
+        // Deserialize additional data if needed
+        stream.read(reinterpret_cast<char*>(&m_state), sizeof(m_state));
+        stream.read(reinterpret_cast<char*>(&m_captured_int), sizeof(m_captured_int));
     }
 private:
     bool m_state = false;
@@ -69,7 +92,7 @@ constexpr bool operator!=(DynamicExtensionHookExample lhs, size_t rhs) {
 }
 
 // dynamic extension base with hooks
-class DynamicExtensionWithHooksBase : public extension_manager::ExtensionWithHooks<DynamicExtensionHookExample> {
+class DynamicExtensionWithHooksBase : public extension_manager::ExtensionWithHooks<DynamicExtensionHookExample> , public util::Serialize, public util::Deserialize {
 public:
     using extension_manager::ExtensionWithHooks<DynamicExtensionHookExample>::ExtensionWithHooks;
 
@@ -84,6 +107,17 @@ public:
     virtual void Hook_3(int&) const {}
     virtual void Hook_4(int&) {}
 
+    virtual void serialize_impl(std::ostream& stream) const = 0;
+    virtual void deserialize_impl(std::istream& stream) = 0;
+
+    void serialize(std::ostream& stream) const override {
+        stream.write(reinterpret_cast<const char*>(&m_base_variable), sizeof(m_base_variable));
+        serialize_impl(stream);
+    }
+    void deserialize(std::istream& stream) override {
+        stream.read(reinterpret_cast<char*>(&m_base_variable), sizeof(m_base_variable));
+        deserialize_impl(stream);
+    }
 private:
     int m_base_variable = 47;
 };
@@ -122,6 +156,16 @@ class DynamicExtensionWithHooksExample : public DynamicExtensionWithHooksBase {
         void Hook_4(int& i) override {
             i = 4;
             m_captured_int = 40;
+        }
+        void serialize_impl(std::ostream& stream) const override {
+            // Serialize additional data if needed
+            stream.write(reinterpret_cast<const char*>(&m_state), sizeof(m_state));
+            stream.write(reinterpret_cast<const char*>(&m_captured_int), sizeof(m_captured_int));
+        }
+        void deserialize_impl(std::istream& stream) override {
+            // Deserialize additional data if needed
+            stream.read(reinterpret_cast<char*>(&m_state), sizeof(m_state));
+            stream.read(reinterpret_cast<char*>(&m_captured_int), sizeof(m_captured_int));
         }
     private:
         bool m_state = false;

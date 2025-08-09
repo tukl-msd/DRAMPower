@@ -46,6 +46,8 @@ public:
     interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
     SimulationStats getWindowStats(timestamp_t timestamp) override;
     util::CLIArchitectureConfig getCLIArchitectureConfig() override;
+    void serialize_impl(std::ostream& stream) const override;
+    void deserialize_impl(std::istream& stream) override;
 
 // Private member functions
 private:

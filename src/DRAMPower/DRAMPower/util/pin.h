@@ -5,18 +5,32 @@
 #include <DRAMPower/util/bus_types.h>
 #include <DRAMPower/util/pin_types.h>
 #include <DRAMPower/util/pending_stats.h>
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
 
 #include <cassert>
 #include <cstddef>
 
 namespace DRAMPower::util {
 
-struct PinPendingStats {
+struct PinPendingStats : public Serialize, public Deserialize {
     PinState fromstate;
     PinState newstate;
+
+    PinPendingStats() = default;
+    PinPendingStats(PinState from, PinState to) : fromstate(from), newstate(to) {}
+
+    void serialize(std::ostream &stream) const override {
+        stream.write(reinterpret_cast<const char *>(&fromstate), sizeof(fromstate));
+        stream.write(reinterpret_cast<const char *>(&newstate), sizeof(newstate));
+    }
+    void deserialize(std::istream &stream) override {
+        stream.read(reinterpret_cast<char *>(&fromstate), sizeof(fromstate));
+        stream.read(reinterpret_cast<char *>(&newstate), sizeof(newstate));
+    }
 };
 
-class Pin {
+class Pin : public Serialize, public Deserialize {
 // Public type definitions
 public:
     using pin_stats_t = bus_stats_t;
@@ -39,7 +53,12 @@ public:
     pin_stats_t get_stats_at(timestamp_t t, std::size_t dataRate = 1) const;
 
     PinState get(timestamp_t timestampp, std::size_t dataRate = 1);
-    
+
+// Overrides
+public:
+    void serialize(std::ostream &stream) const override;
+    void deserialize(std::istream &stream) override;
+
 // Private member variables
 private:
     PendingStats<PinPendingStats> pending_stats;

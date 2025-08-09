@@ -1,6 +1,8 @@
 #ifndef DRAMPOWER_STANDARDS_DDR4_DDR4CORE_H
 #define DRAMPOWER_STANDARDS_DDR4_DDR4CORE_H
 
+#include "DRAMPower/util/Deserialize.h"
+#include "DRAMPower/util/Serialize.h"
 #include <DRAMPower/Types.h>
 #include <DRAMPower/dram/Rank.h>
 #include <DRAMPower/command/Command.h>
@@ -17,7 +19,7 @@
 
 namespace DRAMPower {
 
-class DDR4Core {
+class DDR4Core : public util::Serialize, public util::Deserialize {
 // Public type definitions
 public:
     using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
@@ -60,6 +62,11 @@ public:
     timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) const;
 
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+
+// Overrides
+public:
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
 
 // Public member variables
 public:

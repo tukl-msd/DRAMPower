@@ -3,6 +3,7 @@
 ###############################################
 
 add_executable(tests_drampower
+	base/test_ddr_serialize.cpp
 	base/test_ddr_base.cpp
 	base/test_ddr_data.cpp
 	base/test_pattern_pre_cycles.cpp

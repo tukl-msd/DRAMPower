@@ -290,4 +290,22 @@ void DDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats
     }
 }
 
+void DDR5Interface::serialize(std::ostream& stream) const {
+    m_patternHandler.serialize(stream);
+    m_commandBus.serialize(stream);
+    m_dataBus.serialize(stream);
+    m_readDQS.serialize(stream);
+    m_writeDQS.serialize(stream);
+    m_clock.serialize(stream);
+}
+
+void DDR5Interface::deserialize(std::istream& stream) {
+    m_patternHandler.deserialize(stream);
+    m_commandBus.deserialize(stream);
+    m_dataBus.deserialize(stream);
+    m_readDQS.deserialize(stream);
+    m_writeDQS.deserialize(stream);
+    m_clock.deserialize(stream);
+}
+
 } // namespace DRAMPower

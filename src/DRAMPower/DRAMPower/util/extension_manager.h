@@ -1,6 +1,7 @@
 #ifndef DRAMPOWER_UTIL_EXTENSION_MANAGER
 #define DRAMPOWER_UTIL_EXTENSION_MANAGER
 
+#include "DRAMPower/util/Serialize.h"
 #include <cstddef>
 #include <unordered_map>
 #include <typeindex>
@@ -11,8 +12,13 @@
 #include <functional>
 #include <vector>
 #include <bit>
+#include <limits>
+#include <cassert>
+#include <iostream>
 
 #include <DRAMPower/util/extension_base.h>
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
 
 #include <DRAMUtils/util/types.h>
 
@@ -36,7 +42,7 @@ constexpr int countZeros(T value) {
 // dynamic extension manager
 // BaseExtension class is used for type erasure
 template <typename BaseExtension>
-class ExtensionManager {
+class ExtensionManager : public util::Serialize, public util::Deserialize {
 private:
 // Type definitions
     using Extension_storage_t = std::unordered_map<std::type_index, std::shared_ptr<BaseExtension>>;
@@ -103,6 +109,68 @@ public:
             auto it = m_extensions.find(std::type_index(typeid(T)));
             if (it != m_extensions.end()) {
                 std::forward<Func>(func)(*std::static_pointer_cast<T>(it->second));
+            }
+        }
+    }
+
+    void serialize(std::ostream& stream) const override {
+        std::size_t size = m_extensions.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        for (const auto& [typeIndex, extension] : m_extensions) {
+            // TODO @Derek
+            // Save hash
+            const std::size_t hashCode = typeIndex.hash_code();
+            stream.write(reinterpret_cast<const char*>(&hashCode), sizeof(hashCode));
+            // Save extension
+            const std::string typeName = typeIndex.name();
+            const std::size_t nameSize = typeName.size();
+            stream.write(reinterpret_cast<const char*>(&nameSize), sizeof(nameSize));
+            stream.write(typeName.data(), nameSize);
+            bool hasExtension = (nullptr != extension);
+            stream.write(reinterpret_cast<const char*>(&hasExtension), sizeof(hasExtension));
+            if (hasExtension) {
+                extension->serialize(stream);
+            }
+        }
+    };
+    void deserialize(std::istream& stream) override {
+        std::size_t size = 0;
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        // Find extension and initialize it
+        assert(size == m_extensions.size() && "ExtensionManager::deserialize: size mismatch");
+        for (std::size_t i = 0; i < size; ++i) {
+            // TODO @Derek verify
+            // Read hash
+            std::size_t hashCode = 0;
+            stream.read(reinterpret_cast<char*>(&hashCode), sizeof(hashCode));
+            // Read type name
+            std::size_t nameSize = 0;
+            stream.read(reinterpret_cast<char*>(&nameSize), sizeof(nameSize));
+            std::string typeName(nameSize, '\0');
+            stream.read(typeName.data(), nameSize);
+            // Read extension
+            bool hasExtension = false;
+            stream.read(reinterpret_cast<char*>(&hasExtension), sizeof(hasExtension));
+            if (hasExtension) {
+                // Find the type index from the type name
+                auto it = std::find_if(m_extensions.begin(), m_extensions.end(), [&typeName, &hashCode](const auto& pair) {
+                    return pair.first.name() == typeName && pair.first.hash_code() == hashCode;
+                });
+                if (it != m_extensions.end()) {
+                    // Deserialize the extension
+                    it->second->deserialize(stream);
+                } else {
+                    // If not found, the extension was not registered in this
+                    // simulation
+                    // Assuming the extension is not simulation-specific, we can
+                    // continue the initialization without it
+                    std::cerr << "Warning: Extension with type name '" << typeName
+                              << "' and hash code " << hashCode
+                              << " not found in the current simulation context.\n";
+                }
+            } else {
+                // If no extension, just skip deserialization
+                continue;
             }
         }
     }
