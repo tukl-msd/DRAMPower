@@ -15,6 +15,7 @@
 #include <limits>
 #include <cassert>
 #include <iostream>
+#include <algorithm>
 
 #include <DRAMPower/util/extension_base.h>
 #include <DRAMPower/util/Serialize.h>
