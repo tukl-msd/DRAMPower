@@ -31,10 +31,11 @@
  *
  * Author:
  *    Derek Christ
+ *    Marco Mörz
  */
 
-#ifndef DEDESERIALIZE_H
-#define DEDESERIALIZE_H
+#ifndef DRAMPOWER_UTIL_DESERIALIZE_H
+#define DRAMPOWER_UTIL_DESERIALIZE_H
 
 #include <istream>
 
@@ -57,4 +58,4 @@ public:
 
 } // namespace DRAMPower::util
 
-#endif
+#endif /* DRAMPOWER_UTIL_DESERIALIZE_H */

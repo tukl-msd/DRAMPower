@@ -31,13 +31,11 @@
  *
  * Author:
  *    Derek Christ
+ *    Marco Mörz
  */
 
 #ifndef DRAMPOWER_UTIL_SERIALIZE_H
 #define DRAMPOWER_UTIL_SERIALIZE_H
-
-#ifndef SERIALIZE_H
-#define SERIALIZE_H
 
 #include <ostream>
 
@@ -59,8 +57,5 @@ public:
 };
 
 } // namespace DRAMPower::util
-
-#endif
-
 
 #endif /* DRAMPOWER_UTIL_SERIALIZE_H */
