@@ -130,4 +130,15 @@ namespace DRAMPower {
         return stats;
     }
 
+// Serialization
+    void DDR4::serialize_impl(std::ostream& stream) const {
+        m_core.serialize(stream);
+        m_interface.serialize(stream);
+    }
+
+    void DDR4::deserialize_impl(std::istream& stream) {
+        m_core.deserialize(stream);
+        m_interface.deserialize(stream);
+    }
+
 } // namespace DRAMPower

@@ -6,6 +6,8 @@
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
 #include "DRAMPower/util/RegisterHelper.h"
+#include "DRAMPower/util/Serialize.h"
+#include "DRAMPower/util/Deserialize.h"
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/command/Command.h"
@@ -25,7 +27,7 @@
 
 namespace DRAMPower {
 
-class LPDDR4Interface {
+class LPDDR4Interface : public util::Serialize, public util::Deserialize {
 // Public constants
 public:
     const static std::size_t cmdBusWidth = 6;
@@ -69,6 +71,11 @@ public:
     void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
     timestamp_t updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition);
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+
+// Overrides
+public:
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
 
 // Public member variables
 public:

@@ -263,4 +263,15 @@ void LPDDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) c
     }
 }
 
+void LPDDR5Core::serialize(std::ostream& stream) const {
+    for (const auto& rank : m_ranks) {
+        rank.serialize(stream);
+    }
+}
+void LPDDR5Core::deserialize(std::istream& stream) {
+    for (auto& rank : m_ranks) {
+        rank.deserialize(stream);
+    }
+}
+
 } // namespace DRAMPower

@@ -4,6 +4,19 @@ namespace DRAMPower {
 
 using namespace DRAMUtils::Config;
 
+void TogglingHandle::TogglingHandleLastBurst::serialize(std::ostream &stream) const
+{
+    stream.write(reinterpret_cast<const char*>(&last_length), sizeof(last_length));
+    stream.write(reinterpret_cast<const char*>(&last_load), sizeof(last_load));
+    stream.write(reinterpret_cast<const char*>(&handled), sizeof(handled));
+}
+
+void TogglingHandle::TogglingHandleLastBurst::deserialize(std::istream &stream) {
+    stream.read(reinterpret_cast<char*>(&last_length), sizeof(last_length));
+    stream.read(reinterpret_cast<char*>(&last_load), sizeof(last_load));
+    stream.read(reinterpret_cast<char*>(&handled), sizeof(handled));
+}
+
 TogglingHandle::TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, const bool enabled)
     : width(width)
     , datarate(datarate)
@@ -197,6 +210,32 @@ util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp) const
     stats.zeroes_to_ones = stats.ones_to_zeroes;
     stats.bit_changes = stats.ones_to_zeroes + stats.zeroes_to_ones;
     return stats;
+}
+
+void TogglingHandle::serialize(std::ostream &stream) const {
+    stream.write(reinterpret_cast<const char*>(&width), sizeof(width));
+    stream.write(reinterpret_cast<const char*>(&datarate), sizeof(datarate));
+    stream.write(reinterpret_cast<const char*>(&toggling_rate), sizeof(toggling_rate));
+    stream.write(reinterpret_cast<const char*>(&duty_cycle), sizeof(duty_cycle));
+    last_burst.serialize(stream);
+    stream.write(reinterpret_cast<const char*>(&enableflag), sizeof(enableflag));
+    stream.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    stream.write(reinterpret_cast<const char*>(&disable_timestamp), sizeof(disable_timestamp));
+    stream.write(reinterpret_cast<const char*>(&disable_time), sizeof(disable_time));
+    stream.write(reinterpret_cast<const char*>(&idlepattern), sizeof(idlepattern));
+}
+
+void TogglingHandle::deserialize(std::istream &stream) {
+    stream.read(reinterpret_cast<char*>(&width), sizeof(width));
+    stream.read(reinterpret_cast<char*>(&datarate), sizeof(datarate));
+    stream.read(reinterpret_cast<char*>(&toggling_rate), sizeof(toggling_rate));
+    stream.read(reinterpret_cast<char*>(&duty_cycle), sizeof(duty_cycle));
+    last_burst.deserialize(stream);
+    stream.read(reinterpret_cast<char*>(&enableflag), sizeof(enableflag));
+    stream.read(reinterpret_cast<char*>(&count), sizeof(count));
+    stream.read(reinterpret_cast<char*>(&disable_timestamp), sizeof(disable_timestamp));
+    stream.read(reinterpret_cast<char*>(&disable_time), sizeof(disable_time));
+    stream.read(reinterpret_cast<char*>(&idlepattern), sizeof(idlepattern));
 }
 
 } // namespace DRAMPower
