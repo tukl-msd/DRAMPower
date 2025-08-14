@@ -77,13 +77,9 @@ public:
     void serialize(std::ostream& stream) const override
     {
         // Serialize the command counts
-        const auto& m_commandCoreCountSize = m_commandCoreCount.size();
-        stream.write(reinterpret_cast<const char*>(&m_commandCoreCountSize), sizeof(m_commandCoreCountSize));
         for (const auto& count : m_commandCoreCount) {
             stream.write(reinterpret_cast<const char*>(&count), sizeof(count));
         }
-        const auto& m_commandInterfaceCountSize = m_commandInterfaceCount.size();
-        stream.write(reinterpret_cast<const char*>(&m_commandInterfaceCountSize), sizeof(m_commandInterfaceCountSize));
         for (const auto& count : m_commandInterfaceCount) {
             stream.write(reinterpret_cast<const char*>(&count), sizeof(count));
         }
@@ -97,23 +93,11 @@ public:
     void deserialize(std::istream& stream) override
     {
         // Deserialize the command counts
-        std::size_t m_commandCoreCountSize = 0;
-        stream.read(reinterpret_cast<char*>(&m_commandCoreCountSize), sizeof(m_commandCoreCountSize));
-        m_commandCoreCount.clear();
-        m_commandCoreCount.resize(m_commandCoreCountSize);
-        for (std::size_t i = 0; i < m_commandCoreCountSize; ++i) {
-            std::size_t count = 0;
+        for (auto &count : m_commandCoreCount) {
             stream.read(reinterpret_cast<char*>(&count), sizeof(count));
-            m_commandCoreCount[i] = count;
         }
-        std::size_t m_commandInterfaceCountSize = 0;
-        stream.read(reinterpret_cast<char*>(&m_commandInterfaceCountSize), sizeof(m_commandInterfaceCountSize));
-        m_commandInterfaceCount.clear();
-        m_commandInterfaceCount.resize(m_commandInterfaceCountSize);
-        for (std::size_t i = 0; i < m_commandInterfaceCountSize; ++i) {
-            std::size_t count = 0;
+        for (auto &count : m_commandInterfaceCount) {
             stream.read(reinterpret_cast<char*>(&count), sizeof(count));
-            m_commandInterfaceCount[i] = count;
         }
         // Deserialize the last command time
         stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));

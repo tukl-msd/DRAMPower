@@ -222,7 +222,6 @@ std::tuple<const uint8_t *, std::size_t> DBI::getInvertedData() const {
 
 void DBI::serialize(std::ostream& stream) const {
     stream.write(reinterpret_cast<const char*>(&m_enable), sizeof(m_enable));
-    stream.write(reinterpret_cast<const char*>(&m_width), sizeof(m_width));
     stream.write(reinterpret_cast<const char*>(&m_idlePattern), sizeof(m_idlePattern));
     stream.write(reinterpret_cast<const char*>(&m_lastInversionSize), sizeof(m_lastInversionSize));
     
@@ -251,7 +250,6 @@ void DBI::serialize(std::ostream& stream) const {
 
 void DBI::deserialize(std::istream& stream) {
     stream.read(reinterpret_cast<char*>(&m_enable), sizeof(m_enable));
-    stream.read(reinterpret_cast<char*>(&m_width), sizeof(m_width));
     stream.read(reinterpret_cast<char*>(&m_idlePattern), sizeof(m_idlePattern));
     stream.read(reinterpret_cast<char*>(&m_lastInversionSize), sizeof(m_lastInversionSize));
     

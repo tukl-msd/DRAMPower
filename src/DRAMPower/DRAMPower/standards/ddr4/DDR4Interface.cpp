@@ -397,20 +397,12 @@ namespace DRAMPower {
         m_writeDQS.serialize(stream);
         m_clock.serialize(stream);
         m_dbi.serialize(stream);
-        stream.write(reinterpret_cast<const char*>(&prepostambleReadMinTccd), sizeof(prepostambleReadMinTccd));
-        stream.write(reinterpret_cast<const char*>(&prepostambleWriteMinTccd), sizeof(prepostambleWriteMinTccd));
-        const std::size_t rankCount = m_ranks.size();
-        stream.write(reinterpret_cast<const char*>(&rankCount), sizeof(rankCount));
         for (const auto& rank : m_ranks) {
             rank.serialize(stream);
         }
-        const std::size_t dbiReadCount = m_dbiread.size();
-        stream.write(reinterpret_cast<const char*>(&dbiReadCount), sizeof(dbiReadCount));
         for (const auto& pin : m_dbiread) {
             pin.serialize(stream);
         }
-        const std::size_t dbiWriteCount = m_dbiwrite.size();
-        stream.write(reinterpret_cast<const char*>(&dbiWriteCount), sizeof(dbiWriteCount));
         for (const auto& pin : m_dbiwrite) {
             pin.serialize(stream);
         }
@@ -424,34 +416,14 @@ namespace DRAMPower {
         m_writeDQS.deserialize(stream);
         m_clock.deserialize(stream);
         m_dbi.deserialize(stream);
-        stream.read(reinterpret_cast<char*>(&prepostambleReadMinTccd), sizeof(prepostambleReadMinTccd));
-        stream.read(reinterpret_cast<char*>(&prepostambleWriteMinTccd), sizeof(prepostambleWriteMinTccd));
-        std::size_t rankCount = 0;
-        stream.read(reinterpret_cast<char*>(&rankCount), sizeof(rankCount));
-        m_ranks.clear();
-        m_ranks.reserve(rankCount);
-        for (std::size_t i = 0; i < rankCount; i++) {
-            RankInterface rank;
+        for (auto &rank : m_ranks) {
             rank.deserialize(stream);
-            m_ranks.push_back(std::move(rank));
         }
-        std::size_t dbiReadCount = 0;
-        stream.read(reinterpret_cast<char*>(&dbiReadCount), sizeof(dbiReadCount));
-        m_dbiread.clear();
-        m_dbiread.reserve(dbiReadCount);
-        for (std::size_t i = 0; i < dbiReadCount; i++) {
-            util::Pin pin{m_dbi.getIdlePattern()};
+        for (auto &pin : m_dbiread) {
             pin.deserialize(stream);
-            m_dbiread.push_back(std::move(pin));
         }
-        std::size_t dbiWriteCount = 0;
-        stream.read(reinterpret_cast<char*>(&dbiWriteCount), sizeof(dbiWriteCount));
-        m_dbiwrite.clear();
-        m_dbiwrite.reserve(dbiWriteCount);
-        for (std::size_t i = 0; i < dbiWriteCount; i++) {
-            util::Pin pin{m_dbi.getIdlePattern()};
+        for (auto &pin : m_dbiwrite) {
             pin.deserialize(stream);
-            m_dbiwrite.push_back(std::move(pin));
         }
     }
 

@@ -117,7 +117,6 @@ public:
 
 	void serialize(std::ostream& stream) const override {
 		stream.write(reinterpret_cast<const char*>(&count), sizeof(count));
-		stream.write(reinterpret_cast<const char*>(&width), sizeof(width));
 		std::size_t totalBursts = bursts.size();
 		stream.write(reinterpret_cast<const char*>(&totalBursts), sizeof(totalBursts));
 		for (const auto& burst : bursts) {
@@ -126,7 +125,6 @@ public:
 	}
 	void deserialize(std::istream& stream) override {
 		stream.read(reinterpret_cast<char*>(&count), sizeof(count));
-		stream.read(reinterpret_cast<char*>(&width), sizeof(width));
 		std::size_t totalBursts = 0;
 		stream.read(reinterpret_cast<char*>(&totalBursts), sizeof(totalBursts));
 		bursts.clear();

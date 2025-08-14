@@ -19,7 +19,7 @@ public:
 private:
     std::optional<timestamp_t> last_start;
     clock_stats_t stats;
-    std::size_t dataRate;
+    const std::size_t dataRate;
 
 private:
     clock_stats_t count(timestamp_t duration) const
@@ -75,7 +75,6 @@ public:
 
     void serialize(std::ostream& stream) const override
     {
-        stream.write(reinterpret_cast<const char*>(&dataRate), sizeof(dataRate));
         bool hasLastStart = last_start.has_value();
         stream.write(reinterpret_cast<const char*>(&hasLastStart), sizeof(hasLastStart));
         if (hasLastStart) {
@@ -86,7 +85,6 @@ public:
 
     void deserialize(std::istream& stream) override
     {
-        stream.read(reinterpret_cast<char*>(&dataRate), sizeof(dataRate));
         bool hasLastStart = false;
         stream.read(reinterpret_cast<char*>(&hasLastStart), sizeof(hasLastStart));
         if (hasLastStart) {

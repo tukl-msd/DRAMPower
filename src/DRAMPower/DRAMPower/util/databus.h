@@ -149,8 +149,6 @@ public:
         togglingHandleRead.serialize(stream);
         togglingHandleWrite.serialize(stream);
         stream.write(reinterpret_cast<const char*>(&busType), sizeof(busType));
-        stream.write(reinterpret_cast<const char*>(&dataRate), sizeof(dataRate));
-        stream.write(reinterpret_cast<const char*>(&width), sizeof(width));
     }
 
     void deserialize(std::istream &stream) override {
@@ -159,8 +157,6 @@ public:
         togglingHandleRead.deserialize(stream);
         togglingHandleWrite.deserialize(stream);
         stream.read(reinterpret_cast<char*>(&busType), sizeof(busType));
-        stream.read(reinterpret_cast<char*>(&dataRate), sizeof(dataRate));
-        stream.read(reinterpret_cast<char*>(&width), sizeof(width));
     }
 
 private:
@@ -169,8 +165,8 @@ private:
     TogglingHandle togglingHandleRead;
     TogglingHandle togglingHandleWrite;
     DataBusMode busType;
-    std::size_t dataRate;
-    std::size_t width;
+    const std::size_t dataRate;
+    const std::size_t width;
 };
 
 /** DataBusContainer class

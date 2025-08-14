@@ -32,21 +32,13 @@ public:
 	};
 
 	void serialize(std::ostream& stream) const override {
-		const std::size_t counterSize = counter.size();
-		stream.write(reinterpret_cast<const char *>(&counterSize), sizeof(counterSize));
 		for (const auto &count : counter) {
 			stream.write(reinterpret_cast<const char *>(&count), sizeof(count));
 		}
 	}
 	void deserialize(std::istream& stream) override {
-		std::size_t counterSize = 0;
-		stream.read(reinterpret_cast<char *>(&counterSize), sizeof(counterSize));
-		assert(counterSize <= static_cast<std::size_t>(CommandEnum::COUNT));
-		counter.fill(0);
-		for (std::size_t i = 0; i < counterSize; i++) {
-			std::size_t count = 0;
+		for (auto &count : counter) {
 			stream.read(reinterpret_cast<char *>(&count), sizeof(count));
-			counter[i] = count;
 		}
 	}
 };

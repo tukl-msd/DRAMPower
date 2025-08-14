@@ -38,8 +38,6 @@ void Rank::serialize(std::ostream& stream) const {
     cycles.powerDownPre.serialize(stream);
     cycles.deepSleepMode.serialize(stream);
 
-    const std::size_t bankCount = banks.size();
-    stream.write(reinterpret_cast<const char *>(&bankCount), sizeof(bankCount));
     for (const auto& bank : banks) {
         bank.serialize(stream);
     }
@@ -61,14 +59,8 @@ void Rank::deserialize(std::istream& stream) {
     cycles.powerDownPre.deserialize(stream);
     cycles.deepSleepMode.deserialize(stream);
 
-    std::size_t bankCount = 0;
-    stream.read(reinterpret_cast<char *>(&bankCount), sizeof(bankCount));
-    banks.clear();
-    banks.reserve(bankCount);
-    for (std::size_t i = 0; i < bankCount; i++) {
-        Bank bank;
+    for (auto & bank : banks) {
         bank.deserialize(stream);
-        banks.push_back(std::move(bank));
     }
 };
 

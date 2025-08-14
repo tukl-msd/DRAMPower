@@ -6,20 +6,17 @@
 #include <unordered_map>
 #include <typeindex>
 #include <memory>
-#include <tuple>
 #include <type_traits>
 #include <utility>
-#include <functional>
 #include <vector>
-#include <bit>
 #include <limits>
 #include <cassert>
 #include <iostream>
-#include <algorithm>
 
 #include <DRAMPower/util/extension_base.h>
 #include <DRAMPower/util/Serialize.h>
 #include <DRAMPower/util/Deserialize.h>
+#include <DRAMPower/Exceptions.h>
 
 #include <DRAMUtils/util/types.h>
 
@@ -47,9 +44,15 @@ class ExtensionManager : public util::Serialize, public util::Deserialize {
 private:
 // Type definitions
     using Extension_storage_t = std::unordered_map<std::type_index, std::shared_ptr<BaseExtension>>;
+    using Serialize_storage_t = std::vector<std::weak_ptr<BaseExtension>>;
 
 // Member variables
     Extension_storage_t m_extensions;
+    Serialize_storage_t m_serStorage; // The std::vector guarantees the order of the Extensions
+
+// Asserts
+    static_assert(std::is_base_of_v<util::Serialize, BaseExtension>, "BaseExtension must derive from util::Serialize");
+    static_assert(std::is_base_of_v<util::Deserialize, BaseExtension>, "BaseExtension must derive from util::Deserialize");
 
 protected:
 // Protected member functions
@@ -61,6 +64,7 @@ protected:
         auto ext = std::make_shared<T>(std::forward<Args>(args)...);
         auto typeIndex = std::type_index(typeid(T));
         m_extensions[typeIndex] = ext;
+        m_serStorage.emplace_back(ext);
         return ext;
     }
 
@@ -115,63 +119,20 @@ public:
     }
 
     void serialize(std::ostream& stream) const override {
-        std::size_t size = m_extensions.size();
-        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
-        for (const auto& [typeIndex, extension] : m_extensions) {
-            // TODO @Derek
-            // Save hash
-            const std::size_t hashCode = typeIndex.hash_code();
-            stream.write(reinterpret_cast<const char*>(&hashCode), sizeof(hashCode));
-            // Save extension
-            const std::string typeName = typeIndex.name();
-            const std::size_t nameSize = typeName.size();
-            stream.write(reinterpret_cast<const char*>(&nameSize), sizeof(nameSize));
-            stream.write(typeName.data(), nameSize);
-            bool hasExtension = (nullptr != extension);
-            stream.write(reinterpret_cast<const char*>(&hasExtension), sizeof(hasExtension));
-            if (hasExtension) {
-                extension->serialize(stream);
+        for (const auto& wp : m_serStorage) {
+            if(auto sp = wp.lock()) {
+                sp->serialize(stream);
+            } else {
+                throw Exception("Empty shared_pointer in ExtensionManager is not allowed");
             }
         }
     };
     void deserialize(std::istream& stream) override {
-        std::size_t size = 0;
-        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
-        // Find extension and initialize it
-        assert(size == m_extensions.size() && "ExtensionManager::deserialize: size mismatch");
-        for (std::size_t i = 0; i < size; ++i) {
-            // TODO @Derek verify
-            // Read hash
-            std::size_t hashCode = 0;
-            stream.read(reinterpret_cast<char*>(&hashCode), sizeof(hashCode));
-            // Read type name
-            std::size_t nameSize = 0;
-            stream.read(reinterpret_cast<char*>(&nameSize), sizeof(nameSize));
-            std::string typeName(nameSize, '\0');
-            stream.read(typeName.data(), nameSize);
-            // Read extension
-            bool hasExtension = false;
-            stream.read(reinterpret_cast<char*>(&hasExtension), sizeof(hasExtension));
-            if (hasExtension) {
-                // Find the type index from the type name
-                auto it = std::find_if(m_extensions.begin(), m_extensions.end(), [&typeName, &hashCode](const auto& pair) {
-                    return pair.first.name() == typeName && pair.first.hash_code() == hashCode;
-                });
-                if (it != m_extensions.end()) {
-                    // Deserialize the extension
-                    it->second->deserialize(stream);
-                } else {
-                    // If not found, the extension was not registered in this
-                    // simulation
-                    // Assuming the extension is not simulation-specific, we can
-                    // continue the initialization without it
-                    std::cerr << "Warning: Extension with type name '" << typeName
-                              << "' and hash code " << hashCode
-                              << " not found in the current simulation context.\n";
-                }
+        for (auto& wp : m_serStorage) {
+            if (auto sp = wp.lock()) {
+                sp->deserialize(stream);
             } else {
-                // If no extension, just skip deserialization
-                continue;
+                throw Exception("Empty shared_pointer in ExtensionManager is not allowed");
             }
         }
     }

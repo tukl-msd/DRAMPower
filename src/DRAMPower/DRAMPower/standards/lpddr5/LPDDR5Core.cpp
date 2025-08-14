@@ -264,27 +264,13 @@ void LPDDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) c
 }
 
 void LPDDR5Core::serialize(std::ostream& stream) const {
-    // Serialize the ranks
-    const std::size_t numBanks = m_memSpec.numberOfBanks;
-    const std::size_t rankCount = m_ranks.size();
-    stream.write(reinterpret_cast<const char *>(&numBanks), sizeof(numBanks));
-    stream.write(reinterpret_cast<const char *>(&rankCount), sizeof(rankCount));
     for (const auto& rank : m_ranks) {
         rank.serialize(stream);
     }
 }
 void LPDDR5Core::deserialize(std::istream& stream) {
-    // Deserialize the ranks
-    std::size_t numBanks = 0;
-    std::size_t rankCount = 0;
-    stream.read(reinterpret_cast<char *>(&numBanks), sizeof(numBanks));
-    stream.read(reinterpret_cast<char *>(&rankCount), sizeof(rankCount));
-    m_ranks.clear();
-    m_ranks.reserve(rankCount);
-    for (std::size_t i = 0; i < rankCount; i++) {
-        Rank rank{numBanks};
+    for (auto& rank : m_ranks) {
         rank.deserialize(stream);
-        m_ranks.push_back(std::move(rank));
     }
 }
 

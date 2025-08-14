@@ -45,8 +45,8 @@ public:
     DBI() = delete;
     DBI(const DBI&) = default;
     DBI(DBI&&) = default;
-    DBI& operator=(const DBI&) = default;
-    DBI& operator=(DBI&&) = default;
+    DBI& operator=(const DBI&) = delete;
+    DBI& operator=(DBI&&) = delete;
     ~DBI() = default;
 
     template<typename Func = std::nullptr_t>
@@ -92,7 +92,7 @@ public:
 
 // Private member variables
 private:
-    std::size_t m_width = 0;   // Width of the complete bus
+    const std::size_t m_width = 0;   // Width of the complete bus
     IdlePattern_t m_idlePattern = IdlePattern_t::Z; // Default idle pattern is High-Z
     std::size_t m_lastInversionSize = 0; // Store last inversion length for toggle detection
 
