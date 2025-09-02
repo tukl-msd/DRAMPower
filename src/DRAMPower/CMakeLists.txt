@@ -14,6 +14,7 @@ add_library(DRAMPower
     DRAMPower/memspec/MemSpecDDR5.cpp
     DRAMPower/memspec/MemSpecLPDDR4.cpp
     DRAMPower/memspec/MemSpecLPDDR5.cpp
+    DRAMPower/memspec/MemSpecHBM2.cpp
     DRAMPower/standards/ddr4/core_calculation_DDR4.cpp
     DRAMPower/standards/ddr4/DDR4.cpp
     DRAMPower/standards/ddr4/DDR4Core.cpp
@@ -34,6 +35,11 @@ add_library(DRAMPower
     DRAMPower/standards/lpddr5/LPDDR5Core.cpp
     DRAMPower/standards/lpddr5/LPDDR5Interface.cpp
     DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.cpp
+    DRAMPower/standards/hbm2/core_calculation_HBM2.cpp
+    DRAMPower/standards/hbm2/HBM2.cpp
+    DRAMPower/standards/hbm2/HBM2Core.cpp
+    DRAMPower/standards/hbm2/HBM2Interface.cpp
+    DRAMPower/standards/hbm2/interface_calculation_HBM2.cpp
     DRAMPower/util/extensions.cpp
     DRAMPower/util/ImplicitCommandHandler.cpp
 )

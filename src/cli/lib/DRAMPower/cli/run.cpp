@@ -31,6 +31,10 @@
 #include <DRAMPower/memspec/MemSpecLPDDR5.h>
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
 
+#include <DRAMPower/standards/hbm2/HBM2.h>
+#include <DRAMPower/memspec/MemSpecHBM2.h>
+#include <DRAMUtils/memspec/standards/MemSpecHBM2.h>
+
 #include <DRAMUtils/util/json_utils.h>
 #include <DRAMUtils/memspec/MemSpec.h>
 
@@ -74,6 +78,11 @@ std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data, std:
 			{
 				MemSpecLPDDR5 ddr (static_cast<DRAMUtils::MemSpec::MemSpecLPDDR5>(arg));
 				result = std::make_unique<LPDDR5>(ddr);
+			}
+			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecHBM2>)
+			{
+				MemSpecHBM2 ddr (static_cast<DRAMUtils::MemSpec::MemSpecHBM2>(arg));
+				result = std::make_unique<HBM2>(ddr);
 			}
 		}, memspec->getVariant());
 
