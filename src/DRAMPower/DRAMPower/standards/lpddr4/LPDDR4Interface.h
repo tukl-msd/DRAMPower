@@ -31,7 +31,6 @@ class LPDDR4Interface : public util::Serialize, public util::Deserialize {
 // Public constants
 public:
     const static std::size_t cmdBusWidth = 6;
-    const static uint64_t cmdBusInitPattern = (1<<cmdBusWidth)-1;
 
 // Public type definitions
 public:

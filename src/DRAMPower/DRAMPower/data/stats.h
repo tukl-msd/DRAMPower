@@ -174,6 +174,7 @@ namespace DRAMPower
 		util::bus_stats_t writeBus;
 		util::bus_stats_t clockStats;
 		util::bus_stats_t wClockStats;
+		util::bus_stats_t cke;
 
 		util::bus_stats_t readDBI;
 		util::bus_stats_t writeDBI;

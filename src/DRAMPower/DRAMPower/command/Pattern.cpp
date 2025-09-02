@@ -57,7 +57,6 @@ namespace DRAMPower {
     inline bool PatternEncoder::applyBitSpec(
         PatternEncoderOverrides &spec,
         pattern_descriptor::t descriptor,
-        bool LAST_BIT,
         bool default_bit
     )
     {
@@ -68,8 +67,6 @@ namespace DRAMPower {
             return false;
         case PatternEncoderBitSpec::H:
             return true;
-        case PatternEncoderBitSpec::LAST_BIT:
-            return LAST_BIT;
         case PatternEncoderBitSpec::INVALID:
             return default_bit;
         default:
@@ -79,12 +76,12 @@ namespace DRAMPower {
         return false;
     }
 
-    uint64_t PatternEncoder::encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern)
+    uint64_t PatternEncoder::encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern)
     {
-        return encode(cmd.targetCoordinate, pattern, lastpattern);
+        return encode(cmd.targetCoordinate, pattern);
     }
 
-    uint64_t PatternEncoder::encode(const TargetCoordinate& targetCoordinate, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern)
+    uint64_t PatternEncoder::encode(const TargetCoordinate& targetCoordinate, const std::vector<pattern_descriptor::t>& pattern)
     {
         using namespace pattern_descriptor;
 
@@ -93,6 +90,8 @@ namespace DRAMPower {
         std::bitset<32> row_bits(targetCoordinate.row);
         std::bitset<32> column_bits(targetCoordinate.column);
         std::bitset<32> bank_group_bits(targetCoordinate.bankGroup);
+        std::bitset<32> pseudo_channel_bits(targetCoordinate.pseudoChannel);
+        std::bitset<32> stack_bits(targetCoordinate.stack);
 
         std::size_t n = pattern.size() - 1;
         uint64_t opcodeshifter = 1;
@@ -117,12 +116,13 @@ namespace DRAMPower {
             case CID1:
             case CID2:
             case CID3:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, true);
+            case PAR:
+                bitset[n] = applyBitSpec(settings, descriptor, true);
                 break;
             case V:
             case X:
             case AP:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, false);
+                bitset[n] = applyBitSpec(settings, descriptor, false);
                 break;
 
             // Target Coordinate bits
@@ -168,19 +168,19 @@ namespace DRAMPower {
                 break;
 
             case C0:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[0]);
+                bitset[n] = applyBitSpec(settings, descriptor, column_bits[0]);
                 break;
             case C1:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[1]);
+                bitset[n] = applyBitSpec(settings, descriptor, column_bits[1]);
                 break;
             case C2:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[2]);
+                bitset[n] = applyBitSpec(settings, descriptor, column_bits[2]);
                 break;
             case C3:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[3]);
+                bitset[n] = applyBitSpec(settings, descriptor, column_bits[3]);
                 break;
             case C4:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[4]);
+                bitset[n] = applyBitSpec(settings, descriptor, column_bits[4]);
                 break;
             case C5:
                 bitset[n] = column_bits[5];
@@ -198,7 +198,7 @@ namespace DRAMPower {
                 bitset[n] = column_bits[9];
                 break;
             case C10:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[10]);
+                bitset[n] = applyBitSpec(settings, descriptor, column_bits[10]);
                 break;
             case C11:
                 bitset[n] = column_bits[C11];
@@ -272,6 +272,15 @@ namespace DRAMPower {
                 break;
             case R17:
                 bitset[n] = row_bits[17];
+                break;
+            case PC0:
+                bitset[n] = pseudo_channel_bits[0];
+                break;
+            case SID0:
+                bitset[n] = stack_bits[0];
+                break;
+            case SID1:
+                bitset[n] = stack_bits[1];
                 break;
             case OPCODE:
                 // Example: opcode 0x31 results in pattern 0b0011'0001

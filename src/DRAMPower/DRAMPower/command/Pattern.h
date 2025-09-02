@@ -18,8 +18,11 @@ namespace pattern_descriptor {
         C0,  C1,  C2,  C3,  C4,  C5,  C6,  C7,  C8,  C9,  C10, C11, C12, C13, C14, C15, C16,
         R0,  R1,  R2,  R3,  R4,  R5,  R6,  R7,  R8,  R9,  R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21, R22, R23,
         CID0, CID1, CID2, CID3,
+        PC0,
+        SID0, SID1,
         AP,
         BL,
+        PAR,
         OPCODE, // Example: opcode 0x03 pattern: {H, L, OPCODE, OPCODE, OPCODE, OPCODE} result in 0b100011
     };
 }
@@ -28,7 +31,6 @@ enum class PatternEncoderBitSpec
 {
     L = 0,
     H = 1,
-    LAST_BIT = 2,
     INVALID = -1
 };
 
@@ -67,7 +69,6 @@ private:
     inline bool applyBitSpec(
         PatternEncoderOverrides &spec,
         pattern_descriptor::t descriptor,
-        bool LAST_BIT,
         bool default_bit
     );
 
@@ -82,8 +83,8 @@ public:
     void deserialize(std::istream& stream) override;
 
 public:
-    uint64_t encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern);
-    uint64_t encode(const TargetCoordinate& coordinate, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern);
+    uint64_t encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern);
+    uint64_t encode(const TargetCoordinate& coordinate, const std::vector<pattern_descriptor::t>& pattern);
 
 // Private member variables
 private:

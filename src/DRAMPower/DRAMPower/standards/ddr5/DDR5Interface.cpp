@@ -26,16 +26,16 @@ namespace DRAMPower {
     , m_writeDQS(memSpec.dataRateSpec.dqsBusRate, true)
     , m_memSpec(memSpec)
     , m_patternHandler(PatternEncoderOverrides{
-            {pattern_descriptor::V, PatternEncoderBitSpec::H},
-            {pattern_descriptor::X, PatternEncoderBitSpec::H},
-            {pattern_descriptor::C0, PatternEncoderBitSpec::H},
-            {pattern_descriptor::C1, PatternEncoderBitSpec::H},
-            // Default value for CID0-3 is H in Pattern.h
-            // {pattern_descriptor::CID0, PatternEncoderBitSpec::H},
-            // {pattern_descriptor::CID1, PatternEncoderBitSpec::H},
-            // {pattern_descriptor::CID2, PatternEncoderBitSpec::H},
-            // {pattern_descriptor::CID3, PatternEncoderBitSpec::H},
-          }, DDR5Interface::cmdBusInitPattern)
+        {pattern_descriptor::V, PatternEncoderBitSpec::H},
+        {pattern_descriptor::X, PatternEncoderBitSpec::H},
+        {pattern_descriptor::C0, PatternEncoderBitSpec::H},
+        {pattern_descriptor::C1, PatternEncoderBitSpec::H},
+        // Default value for CID0-3 is H in Pattern.h
+        // {pattern_descriptor::CID0, PatternEncoderBitSpec::H},
+        // {pattern_descriptor::CID1, PatternEncoderBitSpec::H},
+        // {pattern_descriptor::CID2, PatternEncoderBitSpec::H},
+        // {pattern_descriptor::CID3, PatternEncoderBitSpec::H},
+    })
     , m_implicitCommandInserter(std::move(implicitCommandInserter))
     {
         registerPatterns();

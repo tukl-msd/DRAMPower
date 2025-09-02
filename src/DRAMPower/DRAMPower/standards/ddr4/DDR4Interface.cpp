@@ -35,9 +35,9 @@ namespace DRAMPower {
     , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
     , m_ranks(memSpec.numberOfRanks)
     , m_patternHandler(PatternEncoderOverrides {
-            {pattern_descriptor::V, PatternEncoderBitSpec::H},
-            {pattern_descriptor::X, PatternEncoderBitSpec::H},
-        }, cmdBusInitPattern)
+        {pattern_descriptor::V, PatternEncoderBitSpec::H},
+        {pattern_descriptor::X, PatternEncoderBitSpec::H},
+    })
     , m_implicitCommandInserter(std::move(implicitCommandInserter))
     {
         registerPatterns();

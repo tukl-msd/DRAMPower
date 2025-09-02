@@ -25,7 +25,6 @@ public:
 
 // Constructors and assignment operators
 public:
-    PatternHandler() = delete; // No default constructor
     PatternHandler(const PatternHandler&) = default;
     PatternHandler& operator=(const PatternHandler&) = default;
     PatternHandler(PatternHandler&&) = default;
@@ -33,15 +32,13 @@ public:
     ~PatternHandler() = default;
 
     // Constructor with encoder overrides and initial patterns
-    explicit PatternHandler(PatternEncoderOverrides encoderoverrides, uint64_t initPattern = 0)
+    explicit PatternHandler(PatternEncoderOverrides encoderoverrides)
         : m_encoder(encoderoverrides)
         , m_commandPatternMap(static_cast<std::size_t>(commandEnum_t::COUNT), commandPattern_t {})
-        , m_lastPattern(initPattern)
     {}
     // Constructor with no encoder overrides and initial patterns
-    explicit PatternHandler(uint64_t initPattern = 0)
-        : m_lastPattern(initPattern)
-        , m_commandPatternMap(static_cast<std::size_t>(commandEnum_t::COUNT), commandPattern_t {})
+    explicit PatternHandler()
+        : m_commandPatternMap(static_cast<std::size_t>(commandEnum_t::COUNT), commandPattern_t {})
     {}
 
 // Public member functions
@@ -74,8 +71,7 @@ public:
             throw std::runtime_error("No pattern registered for this command");
         }
         const auto& pattern = m_commandPatternMap[static_cast<std::size_t>(cmd.type)];
-        m_lastPattern = m_encoder.encode(cmd, pattern, m_lastPattern);
-        return m_lastPattern;
+        return m_encoder.encode(cmd, pattern);
     }
 
     uint64_t getCoordinatePattern(const TargetCoordinate& coordinate, const commandPattern_t& pattern)
@@ -84,8 +80,7 @@ public:
             // No pattern provided
             throw std::runtime_error("No pattern provided for this coordinate");
         }
-        m_lastPattern = m_encoder.encode(coordinate, pattern, m_lastPattern);
-        return m_lastPattern;
+        return m_encoder.encode(coordinate, pattern);
     }
 
 // Overrides
@@ -101,7 +96,6 @@ public:
 private:
     PatternEncoder m_encoder;
     commandPatternMap_t m_commandPatternMap;
-    uint64_t m_lastPattern;
 };
 
 } // namespace DRAMPower

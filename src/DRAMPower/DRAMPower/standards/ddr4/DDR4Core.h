@@ -33,7 +33,7 @@ public:
     DDR4Core(DDR4Core&&) = default; // move constructor
     DDR4Core& operator=(DDR4Core&&) = delete; // move assignment operator
     DDR4Core(const MemSpecDDR4& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
-        : m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)}) 
+        : m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
         , m_memSpec(memSpec)
         , m_implicitCommandInserter(std::move(implicitCommandInserter))
     {}
