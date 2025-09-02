@@ -4,6 +4,7 @@
 #include <DRAMPower/command/Command.h>
 
 #include <optional>
+#include <utility>
 #include <vector>
 #include <functional>
 #include <cassert>
@@ -18,6 +19,7 @@ public:
     using commandEnum_t = CommandEnum;
     using commandHandler_t = std::function<void(const Command&)>;
     using commandRouter_t = std::vector<commandHandler_t>;
+    using MiddlewareHandler_t = std::function<const Command&(const Command&)>;
 
 // Constructors and assignment operators
 public:
@@ -35,6 +37,12 @@ public:
 
 // Public member functions
 public:
+    template<typename Func>
+    void registerMiddleware(Func&& func)
+    {
+        m_middleware = std::forward<Func>(func);
+    }
+
     // Add a command handler to the router for the given command
     template <commandEnum_t cmd, typename Func>
     void routeCommand(Func&& func)
@@ -46,8 +54,10 @@ public:
     // Execute the command handler for the given command
     void executeCommand(const Command& command) const
     {
-        assert(m_router.size() > static_cast<std::size_t>(command.type));
-        m_router[static_cast<std::size_t>(command.type)](command);
+        const Command& cmd = m_middleware ?
+            m_middleware(command) : command;
+        assert(m_router.size() > static_cast<std::size_t>(cmd.type));
+        m_router[static_cast<std::size_t>(cmd.type)](cmd);
     }
     std::size_t size() const
     {
@@ -57,6 +67,7 @@ public:
 // Private member variables
 private:
     commandRouter_t m_router;
+    MiddlewareHandler_t m_middleware = nullptr;
 };
 
 } // namespace DRAMPower
