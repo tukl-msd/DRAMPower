@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "DRAMPower/command/Command.h"
+#include "DRAMUtils/config/toggling_rate.h"
 
 #include <DRAMPower/standards/ddr4/DDR4.h>
 #include <DRAMPower/standards/ddr5/DDR5.h>
@@ -12,6 +13,7 @@
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR5.h>
 
 #include <DRAMPower/memspec/MemSpec.h>
+#include <optional>
 #include <stdint.h>
 
 #include <memory>
@@ -21,12 +23,58 @@ using namespace DRAMPower;
 template <typename Standard, typename MemSpec>
 class DramPowerTest_DDR_Serialize : public ::testing::Test {
 protected:
+    using Pattern_t = std::vector<Command>;
+    using PatternList_t = std::vector<Pattern_t>;
+
+    static constexpr uint8_t wr_data[] = {
+        0x00, 0xFF, 0x01, 0x10, 0x00, 0xFF, 0x00, 0xFF
+    };
+    static constexpr uint8_t rd_data[] = {
+        0x00, 0xFF, 0x01, 0x10, 0x00, 0xFF, 0x00, 0xFF
+    };
+
     // Test pattern
-    std::vector<Command> testPattern = {
-        {   0, CmdType::ACT,  { 0, 0, 0 }},
-        {   15, CmdType::PRE,  { 0, 0, 0 }},
-        {   30, CmdType::REFA,  { 0, 0, 0 }},
-        {   60, CmdType::END_OF_SIMULATION },
+    PatternList_t testPattern = {
+        {
+            {   0, CmdType::ACT,  { 0, 0, 0 }},
+            Command{15, CmdType::WR, TargetCoordinate{
+                0,
+                0,
+                0,
+                0,
+                0,
+            }, wr_data, sizeof(wr_data) * 8}, // TODO: for sz_bits 0 not working
+            Command{25, CmdType::RD, TargetCoordinate{
+                0,
+                0,
+                0,
+                0,
+                0,
+            }, rd_data, sizeof(wr_data) * 8},
+            {   35, CmdType::PRE,  { 0, 0, 0 }},
+            {   45, CmdType::REFA,  { 0, 0, 0 }},
+            {   80, CmdType::END_OF_SIMULATION },
+        },
+        {
+            {   0, CmdType::ACT,  { 0, 0, 0 }},
+            Command{15, CmdType::WR, TargetCoordinate{
+                0,
+                0,
+                0,
+                0,
+                0,
+            }, nullptr},
+            Command{25, CmdType::RD, TargetCoordinate{
+                0,
+                0,
+                0,
+                0,
+                0,
+            }, nullptr},
+            {   35, CmdType::PRE,  { 0, 0, 0 }},
+            {   45, CmdType::REFA,  { 0, 0, 0 }},
+            {   80, CmdType::END_OF_SIMULATION },
+        }
     };
 
 
@@ -79,15 +127,15 @@ protected:
 
 template <typename Standard>
 void compareStats(const std::vector<Command>& testPattern, std::unique_ptr<Standard>& ddr1, std::unique_ptr<Standard>& ddr2) {
-    assert(testPattern.size() == 4);
-    // // Enable dbi
+    assert(testPattern.size() == 6);
+    // Enable dbi if possible
     ddr1->getExtensionManager().template withExtension<DRAMPower::extensions::DBI>([](DRAMPower::extensions::DBI& dbi) {
         dbi.enable(0, false);
     });
     // ACT
     ddr1->doCoreCommand(testPattern[0]);
     ddr1->doInterfaceCommand(testPattern[0]);
-    // PRE
+    // WR
     ddr1->doCoreCommand(testPattern[1]);
     ddr1->doInterfaceCommand(testPattern[1]);
     // Serialize and deserialize
@@ -95,16 +143,26 @@ void compareStats(const std::vector<Command>& testPattern, std::unique_ptr<Stand
     ddr1->serialize(streamout);
     auto streamin = std::istringstream(streamout.str());
     ddr2->deserialize(streamin);
-    // REFA
+    // RD
     ddr1->doCoreCommand(testPattern[2]);
     ddr1->doInterfaceCommand(testPattern[2]);
     ddr2->doCoreCommand(testPattern[2]);
     ddr2->doInterfaceCommand(testPattern[2]);
-    // EOS
+    // PRE
     ddr1->doCoreCommand(testPattern[3]);
     ddr1->doInterfaceCommand(testPattern[3]);
     ddr2->doCoreCommand(testPattern[3]);
     ddr2->doInterfaceCommand(testPattern[3]);
+    // REFA
+    ddr1->doCoreCommand(testPattern[4]);
+    ddr1->doInterfaceCommand(testPattern[4]);
+    ddr2->doCoreCommand(testPattern[4]);
+    ddr2->doInterfaceCommand(testPattern[4]);
+    // EOS
+    ddr1->doCoreCommand(testPattern[5]);
+    ddr1->doInterfaceCommand(testPattern[5]);
+    ddr2->doCoreCommand(testPattern[5]);
+    ddr2->doInterfaceCommand(testPattern[5]);
 
     auto stats1 = ddr1->getStats();
     auto stats2 = ddr2->getStats();
@@ -114,17 +172,65 @@ void compareStats(const std::vector<Command>& testPattern, std::unique_ptr<Stand
 }
 
 TEST_F(DramPowerTest_DDR4_Serialize, Test0){
-    compareStats(testPattern, ddr1, ddr2);
+    compareStats(testPattern.at(0), ddr1, ddr2);
 }
 
 TEST_F(DramPowerTest_DDR5_Serialize, Test0){
-    compareStats(testPattern, ddr1, ddr2);
+    compareStats(testPattern.at(0), ddr1, ddr2);
 }
 
 TEST_F(DramPowerTest_LPDDR4_Serialize, Test0){
-    compareStats(testPattern, ddr1, ddr2);
+    compareStats(testPattern.at(0), ddr1, ddr2);
 }
 
 TEST_F(DramPowerTest_LPDDR5_Serialize, Test0){
-    compareStats(testPattern, ddr1, ddr2);
+    compareStats(testPattern.at(0), ddr1, ddr2);
+}
+
+TEST_F(DramPowerTest_DDR4_Serialize, Test1){
+    ddr1->setToggleRate(0, DRAMUtils::Config::ToggleRateDefinition{
+        0.6,
+        0.4,
+        0.3,
+        0.2,
+        TogglingRateIdlePattern::L,
+        TogglingRateIdlePattern::L,
+    });
+    compareStats(testPattern.at(1), ddr1, ddr2);
+}
+
+TEST_F(DramPowerTest_DDR5_Serialize, Test1){
+    ddr1->setToggleRate(0, DRAMUtils::Config::ToggleRateDefinition{
+        0.6,
+        0.4,
+        0.3,
+        0.2,
+        TogglingRateIdlePattern::L,
+        TogglingRateIdlePattern::L,
+    });
+    compareStats(testPattern.at(1), ddr1, ddr2);
+}
+
+TEST_F(DramPowerTest_LPDDR4_Serialize, Test1){
+    ddr1->setToggleRate(0, DRAMUtils::Config::ToggleRateDefinition{
+        0.6,
+        0.4,
+        0.3,
+        0.2,
+        TogglingRateIdlePattern::L,
+        TogglingRateIdlePattern::L,
+    });
+    compareStats(testPattern.at(1), ddr1, ddr2);
+}
+
+TEST_F(DramPowerTest_LPDDR5_Serialize, Test1){
+    ddr1->setToggleRate(0, DRAMUtils::Config::ToggleRateDefinition{
+        0.6,
+        0.4,
+        0.3,
+        0.2,
+        TogglingRateIdlePattern::L,
+        TogglingRateIdlePattern::L,
+    });
+    compareStats(testPattern.at(1), ddr1, ddr2);
 }
