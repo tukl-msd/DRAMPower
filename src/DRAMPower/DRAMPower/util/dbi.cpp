@@ -4,6 +4,20 @@
 
 namespace DRAMPower::util {
 
+void DBI::LastBurst_t::serialize(std::ostream &stream) const {
+    stream.write(reinterpret_cast<const char*>(&start), sizeof(start));
+    stream.write(reinterpret_cast<const char*>(&end), sizeof(end));
+    stream.write(reinterpret_cast<const char*>(&read), sizeof(read));
+    stream.write(reinterpret_cast<const char*>(&init), sizeof(init));
+}
+
+void DBI::LastBurst_t::deserialize(std::istream& stream) {
+    stream.read(reinterpret_cast<char*>(&start), sizeof(start));
+    stream.read(reinterpret_cast<char*>(&end), sizeof(end));
+    stream.read(reinterpret_cast<char*>(&read), sizeof(read));
+    stream.read(reinterpret_cast<char*>(&init), sizeof(init));
+}
+
 void DBI::invertChunk(std::size_t chunk_start_bit, std::size_t chunk_end_bit) {
     for (std::size_t bit = chunk_start_bit; bit < chunk_end_bit; ++bit) {
         std::size_t byte_idx = bit / 8;
@@ -204,6 +218,75 @@ std::optional<const uint8_t *> DBI::updateDBI(timestamp_t timestamp, std::size_t
 
 std::tuple<const uint8_t *, std::size_t> DBI::getInvertedData() const {
     return std::make_tuple(m_invertedData.data(), m_invertedData.size());
+}
+
+void DBI::serialize(std::ostream& stream) const {
+    stream.write(reinterpret_cast<const char*>(&m_enable), sizeof(m_enable));
+    stream.write(reinterpret_cast<const char*>(&m_idlePattern), sizeof(m_idlePattern));
+    stream.write(reinterpret_cast<const char*>(&m_lastInversionSize), sizeof(m_lastInversionSize));
+    
+    m_lastBurst_read.serialize(stream);
+    m_lastBurst_write.serialize(stream);
+    
+    stream.write(reinterpret_cast<const char*>(&m_chunkSize), sizeof(m_chunkSize));
+    std::size_t lastInvertReadSize = m_lastInvert_read.size();
+    stream.write(reinterpret_cast<const char*>(&lastInvertReadSize), sizeof(lastInvertReadSize));
+    for (const auto& state : m_lastInvert_read) {
+        stream.write(reinterpret_cast<const char*>(&state), sizeof(state));
+    }
+
+    std::size_t lastInvertWriteSize = m_lastInvert_write.size();
+    stream.write(reinterpret_cast<const char*>(&lastInvertWriteSize), sizeof(lastInvertWriteSize));
+    for (const auto& state : m_lastInvert_write) {
+        stream.write(reinterpret_cast<const char*>(&state), sizeof(state));
+    }
+
+    std::size_t invertedDataSize = m_invertedData.size();
+    stream.write(reinterpret_cast<const char*>(&invertedDataSize), sizeof(invertedDataSize));
+    for (const auto& byte : m_invertedData) {
+        stream.write(reinterpret_cast<const char*>(&byte), sizeof(byte));
+    }
+}
+
+void DBI::deserialize(std::istream& stream) {
+    stream.read(reinterpret_cast<char*>(&m_enable), sizeof(m_enable));
+    stream.read(reinterpret_cast<char*>(&m_idlePattern), sizeof(m_idlePattern));
+    stream.read(reinterpret_cast<char*>(&m_lastInversionSize), sizeof(m_lastInversionSize));
+    
+    m_lastBurst_read.deserialize(stream);
+    m_lastBurst_write.deserialize(stream);
+    
+    stream.read(reinterpret_cast<char*>(&m_chunkSize), sizeof(m_chunkSize));
+    
+    std::size_t lastInvertReadSize;
+    stream.read(reinterpret_cast<char*>(&lastInvertReadSize), sizeof(lastInvertReadSize));
+    m_lastInvert_read.clear();
+    m_lastInvert_read.reserve(lastInvertReadSize);
+    for (std::size_t i = 0; i < lastInvertReadSize; ++i) {
+        State_t state;
+        stream.read(reinterpret_cast<char*>(&state), sizeof(state));
+        m_lastInvert_read.push_back(state);
+    }
+
+    std::size_t lastInvertWriteSize;
+    stream.read(reinterpret_cast<char*>(&lastInvertWriteSize), sizeof(lastInvertWriteSize));
+    m_lastInvert_write.clear();
+    m_lastInvert_write.reserve(lastInvertWriteSize);
+    for (std::size_t i = 0; i < lastInvertWriteSize; ++i) {
+        State_t state;
+        stream.read(reinterpret_cast<char*>(&state), sizeof(state));
+        m_lastInvert_write.push_back(state);
+    }
+
+    std::size_t invertedDataSize;
+    stream.read(reinterpret_cast<char*>(&invertedDataSize), sizeof(invertedDataSize));
+    m_invertedData.clear();
+    m_invertedData.reserve(invertedDataSize);
+    for (std::size_t i = 0; i < invertedDataSize; ++i) {
+        uint8_t byte;
+        stream.read(reinterpret_cast<char*>(&byte), sizeof(byte));
+        m_invertedData.push_back(byte);
+    }
 }
 
 } // namespace DRAMPower::util

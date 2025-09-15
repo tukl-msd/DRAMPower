@@ -251,4 +251,18 @@ void DDR4Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) con
     }
 }
 
+void DDR4Core::serialize(std::ostream& stream) const {
+    // Serialize the ranks
+    for (const auto& rank : m_ranks) {
+        rank.serialize(stream);
+    }
+}
+
+void DDR4Core::deserialize(std::istream& stream) {
+    // Deserialize the ranks
+    for (auto &rank : m_ranks) {
+        rank.deserialize(stream);
+    }
+}
+
 } // namespace DRAMPower

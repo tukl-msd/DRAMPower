@@ -3,6 +3,8 @@
 
 #include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/command/Command.h>
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
 
 #include <vector>
 #include <cstddef>
@@ -14,7 +16,7 @@
 namespace DRAMPower {
 
 template <typename CommandEnum>
-class PatternHandler {
+class PatternHandler : public util::Serialize, public util::Deserialize {
 // Public type definitions+
 public:
     using commandEnum_t = CommandEnum;
@@ -84,6 +86,15 @@ public:
         }
         m_lastPattern = m_encoder.encode(coordinate, pattern, m_lastPattern);
         return m_lastPattern;
+    }
+
+// Overrides
+public:
+    void serialize(std::ostream& stream) const override {
+        m_encoder.serialize(stream);
+    }
+    void deserialize(std::istream& stream) override {
+        m_encoder.deserialize(stream);
     }
 
 // Private member variables

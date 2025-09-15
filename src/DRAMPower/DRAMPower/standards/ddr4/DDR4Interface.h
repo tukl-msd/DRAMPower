@@ -27,7 +27,7 @@
 
 namespace DRAMPower {
 
-class DDR4Interface {
+class DDR4Interface : public util::Serialize, public util::Deserialize {
 // Public constants
 public:
     const static std::size_t cmdBusWidth = 27;
@@ -77,6 +77,11 @@ public:
     void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
     timestamp_t updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition);
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+
+// Overrides
+public:
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
 
 // Public member variables
 public:

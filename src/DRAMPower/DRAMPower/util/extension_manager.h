@@ -1,18 +1,22 @@
 #ifndef DRAMPOWER_UTIL_EXTENSION_MANAGER
 #define DRAMPOWER_UTIL_EXTENSION_MANAGER
 
+#include "DRAMPower/util/Serialize.h"
 #include <cstddef>
 #include <unordered_map>
 #include <typeindex>
 #include <memory>
-#include <tuple>
 #include <type_traits>
 #include <utility>
-#include <functional>
 #include <vector>
-#include <bit>
+#include <limits>
+#include <cassert>
+#include <iostream>
 
 #include <DRAMPower/util/extension_base.h>
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
+#include <DRAMPower/Exceptions.h>
 
 #include <DRAMUtils/util/types.h>
 
@@ -36,13 +40,19 @@ constexpr int countZeros(T value) {
 // dynamic extension manager
 // BaseExtension class is used for type erasure
 template <typename BaseExtension>
-class ExtensionManager {
+class ExtensionManager : public util::Serialize, public util::Deserialize {
 private:
 // Type definitions
     using Extension_storage_t = std::unordered_map<std::type_index, std::shared_ptr<BaseExtension>>;
+    using Serialize_storage_t = std::vector<std::weak_ptr<BaseExtension>>;
 
 // Member variables
     Extension_storage_t m_extensions;
+    Serialize_storage_t m_serStorage; // The std::vector guarantees the order of the Extensions
+
+// Asserts
+    static_assert(std::is_base_of_v<util::Serialize, BaseExtension>, "BaseExtension must derive from util::Serialize");
+    static_assert(std::is_base_of_v<util::Deserialize, BaseExtension>, "BaseExtension must derive from util::Deserialize");
 
 protected:
 // Protected member functions
@@ -54,6 +64,7 @@ protected:
         auto ext = std::make_shared<T>(std::forward<Args>(args)...);
         auto typeIndex = std::type_index(typeid(T));
         m_extensions[typeIndex] = ext;
+        m_serStorage.emplace_back(ext);
         return ext;
     }
 
@@ -103,6 +114,25 @@ public:
             auto it = m_extensions.find(std::type_index(typeid(T)));
             if (it != m_extensions.end()) {
                 std::forward<Func>(func)(*std::static_pointer_cast<T>(it->second));
+            }
+        }
+    }
+
+    void serialize(std::ostream& stream) const override {
+        for (const auto& wp : m_serStorage) {
+            if(auto sp = wp.lock()) {
+                sp->serialize(stream);
+            } else {
+                throw Exception("Empty shared_pointer in ExtensionManager is not allowed");
+            }
+        }
+    };
+    void deserialize(std::istream& stream) override {
+        for (auto& wp : m_serStorage) {
+            if (auto sp = wp.lock()) {
+                sp->deserialize(stream);
+            } else {
+                throw Exception("Empty shared_pointer in ExtensionManager is not allowed");
             }
         }
     }

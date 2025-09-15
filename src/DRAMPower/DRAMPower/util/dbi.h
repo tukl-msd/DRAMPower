@@ -3,6 +3,8 @@
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/util/pin_types.h"
+#include "DRAMPower/util/Serialize.h"
+#include "DRAMPower/util/Deserialize.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -16,7 +18,7 @@
 
 namespace DRAMPower::util {
 
-class DBI {
+class DBI : public Serialize, public Deserialize {
 // Public type definitions
 public:
     using DataBuffer_t = std::vector<uint8_t>;
@@ -28,12 +30,14 @@ public:
 // Private type definitions
 private:
     using Self = DBI;
-    struct LastBurst_t {
+    struct LastBurst_t : public Serialize, public Deserialize {
         timestamp_t start; // Start timestamp of the last burst
         timestamp_t end; // End timestamp of the last burst
         bool read; // True if the last burst was a read operation
 
         bool init = false;
+        void serialize(std::ostream& stream) const override;
+        void deserialize(std::istream& stream) override;
     };
 
 // Public contructors, destructors and assignment operators
@@ -41,8 +45,8 @@ public:
     DBI() = delete;
     DBI(const DBI&) = default;
     DBI(DBI&&) = default;
-    DBI& operator=(const DBI&) = default;
-    DBI& operator=(DBI&&) = default;
+    DBI& operator=(const DBI&) = delete;
+    DBI& operator=(DBI&&) = delete;
     ~DBI() = default;
 
     template<typename Func = std::nullptr_t>
@@ -83,9 +87,12 @@ public:
     void dispatchResetCallback(timestamp_t timestamp, bool read) const;
     void dispatchResetCallback(timestamp_t timestamp) const;
 
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
+
 // Private member variables
 private:
-    std::size_t m_width = 0;   // Width of the complete bus
+    const std::size_t m_width = 0;   // Width of the complete bus
     IdlePattern_t m_idlePattern = IdlePattern_t::Z; // Default idle pattern is High-Z
     std::size_t m_lastInversionSize = 0; // Store last inversion length for toggle detection
 

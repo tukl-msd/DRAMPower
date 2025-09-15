@@ -3,6 +3,8 @@
 
 #include <DRAMPower/Types.h>
 #include <DRAMPower/util/bus_types.h>
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
 
 #include <optional>
 #include <cassert>
@@ -10,14 +12,14 @@
 
 namespace DRAMPower::util {
 
-class Clock {
+class Clock : public Serialize, public Deserialize {
 public:
     using clock_stats_t = bus_stats_t;
 
 private:
     std::optional<timestamp_t> last_start;
     clock_stats_t stats;
-    std::size_t dataRate;
+    const std::size_t dataRate;
 
 private:
     clock_stats_t count(timestamp_t duration) const
@@ -69,6 +71,29 @@ public:
         };
 
         return stats;
+    };
+
+    void serialize(std::ostream& stream) const override
+    {
+        bool hasLastStart = last_start.has_value();
+        stream.write(reinterpret_cast<const char*>(&hasLastStart), sizeof(hasLastStart));
+        if (hasLastStart) {
+            stream.write(reinterpret_cast<const char*>(&last_start), sizeof(last_start));
+        }
+        stats.serialize(stream);
+    };
+
+    void deserialize(std::istream& stream) override
+    {
+        bool hasLastStart = false;
+        stream.read(reinterpret_cast<char*>(&hasLastStart), sizeof(hasLastStart));
+        if (hasLastStart) {
+            last_start = timestamp_t();
+            stream.read(reinterpret_cast<char*>(&last_start), sizeof(last_start));
+        } else {
+            last_start.reset();
+        }
+        stats.deserialize(stream);
     };
 };
 

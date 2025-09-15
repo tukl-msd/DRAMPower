@@ -21,6 +21,8 @@ public:
     interface_energy_info_t calcInterfaceEnergy(timestamp_t) override { return interface_energy_info_t(); };
 	util::CLIArchitectureConfig getCLIArchitectureConfig() override { return util::CLIArchitectureConfig{}; };
 	SimulationStats getWindowStats(timestamp_t) override { return SimulationStats(); };
+    void serialize_impl(std::ostream&) const override {}
+    void deserialize_impl(std::istream&) override {}
 
 	std::vector<timestamp_t> execution_order;
 

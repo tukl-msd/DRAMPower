@@ -241,4 +241,16 @@ void LPDDR4Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) c
     }
 }
 
+void LPDDR4Core::serialize(std::ostream& stream) const {
+    for (const auto& rank : m_ranks) {
+        rank.serialize(stream);
+    }
+}
+
+void LPDDR4Core::deserialize(std::istream& stream) {
+    for (auto& rank : m_ranks) {
+        rank.deserialize(stream);
+    }
+}
+
 } // namespace DRAMPower

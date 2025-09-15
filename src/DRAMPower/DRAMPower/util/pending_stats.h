@@ -4,6 +4,9 @@
 #include <DRAMPower/Types.h>
 #include <DRAMPower/util/bus_types.h>
 
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
+
 namespace DRAMPower::util
 {
 
@@ -51,6 +54,19 @@ public:
     T getStats() const
     {
         return m_stats;
+    }
+
+    void serialize(std::ostream& stream) const
+    {
+        stream.write(reinterpret_cast<const char*>(&m_timestamp), sizeof(m_timestamp));
+        m_stats.serialize(stream);
+        stream.write(reinterpret_cast<const char*>(&m_pending), sizeof(m_pending));
+    }
+    void deserialize(std::istream& stream)
+    {
+        stream.read(reinterpret_cast<char*>(&m_timestamp), sizeof(m_timestamp));
+        m_stats.deserialize(stream);
+        stream.read(reinterpret_cast<char*>(&m_pending), sizeof(m_pending));
     }
 
 // Private member variables

@@ -10,6 +10,8 @@
 #include <DRAMPower/util/databus_types.h>
 #include <DRAMPower/util/databus_types.h>
 #include <DRAMPower/dram/Interface.h>
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
 #include <DRAMUtils/util/types.h>
@@ -18,7 +20,7 @@ namespace DRAMPower::util {
 
 // DataBus class
 template<std::size_t max_bitset_size = 0>
-class DataBus {
+class DataBus : public Serialize, public Deserialize {
 
 public:
     using Bus_t = util::Bus<max_bitset_size>;
@@ -141,14 +143,30 @@ public:
         togglingHandleWriteStats += togglingHandleWrite.get_stats(timestamp);
     }
 
+    void serialize(std::ostream &stream) const override {
+        busRead.serialize(stream);
+        busWrite.serialize(stream);
+        togglingHandleRead.serialize(stream);
+        togglingHandleWrite.serialize(stream);
+        stream.write(reinterpret_cast<const char*>(&busType), sizeof(busType));
+    }
+
+    void deserialize(std::istream &stream) override {
+        busRead.deserialize(stream);
+        busWrite.deserialize(stream);
+        togglingHandleRead.deserialize(stream);
+        togglingHandleWrite.deserialize(stream);
+        stream.read(reinterpret_cast<char*>(&busType), sizeof(busType));
+    }
+
 private:
     Bus_t busRead;
     Bus_t busWrite;
     TogglingHandle togglingHandleRead;
     TogglingHandle togglingHandleWrite;
     DataBusMode busType;
-    std::size_t dataRate;
-    std::size_t width;
+    const std::size_t dataRate;
+    const std::size_t width;
 };
 
 /** DataBusContainer class
@@ -215,7 +233,8 @@ class DataBusContainerProxy
 };
 
 template <typename... Tss>
-class DataBusContainerProxy<DRAMUtils::util::type_sequence<Tss...>> {
+class DataBusContainerProxy<DRAMUtils::util::type_sequence<Tss...>> : public Serialize, public Deserialize
+{
 
 // Public type definitions
 public:
@@ -289,6 +308,18 @@ public:
     void get_stats(timestamp_t timestamp, util::bus_stats_t &busReadStats, util::bus_stats_t &busWriteStats, util::bus_stats_t &togglingReadState, util::bus_stats_t &togglingWriteState) const {
         std::visit([timestamp, &busReadStats, &busWriteStats, &togglingReadState, &togglingWriteState](auto && arg) {
             arg.get_stats(timestamp, busReadStats, busWriteStats, togglingReadState, togglingWriteState);
+        }, m_dataBusContainer.getVariant());
+    }
+
+    void serialize(std::ostream& stream) const override {
+        std::visit([&stream](const auto& arg) {
+            arg.serialize(stream);
+        }, m_dataBusContainer.getVariant());
+    }
+
+    void deserialize(std::istream& stream) override {
+        std::visit([&stream](auto& arg) {
+            arg.deserialize(stream);
         }, m_dataBusContainer.getVariant());
     }
 };

@@ -2,6 +2,8 @@
 #define DRAMPOWER_COMMAND_PATTERN_H
 
 #include <DRAMPower/command/Command.h>
+#include <DRAMPower/util/Serialize.h>
+#include <DRAMPower/util/Deserialize.h>
 
 #include <unordered_map>
 #include <vector>
@@ -51,11 +53,12 @@ public:
     void updateSettings(std::initializer_list<PatternEncoderSettingsEntry> _settings);
     std::unordered_map<pattern_descriptor::t, PatternEncoderBitSpec> getSettings();
     PatternEncoderBitSpec getSetting(pattern_descriptor::t descriptor);
+    const std::unordered_map<pattern_descriptor::t, PatternEncoderBitSpec>& getSettings() const;
     bool hasSetting(pattern_descriptor::t descriptor);
     bool removeSetting(pattern_descriptor::t descriptor);
 };
 
-class PatternEncoder // Currently LPDDR4
+class PatternEncoder : public util::Serialize, public util::Deserialize // Currently LPDDR4
 {
 public:
     PatternEncoderOverrides settings;
@@ -69,16 +72,14 @@ private:
     );
 
 public:
-    void setOpcode(uint64_t opcode, uint16_t opcodeLength) {
-        m_opcode = opcode;
-        m_opcodeLength = opcodeLength;
-    }
-    uint64_t getOpcode() const {
-        return m_opcode;
-    }
-    uint16_t getOpcodeLength() const {
-        return m_opcodeLength;
-    }
+    void setOpcode(uint64_t opcode, uint16_t opcodeLength);
+    uint64_t getOpcode() const;
+    uint16_t getOpcodeLength() const;
+
+// Overrides
+public:
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
 
 public:
     uint64_t encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern);

@@ -103,4 +103,18 @@ Pin::pin_stats_t Pin::get_stats_at(timestamp_t t, std::size_t dataRate) const
     return stats;
 }
 
+void Pin::serialize(std::ostream &stream) const {
+    stream.write(reinterpret_cast<const char *>(&m_last_state), sizeof(m_last_state));
+    stream.write(reinterpret_cast<const char *>(&m_last_set), sizeof(m_last_set));
+    pending_stats.serialize(stream);
+    m_stats.serialize(stream);
+}
+
+void Pin::deserialize(std::istream &stream) {
+    stream.read(reinterpret_cast<char *>(&m_last_state), sizeof(m_last_state));
+    stream.read(reinterpret_cast<char *>(&m_last_set), sizeof(m_last_set));
+    pending_stats.deserialize(stream);
+    m_stats.deserialize(stream);
+}
+
 } // namespace DRAMPower::util

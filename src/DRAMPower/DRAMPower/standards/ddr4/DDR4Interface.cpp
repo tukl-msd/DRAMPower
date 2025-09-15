@@ -389,4 +389,42 @@ namespace DRAMPower {
         }
     }
 
+    void DDR4Interface::serialize(std::ostream& stream) const {
+        m_patternHandler.serialize(stream);
+        m_commandBus.serialize(stream);
+        m_dataBus.serialize(stream);
+        m_readDQS.serialize(stream);
+        m_writeDQS.serialize(stream);
+        m_clock.serialize(stream);
+        m_dbi.serialize(stream);
+        for (const auto& rank : m_ranks) {
+            rank.serialize(stream);
+        }
+        for (const auto& pin : m_dbiread) {
+            pin.serialize(stream);
+        }
+        for (const auto& pin : m_dbiwrite) {
+            pin.serialize(stream);
+        }
+    }
+
+    void DDR4Interface::deserialize(std::istream& stream) {
+        m_patternHandler.deserialize(stream);
+        m_commandBus.deserialize(stream);
+        m_dataBus.deserialize(stream);
+        m_readDQS.deserialize(stream);
+        m_writeDQS.deserialize(stream);
+        m_clock.deserialize(stream);
+        m_dbi.deserialize(stream);
+        for (auto &rank : m_ranks) {
+            rank.deserialize(stream);
+        }
+        for (auto &pin : m_dbiread) {
+            pin.deserialize(stream);
+        }
+        for (auto &pin : m_dbiwrite) {
+            pin.deserialize(stream);
+        }
+    }
+
 } // namespace DRAMPower
