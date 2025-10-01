@@ -131,10 +131,10 @@ struct interface_energy_info_t
 
     friend std::ostream & operator<<(std::ostream & os, const interface_energy_info_t & e)
 	{
-		os << "Controller: dynamicEnergy: " << e.controller.dynamicEnergy << " ";
-        os << "staticEnergy: " << e.controller.staticEnergy << std::endl;
-        os << "DRAM: dynamicEnergy: " << e.dram.dynamicEnergy << " ";
-        os << "staticEnergy: " << e.dram.staticEnergy << std::endl;
+		os << "Controller_dynamicEnergy: " << e.controller.dynamicEnergy << " ";
+        os << "Controller_staticEnergy: " << e.controller.staticEnergy << " ";
+        os << "DRAM_dynamicEnergy: " << e.dram.dynamicEnergy << " ";
+        os << "DRAM_staticEnergy: " << e.dram.staticEnergy << " ";
         os << "Total: " << e.total();
     	return os;
 	}
