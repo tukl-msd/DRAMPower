@@ -59,7 +59,7 @@ MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec)
 
     if(memspec.bankwisespec.has_value())
     {
-        bwParams.bwPowerFactRho = memspec.bankwisespec.value().factRho.value_or(1);
+        bwParams.bwPowerFactRho = memspec.bankwisespec.value().factRho.value_or(0);
         bwParams.bwPowerFactSigma = memspec.bankwisespec.value().factSigma.value_or(1);
         bwParams.flgPASR = memspec.bankwisespec.value().hasPASR.value_or(false);
         if (memspec.bankwisespec.value().pasrMode.has_value())
@@ -82,7 +82,7 @@ MemSpecLPDDR4::MemSpecLPDDR4(const DRAMUtils::MemSpec::MemSpecLPDDR4 &memspec)
     }
     else
     {
-        bwParams.bwPowerFactRho = 1;
+        bwParams.bwPowerFactRho = 0;
         bwParams.bwPowerFactSigma = 1;
         bwParams.flgPASR = false;
         bwParams.pasrMode = 0;

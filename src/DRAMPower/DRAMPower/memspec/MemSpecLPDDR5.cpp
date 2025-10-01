@@ -77,10 +77,10 @@ MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec)
     memPowerSpec[VDD2L].iBeta = memspec.mempowerspec.iBeta_vdd2l.value_or(memspec.mempowerspec.idd02l);
 
     if (memspec.bankwisespec.has_value()) {
-        bwParams.bwPowerFactRho = memspec.bankwisespec.value().factRho.value_or(1);
+        bwParams.bwPowerFactRho = memspec.bankwisespec.value().factRho.value_or(0);
     }
     else {
-        bwParams.bwPowerFactRho = 1;
+        bwParams.bwPowerFactRho = 0;
     }
 
 
