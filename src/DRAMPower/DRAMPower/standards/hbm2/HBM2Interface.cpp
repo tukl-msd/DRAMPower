@@ -119,7 +119,7 @@ namespace DRAMPower {
             std::size_t count = 0;
             for (auto const &entry : list) {
                 // remove implies pin_check
-                if ((!remove) || (count % pin_idx == 0)) {
+                if ((!remove) || (count % pin_idx != 0)) {
                     result.push_back(entry);
                 }
                 ++count;
