@@ -242,6 +242,12 @@ void LPDDR4Interface::endOfSimulation(timestamp_t timestamp) {
 
 void LPDDR4Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
     stats.commandBus = m_commandBus.get_stats(timestamp);
+
+    // LPDDR4 x16 have 2 DQs differential pairs
+    uint_fast8_t NumDQsPairs = 1;
+    if(m_memSpec.bitWidth >= 8) {
+        NumDQsPairs = m_memSpec.bitWidth / 8;
+    }
     
     m_dataBus.get_stats(timestamp,
         stats.readBus,
@@ -251,19 +257,13 @@ void LPDDR4Interface::getWindowStats(timestamp_t timestamp, SimulationStats &sta
     );
 
     stats.clockStats = 2 * m_clock.get_stats_at(timestamp);
-    stats.readDQSStats = 2 * m_readDQS.get_stats_at(timestamp);
-    stats.writeDQSStats = 2 * m_writeDQS.get_stats_at(timestamp);
-
+    stats.readDQSStats = NumDQsPairs * 2 * m_readDQS.get_stats_at(timestamp);
+    stats.writeDQSStats = NumDQsPairs * 2 * m_writeDQS.get_stats_at(timestamp);
     for (const auto &dbi_pin : m_dbiread) {
         stats.readDBI += dbi_pin.get_stats_at(timestamp, 2);
     }
     for (const auto &dbi_pin : m_dbiwrite) {
         stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2);
-    }
-
-    if (m_memSpec.bitWidth == 16) {
-        stats.readDQSStats *= 2;
-        stats.writeDQSStats *= 2;
     }
 }
 
