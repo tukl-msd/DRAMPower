@@ -352,8 +352,8 @@ namespace DRAMPower {
 
         // DDR4 x16 have 2 DQs differential pairs
         uint_fast8_t NumDQsPairs = 1;
-        if(m_memSpec.bitWidth == 16) {
-            NumDQsPairs = 2;
+        if(m_memSpec.bitWidth >= 8) {
+            NumDQsPairs = m_memSpec.bitWidth / 8;
         }
         stats.rank_total.resize(m_memSpec.numberOfRanks);
         for (size_t i = 0; i < m_memSpec.numberOfRanks; ++i) {

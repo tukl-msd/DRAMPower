@@ -271,6 +271,12 @@ void DDR5Interface::handleData(const Command &cmd, bool read) {
 void DDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
     stats.commandBus = m_commandBus.get_stats(timestamp);
 
+    // DDR5 x16 have 2 DQs differential pairs
+    uint_fast8_t NumDQsPairs = 1;
+    if(m_memSpec.bitWidth >= 8) {
+        NumDQsPairs = m_memSpec.bitWidth / 8;
+    }
+
     m_dataBus.get_stats(timestamp,
         stats.readBus,
         stats.writeBus,
@@ -279,15 +285,8 @@ void DDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats
     );
 
     stats.clockStats = 2 * m_clock.get_stats_at(timestamp);
-    stats.readDQSStats = 2 * m_readDQS.get_stats_at(timestamp);
-    stats.writeDQSStats = 2 * m_writeDQS.get_stats_at(timestamp);
-
-    // x16 devices have two dqs pairs
-    if(m_memSpec.bitWidth == 16)
-    {
-        stats.readDQSStats *= 2;
-        stats.writeDQSStats *= 2;
-    }
+    stats.readDQSStats = NumDQsPairs * 2 * m_readDQS.get_stats_at(timestamp);
+    stats.writeDQSStats = NumDQsPairs * 2 * m_writeDQS.get_stats_at(timestamp);
 }
 
 void DDR5Interface::serialize(std::ostream& stream) const {
