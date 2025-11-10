@@ -107,57 +107,86 @@ void HBM2Core::handleSelfRefreshExit(Stack_t &stack, timestamp_t timestamp) {
 }
 
 void HBM2Core::handlePowerDownActEntry(Stack_t &stack, timestamp_t timestamp) {
-    stack.memState = MemState::PDN_ACT;
-    stack.cycles.powerDownAct.start_interval(timestamp);
-    stack.cycles.act.close_interval(timestamp);
-    //stack.cycles.pre.close_interval(timestamp);
-    for (auto & bank : stack.banks) {
-        bank.cycles.act.close_interval(timestamp);
-    }
+    timestamp = std::max(timestamp, this->earliestPossiblePowerDownEntryTime(stack));
+    m_implicitCommandInserter.addImplicitCommand(timestamp, [&stack, timestamp]() {
+        stack.memState = MemState::PDN_ACT;
+        stack.cycles.powerDownAct.start_interval(timestamp);
+        stack.cycles.act.close_interval(timestamp);
+        //stack.cycles.pre.close_interval(timestamp);
+        for (auto & bank : stack.banks) {
+            bank.cycles.act.close_interval(timestamp);
+        }
+    });
 }
 
 void HBM2Core::handlePowerDownActExit(Stack_t &stack, timestamp_t timestamp) {
+    timestamp = std::max(timestamp, this->earliestPossiblePowerDownEntryTime(stack));
     assert(stack.memState == MemState::PDN_ACT && "PowerDownActExit is only valid if it is preceded by a PowerDownActEntry command");
-    stack.memState = MemState::NOT_IN_PD;
-    stack.cycles.powerDownAct.close_interval(timestamp);
+    
+    m_implicitCommandInserter.addImplicitCommand(timestamp, [&stack, timestamp]() {
+        stack.memState = MemState::NOT_IN_PD;
+        stack.cycles.powerDownAct.close_interval(timestamp);
 
-    // Activate banks that were active prior to PDA
-    for (auto & bank : stack.banks) {
-        if (bank.bankState==Bank::BankState::BANK_ACTIVE) {
-            bank.cycles.act.start_interval(timestamp);
+        // Activate banks that were active prior to PDA
+        for (auto & bank : stack.banks) {
+            if (Bank::BankState::BANK_ACTIVE == bank.bankState) {
+                bank.cycles.act.start_interval(timestamp);
+            }
         }
-    }
-    // Activate stack if at least one bank is active
-    // TODO At least one bank must be active for PDA -> remove if statement?
-    if(stack.isActive(timestamp)) {
-        stack.cycles.act.start_interval(timestamp);
-    }
+        // Activate stack if at least one bank is active
+        // TODO At least one bank must be active for PDA -> remove if statement?
+        if(stack.isActive(timestamp)) {
+            stack.cycles.act.start_interval(timestamp);
+        }
+    });
 }
 
 void HBM2Core::handlePowerDownPreEntry(Stack_t &stack, timestamp_t timestamp) {
-    for (auto &bank : stack.banks) {
-        bank.cycles.act.close_interval(timestamp);
-    }
-    stack.memState = MemState::PDN_PRE;
-    stack.cycles.powerDownPre.start_interval(timestamp);
-    stack.cycles.act.close_interval(timestamp);
+    timestamp = std::max(timestamp, this->earliestPossiblePowerDownEntryTime(stack));
+    
+    m_implicitCommandInserter.addImplicitCommand(timestamp, [&stack, timestamp]() {
+        for (auto &bank : stack.banks) {
+            bank.cycles.act.close_interval(timestamp);
+        }
+        stack.memState = MemState::PDN_PRE;
+        stack.cycles.powerDownPre.start_interval(timestamp);
+        stack.cycles.act.close_interval(timestamp);
+    });
 }
 
 void HBM2Core::handlePowerDownPreExit(Stack_t &stack, timestamp_t timestamp) {
     assert(stack.memState == MemState::PDN_PRE && "PowerDownPreExit is only valid if it is preceded by a PowerDownPreEntry command");
-    stack.memState = MemState::NOT_IN_PD;
-    stack.cycles.powerDownPre.close_interval(timestamp);
+    timestamp = std::max(timestamp, this->earliestPossiblePowerDownEntryTime(stack));
+    
+    m_implicitCommandInserter.addImplicitCommand(timestamp, [&stack, timestamp]() {
+        stack.memState = MemState::NOT_IN_PD;
+        stack.cycles.powerDownPre.close_interval(timestamp);
 
-    // Precharge banks that were precharged prior to PDP
-    for (auto & bank : stack.banks)
-    {
-        if (Bank::BankState::BANK_ACTIVE == bank.bankState) {
-            bank.cycles.act.start_interval(timestamp);
+        // Precharge banks that were precharged prior to PDP
+        for (auto & bank : stack.banks)
+        {
+            if (Bank::BankState::BANK_ACTIVE == bank.bankState) {
+                bank.cycles.act.start_interval(timestamp);
+            }
         }
+        if (stack.isActive(timestamp)) {
+            stack.cycles.act.close_interval(timestamp);
+        }
+    });
+}
+
+timestamp_t HBM2Core::earliestPossiblePowerDownEntryTime(Stack_t &rank) const {
+    timestamp_t entryTime = 0;
+
+    for (const auto &bank : rank.banks) {
+        entryTime = std::max(
+            {entryTime,
+                0 == bank.counter.act ? 0 : bank.cycles.act.get_start(), // TODO
+                0 == bank.counter.pre ? 0 : bank.latestPre + m_memSpec.memTimingSpec.tRP,
+                bank.refreshEndTime});
     }
-    if (stack.isActive(timestamp)) {
-        stack.cycles.act.close_interval(timestamp);
-    }
+
+    return entryTime;
 }
 
 void HBM2Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
@@ -200,16 +229,16 @@ void HBM2Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) con
 }
 
 void HBM2Core::serialize(std::ostream& stream) const {
-    // Serialize the ranks
-    for (const auto& rank : m_stacks) {
-        rank.serialize(stream);
+    // Serialize the stacks
+    for (const auto& stack : m_stacks) {
+        stack.serialize(stream);
     }
 }
 
 void HBM2Core::deserialize(std::istream& stream) {
-    // Deserialize the ranks
-    for (auto &rank : m_stacks) {
-        rank.deserialize(stream);
+    // Deserialize the stacks
+    for (auto &stack : m_stacks) {
+        stack.deserialize(stream);
     }
 }
 
