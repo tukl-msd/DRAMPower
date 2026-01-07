@@ -1,4 +1,5 @@
 #include "DDR4Interface.h"
+#include <optional>
 
 namespace DRAMPower {
 
@@ -23,16 +24,16 @@ namespace DRAMPower {
     , m_readDQS(memSpec.dataRate, true)
     , m_writeDQS(memSpec.dataRate, true)
     , m_clock(2, false)
-    , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, util::DBI::IdlePattern_t::H, 8,
+    , m_memSpec(memSpec)
+    , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
         [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
         this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
     }, false)
-    , m_dbiread(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
-    , m_dbiwrite(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
+    , m_dbiread(m_dbi.getChunksPerWidth().value(), util::Pin{m_dbi.getIdlePattern()})
+    , m_dbiwrite(m_dbi.getChunksPerWidth().value(), util::Pin{m_dbi.getIdlePattern()})
     , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
     , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
     , m_ranks(memSpec.numberOfRanks)
-    , m_memSpec(memSpec)
     , m_patternHandler(PatternEncoderOverrides {
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
             {pattern_descriptor::X, PatternEncoderBitSpec::H},
