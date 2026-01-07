@@ -37,7 +37,6 @@ add_library(DRAMPower
     DRAMPower/util/binary_ops.cpp
     DRAMPower/util/extensions.cpp
     DRAMPower/util/pin.cpp
-    DRAMPower/util/dbi.cpp
     DRAMPower/util/ImplicitCommandHandler.cpp
 )
 
