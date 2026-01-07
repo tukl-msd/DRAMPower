@@ -102,7 +102,7 @@ public:
         m_extensionManager.deserialize(stream);
         deserialize_impl(stream);
     }
-    bool isSerializable() {
+    bool isSerializable() const {
         return 0 == m_ImplicitCommandHandler.implicitCommandCount();
     }
 
