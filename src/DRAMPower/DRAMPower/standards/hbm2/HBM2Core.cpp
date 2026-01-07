@@ -3,6 +3,12 @@
 
 namespace DRAMPower {
 
+HBM2Core::HBM2Core(const MemSpecHBM2& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
+    : m_stacks(memSpec.numberOfStacks, {static_cast<std::size_t>(memSpec.numberOfBanks)}) 
+    , m_memSpec(memSpec)
+    , m_implicitCommandInserter(std::move(implicitCommandInserter))
+{}
+
 void HBM2Core::handleAct(Stack_t &stack, Bank &bank, timestamp_t timestamp) {
     if (bank.bankState == Bank::BankState::BANK_ACTIVE) return;
     bank.bankState = Bank::BankState::BANK_ACTIVE;

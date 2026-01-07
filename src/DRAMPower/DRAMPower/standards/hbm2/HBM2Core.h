@@ -11,7 +11,6 @@
 #include <DRAMPower/memspec/MemSpecHBM2.h>
 
 #include <vector>
-#include <cstddef>
 #include <cassert>
 
 namespace DRAMPower {
@@ -30,11 +29,7 @@ public:
     HBM2Core& operator=(const HBM2Core&) = delete; // copy assignment operator
     HBM2Core(HBM2Core&&) = default; // move constructor
     HBM2Core& operator=(HBM2Core&&) = delete; // move assignment operator
-    HBM2Core(const MemSpecHBM2& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
-        : m_stacks(memSpec.numberOfStacks, {static_cast<std::size_t>(memSpec.numberOfBanks)}) 
-        , m_memSpec(memSpec)
-        , m_implicitCommandInserter(std::move(implicitCommandInserter))
-    {}
+    HBM2Core(const MemSpecHBM2& memSpec, implicitCommandInserter_t&& implicitCommandInserter);
 
 // Private member functions
 private:
