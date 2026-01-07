@@ -84,13 +84,15 @@ public:
     util::Clock m_readDQS;
     util::Clock m_wck;
     util::Clock m_clock;
-    util::DBI m_dbi;
+private:
+    const MemSpecLPDDR5& m_memSpec;
+public:
+    util::DBI<uint8_t, 1, util::PinState::L, util::StaticDBI> m_dbi;
     std::vector<util::Pin> m_dbiread;
     std::vector<util::Pin> m_dbiwrite;
 
 // Private member variables
 private:
-    const MemSpecLPDDR5& m_memSpec;
     patternHandler_t m_patternHandler;
     implicitCommandInserter_t m_implicitCommandInserter;
 };

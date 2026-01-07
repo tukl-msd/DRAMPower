@@ -90,7 +90,10 @@ public:
     util::Clock m_readDQS;
     util::Clock m_writeDQS;
     util::Clock m_clock;
-    util::DBI m_dbi;
+private:
+    const MemSpecDDR4& m_memSpec;
+public:
+    util::DBI<uint8_t, 1, util::PinState::H, util::StaticDBI> m_dbi;
     std::vector<util::Pin> m_dbiread;
     std::vector<util::Pin> m_dbiwrite;
     uint64_t prepostambleReadMinTccd;
@@ -99,7 +102,6 @@ public:
 
 // Private member variables
 private:
-    const MemSpecDDR4& m_memSpec;
     patternHandler_t m_patternHandler;
     implicitCommandInserter_t m_implicitCommandInserter;
 };

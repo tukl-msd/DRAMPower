@@ -22,13 +22,13 @@ LPDDR4Interface::LPDDR4Interface(const MemSpecLPDDR4& memSpec, implicitCommandIn
     }
     , m_readDQS(memSpec.dataRate, true)
     , m_writeDQS(memSpec.dataRate, true)
-    , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, util::DBI::IdlePattern_t::L, 8,
+    , m_memSpec(memSpec)
+    , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
         [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
         this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
     }, false)
-    , m_dbiread(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
-    , m_dbiwrite(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
-    , m_memSpec(memSpec)
+    , m_dbiread(m_dbi.getChunksPerWidth().value(), util::Pin{m_dbi.getIdlePattern()})
+    , m_dbiwrite(m_dbi.getChunksPerWidth().value(), util::Pin{m_dbi.getIdlePattern()})
     , m_patternHandler(PatternEncoderOverrides{
         {pattern_descriptor::C0, PatternEncoderBitSpec::L},
         {pattern_descriptor::C1, PatternEncoderBitSpec::L},
