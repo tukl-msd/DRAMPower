@@ -78,6 +78,8 @@ struct DynamicDBI {
             }
         } else {
             auto [prev_it, prev_end] = *previous;
+            std::size_t costnormal = 0;
+            std::size_t costinverted = 0;
             for (; cur_it != cur_end; ++cur_it, ++prev_it) {
 
                 const auto curr_val = *cur_it;
@@ -85,18 +87,21 @@ struct DynamicDBI {
                 const auto prev_val = prev_it.value();
 
                 // normal transition cost
-                const auto diff_normal =
+                costnormal +=
                     BinaryOps::popcount(curr_val ^ prev_val);
 
                 // inverted transition cost
                 const auto inverted_val = ~curr_val;
-                const auto diff_inverted =
+                costinverted +=
                     BinaryOps::popcount(inverted_val ^ prev_val);
 
-                const bool invert = diff_inverted < diff_normal;
-
-                std::forward<InvertCallbackFunctor>(invert_callback)(
-                    invert, cur_it.getTotalChunkIdx());
+                if (cur_it.last()) {
+                    const bool invert = costinverted < costnormal;
+                    std::forward<InvertCallbackFunctor>(invert_callback)(
+                        invert, cur_it.getTotalChunkIdx());
+                    costnormal = 0;
+                    costinverted = 0;
+                }
 
             }
         }
