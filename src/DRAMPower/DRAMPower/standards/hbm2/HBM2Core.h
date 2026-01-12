@@ -15,11 +15,24 @@
 
 namespace DRAMPower {
 
+struct HBM2BankExtractor {
+    HBM2BankExtractor (uint64_t numberOfStacks)
+        : m_numberOfStacks(numberOfStacks)
+    {}
+
+    inline std::size_t operator()(const TargetCoordinate &coordinate) {
+        return coordinate.bank + coordinate.stack * m_numberOfStacks;
+    };
+
+    const uint64_t m_numberOfStacks;
+};
+
 class HBM2Core : public util::Serialize, public util::Deserialize {
 // Public type definitions
 public:
     using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
-    using coreRegisterHelper_t = util::CoreRegisterHelper<HBM2Core>;
+    using coreRegisterHelper_t = util::CoreRegisterHelperNoRank<HBM2Core, HBM2BankExtractor>;
+    using commandCounter_t = typename coreRegisterHelper_t::commandCounter_t;
     using Stack_t = Rank;
 
 // Public constructors and assignment operators
@@ -33,32 +46,33 @@ public:
 
 // Private member functions
 private:
-    void handleRefreshOnBank(Stack_t & stack, Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t& counter);
-    static inline void handlePre_impl(Stack_t & stack, Bank & bank, timestamp_t timestamp, uint64_t& counter);
+    void handleRefreshOnBank(Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t& counter);
+    inline void handlePre_impl(Bank & bank, timestamp_t timestamp, uint64_t& counter);
 
 // Public member functions
 public:
+
     coreRegisterHelper_t getRegisterHelper() {
-        return coreRegisterHelper_t{this, m_stacks};
+        return coreRegisterHelper_t{this, m_banks, m_commandCounter, m_memSpec.numberOfStacks};
     }
 
-    void handleAct(Stack_t & stack, Bank & bank, timestamp_t timestamp);
-    void handlePre(Stack_t & stack, Bank & bank, timestamp_t timestamp);
-    void handlePreAll(Stack_t & stack, timestamp_t timestamp); 
-    void handleRefAll(Stack_t & stack, timestamp_t timestamp);
-    void handleRefSingleBank(Stack_t & stack, Bank & bank, timestamp_t timestamp);
-    void handleSelfRefreshEntry(Stack_t & stack, timestamp_t timestamp);
-    void handleSelfRefreshExit(Stack_t & stack, timestamp_t timestamp);
-    void handleRead(Stack_t & stack, Bank & bank, timestamp_t timestamp);
-    void handleWrite(Stack_t & stack, Bank & bank, timestamp_t timestamp);
-    void handleReadAuto(Stack_t & stack, Bank & bank, timestamp_t timestamp);
-    void handleWriteAuto(Stack_t & stack, Bank & bank, timestamp_t timestamp);
-    void handlePowerDownActEntry(Stack_t & stack, timestamp_t timestamp);
-    void handlePowerDownActExit(Stack_t & stack, timestamp_t timestamp);
-    void handlePowerDownPreEntry(Stack_t & stack, timestamp_t timestamp);
-    void handlePowerDownPreExit(Stack_t & stack, timestamp_t timestamp);
+    void handleAct(Bank & bank, timestamp_t timestamp);
+    void handlePre(Bank & bank, timestamp_t timestamp);
+    void handlePreAll(timestamp_t timestamp); 
+    void handleRefAll(timestamp_t timestamp);
+    void handleRefSingleBank(Bank & bank, timestamp_t timestamp);
+    void handleSelfRefreshEntry(timestamp_t timestamp);
+    void handleSelfRefreshExit(timestamp_t timestamp);
+    void handleRead(Bank & bank, timestamp_t timestamp);
+    void handleWrite(Bank & bank, timestamp_t timestamp);
+    void handleReadAuto(Bank & bank, timestamp_t timestamp);
+    void handleWriteAuto(Bank & bank, timestamp_t timestamp);
+    void handlePowerDownActEntry(timestamp_t timestamp);
+    void handlePowerDownActExit(timestamp_t timestamp);
+    void handlePowerDownPreEntry(timestamp_t timestamp);
+    void handlePowerDownPreExit(timestamp_t timestamp);
 
-    timestamp_t earliestPossiblePowerDownEntryTime(Stack_t & stack) const;
+    timestamp_t earliestPossiblePowerDownEntryTime() const;
 
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
 
@@ -69,7 +83,22 @@ public:
 
 // Public member variables
 public:
-    std::vector<Stack_t> m_stacks;
+    std::vector<Bank> m_banks;
+
+    struct {
+		interval_t act;
+        interval_t sref = 0;
+        interval_t powerDownAct = 0;
+        interval_t powerDownPre = 0;
+        interval_t deepSleepMode = 0;
+    } m_cycles = {};
+    struct {
+        uint64_t selfRefresh = 0;
+        uint64_t deepSleepMode = 0;
+    } m_counter = {};
+	timestamp_t m_endRefreshTime = 0;
+    commandCounter_t m_commandCounter;
+	MemState m_memState = MemState::NOT_IN_PD;
 
 // Private members variables
 private:
