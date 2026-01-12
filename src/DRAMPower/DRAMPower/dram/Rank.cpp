@@ -23,10 +23,8 @@ std::size_t Rank::countActiveBanks() const {
 }
 
 void Rank::serialize(std::ostream& stream) const {
-    stream.write(reinterpret_cast<const char*>(&memState), sizeof(memState));
-    stream.write(reinterpret_cast<const char *>(&endRefreshTime), sizeof(endRefreshTime));
     commandCounter.serialize(stream);
-
+    stream.write(reinterpret_cast<const char*>(&memState), sizeof(memState));
     stream.write(reinterpret_cast<const char* >(&counter.selfRefresh), sizeof(counter.selfRefresh));
     stream.write(reinterpret_cast<const char* >(&counter.deepSleepMode), sizeof(counter.deepSleepMode));
     stream.write(reinterpret_cast<const char* >(&endRefreshTime), sizeof(endRefreshTime));
@@ -44,10 +42,8 @@ void Rank::serialize(std::ostream& stream) const {
 };
 
 void Rank::deserialize(std::istream& stream) {
-    stream.read(reinterpret_cast<char *>(&memState), sizeof(memState));
-    stream.read(reinterpret_cast<char *>(&endRefreshTime), sizeof(endRefreshTime));
     commandCounter.deserialize(stream);
-
+    stream.read(reinterpret_cast<char *>(&memState), sizeof(memState));
     stream.read(reinterpret_cast<char* >(&counter.selfRefresh), sizeof(counter.selfRefresh));
     stream.read(reinterpret_cast<char* >(&counter.deepSleepMode), sizeof(counter.deepSleepMode));
     stream.read(reinterpret_cast<char* >(&endRefreshTime), sizeof(endRefreshTime));
