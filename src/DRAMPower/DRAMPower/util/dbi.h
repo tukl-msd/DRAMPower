@@ -188,7 +188,6 @@ public:
     DBI (std::optional<std::size_t> busWidth, std::size_t burstLength, Func&& func = nullptr, bool enable = false)
         : m_width(busWidth)
         , m_burstLength(burstLength)
-        , m_idlePattern(IDLEPATTERN)
         , m_idleData(busWidth.has_value() ? std::optional<DataBuffer_t>{getIdlePattern(busWidth.value())} : std::nullopt)
         , m_changeCallback(std::forward<Func>(func))
         , m_enable(enable)
@@ -233,7 +232,7 @@ public:
     }
 
     IdlePattern_t getIdlePattern() const {
-        return m_idlePattern;
+        return IDLEPATTERN;
     }
 
     template<typename Func>
@@ -242,7 +241,7 @@ public:
     }
 
     std::optional<const DataType_t*> updateDBI(timestamp_t timestamp, std::size_t n_bits, const DataType_t* data, bool read) {
-        if (!data || 0 == n_bits || !m_enable || IdlePattern_t::Z == m_idlePattern) return std::nullopt;
+        if (!data || 0 == n_bits || !m_enable || IdlePattern_t::Z == IDLEPATTERN) return std::nullopt;
 
         // Select read or write members
         auto &lastInvert = read ? m_lastBurst_read.getInversionState() : m_lastBurst_write.getInversionState();
@@ -290,7 +289,7 @@ public:
         m_algorithm.computeDBI(
             std::make_tuple<IteratorType_t, IteratorType_t>(m_invertedData.begin(), m_invertedData.end()),
             createPreviousIterator(timestamp, m_lastBurst),
-        m_idlePattern, std::move(invert_visitor));
+        IDLEPATTERN, std::move(invert_visitor));
 
         // Store burst information
         m_lastBurst.update(timestamp, m_width, m_burstLength, n_bits);
@@ -317,7 +316,6 @@ public:
 
     void serialize(std::ostream& stream) const override {
         stream.write(reinterpret_cast<const char*>(&m_enable), sizeof(m_enable));
-        stream.write(reinterpret_cast<const char*>(&m_idlePattern), sizeof(m_idlePattern));
         stream.write(reinterpret_cast<const char*>(&lastBurstRead), sizeof(lastBurstRead));
 
         m_lastBurst_read.serialize(stream);
@@ -331,7 +329,6 @@ public:
     }
     void deserialize(std::istream& stream) override {
         stream.read(reinterpret_cast<char*>(&m_enable), sizeof(m_enable));
-        stream.read(reinterpret_cast<char*>(&m_idlePattern), sizeof(m_idlePattern));
         stream.read(reinterpret_cast<char*>(&lastBurstRead), sizeof(lastBurstRead));
 
         m_lastBurst_read.deserialize(stream);
@@ -459,7 +456,6 @@ private:
 
     const std::optional<std::size_t> m_width = std::nullopt; // Width of the complete bus
     const std::size_t m_burstLength = 0; // Width of the complete bus
-    IdlePattern_t m_idlePattern = IdlePattern_t::Z; // Default idle pattern is High-Z
 
     bool lastBurstRead = false;
     LastBurst_t m_lastBurst_read;  // Last burst end timestamp
