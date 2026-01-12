@@ -54,6 +54,8 @@ public:
 
 // Functions
 public:
+	static std::size_t countActiveBanks_impl(const std::vector<Bank>& banks);
+	static bool isActive_impl(const timestamp_t& timestamp, const timestamp_t& endRefreshTime, const std::vector<Bank>& banks);
 	bool isActive(timestamp_t timestamp);
 	std::size_t countActiveBanks() const;
 // Overrides

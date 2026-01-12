@@ -1,4 +1,5 @@
 #include "Rank.h"
+#include "DRAMPower/Types.h"
 
 #include <algorithm>
 
@@ -6,20 +7,28 @@ namespace DRAMPower {
 
 Rank::Rank(std::size_t numBanks)
     : banks(numBanks)
-{};
+{}
+
+std::size_t Rank::countActiveBanks_impl(const std::vector<Bank>& banks) {
+    return static_cast<unsigned>(std::count_if(banks.begin(), banks.end(),
+        [](const auto& bank) {
+            return (bank.bankState == Bank::BankState::BANK_ACTIVE);
+    }));
+}
+
+bool Rank::isActive_impl(const timestamp_t& timestamp, const timestamp_t& endRefreshTime, const std::vector<Bank>& banks) {
+    if ( timestamp < endRefreshTime ) {
+        std::cout << "[WARN] Rank::isActive() -> timestamp (" << timestamp <<") < "  << "endRefreshTime (" << endRefreshTime << ")"  << std::endl;
+    }
+    return countActiveBanks_impl(banks) > 0 || timestamp < endRefreshTime;
+}
 
 bool Rank::isActive(timestamp_t timestamp) {
-    if ( timestamp < this->endRefreshTime ) {
-        std::cout << "[WARN] Rank::isActive() -> timestamp (" << timestamp <<") < "  << "endRefreshTime (" << this->endRefreshTime << ")"  << std::endl;
-    }
-    return countActiveBanks() > 0 || timestamp < this->endRefreshTime;
+    return isActive_impl(timestamp, endRefreshTime, banks);
 }
 
 std::size_t Rank::countActiveBanks() const {
-    return (unsigned)std::count_if(banks.begin(), banks.end(),
-        [](const auto& bank) {
-            return (bank.bankState == Bank::BankState::BANK_ACTIVE);
-    });
+    return countActiveBanks_impl(banks);
 }
 
 void Rank::serialize(std::ostream& stream) const {
