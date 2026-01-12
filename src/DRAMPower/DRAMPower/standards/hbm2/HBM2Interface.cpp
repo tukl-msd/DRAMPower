@@ -24,13 +24,13 @@ namespace DRAMPower {
     std::size_t HBM2Interface::getRowWidth(const MemSpecHBM2& memSpec) {
         // 7 if rows[14] or SID[1]
         // 6 otherwise
-        return isIncreasedSize(memSpec) ? 7 : 6;
+        return (isIncreasedSize(memSpec) ? maxRowCmdBusWidth : minRowCmdBusWidth);
     }
 
     std::size_t HBM2Interface::getColumnWidth(const MemSpecHBM2& memSpec) {
         // 9 if rows[14] or SID[1]
         // 8 otherwise
-        return isIncreasedSize(memSpec) ? 9 : 8;
+        return (isIncreasedSize(memSpec) ? maxColumnCmdBusWidth : minColumnCmdBusWidth);
     }
 
     HBM2Interface::HBM2Interface(const MemSpecHBM2& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
@@ -40,21 +40,19 @@ namespace DRAMPower {
         util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
     , m_cke(util::PinState::H)
     , m_dataBus{memSpec.numberOfPseudoChannels, {
-        databus_t {
-            util::databus_presets::getDataBusPreset(
+        util::databus_presets::getDataBusPreset(
+            memSpec.bitWidth * memSpec.numberOfDevices,
+            util::DataBusConfig {
                 memSpec.bitWidth * memSpec.numberOfDevices,
-                util::DataBusConfig {
-                    memSpec.bitWidth * memSpec.numberOfDevices,
-                    memSpec.dataRate,
-                    util::BusIdlePatternSpec::H,
-                    util::BusInitPatternSpec::H,
-                    DRAMUtils::Config::TogglingRateIdlePattern::H,
-                    0.0,
-                    0.0,
-                    util::DataBusMode::Bus
-                }
-            )
-        },
+                memSpec.dataRate,
+                util::BusIdlePatternSpec::H,
+                util::BusInitPatternSpec::H,
+                DRAMUtils::Config::TogglingRateIdlePattern::H,
+                0.0,
+                0.0,
+                util::DataBusMode::Bus
+            }
+        ),
         util::Clock {
             memSpec.dataRate, true
         },
@@ -63,13 +61,13 @@ namespace DRAMPower {
         }
     }}
     , m_clock(2, false)
-    , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, util::DBI::IdlePattern_t::H, 8,
+    , m_memSpec(memSpec)
+    , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
         [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
         this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
     }, false)
-    , m_dbiread(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
-    , m_dbiwrite(m_dbi.getChunksPerWidth(), util::Pin{m_dbi.getIdlePattern()})
-    , m_memSpec(memSpec)
+    , m_dbiread(m_dbi.getChunksPerWidth().value(), util::Pin{m_dbi.getIdlePattern()})
+    , m_dbiwrite(m_dbi.getChunksPerWidth().value(), util::Pin{m_dbi.getIdlePattern()})
     , m_patternHandler(PatternEncoderOverrides {
         {pattern_descriptor::V, PatternEncoderBitSpec::H},
         {pattern_descriptor::C0, PatternEncoderBitSpec::H},
@@ -127,10 +125,10 @@ namespace DRAMPower {
             return result;
         };
         auto remove_r7_middleware = [remove_r7, &remove_pin_middleware](std::initializer_list<pattern_descriptor::t> list){
-            return remove_pin_middleware(remove_r7, 6, list);
+            return remove_pin_middleware(remove_r7, maxRowCmdBusWidth - 1, list);
         };
         auto remove_c8_middleware = [remove_c8, &remove_pin_middleware](std::initializer_list<pattern_descriptor::t> list){
-            return remove_pin_middleware(remove_c8, 8, list);
+            return remove_pin_middleware(remove_c8, maxColumnCmdBusWidth - 1, list);
         };
 
         // Row CommandBus
@@ -395,7 +393,7 @@ namespace DRAMPower {
         assert(m_dataBus.size() > cmd.targetCoordinate.pseudoChannel
             && "Invalid pseudoChannel in targetCoordinate"
         );
-        busDataCallback(m_dataBus[cmd.targetCoordinate.pseudoChannel]);
+        busDataCallback(m_dataBus.at(cmd.targetCoordinate.pseudoChannel));
         handleColumnCommandBus(cmd);
     }
 

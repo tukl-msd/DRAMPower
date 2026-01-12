@@ -13,12 +13,15 @@
 
 #include "DRAMPower/util/PatternHandler.h"
 #include "DRAMPower/util/ImplicitCommandHandler.h"
+#include "DRAMPower/util/dbialgos.h"
 #include "DRAMPower/util/dbi.h"
+#include "DRAMPower/util/pin_types.h"
 
 #include "DRAMPower/memspec/MemSpecHBM2.h"
 
 #include "DRAMUtils/config/toggling_rate.h"
 
+#include <cstdint>
 #include <stdint.h>
 #include <cstddef>
 #include <vector>
@@ -29,7 +32,9 @@ class HBM2Interface : public util::Serialize, public util::Deserialize {
 // Public constants
 public:
     const static std::size_t maxColumnCmdBusWidth = 9;
+    const static std::size_t minColumnCmdBusWidth = 8;
     const static std::size_t maxRowCmdBusWidth = 7;
+    const static std::size_t minRowCmdBusWidth = 6;
     const static std::size_t DWORD = 32;
 
 // Public type definitions
@@ -93,13 +98,15 @@ public:
     util::Pin m_cke;
     std::vector<databusContainer_t> m_dataBus;
     util::Clock m_clock;
-    util::DBI m_dbi;
+private:
+    const MemSpecHBM2& m_memSpec;
+public:
+    util::DBI<uint8_t, 1, util::PinState::H, util::DynamicDBI<4>> m_dbi;
     std::vector<util::Pin> m_dbiread;
     std::vector<util::Pin> m_dbiwrite;
 
 // Private member variables
 private:
-    const MemSpecHBM2& m_memSpec;
     patternHandler_t m_patternHandler;
     implicitCommandInserter_t m_implicitCommandInserter;
 };
