@@ -34,7 +34,6 @@ add_library(DRAMPower
     DRAMPower/standards/lpddr5/LPDDR5Core.cpp
     DRAMPower/standards/lpddr5/LPDDR5Interface.cpp
     DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.cpp
-    DRAMPower/util/binary_ops.cpp
     DRAMPower/util/extensions.cpp
     DRAMPower/util/pin.cpp
     DRAMPower/util/ImplicitCommandHandler.cpp
