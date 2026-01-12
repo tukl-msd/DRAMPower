@@ -57,6 +57,7 @@ struct StaticDBI {
 
 };
 
+template <std::size_t threshold>
 struct DynamicDBI {
 
     using iterator_type_t = AlgorithmIteratorType_SubChunk;
@@ -68,41 +69,28 @@ struct DynamicDBI {
         InvertCallbackFunctor&& invert_callback
     ) {
         auto [cur_it, cur_end] = current;
-        auto [prev_it, prev_end] = previous.value_or(std::tuple<Iterator2, Iterator2>{});
 
         if (!previous) {
             // No previous burst -> cannot compute transitions
-            for (; cur_it != cur_end; ++cur_it, ++prev_it) {
+            for (; cur_it != cur_end; ++cur_it) {
                 std::forward<InvertCallbackFunctor>(invert_callback)(
-                        false, cur_it.getTotalChunkIdx());
+                    false, cur_it.getTotalChunkIdx());
             }
         } else {
             auto [prev_it, prev_end] = *previous;
             std::size_t costnormal = 0;
-            std::size_t costinverted = 0;
             for (; cur_it != cur_end; ++cur_it, ++prev_it) {
-
-                const auto curr_val = *cur_it;
-
-                const auto prev_val = prev_it.value();
 
                 // normal transition cost
                 costnormal +=
-                    BinaryOps::popcount(curr_val ^ prev_val);
-
-                // inverted transition cost
-                const auto inverted_val = ~curr_val;
-                costinverted +=
-                    BinaryOps::popcount(inverted_val ^ prev_val);
+                    BinaryOps::popcount(*cur_it ^ *prev_it);
 
                 if (cur_it.last()) {
-                    const bool invert = costinverted < costnormal;
+                    const bool invert = costnormal > threshold;
                     std::forward<InvertCallbackFunctor>(invert_callback)(
                         invert, cur_it.getTotalChunkIdx());
                     costnormal = 0;
-                    costinverted = 0;
                 }
-
             }
         }
     }
