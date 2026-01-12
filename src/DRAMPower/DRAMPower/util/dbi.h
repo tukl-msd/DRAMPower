@@ -252,17 +252,11 @@ public:
         
         // Calculate number of bytes needed to store the data
         assert(0 == (n_bits % DATATYPEDIGITS) && "n_bits must be a multiple of DATATYPEDIGITS");
-        std::size_t entries_needed = (n_bits + DATATYPEDIGITS - 1) / DATATYPEDIGITS;
+        std::size_t entries_needed = n_bits / DATATYPEDIGITS;
         
-        // SAFETY: the resizing is necessary so there are no data copies during dbi calculation
-        // Resize output buffer if needed
-        if (m_invertedData.capacity() < entries_needed) {
-            m_invertedData.resize(entries_needed, 0);
-        }
+        // SAFETY: the assigning is necessary so there are no data copies during dbi calculation
+        m_invertedData.assign(data, data + entries_needed);
 
-        // copy data to output buffer
-        std::memcpy(m_invertedData.data(), data, entries_needed * sizeof(DataType_t));
-        
         // Process each chunk independently
         assert(n_bits % ChunkSize == 0); // Ensure n_bits is a multiple of chunk size
         std::size_t n_chunks = n_bits / ChunkSize;
