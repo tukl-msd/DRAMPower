@@ -253,7 +253,10 @@ public:
         // Calculate number of bytes needed to store the data
         assert(0 == (n_bits % DATATYPEDIGITS) && "n_bits must be a multiple of DATATYPEDIGITS");
         std::size_t entries_needed = n_bits / DATATYPEDIGITS;
-        
+
+        // Create previousIterator from last burst
+        auto previous_iterator = createPreviousIterator(timestamp, m_lastBurst);
+
         // SAFETY: the assigning is necessary so there are no data copies during dbi calculation
         m_invertedData.assign(data, data + entries_needed);
 
@@ -282,7 +285,7 @@ public:
         // Compute DBI
         m_algorithm.computeDBI(
             std::make_tuple<IteratorType_t, IteratorType_t>(m_invertedData.begin(), m_invertedData.end()),
-            createPreviousIterator(timestamp, m_lastBurst),
+            previous_iterator,
         IDLEPATTERN, std::move(invert_visitor));
 
         // Store burst information
