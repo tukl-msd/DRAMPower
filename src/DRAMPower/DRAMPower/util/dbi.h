@@ -184,15 +184,16 @@ public:
         return DataBuffer_t(static_cast<std::size_t>(busWidth / DATATYPEDIGITS), data);
     }
 
-    template<typename Func = std::nullptr_t>
-    DBI (std::optional<std::size_t> busWidth, std::size_t burstLength, Func&& func = nullptr, bool enable = false)
+    template<typename Func, typename... Args>
+    DBI (std::optional<std::size_t> busWidth, std::size_t burstLength, Func&& func, bool enable, Args&&... args)
         : m_width(busWidth)
         , m_burstLength(burstLength)
         , m_idleData(busWidth.has_value() ? std::optional<DataBuffer_t>{getIdlePattern(busWidth.value())} : std::nullopt)
         , m_changeCallback(std::forward<Func>(func))
         , m_enable(enable)
+        , m_algorithm(std::forward<Args>(args)...)
     {
-        assert(!busWidth.has_value() || 0 == (busWidth.value() % ChunkSize) && "busWidth must be a multiple of CHUNKSIZE");
+        assert(!busWidth.has_value() || (0 == (busWidth.value() % ChunkSize) && "busWidth must be a multiple of CHUNKSIZE"));
     }
 
 // Private member functions
@@ -449,7 +450,6 @@ private:
 
 // Private member variables
 private:
-    Algorithm_t m_algorithm{}; // Use default constructor of algorithm
 
     const std::optional<std::size_t> m_width = std::nullopt; // Width of the complete bus
     const std::size_t m_burstLength = 0; // Width of the complete bus
@@ -463,6 +463,7 @@ private:
 
     ChangeCallback_t m_changeCallback = nullptr; // Callback called in updateDBI
     bool m_enable = false;
+    Algorithm_t m_algorithm;
 };
 
 } // namespace DRAMPower::util
