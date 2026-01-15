@@ -46,31 +46,33 @@ namespace DRAMPower {
         routeCoreCommand<CmdType::PRE>(coreregistrar.registerBankHandler(&HBM2Core::handlePre));
         routeInterfaceCommand<CmdType::PRE>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
         // PREA
-        routeCoreCommand<CmdType::PREA>(coreregistrar.registerRankHandler(&HBM2Core::handlePreAll));
+        routeCoreCommand<CmdType::PREA>(coreregistrar.registerPseudoChannelHandler(&HBM2Core::handlePreAll));
         routeInterfaceCommand<CmdType::PREA>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
-        // REFSB
+        
+        // REFSB // TODO
         routeCoreCommand<CmdType::REFSB>(coreregistrar.registerBankHandler(&HBM2Core::handleRefSingleBank));
         routeInterfaceCommand<CmdType::REFSB>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
-        // REFA
-        routeCoreCommand<CmdType::REFA>(coreregistrar.registerRankHandler(&HBM2Core::handleRefAll));
+        // REFA  // TODO
+        routeCoreCommand<CmdType::REFA>(coreregistrar.registerPseudoChannelHandler(&HBM2Core::handleRefAll));
         routeInterfaceCommand<CmdType::REFA>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
+        
         // PDEA
-        routeCoreCommand<CmdType::PDEA>(coreregistrar.registerRankHandler(&HBM2Core::handlePowerDownActEntry));
+        routeCoreCommand<CmdType::PDEA>(coreregistrar.registerHandler(&HBM2Core::handlePowerDownActEntry));
         routeInterfaceCommand<CmdType::PDEA>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
         // PDEP
-        routeCoreCommand<CmdType::PDEP>(coreregistrar.registerRankHandler(&HBM2Core::handlePowerDownPreEntry));
+        routeCoreCommand<CmdType::PDEP>(coreregistrar.registerHandler(&HBM2Core::handlePowerDownPreEntry));
         routeInterfaceCommand<CmdType::PDEP>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
         // SREFEN
-        routeCoreCommand<CmdType::SREFEN>(coreregistrar.registerRankHandler(&HBM2Core::handleSelfRefreshEntry));
+        routeCoreCommand<CmdType::SREFEN>(coreregistrar.registerHandler(&HBM2Core::handleSelfRefreshEntry));
         routeInterfaceCommand<CmdType::SREFEN>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
         // SREFEX
-        routeCoreCommand<CmdType::SREFEX>(coreregistrar.registerRankHandler(&HBM2Core::handleSelfRefreshExit));
+        routeCoreCommand<CmdType::SREFEX>(coreregistrar.registerHandler(&HBM2Core::handleSelfRefreshExit));
         routeInterfaceCommand<CmdType::SREFEX>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
         // PDXA
-        routeCoreCommand<CmdType::PDXA>(coreregistrar.registerRankHandler(&HBM2Core::handlePowerDownActExit));
+        routeCoreCommand<CmdType::PDXA>(coreregistrar.registerHandler(&HBM2Core::handlePowerDownActExit));
         routeInterfaceCommand<CmdType::PDXA>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
         // PDXP
-        routeCoreCommand<CmdType::PDXP>(coreregistrar.registerRankHandler(&HBM2Core::handlePowerDownPreExit));
+        routeCoreCommand<CmdType::PDXP>(coreregistrar.registerHandler(&HBM2Core::handlePowerDownPreExit));
         routeInterfaceCommand<CmdType::PDXP>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
 
         // Column commands

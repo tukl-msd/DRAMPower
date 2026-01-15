@@ -5,6 +5,7 @@
 
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/dram/Rank.h>
+#include <DRAMPower/dram/PseudoChannel.h>
 
 namespace DRAMPower::util {
 
@@ -87,84 +88,88 @@ private:
 };
 
 template<typename Core, typename BankExtractor>
-struct CoreRegisterHelperNoRank {
+struct CoreRegisterHelperPseudoChannel {
 // Public constructors and assignment operators
 public:
     using commandCounter_t = util::CommandCounter<CmdType>;
 
     template<typename... Args>
-    CoreRegisterHelperNoRank(Core *core, std::vector<Bank> &banks, commandCounter_t &commandCounter, Args&&... args)
+    CoreRegisterHelperPseudoChannel(Core *core, std::vector<PseudoChannel> &pseudoChannel, Args&&... args)
         : m_core(core)
-        , m_banks(banks)
-        , m_commandCounter(commandCounter)
+        , m_pseudoChannel(pseudoChannel)
         , m_bankExtractor(std::forward<Args>(args)...)
     {}
-    CoreRegisterHelperNoRank(const CoreRegisterHelperNoRank&) = delete; // No copy constructor
-    CoreRegisterHelperNoRank& operator=(const CoreRegisterHelperNoRank&) = delete; // No copy assignment operator
-    CoreRegisterHelperNoRank(CoreRegisterHelperNoRank&&) = default; // Move constructor
-    CoreRegisterHelperNoRank& operator=(CoreRegisterHelperNoRank&&) = default; // Move assignment operator
-    ~CoreRegisterHelperNoRank() = default; // Destructor
+    CoreRegisterHelperPseudoChannel(const CoreRegisterHelperPseudoChannel&) = delete; // No copy constructor
+    CoreRegisterHelperPseudoChannel& operator=(const CoreRegisterHelperPseudoChannel&) = delete; // No copy assignment operator
+    CoreRegisterHelperPseudoChannel(CoreRegisterHelperPseudoChannel&&) = default; // Move constructor
+    CoreRegisterHelperPseudoChannel& operator=(CoreRegisterHelperPseudoChannel&&) = default; // Move assignment operator
+    ~CoreRegisterHelperPseudoChannel() = default; // Destructor
 
 // Public member functions
 public:
     template<typename Func>
     decltype(auto) registerBankHandler(Func &&member_func) {
         Core* this_ptr = m_core;
-        return [this, this_ptr, banks_ref = std::ref(m_banks), commandCounter_ref = std::ref(m_commandCounter), f = std::forward<Func>(member_func)](const Command & command) {
-            auto &this_banks = banks_ref.get();
-            auto &this_commandCounter = commandCounter_ref.get();
+        return [this, this_ptr, pseudoChannel_ref = std::ref(m_pseudoChannel), f = std::forward<Func>(member_func)](const Command & command) {
+            auto &this_pseudoChannel = pseudoChannel_ref.get();
+
+            assert(this_pseudoChannel.size() > command.targetCoordinate.pseudoChannel);
+            auto & pseudoChannel = this_pseudoChannel.at(command.targetCoordinate.pseudoChannel);
 
             std::size_t bank_id = m_bankExtractor(command.targetCoordinate);
-            assert(this_banks.size()>bank_id);
-            auto & bank = this_banks.at(bank_id);
+            assert(pseudoChannel.banks.size() > bank_id);
+            auto & bank = pseudoChannel.banks.at(bank_id);
 
-            (this_ptr->*f)(bank, command.timestamp);
-            this_commandCounter.inc(command.type);
+            (this_ptr->*f)(pseudoChannel, bank, command.timestamp);
+            pseudoChannel.commandCounter.inc(command.type);
         };
     }
 
     template<typename Func>
-    decltype(auto) registerRankHandler(Func &&member_func) {
+    decltype(auto) registerPseudoChannelHandler(Func &&member_func) {
         Core* this_ptr = m_core;
-        return [this_ptr, commandCounter_ref = std::ref(m_commandCounter), f = std::forward<Func>(member_func)](const Command & command) mutable {
-            auto &this_commandCounter = commandCounter_ref.get();
-            (this_ptr->*f)(command.timestamp);
-            this_commandCounter.inc(command.type);
+        return [this_ptr, pseudoChannel_ref = std::ref(m_pseudoChannel), f = std::forward<Func>(member_func)](const Command & command) mutable {
+            auto &this_pseudoChannel = pseudoChannel_ref.get();
+
+            assert(this_pseudoChannel.size() > command.targetCoordinate.pseudoChannel);
+            auto & pseudoChannel = this_pseudoChannel.at(command.targetCoordinate.pseudoChannel);
+
+            (this_ptr->*f)(pseudoChannel, command.timestamp);
+            pseudoChannel.commandCounter.inc(command.type);
         };
     }
 
     template <typename Func>
     decltype(auto) registerBankGroupHandler(Func &&member_func) {
         Core *this_ptr = m_core;
-        return [this, this_ptr, banks_ref = std::ref(m_banks), commandCounter_ref = std::ref(m_commandCounter), f = std::forward<Func>(member_func)](const Command & command) {
-            auto &this_banks = banks_ref.get();
-            auto &this_commandCounter = commandCounter_ref.get();
+        return [this, this_ptr, pseudoChannel_ref = std::ref(m_pseudoChannel), f = std::forward<Func>(member_func)](const Command & command) {
+            auto &this_pseudoChannel = pseudoChannel_ref.get();
+
+            assert(this_pseudoChannel.size() > command.targetCoordinate.pseudoChannel);
+            auto & pseudoChannel = this_pseudoChannel.at(command.targetCoordinate.pseudoChannel);
 
             std::size_t bank_id = m_bankExtractor(command.targetCoordinate);
-            assert(this_banks.size()>bank_id);
-            if (command.targetCoordinate.bank >= this_banks.size()) {
+            assert(pseudoChannel.banks.size() > bank_id);
+            if (command.targetCoordinate.bank >= pseudoChannel.banks.size()) {
                 throw std::invalid_argument("Invalid bank targetcoordinate");
             }
-            (this_ptr->*f)(bank_id, command.timestamp);
-            this_commandCounter.inc(command.type);
+            (this_ptr->*f)(pseudoChannel, bank_id, command.timestamp);
+            pseudoChannel.commandCounter.inc(command.type);
         };
     }
 
     template<typename Func>
     decltype(auto) registerHandler(Func &&member_func) {
         Core* this_ptr = m_core;
-        return [commandCounter_ref = std::ref(m_commandCounter), this_ptr, f = std::forward<Func>(member_func)](const Command & command) {
-            auto &this_commandCounter = commandCounter_ref.get();
+        return [this_ptr, f = std::forward<Func>(member_func)](const Command & command) {
             (this_ptr->*f)(command.timestamp);
-            this_commandCounter.inc(command.type);
         };
     }
 
 // Private member variables
 private:
     Core *m_core;
-    std::vector<Bank> &m_banks;
-    commandCounter_t &m_commandCounter;
+    std::vector<PseudoChannel>& m_pseudoChannel;
     BankExtractor m_bankExtractor;
 };
 

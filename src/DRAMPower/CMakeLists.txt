@@ -10,6 +10,7 @@ add_library(DRAMPower
     DRAMPower/data/energy.cpp
     DRAMPower/dram/Interface.cpp
     DRAMPower/dram/Rank.cpp
+    DRAMPower/dram/PseudoChannel.cpp
     DRAMPower/memspec/MemSpecDDR4.cpp
     DRAMPower/memspec/MemSpecDDR5.cpp
     DRAMPower/memspec/MemSpecLPDDR4.cpp

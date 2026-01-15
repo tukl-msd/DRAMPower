@@ -2,7 +2,7 @@
 #define DRAMPOWER_STANDARDS_HBM2_HBM2CORE_H
 
 #include <DRAMPower/Types.h>
-#include <DRAMPower/dram/Rank.h>
+#include <DRAMPower/dram/PseudoChannel.h>
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/data/stats.h>
 #include <DRAMPower/util/ImplicitCommandHandler.h>
@@ -10,7 +10,6 @@
 
 #include <DRAMPower/memspec/MemSpecHBM2.h>
 
-#include <vector>
 #include <cassert>
 
 namespace DRAMPower {
@@ -31,9 +30,8 @@ class HBM2Core : public util::Serialize, public util::Deserialize {
 // Public type definitions
 public:
     using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
-    using coreRegisterHelper_t = util::CoreRegisterHelperNoRank<HBM2Core, HBM2BankExtractor>;
+    using coreRegisterHelper_t = util::CoreRegisterHelperPseudoChannel<HBM2Core, HBM2BankExtractor>;
     using commandCounter_t = typename coreRegisterHelper_t::commandCounter_t;
-    using Stack_t = Rank;
 
 // Public constructors and assignment operators
 public:
@@ -46,27 +44,27 @@ public:
 
 // Private member functions
 private:
-    void handleRefreshOnBank(Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t& counter);
-    inline void handlePre_impl(Bank & bank, timestamp_t timestamp, uint64_t& counter);
+    void handleRefreshOnBank(PseudoChannel &pseudoChannel, Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t& counter);
+    inline void handlePre_impl(PseudoChannel &pseudoChannel, Bank & bank, timestamp_t timestamp, uint64_t& counter);
 
 // Public member functions
 public:
 
     coreRegisterHelper_t getRegisterHelper() {
-        return coreRegisterHelper_t{this, m_banks, m_commandCounter, m_memSpec.numberOfStacks};
+        return coreRegisterHelper_t{this, m_pseudoChannels, m_memSpec.numberOfStacks};
     }
 
-    void handleAct(Bank & bank, timestamp_t timestamp);
-    void handlePre(Bank & bank, timestamp_t timestamp);
-    void handlePreAll(timestamp_t timestamp); 
-    void handleRefAll(timestamp_t timestamp);
-    void handleRefSingleBank(Bank & bank, timestamp_t timestamp);
+    void handleAct(PseudoChannel & pseudoChannel, Bank & bank, timestamp_t timestamp);
+    void handlePre(PseudoChannel & pseudoChannel, Bank & bank, timestamp_t timestamp);
+    void handleRefSingleBank(PseudoChannel & pseudoChannel, Bank & bank, timestamp_t timestamp);
+    void handleRead(PseudoChannel & pseudoChannel, Bank & bank, timestamp_t timestamp);
+    void handleWrite(PseudoChannel & pseudoChannel, Bank & bank, timestamp_t timestamp);
+    void handleReadAuto(PseudoChannel & pseudoChannel, Bank & bank, timestamp_t timestamp);
+    void handleWriteAuto(PseudoChannel & pseudoChannel, Bank & bank, timestamp_t timestamp);
+    void handlePreAll(PseudoChannel & pseudoChannel, timestamp_t timestamp); 
+    void handleRefAll(PseudoChannel & pseudoChannel, timestamp_t timestamp);
     void handleSelfRefreshEntry(timestamp_t timestamp);
     void handleSelfRefreshExit(timestamp_t timestamp);
-    void handleRead(Bank & bank, timestamp_t timestamp);
-    void handleWrite(Bank & bank, timestamp_t timestamp);
-    void handleReadAuto(Bank & bank, timestamp_t timestamp);
-    void handleWriteAuto(Bank & bank, timestamp_t timestamp);
     void handlePowerDownActEntry(timestamp_t timestamp);
     void handlePowerDownActExit(timestamp_t timestamp);
     void handlePowerDownPreEntry(timestamp_t timestamp);
@@ -83,25 +81,19 @@ public:
 
 // Public member variables
 public:
-    std::vector<Bank> m_banks;
-
-    struct {
-		interval_t act;
-        interval_t sref = 0;
-        interval_t powerDownAct = 0;
-        interval_t powerDownPre = 0;
-        interval_t deepSleepMode = 0;
-    } m_cycles = {};
-    struct {
-        uint64_t selfRefresh = 0;
-        uint64_t deepSleepMode = 0;
-    } m_counter = {};
-	timestamp_t m_endRefreshTime = 0;
-    commandCounter_t m_commandCounter;
-	MemState m_memState = MemState::NOT_IN_PD;
+    std::vector<PseudoChannel> m_pseudoChannels;
 
 // Private members variables
 private:
+	struct {
+		interval_t sref;
+		interval_t powerDownAct;
+		interval_t powerDownPre;
+		interval_t deepSleepMode;
+	} m_cycles;
+	struct {
+		uint64_t selfRefresh = 0;
+	} m_counter = { 0 };
     const MemSpecHBM2& m_memSpec;
     implicitCommandInserter_t m_implicitCommandInserter;
 };
