@@ -102,8 +102,8 @@ namespace DRAMPower {
     util::CLIArchitectureConfig HBM2::getCLIArchitectureConfig() {
         return util::CLIArchitectureConfig{
             m_memSpec.numberOfDevices,
-            m_memSpec.numberOfStacks, // TODO
-            m_memSpec.numberOfBanks
+            0,
+            m_memSpec.numberOfStacks * m_memSpec.numberOfBanks
         };
     }
 
