@@ -28,6 +28,7 @@ public:
     BankState bankState;
 public:
     timestamp_t latestPre = 0;
+    timestamp_t latestAutoPreFinished = 0;
     timestamp_t refreshEndTime = 0;
 
     void serialize(std::ostream& stream) const override {

@@ -79,6 +79,7 @@ void HBM2Core::handleReadAuto(PseudoChannel& pseudoChannel, Bank &bank, timestam
 
     const auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
+    bank.latestAutoPreFinished = delayed_timestamp;
     // Execute PRE after minimum active time
     m_implicitCommandInserter.addImplicitCommand(delayed_timestamp, [this, &pseudoChannel, &bank, delayed_timestamp]() {
         this->handlePre(pseudoChannel, bank, delayed_timestamp);
@@ -92,11 +93,12 @@ void HBM2Core::handleWrite(PseudoChannel&, Bank &bank, timestamp_t) {
 void HBM2Core::handleWriteAuto(PseudoChannel& pseudoChannel, Bank &bank, timestamp_t timestamp) {
     ++bank.counter.writeAuto;
 
-    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
-    auto minWriteActiveTime =  timestamp + m_memSpec.prechargeOffsetWR;
+    const auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
+    const auto minWriteActiveTime =  timestamp + m_memSpec.prechargeOffsetWR;
 
-    auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
+    const auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
 
+    bank.latestAutoPreFinished = delayed_timestamp;
     // Execute PRE after minimum active time
     m_implicitCommandInserter.addImplicitCommand(delayed_timestamp, [this, &pseudoChannel, &bank, delayed_timestamp]() {
         this->handlePre(pseudoChannel, bank, delayed_timestamp);
@@ -220,6 +222,7 @@ timestamp_t HBM2Core::earliestPossiblePowerDownEntryTime() const {
                 {entryTime,
                     0 == bank.counter.act ? 0 : bank.cycles.act.get_start() + std::max(m_memSpec.memTimingSpec.tRCDRD, m_memSpec.memTimingSpec.tRCDWR), // TODO: verify
                     0 == bank.counter.pre ? 0 : bank.latestPre + m_memSpec.memTimingSpec.tRP,
+                    (0 == bank.counter.readAuto && 0 == bank.counter.writeAuto) ? 0 : bank.latestAutoPreFinished,
                     bank.refreshEndTime});
         }
     }
