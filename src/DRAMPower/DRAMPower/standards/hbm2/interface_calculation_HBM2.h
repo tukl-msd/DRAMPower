@@ -22,6 +22,7 @@ class InterfaceCalculation_HBM2 {
     double VDD_;
 
     interface_energy_info_t calcClockEnergy(const SimulationStats &stats);
+    interface_energy_info_t calcClockEnableEnergy(const SimulationStats &stats);
     interface_energy_info_t calcDQSEnergy(const SimulationStats &stats);
     interface_energy_info_t calcDQEnergyTogglingRate(const TogglingStats &stats);
     interface_energy_info_t calcDQEnergy(const SimulationStats &stats);

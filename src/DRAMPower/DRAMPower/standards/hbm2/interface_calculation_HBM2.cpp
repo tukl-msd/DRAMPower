@@ -31,6 +31,7 @@ InterfaceCalculation_HBM2::InterfaceCalculation_HBM2(const MemSpecHBM2 &memspec)
 interface_energy_info_t InterfaceCalculation_HBM2::calculateEnergy(const SimulationStats &stats) {
     interface_energy_info_t result;
     result += calcClockEnergy(stats);
+    result += calcClockEnableEnergy(stats);
     result += calcDQSEnergy(stats);
     result += calcDQEnergyTogglingRate(stats.togglingStats);
     result += calcDQEnergy(stats);
@@ -47,6 +48,17 @@ interface_energy_info_t InterfaceCalculation_HBM2::calcClockEnergy(const Simulat
         calcStaticTermination(impedances_.ck_termination, stats.clockStats, impedances_.ck_R_eq, t_CK_, 2, VDD_); // datarate 2 -> half the time low other half high
     result.controller.dynamicEnergy =
         calc_dynamic_energy(stats.clockStats.zeroes_to_ones, impedances_.ck_dyn_E);
+
+    return result;
+}
+
+interface_energy_info_t InterfaceCalculation_HBM2::calcClockEnableEnergy(const SimulationStats &stats) {
+    interface_energy_info_t result;
+    // Pull up -> zeros
+    result.controller.staticEnergy =
+        calcStaticTermination(impedances_.cke_termination, stats.cke, impedances_.cke_R_eq, t_CK_, 2, VDD_); // datarate 2 -> half the time low other half high
+    result.controller.dynamicEnergy =
+        calc_dynamic_energy(stats.cke.zeroes_to_ones, impedances_.cke_dyn_E);
 
     return result;
 }
