@@ -1,6 +1,8 @@
 #include "HBM2Core.h"
 #include "DRAMPower/dram/Rank.h"
 
+#include <algorithm>
+
 namespace DRAMPower {
 
 HBM2Core::HBM2Core(const MemSpecHBM2& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
@@ -21,6 +23,7 @@ void HBM2Core::handlePre_impl(PseudoChannel &pseudoChannel, Bank &bank, timestam
     if (bank.bankState == Bank::BankState::BANK_PRECHARGED) return;
     bank.bankState = Bank::BankState::BANK_PRECHARGED;
     counter++;
+    bank.latestPre = timestamp;
     bank.cycles.act.close_interval(timestamp);
     if ( !pseudoChannel.isActive(timestamp) ) {
         pseudoChannel.cycles.act.close_interval(timestamp);
@@ -33,30 +36,32 @@ void HBM2Core::handlePre(PseudoChannel &pseudoChannel, Bank &bank, timestamp_t t
 
 void HBM2Core::handlePreAll(PseudoChannel &pseudoChannel, timestamp_t timestamp) {
     for (auto &bank: pseudoChannel.banks) {
-        handlePre(pseudoChannel, bank, timestamp);
+        handlePre_impl(pseudoChannel, bank, timestamp, bank.counter.pre);
     }
 }
 
 void HBM2Core::handleRefAll(PseudoChannel &pseudoChannel, timestamp_t timestamp) {
     auto timing = m_memSpec.memTimingSpec.tRFC;
     pseudoChannel.endRefreshTime = timestamp + timing;
-    pseudoChannel.cycles.act.start_interval_if_not_running(timestamp);
     for (auto& bank : pseudoChannel.banks) {
-        handleRefreshOnBank(pseudoChannel, bank, timestamp, timing, bank.counter.refAllBank); // TODO
+        // TODO: In contrast to the other standards the counter is increased when the precharge is executed
+        handleRefreshOnBank(pseudoChannel, bank, timestamp, timing, bank.counter.refAllBank);
     }
 }
 
 void HBM2Core::handleRefSingleBank(PseudoChannel &pseudoChannel, Bank & bank, timestamp_t timestamp) {
-    handleRefreshOnBank(pseudoChannel, bank, timestamp, m_memSpec.memTimingSpec.tRFC, bank.counter.refPerBank); // TODO
+    handleRefreshOnBank(pseudoChannel, bank, timestamp, m_memSpec.memTimingSpec.tRFCSB, bank.counter.refPerBank);
 }
 
 void HBM2Core::handleRefreshOnBank(PseudoChannel &pseudoChannel, Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t& counter) {
     assert(bank.bankState == Bank::BankState::BANK_ACTIVE && "Bank must be in active state for a refresh command");
-    // Refresh counter incremented at timestamp_end
+    pseudoChannel.cycles.act.start_interval_if_not_running(timestamp);
     bank.cycles.act.start_interval_if_not_running(timestamp);
 
-    // Execute implicit pre-charge at refresh end
+    // Refresh counter incremented at timestamp_end
     const auto timestamp_end = timestamp + timing;
+    bank.refreshEndTime = timestamp_end;
+    // Execute implicit pre-charge at refresh end
     m_implicitCommandInserter.addImplicitCommand(timestamp_end, [this, &bank, &pseudoChannel, timestamp_end, &counter]() {
         handlePre_impl(pseudoChannel, bank, timestamp_end, counter);
     });
@@ -196,8 +201,8 @@ void HBM2Core::handlePowerDownPreExit(timestamp_t timestamp) {
                     bank.cycles.act.start_interval(timestamp);
                 }
             }
-            if(pseudoChannel.isActive(timestamp)) { // TODO: this is not used in any other standard -> verify for correctness
-            pseudoChannel.cycles.act.start_interval(timestamp);
+            if(pseudoChannel.isActive(timestamp)) { // TODO: this is not used in any other standard -> verify
+                pseudoChannel.cycles.act.start_interval(timestamp);
             }
         });
     }
@@ -213,7 +218,7 @@ timestamp_t HBM2Core::earliestPossiblePowerDownEntryTime() const {
         for (const auto &bank : pseudoChannel.banks) {
             entryTime = std::max(
                 {entryTime,
-                    0 == bank.counter.act ? 0 : bank.cycles.act.get_start(), // TODO tRCD depends on read / write
+                    0 == bank.counter.act ? 0 : bank.cycles.act.get_start() + std::max(m_memSpec.memTimingSpec.tRCDRD, m_memSpec.memTimingSpec.tRCDWR), // TODO: verify
                     0 == bank.counter.pre ? 0 : bank.latestPre + m_memSpec.memTimingSpec.tRP,
                     bank.refreshEndTime});
         }

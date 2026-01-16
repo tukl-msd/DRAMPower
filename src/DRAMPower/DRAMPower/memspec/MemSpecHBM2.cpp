@@ -53,6 +53,8 @@ MemSpecHBM2::MemSpecHBM2(const DRAMUtils::MemSpec::MemSpecHBM2 &memspec)
     memTimingSpec.tWL      = memspec.memtimingspec.WL;
     memTimingSpec.tWR      = memspec.memtimingspec.WR;
     memTimingSpec.tRP      = memspec.memtimingspec.RP;
+    memTimingSpec.tRCDRD   = memspec.memtimingspec.RCDRD;
+    memTimingSpec.tRCDWR   = memspec.memtimingspec.RCDWR;
 
 
     auto VDD = VoltageDomain::VDD;

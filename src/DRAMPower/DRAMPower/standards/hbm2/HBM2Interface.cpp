@@ -149,7 +149,7 @@ namespace DRAMPower {
             H, H, L, V, V, V, V,
             V, V, PAR, R_BA4, H, V, V
         }));
-        // REFSB // TODO correct command?
+        // REFB
         m_patternHandler.registerPattern<CmdType::REFB>(remove_r7_middleware({
             L, L, H, BA0, BA1, BA2, R_SID1,
             V, R_SID0, PAR, R_BA4, L, BA3, V

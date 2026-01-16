@@ -92,6 +92,8 @@ public:
 		uint64_t tRFC;
 		uint64_t tRFCSB;
 		uint64_t tRP;
+		uint64_t tRCDWR;
+		uint64_t tRCDRD;
         uint64_t tBurst;
 	};
 
