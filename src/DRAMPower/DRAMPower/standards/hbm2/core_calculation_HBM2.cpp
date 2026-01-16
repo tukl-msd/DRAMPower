@@ -74,14 +74,14 @@ namespace DRAMPower {
 
                 size_t energy_offset = 0;
                 size_t bank_offset = 0;
-                for (size_t r = 0; r < m_memSpec.numberOfStacks; ++r) {
+                for (size_t r = 0; r < m_memSpec.numberOfPseudoChannels; ++r) {
                     for(size_t d = 0; d < m_memSpec.numberOfDevices; d++)
                     {
-                        energy_offset = r * m_memSpec.numberOfDevices * m_memSpec.numberOfBanks +
-                            d * m_memSpec.numberOfBanks;
+                        energy_offset = r * m_memSpec.numberOfDevices * m_memSpec.numberOfBanks * m_memSpec.numberOfStacks +
+                            d * m_memSpec.numberOfBanks * m_memSpec.numberOfStacks;
                         // Bank offset doesn't include numberOfDevices, because one device is simulated
                         // The stats only contain one device per rank
-                        bank_offset = r * m_memSpec.numberOfBanks;
+                        bank_offset = r * m_memSpec.numberOfBanks * m_memSpec.numberOfStacks;
                         for (size_t b = 0; b < m_memSpec.numberOfBanks; ++b) {
                             const auto &bank = stats.bank[bank_offset + b];
 
@@ -120,6 +120,6 @@ namespace DRAMPower {
                 }
             }
 
-                return energy;
-	}
+            return energy;
+    }
 }
