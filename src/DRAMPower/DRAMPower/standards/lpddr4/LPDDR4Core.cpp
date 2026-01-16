@@ -37,7 +37,7 @@ void LPDDR4Core::handlePreAll(Rank &rank, timestamp_t timestamp) {
 void LPDDR4Core::handleRefreshOnBank(Rank &rank, Bank &bank, timestamp_t timestamp, uint64_t timing, uint64_t &counter) {
     ++counter;
 
-    if (!rank.isActive(timestamp)) {
+    if (!rank.isActive(timestamp)) { // BUG: move below bank.cycles.act.start_interval(timestamp); // also validate in other standards
         rank.cycles.act.start_interval(timestamp);
     }
 
