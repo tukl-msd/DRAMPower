@@ -49,10 +49,10 @@ namespace DRAMPower {
         routeCoreCommand<CmdType::PREA>(coreregistrar.registerPseudoChannelHandler(&HBM2Core::handlePreAll));
         routeInterfaceCommand<CmdType::PREA>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
         
-        // REFSB // TODO
-        routeCoreCommand<CmdType::REFSB>(coreregistrar.registerBankHandler(&HBM2Core::handleRefSingleBank));
-        routeInterfaceCommand<CmdType::REFSB>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
-        // REFA  // TODO
+        // REFSB
+        routeCoreCommand<CmdType::REFB>(coreregistrar.registerBankHandler(&HBM2Core::handleRefSingleBank));
+        routeInterfaceCommand<CmdType::REFB>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
+        // REFA
         routeCoreCommand<CmdType::REFA>(coreregistrar.registerPseudoChannelHandler(&HBM2Core::handleRefAll));
         routeInterfaceCommand<CmdType::REFA>(interfaceregistrar.registerHandler(&HBM2Interface::handleRowCommandBus));
         
