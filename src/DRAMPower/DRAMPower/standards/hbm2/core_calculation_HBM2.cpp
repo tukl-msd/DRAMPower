@@ -53,7 +53,7 @@ namespace DRAMPower {
             auto DR = m_memSpec.dataRate;
             auto B = m_memSpec.numberOfBanks;
 
-            energy_t energy(m_memSpec.numberOfBanks * m_memSpec.numberOfStacks * m_memSpec.numberOfDevices);
+            energy_t energy(m_memSpec.numberOfPseudoChannels * m_memSpec.numberOfBanks * m_memSpec.numberOfStacks * m_memSpec.numberOfDevices);
 
             for (auto vd : {MemSpecHBM2::VoltageDomain::VDD, MemSpecHBM2::VoltageDomain::VPP}) {
                 auto VXX = m_memSpec.memPowerSpec[vd].vXX;

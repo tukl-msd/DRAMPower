@@ -311,7 +311,7 @@ namespace DRAMPower {
             pattern = m_patternHandler.getCommandPattern(cmd);
         }
         auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_columnCommandBus.get_width();
-        auto corrected_timestamp = cmd.timestamp + 1 - ca_length; // Command executed on last beat
+        auto corrected_timestamp = cmd.timestamp + ca_length - 1; // Command executed on last beat
         assert(corrected_timestamp >= 0 && "Invalid timestamp: Respect the command length constraints");
         assert(ca_length > 0 && "Invalid command registered in DRAMPower");
         
@@ -336,7 +336,7 @@ namespace DRAMPower {
             pattern = m_patternHandler.getCommandPattern(cmd);
         }
         auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_rowCommandBus.get_width();
-        auto corrected_timestamp = cmd.timestamp + 1 - ca_length; // Command executed on last beat
+        auto corrected_timestamp = cmd.timestamp + ca_length - 1; // Command executed on last beat
         assert(corrected_timestamp >= 0 && "Invalid timestamp for cmd. The command length must be respected");
         assert(ca_length > 0 && "Invalid command registered in DRAMPower");
 

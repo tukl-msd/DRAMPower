@@ -232,13 +232,13 @@ timestamp_t HBM2Core::earliestPossiblePowerDownEntryTime() const {
 
 void HBM2Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
     // resize banks and stacks
-    stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfStacks);
-    stats.rank_total.resize(1);
+    stats.bank.resize(m_memSpec.numberOfPseudoChannels * m_memSpec.numberOfBanks * m_memSpec.numberOfStacks);
+    stats.rank_total.resize(m_memSpec.numberOfPseudoChannels);
 
     auto simulation_duration = timestamp;
     for (size_t i = 0; i < m_memSpec.numberOfPseudoChannels; ++i) {
         const PseudoChannel &pseudoChannel = m_pseudoChannels[i];
-        size_t bank_offset = i * m_memSpec.numberOfBanks;
+        size_t bank_offset = i * m_memSpec.numberOfBanks * m_memSpec.numberOfStacks;
         for (size_t j = 0; j < m_memSpec.numberOfBanks * m_memSpec.numberOfStacks; ++j) {
             stats.bank[bank_offset + j].counter = pseudoChannel.banks[j].counter;
             stats.bank[bank_offset + j].cycles.act =
@@ -250,7 +250,7 @@ void HBM2Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) con
             stats.bank[bank_offset + j].cycles.powerDownPre =
                 m_cycles.powerDownPre.get_count_at(timestamp);
             stats.bank[bank_offset + j].cycles.pre =
-                simulation_duration - (stats.bank[j].cycles.act +
+                simulation_duration - (stats.bank[bank_offset + j].cycles.act +
                                         m_cycles.powerDownAct.get_count_at(timestamp) +
                                         m_cycles.powerDownPre.get_count_at(timestamp) +
                                         m_cycles.sref.get_count_at(timestamp));
