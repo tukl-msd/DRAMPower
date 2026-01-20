@@ -8,6 +8,8 @@ add_executable(tests_drampower
 	base/test_ddr_data.cpp
 	base/test_pattern_pre_cycles.cpp
 
+	core/HBM2/hbm2_test_pattern_0.cpp
+
 	core/DDR4/ddr4_multidevice_tests.cpp
 	core/DDR4/ddr4_multirank_tests.cpp
 	core/DDR4/ddr4_test_pattern_0.cpp
