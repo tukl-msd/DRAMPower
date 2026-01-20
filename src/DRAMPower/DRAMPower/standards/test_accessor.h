@@ -6,6 +6,7 @@
 #include "DRAMPower/standards/lpddr4/LPDDR4Core.h"
 #include "DRAMPower/standards/lpddr5/LPDDR5Core.h"
 #include "DRAMPower/standards/lpddr6/LPDDR6Core.h"
+#include "DRAMPower/standards/hbm2/HBM2Core.h"
 
 namespace DRAMPower::internal {
 
@@ -25,6 +26,7 @@ static const TestAccessor<DDR5Core> DDR5TestAccessor;
 static const TestAccessor<LPDDR4Core> LPDDR4TestAccessor;
 static const TestAccessor<LPDDR5Core> LPDDR5TestAccessor;
 static const TestAccessor<LPDDR6Core> LPDDR6TestAccessor;
+static const TestAccessor<HBM2Core> HBM2TestAccessor;
 
 #ifndef DRAMPOWER_TESTING
 #error "test-internal.h should only be included in test files"
