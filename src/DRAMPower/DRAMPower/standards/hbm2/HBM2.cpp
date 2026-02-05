@@ -91,7 +91,10 @@ namespace DRAMPower {
 
         // EOS
         routeCoreCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
-        routeInterfaceCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        routeInterfaceCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { 
+            this->endOfSimulation(cmd.timestamp);
+            m_interface.endOfSimulation(cmd.timestamp);
+        });
     }
 
     void HBM2::endOfSimulation(timestamp_t) {

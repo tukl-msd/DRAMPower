@@ -4,11 +4,13 @@
 #include "DRAMPower/command/Pattern.h"
 #include "DRAMPower/memspec/MemSpecHBM2.h"
 #include "DRAMPower/util/clock.h"
+#include "DRAMPower/util/pin.h"
 #include "DRAMPower/util/pin_types.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <initializer_list>
+#include <iostream>
 
 namespace DRAMPower {
 
@@ -64,6 +66,7 @@ namespace DRAMPower {
     , m_memSpec(memSpec)
     , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
         [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
+            std::cout << "Toggle DBI PIN load_timestamp: " << load_timestamp << ",chunk_timestamp: " << chunk_timestamp << ",Pin: " << pin << ",State: " << inversion_state << ",Read: " << read << "\n";
         this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
     }, false)
     , m_dbiread(m_dbi.getChunksPerWidth().value(), util::Pin{m_dbi.getIdlePattern()})
@@ -397,10 +400,11 @@ namespace DRAMPower {
         handleColumnCommandBus(cmd);
     }
 
-    void HBM2Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
-        // Reset the DBI interface pins to idle state
-        m_dbi.dispatchResetCallback(timestamp * m_memSpec.dataRate);
+    void HBM2Interface::endOfSimulation(timestamp_t timestamp) {
+        m_dbi.dispatchResetCallback(timestamp);
+    }
 
+    void HBM2Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
         stats.commandBus += 
             m_columnCommandBus.get_stats(timestamp)
             + m_rowCommandBus.get_stats(timestamp);
@@ -424,11 +428,24 @@ namespace DRAMPower {
         // single line stored in stats
         // differential power calculated in interface calculation
         stats.clockStats += 2u * m_clock.get_stats_at(timestamp);
+
+        auto pinTempChangeCreator = [this] (bool read, timestamp_t timestamp, util::PinState idlePinState) -> std::optional<util::PinTempChange> {
+            auto burstend = m_dbi.getLastBurstEnd(read);
+            if (burstend && *burstend < timestamp * m_memSpec.dataRate) {
+                return util::PinTempChange {
+                    *burstend,
+                    idlePinState
+                };
+            }
+            return std::nullopt;
+        };
+        auto burstEndRead = pinTempChangeCreator(true, timestamp, m_dbi.getIdlePattern());
+        auto burstEndWrite = pinTempChangeCreator(false, timestamp, m_dbi.getIdlePattern());
         for (const auto &dbi_pin : m_dbiread) {
-            stats.readDBI += dbi_pin.get_stats_at(timestamp, 2);
+            stats.readDBI += dbi_pin.get_stats_at(timestamp, 2, burstEndRead);
         }
         for (const auto &dbi_pin : m_dbiwrite) {
-            stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2);
+            stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2, burstEndWrite);
         }
 
         stats.cke += m_cke.get_stats_at(timestamp);

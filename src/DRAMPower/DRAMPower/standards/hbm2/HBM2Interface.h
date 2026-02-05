@@ -81,6 +81,8 @@ public:
     void handleRowCommandBus(const Command& cmd);
     void handleData(const Command &cmd, bool read);
 
+    void endOfSimulation(timestamp_t timestamp);
+
     void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
     void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
     timestamp_t updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition);
