@@ -228,6 +228,14 @@ public:
         return m_lastBurst_write.entries();
     }
 
+    std::optional<timestamp_t> getLastBurstEnd(bool read) const {
+        const auto& lastBurst = read ? m_lastBurst_read : m_lastBurst_write;
+        if (lastBurst.isInitialized()) {
+            return read ? m_lastBurst_read.end() : m_lastBurst_write.end();
+        }
+        return std::nullopt;
+    }
+
     std::optional<std::size_t> getChunksPerWidth() const {
         return m_width.has_value() ? std::optional<std::size_t>(m_width.value() / ChunkSize) : std::nullopt;
     }
@@ -255,11 +263,14 @@ public:
         assert(0 == (n_bits % DATATYPEDIGITS) && "n_bits must be a multiple of DATATYPEDIGITS");
         std::size_t entries_needed = n_bits / DATATYPEDIGITS;
 
-        // Create previousIterator from last burst
-        auto previous_iterator = createPreviousIterator(timestamp, m_lastBurst);
+        // Save lastBeat for seamless Bursts
+        saveLastBurst(timestamp, m_lastBurst);
 
         // SAFETY: the assigning is necessary so there are no data copies during dbi calculation
         m_invertedData.assign(data, data + entries_needed);
+
+        // Create previousIterator from last burst
+        auto previous_iterator = createPreviousIterator(timestamp, m_lastBurst);
 
         // Process each chunk independently
         assert(n_bits % ChunkSize == 0); // Ensure n_bits is a multiple of chunk size
@@ -306,7 +317,7 @@ public:
         return m_lastBurst.chunks() * SUBCHUNKS;
     }
 
-    void dispatchResetCallback(timestamp_t timestamp) const {
+    void dispatchResetCallback(timestamp_t timestamp) {
         dispatchResetCallback(timestamp, true);
         dispatchResetCallback(timestamp, false);
     }
@@ -346,7 +357,7 @@ public:
 
 // Private member functions
 private:
-    AlgorithmPreviousOptional_t createPreviousIterator(timestamp_t timestamp, LastBurst_t& m_lastBurst) {
+    void saveLastBurst(timestamp_t timestamp, LastBurst_t& m_lastBurst) {
         if (m_lastBurst.m_init && m_lastBurst.end() == timestamp && m_width.has_value() // seamless burst and busWidth provided
             && m_lastBurst.beats() != 0 && m_invertedData.size() > m_width.value() / DATATYPEDIGITS) // at least one beat is required
         {
@@ -355,6 +366,14 @@ private:
             std::size_t n_subChunks = m_width.value() / DATATYPEDIGITS;
             m_lastBurst.m_lastbeat.resize(n_subChunks);
             std::copy(m_invertedData.end() - n_subChunks, m_invertedData.end(), m_lastBurst.m_lastbeat.begin());
+        }
+    }
+
+    AlgorithmPreviousOptional_t createPreviousIterator(timestamp_t timestamp, LastBurst_t& m_lastBurst) {
+        if (m_lastBurst.m_init && m_lastBurst.end() == timestamp && m_width.has_value() // seamless burst and busWidth provided
+            && m_lastBurst.beats() != 0 && m_invertedData.size() > m_width.value() / DATATYPEDIGITS) // at least one beat is required
+        {
+            assert(0 <= (m_invertedData.size() - (m_width.value() / DATATYPEDIGITS)) && "Invalid m_invertedData size");
             // Create concat iterator of lastburst and current burst
             return std::make_optional<AlgorithmPrevious_t>(std::make_tuple<AlgorithmPreviousConcat_t, AlgorithmPreviousConcat_t>(
                 AlgorithmPreviousConcat_t{m_lastBurst.m_lastbeat.begin(), m_lastBurst.m_lastbeat.end(), m_invertedData.begin()},
@@ -398,9 +417,9 @@ private:
         }
     }
 
-    void dispatchResetCallback(timestamp_t timestamp, bool read) const {
+    void dispatchResetCallback(timestamp_t timestamp, bool read) {
         const auto &m_lastBurst = read ? m_lastBurst_read : m_lastBurst_write;
-        const auto &lastInvert = read ? m_lastBurst_read.getInversionState() : m_lastBurst_write.getInversionState();
+        auto &lastInvert = read ? m_lastBurst_read.getInversionState() : m_lastBurst_write.getInversionState();
          // Ensure there is at least one chunk in the last inversion
         assert(!m_lastBurst.m_init || (!getChunksPerWidth().has_value() || m_lastBurst.chunks() >= getChunksPerWidth().value()));
         if (!m_lastBurst.m_init) {
@@ -432,6 +451,8 @@ private:
                         // Reset the inversion state
                         m_changeCallback(timestamp, t, chunk_idx, false, read);
                     }
+                    // Reset the inversion state for next pin updates
+                    lastInvert[chunk] = false;
                 }
             } else {
                 // TODO split the callbacks in dedicated update / reset callbacks?
@@ -442,6 +463,8 @@ private:
                     if (lastInvert[chunk]) {
                         m_changeCallback(timestamp, t, chunk, false, read);
                     }
+                    // Reset the inversion state for next updates
+                    lastInvert[chunk] = false;
                 }
             }
         }
