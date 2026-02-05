@@ -108,6 +108,7 @@ add_executable(tests_drampower
 	interface/test_togglingrate_lpddr4.cpp
 	interface/test_togglingrate_lpddr5.cpp
 
+	interface/test_dbi_hbm2.cpp
 	interface/test_dbi_ddr4.cpp
 	interface/test_dbi_lpddr4.cpp
 	interface/test_dbi_lpddr5.cpp
