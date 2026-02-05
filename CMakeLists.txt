@@ -135,7 +135,8 @@ if (DRAMPOWER_USE_FETCH_CONTENT)
     if (DRAMPOWER_USE_FETCH_CONTENT_INTERNAL)
         FetchContent_Declare(
             DRAMUtils
-            URL "https://github.com/tukl-msd/DRAMUtils/archive/refs/tags/v1.12.1.tar.gz"
+            GIT_REPOSITORY "https://github.com/tukl-msd/DRAMUtils.git"
+            GIT_TAG "feat/hbm2_drampower"
             OVERRIDE_FIND_PACKAGE
         )
 
