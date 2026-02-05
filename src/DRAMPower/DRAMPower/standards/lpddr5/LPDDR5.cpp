@@ -103,7 +103,11 @@ namespace DRAMPower {
         routeInterfaceCommand<CmdType::DSMEX>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
         // EOS
         getCommandCoreRouter().routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
-        getCommandInterfaceRouter().routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
+        getCommandInterfaceRouter().routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) {
+            this->endOfSimulation(cmd.timestamp);
+            m_interface.endOfSimulation(cmd.timestamp);
+        });
+        
     }
 
     void LPDDR5::endOfSimulation(timestamp_t) {
