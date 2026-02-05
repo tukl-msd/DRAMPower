@@ -72,6 +72,7 @@ public:
         RankInterface &     rank,
         bool                read
     );
+    void endOfSimulation(timestamp_t timestamp);
     
     void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
     void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
