@@ -347,10 +347,11 @@ namespace DRAMPower {
         handlePrePostamble(cmd.timestamp, length / m_memSpec.dataRate, rank, read);
     }
 
-    void DDR4Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
-        // Reset the DBI interface pins to idle state
-        m_dbi.dispatchResetCallback(timestamp * m_memSpec.dataRate);
+    void DDR4Interface::endOfSimulation(timestamp_t timestamp) {
+        m_dbi.dispatchResetCallback(timestamp);
+    }
 
+    void DDR4Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
         // DDR4 x16 have 2 DQs differential pairs
         uint_fast8_t NumDQsPairs = 1;
         if(m_memSpec.bitWidth == 16) {
@@ -382,11 +383,24 @@ namespace DRAMPower {
         stats.clockStats = 2u * m_clock.get_stats_at(timestamp);
         stats.readDQSStats = NumDQsPairs * 2u * m_readDQS.get_stats_at(timestamp);
         stats.writeDQSStats = NumDQsPairs * 2u * m_writeDQS.get_stats_at(timestamp);
+
+        auto pinTempChangeCreator = [this] (bool read, timestamp_t timestamp, util::PinState idlePinState) -> std::optional<util::PinTempChange> {
+            auto burstend = m_dbi.getLastBurstEnd(read);
+            if (burstend && *burstend < timestamp * m_memSpec.dataRate) {
+                return util::PinTempChange {
+                    *burstend,
+                    idlePinState
+                };
+            }
+            return std::nullopt;
+        };
+        auto burstEndRead = pinTempChangeCreator(true, timestamp, m_dbi.getIdlePattern());
+        auto burstEndWrite = pinTempChangeCreator(false, timestamp, m_dbi.getIdlePattern());
         for (const auto &dbi_pin : m_dbiread) {
-            stats.readDBI += dbi_pin.get_stats_at(timestamp, 2);
+            stats.readDBI += dbi_pin.get_stats_at(timestamp, 2, burstEndRead);
         }
         for (const auto &dbi_pin : m_dbiwrite) {
-            stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2);
+            stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2, burstEndWrite);
         }
     }
 

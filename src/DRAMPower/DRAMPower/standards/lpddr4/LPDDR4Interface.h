@@ -66,6 +66,7 @@ public:
     void handleDQs(const Command& cmd, util::Clock &dqs, size_t length);
     void handleCommandBus(const Command& cmd);
     void handleData(const Command &cmd, bool read);
+    void endOfSimulation(timestamp_t timestamp);
 
     void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
     void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
