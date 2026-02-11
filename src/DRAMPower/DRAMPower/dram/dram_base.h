@@ -2,7 +2,6 @@
 #define DRAMPOWER_DRAM_DRAM_BASE_H
 
 #include <DRAMPower/command/Command.h>
-#include <DRAMPower/command/Pattern.h>
 
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/data/stats.h>
@@ -38,8 +37,6 @@ public:
     using commandEnum_t = CommandEnum;
     using commandCount_t = std::vector<std::size_t>;
     using commandRouter_t = Router<commandEnum_t>;
-    // PatternHandler
-    using patternHandler_t = PatternHandler<commandEnum_t>;
     // ImplicitCommandHandler
     using ImplicitCommandHandler_t = ImplicitCommandHandler;
     using implicitCommandInserter_t = typename ImplicitCommandHandler::Inserter_t;
