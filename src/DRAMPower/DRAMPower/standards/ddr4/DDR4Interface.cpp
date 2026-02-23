@@ -29,8 +29,8 @@ namespace DRAMPower {
         [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
         this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
     }, false)
-    , m_dbiread(m_dbi.getChunksPerWidth().value(), util::Pin{m_dbi.getIdlePattern()})
-    , m_dbiwrite(m_dbi.getChunksPerWidth().value(), util::Pin{m_dbi.getIdlePattern()})
+    , m_dbiread(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern()})
+    , m_dbiwrite(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern()})
     , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
     , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
     , m_ranks(memSpec.numberOfRanks)
@@ -189,11 +189,11 @@ namespace DRAMPower {
 
     void DDR4Interface::handleDBIPinChange(const timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool state, bool read) {
         assert(pin < m_dbiread.size() || pin < m_dbiwrite.size());
-        auto updatePinCallback = [this, chunk_timestamp, pin, state, read](){
+        auto updatePinCallback = [this, load_timestamp, pin, state, read](){
             if (read) {
-                this->m_dbiread[pin].set(chunk_timestamp, state ? util::PinState::L : util::PinState::H, 1);
+                this->m_dbiread[pin].set(load_timestamp, state ? util::PinState::L : util::PinState::H, 1);
             } else {
-                this->m_dbiwrite[pin].set(chunk_timestamp, state ? util::PinState::L : util::PinState::H, 1);
+                this->m_dbiwrite[pin].set(load_timestamp, state ? util::PinState::L : util::PinState::H, 1);
             }
         };
 
@@ -384,23 +384,11 @@ namespace DRAMPower {
         stats.readDQSStats = NumDQsPairs * 2u * m_readDQS.get_stats_at(timestamp);
         stats.writeDQSStats = NumDQsPairs * 2u * m_writeDQS.get_stats_at(timestamp);
 
-        auto pinTempChangeCreator = [this] (bool read, timestamp_t timestamp, util::PinState idlePinState) -> std::optional<util::PinTempChange> {
-            auto burstend = m_dbi.getLastBurstEnd(read);
-            if (burstend && *burstend < timestamp * m_memSpec.dataRate) {
-                return util::PinTempChange {
-                    *burstend,
-                    idlePinState
-                };
-            }
-            return std::nullopt;
-        };
-        auto burstEndRead = pinTempChangeCreator(true, timestamp, m_dbi.getIdlePattern());
-        auto burstEndWrite = pinTempChangeCreator(false, timestamp, m_dbi.getIdlePattern());
         for (const auto &dbi_pin : m_dbiread) {
-            stats.readDBI += dbi_pin.get_stats_at(timestamp, 2, burstEndRead);
+            stats.readDBI += dbi_pin.get_stats_at(timestamp, 2);
         }
         for (const auto &dbi_pin : m_dbiwrite) {
-            stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2, burstEndWrite);
+            stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2);
         }
     }
 

@@ -36,6 +36,7 @@ public:
 // Public type definitions
 public:
     using commandbus_t = util::Bus<cmdBusWidth>;
+    using pin_dbi_t = util::Pin<64>;
     using databus_t = util::databus_presets::databus_preset_t;
     using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
     using patternHandler_t = PatternHandler<CmdType>;
@@ -95,8 +96,8 @@ private:
     const MemSpecDDR4& m_memSpec;
 public:
     util::DBI<uint8_t, 1, util::PinState::H, util::StaticDBI> m_dbi;
-    std::vector<util::Pin> m_dbiread;
-    std::vector<util::Pin> m_dbiwrite;
+    std::vector<pin_dbi_t> m_dbiread;
+    std::vector<pin_dbi_t> m_dbiwrite;
     uint64_t prepostambleReadMinTccd;
     uint64_t prepostambleWriteMinTccd;
     std::vector<RankInterface> m_ranks;
