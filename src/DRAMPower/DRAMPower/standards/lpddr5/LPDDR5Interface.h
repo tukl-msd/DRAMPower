@@ -36,6 +36,7 @@ public:
 // Public type definitions
 public:
     using commandbus_t = util::Bus<cmdBusWidth>;
+    using pin_dbi_t = util::Pin<64>;
     using databus_t = util::databus_presets::databus_preset_t;
     using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
     using patternHandler_t = PatternHandler<CmdType>;
@@ -89,8 +90,8 @@ private:
     const MemSpecLPDDR5& m_memSpec;
 public:
     util::DBI<uint8_t, 1, util::PinState::L, util::StaticDBI> m_dbi;
-    std::vector<util::Pin> m_dbiread;
-    std::vector<util::Pin> m_dbiwrite;
+    std::vector<pin_dbi_t> m_dbiread;
+    std::vector<pin_dbi_t> m_dbiwrite;
 
 // Private member variables
 private:

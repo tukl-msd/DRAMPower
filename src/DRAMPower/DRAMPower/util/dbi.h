@@ -392,27 +392,14 @@ private:
     }
 
     void dispatchCallback(timestamp_t timestamp, std::size_t chunk, bool invert_chunk, bool read) {
-        auto &lastInvert = read ? m_lastBurst_read.getInversionState() : m_lastBurst_write.getInversionState();
-        auto &m_lastBurst = read ? m_lastBurst_read : m_lastBurst_write;
         std::optional<std::size_t> chunks_per_width = getChunksPerWidth();
         if (nullptr != m_changeCallback) {
             if (!chunks_per_width.has_value()) {
                 m_changeCallback(timestamp, timestamp, chunk, invert_chunk, read);
             } else {
                 std::size_t beat_idx = chunk % chunks_per_width.value();
-            
-                assert(0 == (m_lastBurst.chunks() % chunks_per_width.value()) && "Last inversion size is no multiple of chunks per width");
-                bool previous_state = (chunk >= chunks_per_width.value()) // Check for current burst
-                    ? lastInvert[chunk - chunks_per_width.value()] // Compare in current burst
-                    : chunk < m_lastBurst.chunks() // Check if last burst was big enough
-                        ? lastInvert[m_lastBurst.chunks() - chunks_per_width.value() + chunk] // Compare with last burst
-                        : false; // Default to false if no comparison is possible
-
-                // Dispatch callback if inversion state changed
-                if (previous_state != invert_chunk) {
-                    timestamp_t t = timestamp + (chunk / chunks_per_width.value());
-                    m_changeCallback(timestamp, t, beat_idx, invert_chunk, read);
-                }
+                timestamp_t t = timestamp + (chunk / chunks_per_width.value());
+                m_changeCallback(timestamp, t, beat_idx, invert_chunk, read);
             }
         }
     }
