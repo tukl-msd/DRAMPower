@@ -10,6 +10,9 @@
 
 using namespace DRAMPower;	
 
+template <std::size_t n>
+using burst_storage_t = util::burst_storage<util::BusContainer<n>>;
+
 class MiscTest : public ::testing::Test {
 protected:
     // Test variables
@@ -82,9 +85,9 @@ TEST_F(MiscTest, TestChunking)
 
 	// Test setup
 	constexpr std::size_t width = 6;
-	util::burst_storage<width> burst_storage{width};
+	burst_storage_t<width> burst_storage{width};
 
-	burst_storage.insert_data(data.data(), data.size() * 8);
+	util::BurstStorageInsertHelper::insert_data(burst_storage, 0, width, data.data(), data.size() * 8);
 
 	// Test assertions
 	ASSERT_EQ(burst_storage.size(), 16);
@@ -116,9 +119,9 @@ TEST_F(MiscTest, TestBurstLoad_Uneven)
 
 	// Test setup
 	constexpr std::size_t width = 4;
-	util::burst_storage<width> burst_storage{width};
+	burst_storage_t<width> burst_storage{width};
 
-	burst_storage.insert_data(data.data(), 12);
+	util::BurstStorageInsertHelper::insert_data(burst_storage, 0, width, data.data(), 12);
 
 	// Test assertions
 	ASSERT_EQ(burst_storage.size(), 3);

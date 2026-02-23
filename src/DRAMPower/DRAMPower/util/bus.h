@@ -38,10 +38,11 @@ private:
 
 public:
 	
-	using burst_storage_t = util::burst_storage<max_bitset_size>;
+	using burst_storage_t = util::burst_storage<BusContainer<max_bitset_size>>;
 	using burst_t = typename burst_storage_t::burst_t;
+	using stats_t = bus_stats_t;
 
-	bus_stats_t stats;
+	stats_t stats;
 
 private:
 	burst_storage_t burst_storage;
@@ -53,7 +54,7 @@ private:
 	const uint64_t datarate = 1;
 	bool init_load = false;
 	
-	PendingStats<bus_stats_t> pending_stats;
+	PendingStats<stats_t> pending_stats;
 	
 	std::optional<burst_t> last_pattern;
 
@@ -151,7 +152,7 @@ private:
 	void add_data(timestamp_t virtual_timestamp, const uint8_t * data, std::size_t n_bits)
 	{
 		// Add new burst to storage
-		this->burst_storage.insert_data(data, n_bits);
+		BurstStorageInsertHelper::insert_data(this->burst_storage, virtual_timestamp, width, data, n_bits);
 
 		// Adjust statistics for new data
 		this->pending_stats.setPendingStats(virtual_timestamp, diff(
@@ -322,7 +323,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 	size_t get_width() const { return width; };
 
 	// Get stats not including timestamp t
-	bus_stats_t get_stats(timestamp_t timestamp) const 
+	stats_t get_stats(timestamp_t timestamp) const 
 	{
 
 		timestamp_t t_virtual = timestamp * this->datarate;
@@ -351,6 +352,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 
 		// Advance stats to new timestamp if enabled
 		if (this->enableflag) {
+			// stats += burst_storage.count(this->last_load, t_virtual - 1);
 			for (auto n = this->last_load; n < t_virtual - 1; n++) {
 				stats += diff(this->at(n), this->at(n + 1)); // Last: (timestamp - 2, timestamp - 1)
 			}
@@ -359,8 +361,8 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		return stats;
 	};
 
-	bus_stats_t diff(std::optional<burst_t> high, std::optional<burst_t> low) const {
-		bus_stats_t stats;
+	stats_t diff(std::optional<burst_t> high, std::optional<burst_t> low) const {
+		stats_t stats;
 		if(low.has_value())
 		{
 			stats.ones += util::BinaryOps::popcount(low.value());
@@ -376,7 +378,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		return stats;
 	};
 
-	bus_stats_t diff(std::optional<burst_t> high, burst_t low) const {
+	stats_t diff(std::optional<burst_t> high, burst_t low) const {
 		return diff(high, std::make_optional(low));
 	};
 
