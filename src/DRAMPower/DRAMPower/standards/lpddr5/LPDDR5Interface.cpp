@@ -24,8 +24,8 @@ LPDDR5Interface::LPDDR5Interface(const MemSpecLPDDR5& memSpec, implicitCommandIn
     , m_wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
     , m_memSpec(memSpec)
     , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
-        [this](timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool inversion_state, bool read) {
-        this->handleDBIPinChange(load_timestamp, chunk_timestamp, pin, inversion_state, read);
+        [this](timestamp_t load_timestamp, timestamp_t, std::size_t pin, bool inversion_state, bool read) {
+        this->handleDBIPinChange(load_timestamp, pin, inversion_state, read);
     }, false)
     , m_dbiread(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern()})
     , m_dbiwrite(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern()})
@@ -282,22 +282,12 @@ timestamp_t LPDDR5Interface::updateTogglingRate(timestamp_t timestamp, const std
     return timestamp;
 }
 
-void LPDDR5Interface::handleDBIPinChange(const timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool state, bool read) {
+void LPDDR5Interface::handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read) {
     assert(pin < m_dbiread.size() || pin < m_dbiwrite.size());
-    auto updatePinCallback = [this, load_timestamp, pin, state, read](){
-        if (read) {
-            this->m_dbiread[pin].set(load_timestamp, state ? util::PinState::H : util::PinState::L, 1);
-        } else {
-            this->m_dbiwrite[pin].set(load_timestamp, state ? util::PinState::H : util::PinState::L, 1);
-        }
-    };
-
-    if (chunk_timestamp > load_timestamp) {
-        // Schedule the pin state change
-        m_implicitCommandInserter.addImplicitCommand(chunk_timestamp / m_memSpec.dataRate, updatePinCallback);
+    if (read) {
+        this->m_dbiread[pin].set(load_timestamp, state ? util::PinState::H : util::PinState::L, 1);
     } else {
-        // chunk_timestamp <= load_timestamp
-        updatePinCallback();
+        this->m_dbiwrite[pin].set(load_timestamp, state ? util::PinState::H : util::PinState::L, 1);
     }
 }
 
