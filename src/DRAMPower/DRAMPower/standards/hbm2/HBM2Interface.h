@@ -42,6 +42,10 @@ public:
     using columnCommandbus_t = util::Bus<maxColumnCmdBusWidth>;
     using rowCommandbus_t = util::Bus<maxRowCmdBusWidth>;
 
+    using pin_dbi_t = util::Pin<64>;
+
+    using pin_cke_t = util::Pin<1>;
+
     using databus_t = util::databus_presets::databus_preset_t;
     struct databusContainer_t {
         databus_t m_dataBus;
@@ -67,7 +71,7 @@ public:
 private:
     void registerPatterns();
     std::optional<const uint8_t *> handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
-    void handleDBIPinChange(const timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool state, bool read);
+    void handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read);
     static std::size_t getRowWidth(const MemSpecHBM2& memSpec);
     static std::size_t getColumnWidth(const MemSpecHBM2& memSpec);
 
@@ -97,15 +101,15 @@ public:
 public:
     columnCommandbus_t m_columnCommandBus;
     rowCommandbus_t m_rowCommandBus;
-    util::Pin m_cke;
+    pin_cke_t m_cke;
     std::vector<databusContainer_t> m_dataBus;
     util::Clock m_clock;
 private:
     const MemSpecHBM2& m_memSpec;
 public:
     util::DBI<uint8_t, 1, util::PinState::H, util::DynamicDBI<4>> m_dbi;
-    std::vector<util::Pin> m_dbiread;
-    std::vector<util::Pin> m_dbiwrite;
+    std::vector<pin_dbi_t> m_dbiread;
+    std::vector<pin_dbi_t> m_dbiwrite;
 
 // Private member variables
 private:
