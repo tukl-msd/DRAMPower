@@ -56,7 +56,7 @@ public:
 private:
     void registerPatterns();
     std::optional<const uint8_t *> handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
-    void handleDBIPinChange(const timestamp_t load_timestamp, timestamp_t chunk_timestamp, std::size_t pin, bool state, bool read);
+    void handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read);
 
 // Public member functions
 public:
