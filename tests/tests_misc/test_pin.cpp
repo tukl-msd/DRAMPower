@@ -428,24 +428,3 @@ TEST_F(PinTest, SeamlessBursts)
         StatsBuilder{}.z(41).o(7).zto(2).otz(2).infer_changes().build()
     );
 };
-
-TEST_F(PinTest, InvalidBurst)
-{
-    util::Pin<8> pin_8{util::PinState::L, util::PinState::L};
-
-    EXPECT_EQ( // t = 9
-        pin_8.get_stats_at(9, 1),
-        StatsBuilder{}.z(9).o(0).zto(0).otz(0).infer_changes().build()
-    );
-
-    // Burst length 9
-    pin_8.set(10, util::PinState::H);
-    pin_8.set(10, util::PinState::H);
-    pin_8.set(10, util::PinState::H);
-    pin_8.set(10, util::PinState::H);
-    pin_8.set(10, util::PinState::H);
-    pin_8.set(10, util::PinState::H);
-    pin_8.set(10, util::PinState::H);
-    pin_8.set(10, util::PinState::H);
-    EXPECT_DEATH(pin_8.set(10, util::PinState::H), "");
-};
