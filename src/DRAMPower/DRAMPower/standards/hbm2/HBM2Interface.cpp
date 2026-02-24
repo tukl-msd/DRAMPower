@@ -40,7 +40,7 @@ namespace DRAMPower {
         util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
     , m_rowCommandBus{getRowWidth(memSpec), memSpec.dataRate,
         util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
-    , m_cke(util::PinState::H)
+    , m_cke(util::PinState::H, util::PinState::H)
     , m_dataBus{memSpec.numberOfPseudoChannels, {
         util::databus_presets::getDataBusPreset(
             memSpec.bitWidth * memSpec.numberOfDevices,
@@ -69,8 +69,8 @@ namespace DRAMPower {
             std::cout << "Toggle DBI PIN load_timestamp: " << load_timestamp << ",chunk_timestamp: " << chunk_timestamp << ",Pin: " << pin << ",State: " << inversion_state << ",Read: " << read << "\n";
         this->handleDBIPinChange(load_timestamp, pin, inversion_state, read);
     }, false)
-    , m_dbiread(m_dbi.getChunksPerWidth().value(),  pin_dbi_t{m_dbi.getIdlePattern()})
-    , m_dbiwrite(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern()})
+    , m_dbiread(m_dbi.getChunksPerWidth().value(),  pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
+    , m_dbiwrite(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
     , m_patternHandler(PatternEncoderOverrides {
         {pattern_descriptor::V, PatternEncoderBitSpec::H},
         {pattern_descriptor::C0, PatternEncoderBitSpec::H},
