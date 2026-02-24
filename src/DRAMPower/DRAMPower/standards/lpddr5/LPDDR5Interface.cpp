@@ -27,8 +27,8 @@ LPDDR5Interface::LPDDR5Interface(const MemSpecLPDDR5& memSpec, implicitCommandIn
         [this](timestamp_t load_timestamp, timestamp_t, std::size_t pin, bool inversion_state, bool read) {
         this->handleDBIPinChange(load_timestamp, pin, inversion_state, read);
     }, false)
-    , m_dbiread(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern()})
-    , m_dbiwrite(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern()})
+    , m_dbiread(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
+    , m_dbiwrite(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
     , m_patternHandler(PatternEncoderOverrides{}) // No overrides
     , m_implicitCommandInserter(std::move(implicitCommandInserter))
 {
