@@ -351,8 +351,8 @@ public:
         impl_t::push_back(m_bursts, load_time, burst);
 	}
 
-    inline decltype(auto) count(timestamp_t start, timestamp_t end) const {
-        return impl_t::count(m_bursts, start, end);
+    inline decltype(auto) count(timestamp_t start, timestamp_t end, std::optional<burst_t> prev = std::nullopt) const {
+        return impl_t::count(m_bursts, start, end, prev);
     }
 
 	inline burst_t& get_or_add(std::size_t index) {

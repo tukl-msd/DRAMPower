@@ -46,8 +46,8 @@ public:
 
 // Constructor
 public:
-    explicit Pin(PinState idlestate)
-        : m_last_state(idlestate)
+    explicit Pin(PinState initstate, PinState idlestate)
+        : m_last_state(initstate)
         , m_idle_state(idlestate)
     {}
 
@@ -104,16 +104,18 @@ private:
         }
 
         // Add duration of state
-        switch (state) {
-            case PinState::L:
-                stats.zeroes += end - start;
-                break;
-            case PinState::H:
-                stats.ones += end - start;
-                break;
-            case PinState::Z:
-                // Nothing to do
-                break;
+        if (end > start) {
+            switch (state) {
+                case PinState::L:
+                    stats.zeroes += end - start;
+                    break;
+                case PinState::H:
+                    stats.ones += end - start;
+                    break;
+                case PinState::Z:
+                    // Nothing to do
+                    break;
+            }
         }
     }
     void set_internal(timestamp_t t, std::size_t dataRate, PendingStats<PinPendingStats> pending_stats, pin_stats_t &stats) const {
@@ -123,6 +125,12 @@ private:
         // }
         timestamp_t virtual_time = t * dataRate;
         assert(virtual_time >= m_last_set);
+
+        // Count init transition
+        if (m_init_load && (0 < virtual_time)) {
+            stats += getPinChangeStats(m_last_state, m_idle_state);
+        }
+
         // count stats
         addPendingStats(virtual_time, pending_stats, stats);
         count(virtual_time, m_last_set, m_idle_state, stats);
@@ -133,7 +141,7 @@ public:
     // The timestamp t is relative to the clock frequency
     void set(timestamp_t load_time, PinState state, std::size_t dataRate = 1) {
         timestamp_t virtual_load_time  = load_time * dataRate;
-        
+
         // Count stats to virtual_load_time
         set_internal(virtual_load_time, dataRate, m_pending_stats, m_stats);
         if (m_pending_stats.isPending() && m_pending_stats.getTimestamp() < virtual_load_time) {
@@ -141,13 +149,16 @@ public:
         }
 
 
-        if (m_last_set != virtual_load_time) {
+        if ((m_last_set != virtual_load_time) || m_init_load) {
             // New Burst
-            PinState laststate = m_idle_state;
-            // If seamless
-            if (load_time == m_last_set + m_burst_storage.size()) {
-                laststate = m_last_state;
-            }
+            const PinState& laststate =  [this, virtual_load_time](){
+                if ((virtual_load_time == m_last_set + m_burst_storage.size())
+                    || (m_init_load && (0 == virtual_load_time))) {
+                    // seamless or first load
+                    return m_last_state;
+                }
+                return m_idle_state;
+            }();
             m_pending_stats.setPendingStats(virtual_load_time, {
                 laststate, // From state
                 state // New state
@@ -157,6 +168,7 @@ public:
 
         m_last_set = virtual_load_time;
         m_last_state = state;
+        m_init_load = false;
     }
 
     // The timestamp t is relative to the clock frequency
@@ -166,9 +178,16 @@ public:
         if (virtual_time == m_last_set) {
             return m_stats;
         }
+        // virtual_time > m_last_set
+
+    
         // Add stats from m_last_set to t
         auto stats = m_stats;
-        // virtual_time > m_last_set
+
+        // Init stats
+        if (m_init_load && (0 < virtual_time)) {
+            stats += getPinChangeStats(m_last_state, m_idle_state);
+        }
 
         addPendingStats(virtual_time, m_pending_stats, stats);
         count(virtual_time, m_last_set, m_idle_state, stats);
@@ -181,6 +200,7 @@ public:
     void serialize(std::ostream &stream) const override  {
         stream.write(reinterpret_cast<const char *>(&m_last_state), sizeof(m_last_state));
         stream.write(reinterpret_cast<const char *>(&m_last_set), sizeof(m_last_set));
+        stream.write(reinterpret_cast<const char *>(&m_init_load), sizeof(m_init_load));
         m_burst_storage.serialize(stream);
         m_pending_stats.serialize(stream);
         m_stats.serialize(stream);
@@ -188,6 +208,7 @@ public:
     void deserialize(std::istream &stream) override  {
         stream.read(reinterpret_cast<char *>(&m_last_state), sizeof(m_last_state));
         stream.read(reinterpret_cast<char *>(&m_last_set), sizeof(m_last_set));
+        stream.read(reinterpret_cast<char *>(&m_init_load), sizeof(m_init_load));
         m_burst_storage.deserialize(stream);
         m_pending_stats.deserialize(stream);
         m_stats.deserialize(stream);
@@ -200,7 +221,9 @@ private:
     pin_stats_t m_stats;
 
     PinState m_last_state = PinState::Z;
-    PinState m_idle_state = PinState::L;
+    const PinState m_idle_state = PinState::L;
+
+    bool m_init_load = true;
 
     timestamp_t m_last_set = 0;
     burst_storage_t m_burst_storage{};
