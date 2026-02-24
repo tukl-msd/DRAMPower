@@ -5,6 +5,7 @@
 add_executable(tests_misc
 	test_bus_extended.cpp
 	test_bus.cpp
+	test_pin.cpp
 	test_clock.cpp
 	test_dynamic_bitset.cpp
 	test_interval.cpp
