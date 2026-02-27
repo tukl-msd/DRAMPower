@@ -36,7 +36,7 @@ public:
 // Public type definitions
 public:
     using commandbus_t = util::Bus<cmdBusWidth>;
-    using pin_dbi_t = util::Pin<64>;
+    using pin_dbi_t = util::Pin<8>; // max_burst_length = 8
     using databus_t = util::databus_presets::databus_preset_t;
     using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
     using patternHandler_t = PatternHandler<CmdType>;
