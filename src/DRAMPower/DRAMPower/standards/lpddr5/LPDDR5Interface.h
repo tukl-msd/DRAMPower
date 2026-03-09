@@ -31,7 +31,7 @@ class LPDDR5Interface : public util::Serialize, public util::Deserialize {
 // Public constants
 public:
     const static std::size_t cmdBusWidth = 7;
-    const static uint64_t cmdBusInitPattern = (1<<cmdBusWidth)-1;
+    const static uint64_t cmdBusInitPattern = 0;
 
 // Public type definitions
 public:
