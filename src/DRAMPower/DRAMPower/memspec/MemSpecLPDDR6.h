@@ -40,10 +40,6 @@ namespace DRAMPower {
 
 	    ~MemSpecLPDDR6() = default;
 
-        uint64_t timeToCompletion(CmdType type) override;
-
-
-        uint64_t numberOfChannels;
         uint64_t numberOfBankGroups;
         uint64_t banksPerGroup;
         uint64_t numberOfRanks;

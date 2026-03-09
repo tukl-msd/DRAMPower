@@ -1,7 +1,9 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR6_CORE_CALCULATION_LPDDR6_H
 #define DRAMPOWER_STANDARDS_LPDDR6_CORE_CALCULATION_LPDDR6_H
 
+#include "DRAMPower/data/stats.h"
 
+#include "DRAMPower/memspec/MemSpecLPDDR6.h"
 #include <DRAMPower/data/energy.h>
 
 #include <DRAMPower/Types.h>
@@ -16,6 +18,8 @@ namespace DRAMPower
 
     class Calculation_LPDDR6
     {
+    public:
+        Calculation_LPDDR6(const MemSpecLPDDR6 &memSpec);
     private:
         double E_act(double VDD, double I_theta, double I_1, double t_RAS, uint64_t N_act);
         double E_pre(double VDD, double IBeta, double IDD2_N, double t_RP, uint64_t N_pre);
@@ -29,7 +33,9 @@ namespace DRAMPower
         double E_ref_p2b(double VDD, double IDD5PB_B, double I_2, double tRFCPB, uint64_t N_P2B_REF);
 
     public:
-        energy_t calcEnergy(timestamp_t timestamp, LPDDR6 & dram);
+        energy_t calcEnergy(const SimulationStats &stats);
+    private:
+        const MemSpecLPDDR6 &m_memSpec;
     };
 
 };
