@@ -6,7 +6,6 @@ using namespace DRAMPower;
 MemSpecLPDDR5::MemSpecLPDDR5(const DRAMUtils::MemSpec::MemSpecLPDDR5 &memspec)
         : MemSpec(memspec)
 {
-    numberOfChannels        = memspec.memarchitecturespec.nbrOfChannels;
     numberOfBankGroups      = memspec.memarchitecturespec.nbrOfBankGroups;
     numberOfRanks           = memspec.memarchitecturespec.nbrOfRanks;
     banksPerGroup           = numberOfBanks / numberOfBankGroups;
