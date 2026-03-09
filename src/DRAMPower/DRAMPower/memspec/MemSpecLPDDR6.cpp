@@ -6,7 +6,6 @@ using namespace DRAMPower;
 MemSpecLPDDR6::MemSpecLPDDR6(const DRAMUtils::MemSpec::MemSpecLPDDR6 &memspec)
         : MemSpec(memspec)
 {
-    numberOfChannels        = memspec.memarchitecturespec.nbrOfChannels;
     numberOfBankGroups      = memspec.memarchitecturespec.nbrOfBankGroups;
     numberOfRanks           = memspec.memarchitecturespec.nbrOfRanks;
     banksPerGroup           = numberOfBanks / numberOfBankGroups;
@@ -129,27 +128,7 @@ MemSpecLPDDR6::MemSpecLPDDR6(const DRAMUtils::MemSpec::MemSpecLPDDR6 &memspec)
     parseImpedanceSpec(memspec);
 }
 
-// TODO: is this being used?
-uint64_t MemSpecLPDDR6::timeToCompletion(DRAMPower::CmdType type)
-{
-    uint64_t offset = 0;
-
-    if (type == DRAMPower::CmdType::ACT)
-        offset = memTimingSpec.tRCD;
-    else if (type == DRAMPower::CmdType::RD)
-        offset = memTimingSpec.tRL + ((burstLength)/(dataRate));
-    else if (type == DRAMPower::CmdType::WR)
-        offset = memTimingSpec.tWL + ((burstLength)/(dataRate));
-    else if (type == CmdType::REFA)
-        offset = memTimingSpec.tRFC;
-    else if (type == CmdType::PRE || type == CmdType::PREA)
-        return memTimingSpec.tRP;
-
-    return offset;
-}
-
 void MemSpecLPDDR6::parseImpedanceSpec(const DRAMUtils::MemSpec::MemSpecLPDDR6 &memspec) {
-
     memImpedanceSpec = memspec.memimpedancespec;
 }
 
