@@ -2,6 +2,95 @@
 
 namespace DRAMPower {
 
+
+template<typename Func, typename Owner>
+decltype(auto) bankHandler(const Command& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
+    assert(ranks.size()>cmd.targetCoordinate.rank);
+    auto & rank = ranks.at(cmd.targetCoordinate.rank);
+
+    assert(rank.banks.size()>cmd.targetCoordinate.bank);
+    auto & bank = rank.banks.at(cmd.targetCoordinate.bank);
+
+    rank.commandCounter.inc(cmd.type);
+    return (owner->*member_func)(rank, bank, cmd.timestamp);
+}
+
+template<typename Func, typename Owner>
+decltype(auto) rankHandler(const Command& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
+    assert(ranks.size()>cmd.targetCoordinate.rank);
+    auto & rank = ranks.at(cmd.targetCoordinate.rank);
+
+    rank.commandCounter.inc(cmd.type);
+    return (owner->*member_func)(rank, cmd.timestamp);
+}
+
+template<typename Func, typename Owner>
+decltype(auto) bankGroupHandler(const Command& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
+    assert(ranks.size()>cmd.targetCoordinate.rank);
+    auto& rank = ranks.at(cmd.targetCoordinate.rank);
+
+    assert(rank.banks.size()>cmd.targetCoordinate.bank);
+    if (cmd.targetCoordinate.bank >= rank.banks.size()) {
+        throw std::invalid_argument("Invalid bank targetcoordinate");
+    }
+    auto bank_id = cmd.targetCoordinate.bank;
+
+    rank.commandCounter.inc(cmd.type);
+    return (owner->*member_func)(rank, bank_id, cmd.timestamp);
+}
+
+void DDR4Core::doCommand(const Command& cmd) {
+    switch(cmd.type) {
+        case CmdType::ACT:
+            bankHandler(cmd, m_ranks, this, &DDR4Core::handleAct);
+            break;
+        case CmdType::PRE:
+            bankHandler(cmd, m_ranks, this, &DDR4Core::handlePre);
+            break;
+        case CmdType::PREA:
+            rankHandler(cmd, m_ranks, this, &DDR4Core::handlePreAll);
+            break;
+        case CmdType::REFA:
+            rankHandler(cmd, m_ranks, this, &DDR4Core::handleRefAll);
+            break;
+        case CmdType::RD:
+            bankHandler(cmd, m_ranks, this, &DDR4Core::handleRead);
+            break;
+        case CmdType::RDA:
+            bankHandler(cmd, m_ranks, this, &DDR4Core::handleReadAuto);
+            break;
+        case CmdType::WR:
+            bankHandler(cmd, m_ranks, this, &DDR4Core::handleWrite);
+            break;
+        case CmdType::WRA:
+            bankHandler(cmd, m_ranks, this, &DDR4Core::handleWriteAuto);
+            break;
+        case CmdType::SREFEN:
+            rankHandler(cmd, m_ranks, this, &DDR4Core::handleSelfRefreshEntry);
+            break;
+        case CmdType::SREFEX:
+            rankHandler(cmd, m_ranks, this, &DDR4Core::handleSelfRefreshExit);
+            break;
+        case CmdType::PDEA:
+            rankHandler(cmd, m_ranks, this, &DDR4Core::handlePowerDownActEntry);
+            break;
+        case CmdType::PDEP:
+            rankHandler(cmd, m_ranks, this, &DDR4Core::handlePowerDownPreEntry);
+            break;
+        case CmdType::PDXA:
+            rankHandler(cmd, m_ranks, this, &DDR4Core::handlePowerDownActExit);
+            break;
+        case CmdType::PDXP:
+            rankHandler(cmd, m_ranks, this, &DDR4Core::handlePowerDownPreExit);
+            break;
+        case CmdType::END_OF_SIMULATION:
+            break;
+        default:
+            assert(false && "Unsupported command");
+            break;
+    }
+}
+
 void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
     bank.counter.act++;
     bank.bankState = Bank::BankState::BANK_ACTIVE;

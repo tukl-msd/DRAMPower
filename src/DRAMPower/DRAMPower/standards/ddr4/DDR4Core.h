@@ -32,7 +32,7 @@ public:
     DDR4Core& operator=(const DDR4Core&) = delete; // copy assignment operator
     DDR4Core(DDR4Core&&) = default; // move constructor
     DDR4Core& operator=(DDR4Core&&) = delete; // move assignment operator
-    DDR4Core(const MemSpecDDR4& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
+    DDR4Core(implicitCommandInserter_t&& implicitCommandInserter, const MemSpecDDR4& memSpec)
         : m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)}) 
         , m_memSpec(memSpec)
         , m_implicitCommandInserter(std::move(implicitCommandInserter))
@@ -43,6 +43,8 @@ public:
     coreRegisterHelper_t getRegisterHelper() {
         return coreRegisterHelper_t{this, m_ranks};
     }
+
+    void doCommand(const Command& cmd);
 
     void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handlePre(Rank & rank, Bank & bank, timestamp_t timestamp);
