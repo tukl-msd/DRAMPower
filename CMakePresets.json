@@ -56,7 +56,7 @@
 		},
 		{
 			"name": "dev-unix",
-			"generator": "Unix Makefiles",
+			"generator": "Ninja",
 			"binaryDir": "${sourceDir}/build",
 			"inherits": [
 				"dev-mode"
