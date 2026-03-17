@@ -1,28 +1,24 @@
 #include "LPDDR5Interface.h"
+#include "DRAMPower/Exceptions.h"
 
 namespace DRAMPower {
 
-LPDDR5Interface::LPDDR5Interface(const MemSpecLPDDR5& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
-    : m_commandBus{cmdBusWidth, 2, // modelled with datarate 2
+LPDDR5Interface::LPDDR5Interface(const MemSpecLPDDR5& memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate)
+    : m_memSpec(memSpec)
+    , m_commandBus{cmdBusWidth, 2, // modelled with datarate 2
         util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
     , m_dataBus{
         util::databus_presets::getDataBusPreset(
-            memSpec.bitWidth * memSpec.numberOfDevices,
             util::DataBusConfig {
                 memSpec.bitWidth * memSpec.numberOfDevices,
                 memSpec.dataRate,
-                util::BusIdlePatternSpec::L,
-                util::BusInitPatternSpec::L,
-                DRAMUtils::Config::TogglingRateIdlePattern::L,
-                0.0,
-                0.0,
-                util::DataBusMode::Bus
-            }
+                toggleRate
+            },
+            false
         )
     }
     , m_readDQS(memSpec.dataRate, true)
     , m_wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
-    , m_memSpec(memSpec)
     , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
         [this](timestamp_t load_timestamp, timestamp_t, std::size_t pin, bool inversion_state, bool read) {
         this->handleDBIPinChange(load_timestamp, pin, inversion_state, read);
@@ -30,7 +26,6 @@ LPDDR5Interface::LPDDR5Interface(const MemSpecLPDDR5& memSpec, implicitCommandIn
     , m_dbiread(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
     , m_dbiwrite(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
     , m_patternHandler(PatternEncoderOverrides{}) // No overrides
-    , m_implicitCommandInserter(std::move(implicitCommandInserter))
 {
     registerPatterns();
 }
@@ -232,54 +227,50 @@ void LPDDR5Interface::registerPatterns() {
     });
 }
 
-void LPDDR5Interface::enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp) {
-    // Change from bus to toggling rate
-    assert(enable_timestamp >= timestamp);
-    if ( enable_timestamp > timestamp ) {
-        // Schedule toggling rate enable
-        m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-            m_dataBus.enableTogglingRate(enable_timestamp);
-        });
-    } else {
-        m_dataBus.enableTogglingRate(enable_timestamp);
-    }
+
+timestamp_t LPDDR5Interface::getLastCommandTime() const {
+    return m_last_command_time;
 }
 
-void LPDDR5Interface::enableBus(timestamp_t timestamp, timestamp_t enable_timestamp) {
-    // Change from toggling rate to bus
-    assert(enable_timestamp >= timestamp);
-    if ( enable_timestamp > timestamp ) {
-        // Schedule toggling rate disable
-        m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-            m_dataBus.enableBus(enable_timestamp);
-        });
-    } else {
-        m_dataBus.enableBus(enable_timestamp);
+void LPDDR5Interface::doCommand(const Command& cmd) {
+    switch(cmd.type) {
+        case CmdType::ACT:
+        case CmdType::PRE:
+        case CmdType::PREA:
+        case CmdType::REFB:
+        case CmdType::REFA:
+        case CmdType::SREFEN:
+        case CmdType::SREFEX:
+        case CmdType::PDEA:
+        case CmdType::PDEP:
+        case CmdType::PDXA:
+        case CmdType::PDXP:
+        case CmdType::DSMEN:
+        case CmdType::DSMEX:
+            handleCommandBus(cmd);
+            break;
+        case CmdType::REFP2B:
+            if (m_memSpec.bank_arch != MemSpecLPDDR5::MBG && m_memSpec.bank_arch != MemSpecLPDDR5::M16B) {
+                throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
+            }
+            handleCommandBus(cmd);
+            break;
+        case CmdType::RD:
+        case CmdType::RDA:
+            handleData(cmd, true);
+            break;
+        case CmdType::WR:
+        case CmdType::WRA:
+            handleData(cmd, false);
+            break;
+        case CmdType::END_OF_SIMULATION:
+            endOfSimulation(cmd.timestamp);
+            break;
+        default:
+            assert(false && "Invalid command");
+            break;
     }
-}
-
-timestamp_t LPDDR5Interface::updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleratedefinition) {
-    if (toggleratedefinition) {
-        m_dataBus.setTogglingRateDefinition(*toggleratedefinition);
-        if (m_dataBus.isTogglingRate()) {
-            // toggling rate already enabled
-            return timestamp;
-        }
-        // Enable toggling rate
-        timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
-        enableTogglingHandle(timestamp, enable_timestamp);
-        return enable_timestamp;
-    } else {
-        if (m_dataBus.isBus()) {
-            // Bus already enabled
-            return timestamp;
-        }
-        // Enable bus
-        timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
-        enableBus(timestamp, enable_timestamp);
-        return enable_timestamp;
-    }
-    return timestamp;
+    m_last_command_time = cmd.timestamp;
 }
 
 void LPDDR5Interface::handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read) {
@@ -391,6 +382,7 @@ void LPDDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &sta
 }
 
 void LPDDR5Interface::serialize(std::ostream& stream) const {
+    stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
     m_patternHandler.serialize(stream);
     m_commandBus.serialize(stream);
     m_dataBus.serialize(stream);
@@ -399,6 +391,7 @@ void LPDDR5Interface::serialize(std::ostream& stream) const {
     m_clock.serialize(stream);
 }
 void LPDDR5Interface::deserialize(std::istream& stream) {
+    stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
     m_patternHandler.deserialize(stream);
     m_commandBus.deserialize(stream);
     m_dataBus.deserialize(stream);
