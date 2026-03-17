@@ -5,6 +5,8 @@
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
+#include "DRAMPower/util/Serialize.h"
+#include "DRAMPower/util/Deserialize.h"
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/command/Command.h"
@@ -16,9 +18,12 @@
 
 #include "DRAMPower/memspec/MemSpecDDR4.h"
 
+#include "DRAMUtils/config/toggling_rate.h"
+
 #include <stdint.h>
 #include <cstddef>
 #include <vector>
+#include <optional>
 
 namespace DRAMPower {
 
@@ -43,20 +48,18 @@ public:
     DDR4Interface(DDR4Interface&&) = default; // move constructor
     DDR4Interface& operator=(DDR4Interface&&) = delete; // move assignment operator
 
-    DDR4Interface(const MemSpecDDR4& memSpec);
-
-// Private member functions
-private:
+    DDR4Interface(const MemSpecDDR4& memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate);
 
 // Public member functions
 public:
+// Member functions
     timestamp_t getLastCommandTime() const;
     void doCommand(const Command& cmd);
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
-    // Overrides
+// Overrides
     void serialize(std::ostream& stream) const override;
     void deserialize(std::istream& stream) override;
-    // Extensions
+// Extensions
     void enableDBI(bool enable) {
         m_dbi.enable(enable);
     }
@@ -80,12 +83,12 @@ private:
 
 // Private member variables
 private:
+    const MemSpecDDR4& m_memSpec;
     commandbus_t m_commandBus;
     databus_t m_dataBus;
     util::Clock m_readDQS;
     util::Clock m_writeDQS;
     util::Clock m_clock;
-    const MemSpecDDR4& m_memSpec;
     util::DBI<uint8_t, 1, util::PinState::H, util::StaticDBI> m_dbi;
     std::vector<pin_dbi_t> m_dbiread;
     std::vector<pin_dbi_t> m_dbiwrite;
