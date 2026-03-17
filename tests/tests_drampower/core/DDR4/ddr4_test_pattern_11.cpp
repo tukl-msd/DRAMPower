@@ -6,8 +6,6 @@
 #include <DRAMPower/standards/test_accessor.h>
 
 #include <memory>
-#include <fstream>
-#include <string>
 
 using namespace DRAMPower;
 
@@ -74,7 +72,17 @@ protected:
         memSpec.burstLength = 16;
 		memSpec.dataRate = 2;
 
-        ddr = std::make_unique<DDR4>(memSpec);
+		auto trd = DRAMUtils::Config::ToggleRateDefinition {
+            false,
+            0,
+            0,
+            0,
+            0,
+            TogglingRateIdlePattern::Z,
+            TogglingRateIdlePattern::Z,
+        };
+
+        ddr = std::make_unique<DDR4>(memSpec, trd);
     }
 
     virtual void TearDown()
@@ -89,7 +97,7 @@ TEST_F(DramPowerTest_DDR4_11, Pattern_2)
     };
 
 	// Inspect first rank
-	const Rank & rank_1 = internal::DDR4TestAccessor.getCore(*ddr).m_ranks[0];
+	const Rank & rank_1 = internal::DDR4TestAccessor.getRanks(ddr->getCore())[0];
 
 	// Check global command count
 	ASSERT_EQ(rank_1.commandCounter.get(CmdType::RD), 13);

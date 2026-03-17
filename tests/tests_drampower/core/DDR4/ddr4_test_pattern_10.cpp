@@ -7,9 +7,6 @@
 
 #include <memory>
 
-#include <iostream>
-#include <fstream>
-#include <string>
 
 using namespace DRAMPower;
 
@@ -67,8 +64,17 @@ protected:
         memSpec.memPowerSpec[0].iBeta = memSpec.memPowerSpec[0].iXX0;
 		memSpec.bwParams.bwPowerFactRho = 0.333333333;
 
+		auto trd = DRAMUtils::Config::ToggleRateDefinition {
+            false,
+            0,
+            0,
+            0,
+            0,
+            TogglingRateIdlePattern::Z,
+            TogglingRateIdlePattern::Z,
+        };
 
-        ddr = std::make_unique<DDR4>(memSpec);
+        ddr = std::make_unique<DDR4>(memSpec, trd);
     }
 
     virtual void TearDown()
@@ -83,7 +89,7 @@ TEST_F(DramPowerTest_DDR4_10, Pattern1)
     };
 
 	// Inspect first rank
-	const auto & rank_1 = internal::DDR4TestAccessor.getCore(*ddr).m_ranks[0];
+	const auto & rank_1 = internal::DDR4TestAccessor.getRanks(ddr->getCore())[0];
 	auto stats = ddr->getStats();
 
 	// Check global count

@@ -100,7 +100,18 @@ class DDR4_DBI_Tests : public ::testing::Test {
         });
 
         initSpec();
-        ddr = std::make_unique<DDR4>(*spec);
+
+        auto trd = DRAMUtils::Config::ToggleRateDefinition {
+            false,
+            0,
+            0,
+            0,
+            0,
+            DRAMUtils::Config::TogglingRateIdlePattern::Z,
+            DRAMUtils::Config::TogglingRateIdlePattern::Z,
+        };
+    
+        ddr = std::make_unique<DDR4>(*spec, trd);
     }
 
     void initSpec() {

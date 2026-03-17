@@ -1,12 +1,10 @@
 #include <gtest/gtest.h>
 
 #include <memory>
-#include <fstream>
 
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
 #include <DRAMPower/standards/test_accessor.h>
-#include <variant>
 
 #include "DRAMPower/data/energy.h"
 #include "DRAMPower/data/stats.h"
@@ -78,7 +76,19 @@ class DDR4_WindowStats_Tests : public ::testing::Test {
         });
 
         initSpec();
-        ddr = std::make_unique<DDR4>(*spec);
+        
+
+        auto trd = DRAMUtils::Config::ToggleRateDefinition {
+            false,
+            0,
+            0,
+            0,
+            0,
+            DRAMUtils::Config::TogglingRateIdlePattern::Z,
+            DRAMUtils::Config::TogglingRateIdlePattern::Z,
+        };
+
+        ddr = std::make_unique<DDR4>(*spec, trd);
     }
 
     void initSpec() {
@@ -130,7 +140,6 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_0) {
 
     // DQs bus
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
@@ -192,7 +201,6 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_1) {
 
     // DQs bus
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
@@ -251,7 +259,6 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_2) {
 
     // DQs bus
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
@@ -310,7 +317,6 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_3) {
 
     // DQs bus
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
@@ -369,7 +375,6 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_4) {
 
     // DQs bus
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)

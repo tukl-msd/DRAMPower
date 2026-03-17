@@ -2,9 +2,6 @@
 
 #include "DRAMPower/command/Command.h"
 
-#include "DRAMPower/dram/dram_base.h"
-
-#include <memory>
 
 using namespace DRAMPower;
 

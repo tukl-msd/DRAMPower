@@ -91,8 +91,25 @@ protected:
         getPath(path);
         auto data = DRAMUtils::parse_memspec_from_file(path);
         memSpec = std::make_unique<MemSpec>(MemSpec::from_memspec(*data));
-        ddr1 = std::make_unique<Standard>(*memSpec);
-        ddr2 = std::make_unique<Standard>(*memSpec);
+    }
+
+    void createStandard(std::optional<DRAMUtils::Config::ToggleRateDefinition> trd) {
+        if (!trd.has_value()) {
+            ToggleRateDefinition trd_bus = ToggleRateDefinition{
+                false,
+                0,
+                0,
+                0,
+                0,
+                TogglingRateIdlePattern::Invalid,
+                TogglingRateIdlePattern::Invalid
+            };
+            ddr1 = std::make_unique<Standard>(*memSpec, trd_bus);
+            ddr2 = std::make_unique<Standard>(*memSpec, trd_bus);
+        } else {
+            ddr1 = std::make_unique<Standard>(*memSpec, trd.value());
+            ddr2 = std::make_unique<Standard>(*memSpec, trd.value());
+        }
     }
 
     virtual void TearDown()
@@ -188,7 +205,8 @@ TEST_F(DramPowerTest_LPDDR5_Serialize, Test0){
 }
 
 TEST_F(DramPowerTest_DDR4_Serialize, Test1){
-    ddr1->setToggleRate(0, DRAMUtils::Config::ToggleRateDefinition{
+    createStandard(DRAMUtils::Config::ToggleRateDefinition {
+        true,
         0.6,
         0.4,
         0.3,
@@ -200,7 +218,8 @@ TEST_F(DramPowerTest_DDR4_Serialize, Test1){
 }
 
 TEST_F(DramPowerTest_DDR5_Serialize, Test1){
-    ddr1->setToggleRate(0, DRAMUtils::Config::ToggleRateDefinition{
+    createStandard(DRAMUtils::Config::ToggleRateDefinition {
+        true,
         0.6,
         0.4,
         0.3,
@@ -212,7 +231,8 @@ TEST_F(DramPowerTest_DDR5_Serialize, Test1){
 }
 
 TEST_F(DramPowerTest_LPDDR4_Serialize, Test1){
-    ddr1->setToggleRate(0, DRAMUtils::Config::ToggleRateDefinition{
+    createStandard(DRAMUtils::Config::ToggleRateDefinition {
+        true,
         0.6,
         0.4,
         0.3,
@@ -224,7 +244,8 @@ TEST_F(DramPowerTest_LPDDR4_Serialize, Test1){
 }
 
 TEST_F(DramPowerTest_LPDDR5_Serialize, Test1){
-    ddr1->setToggleRate(0, DRAMUtils::Config::ToggleRateDefinition{
+    createStandard(DRAMUtils::Config::ToggleRateDefinition {
+        true,
         0.6,
         0.4,
         0.3,

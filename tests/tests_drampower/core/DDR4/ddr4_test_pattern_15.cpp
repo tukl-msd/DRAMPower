@@ -5,8 +5,6 @@
 #include <DRAMPower/standards/ddr4/DDR4.h>
 
 #include <memory>
-#include <fstream>
-#include <string>
 
 using namespace DRAMPower;
 
@@ -66,7 +64,17 @@ protected:
 		memSpec.burstLength = 16;
 		memSpec.dataRate = 2;
 
-        ddr = std::make_unique<DDR4>(memSpec);
+		auto trd = DRAMUtils::Config::ToggleRateDefinition {
+            false,
+            0,
+            0,
+            0,
+            0,
+            TogglingRateIdlePattern::Z,
+            TogglingRateIdlePattern::Z,
+        };
+
+        ddr = std::make_unique<DDR4>(memSpec, trd);
     }
 
     virtual void TearDown()

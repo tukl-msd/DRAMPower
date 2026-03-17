@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <fstream>
 #include <memory>
 
 #include "DRAMPower/command/Command.h"
@@ -9,7 +8,6 @@
 
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
-#include <variant>
 
 using DRAMPower::CmdType;
 using DRAMPower::Command;
@@ -34,7 +32,18 @@ class DDR4_MultirankTests : public ::testing::Test {
         spec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
 
         spec->numberOfRanks = 2;
-        ddr = std::make_unique<DDR4>(*spec);
+
+        auto trd = DRAMUtils::Config::ToggleRateDefinition {
+            false,
+            0,
+            0,
+            0,
+            0,
+            DRAMUtils::Config::TogglingRateIdlePattern::Z,
+            DRAMUtils::Config::TogglingRateIdlePattern::Z,
+        };
+
+        ddr = std::make_unique<DDR4>(*spec, trd);
     }
 
     void runCommands(const std::vector<Command> &commands) {

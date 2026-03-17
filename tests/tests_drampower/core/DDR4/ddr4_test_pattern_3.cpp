@@ -6,12 +6,9 @@
 
 #include <DRAMPower/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecDDR4.h>
-#include <variant>
 #include <stdint.h>
 
 #include <memory>
-
-#include <fstream>
 
 
 using namespace DRAMPower;
@@ -38,7 +35,17 @@ protected:
         auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "ddr4.json");
         memSpec = std::make_unique<DRAMPower::MemSpecDDR4>(DRAMPower::MemSpecDDR4::from_memspec(*data));
 
-        ddr = std::make_unique<DDR4>(*memSpec);
+        auto trd = DRAMUtils::Config::ToggleRateDefinition {
+            false,
+            0,
+            0,
+            0,
+            0,
+            TogglingRateIdlePattern::Z,
+            TogglingRateIdlePattern::Z,
+        };
+
+        ddr = std::make_unique<DDR4>(*memSpec, trd);
     }
 
     virtual void TearDown()
