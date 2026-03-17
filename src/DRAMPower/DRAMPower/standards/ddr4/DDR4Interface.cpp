@@ -1,40 +1,36 @@
 #include "DDR4Interface.h"
-#include <optional>
+#include "DRAMPower/util/databus_types.h"
+#include "DRAMUtils/config/toggling_rate.h"
 
 namespace DRAMPower {
 
-    DDR4Interface::DDR4Interface(const MemSpecDDR4& memSpec)
-    : m_commandBus{cmdBusWidth, 1,
-        util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
-    , m_dataBus{
-        util::databus_presets::getDataBusPreset(
-            memSpec.bitWidth * memSpec.numberOfDevices,
-            util::DataBusConfig {
-                memSpec.bitWidth * memSpec.numberOfDevices,
-                memSpec.dataRate,
-                util::BusIdlePatternSpec::H,
-                util::BusInitPatternSpec::H,
-                DRAMUtils::Config::TogglingRateIdlePattern::H,
-                0.0,
-                0.0,
-                util::DataBusMode::Bus
-            }
-        )
-    }
-    , m_readDQS(memSpec.dataRate, true)
-    , m_writeDQS(memSpec.dataRate, true)
-    , m_clock(2, false)
-    , m_memSpec(memSpec)
-    , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
-        [this](timestamp_t load_timestamp, timestamp_t, std::size_t pin, bool inversion_state, bool read) {
-        this->handleDBIPinChange(load_timestamp, pin, inversion_state, read);
-    }, false)
-    , m_dbiread(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
-    , m_dbiwrite(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
-    , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
-    , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
-    , m_ranks(memSpec.numberOfRanks)
-    , m_patternHandler(PatternEncoderOverrides {
+    DDR4Interface::DDR4Interface(const MemSpecDDR4& memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate)
+        : m_memSpec(memSpec)
+        , m_commandBus{cmdBusWidth, 1,
+            util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
+        , m_dataBus{
+            util::databus_presets::getDataBusPreset(
+                util::DataBusConfig{
+                    memSpec.bitWidth * memSpec.numberOfDevices,
+                    memSpec.dataRate,
+                    toggleRate
+                },
+                false
+            )
+        }
+        , m_readDQS(memSpec.dataRate, true)
+        , m_writeDQS(memSpec.dataRate, true)
+        , m_clock(2, false)
+        , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
+            [this](timestamp_t load_timestamp, timestamp_t, std::size_t pin, bool inversion_state, bool read) {
+            this->handleDBIPinChange(load_timestamp, pin, inversion_state, read);
+        }, false)
+        , m_dbiread(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
+        , m_dbiwrite(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
+        , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
+        , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
+        , m_ranks(memSpec.numberOfRanks)
+        , m_patternHandler(PatternEncoderOverrides {
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
             {pattern_descriptor::X, PatternEncoderBitSpec::H},
         }, cmdBusInitPattern)

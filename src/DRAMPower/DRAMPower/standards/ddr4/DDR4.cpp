@@ -13,10 +13,9 @@ namespace DRAMPower {
 
     using namespace DRAMUtils::Config;
 
-    DDR4::DDR4(const MemSpecDDR4 &memSpec)
-        : dram_base<CmdType>()
-        , m_memSpec(memSpec)
-        , m_interface(m_memSpec)
+    DDR4::DDR4(const MemSpecDDR4 &memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate)
+        : m_memSpec(memSpec)
+        , m_interface(m_memSpec, toggleRate)
         , m_core(m_memSpec)
     {
         this->registerExtensions();
@@ -24,8 +23,6 @@ namespace DRAMPower {
 
 // Extensions
     void DDR4::registerExtensions() {
-        using namespace pattern_descriptor;
-        // DRAMPowerExtensionDBI
         getExtensionManager().registerExtension<extensions::DBI>([this](const timestamp_t, const bool enable) {
             // Assumption: the enabling of the DBI does not interleave with previous data on the bus
             // x4,x8,x16 devices: only x8 and x16 support dbi
@@ -36,10 +33,6 @@ namespace DRAMPower {
             m_interface.enableDBI(enable);
             return true;
         }, false);
-    }
-
-    void DDR4::endOfSimulation(timestamp_t) {
-        assert(0 == m_core.implicitCommandCount() && "Implicit command not handled!");
     }
 
 // Getters for CLI
