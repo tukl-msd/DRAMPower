@@ -35,6 +35,7 @@ public:
 
     void doCommand(const Command& cmd) {
         processImplicitCommandQueue(cmd.timestamp, m_last_command_time);
+        m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
         m_core.doCommand(cmd);
     }
 
