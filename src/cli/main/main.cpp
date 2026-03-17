@@ -1,16 +1,8 @@
 
 #include <stdint.h>
-#include <unordered_map>
-#include <array>
 #include <utility>
-#include <iostream>
-#include <variant>
 #include <optional>
-#include <filesystem>
 #include <string_view>
-#include <type_traits>
-#include <exception>
-
 
 #include <DRAMPower/cli/run.hpp>
 #include <DRAMPower/cli/config.h>
