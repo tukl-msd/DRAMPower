@@ -5,7 +5,6 @@
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
-#include "DRAMPower/util/RegisterHelper.h"
 #include "DRAMPower/util/Serialize.h"
 #include "DRAMPower/util/Deserialize.h"
 
@@ -14,7 +13,6 @@
 #include "DRAMPower/data/stats.h"
 
 #include "DRAMPower/util/PatternHandler.h"
-#include "DRAMPower/util/ImplicitCommandHandler.h"
 #include "DRAMPower/util/dbi.h"
 
 #include "DRAMPower/memspec/MemSpecLPDDR4.h"
@@ -38,9 +36,7 @@ public:
     using commandbus_t = util::Bus<cmdBusWidth>;
     using pin_dbi_t = util::Pin<32>; // max_burst_length = 32
     using databus_t = util::databus_presets::databus_preset_t;
-    using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
     using patternHandler_t = PatternHandler<CmdType>;
-    using interfaceRegisterHelper_t = util::InterfaceRegisterHelper<LPDDR4Interface>;
 
 // Public constructors and assignment operators
 public:
@@ -50,52 +46,47 @@ public:
     LPDDR4Interface(LPDDR4Interface&&) = default; // move constructor
     LPDDR4Interface& operator=(LPDDR4Interface&&) = delete; // move assignment operator
 
-    LPDDR4Interface(const MemSpecLPDDR4& memSpec, implicitCommandInserter_t&& implicitCommandInserter);
+    LPDDR4Interface(const MemSpecLPDDR4& memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate);
+
+
+// Public member functions
+public:
+// Member functions
+    timestamp_t getLastCommandTime() const;
+    void doCommand(const Command& cmd);
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+// Overrides
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
+// Extensions
+    void enableDBI(bool enable) {
+        m_dbi.enable(enable);
+    }
 
 // Private Member functions
 private:
     void registerPatterns();
     std::optional<const uint8_t *> handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
     void handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read);
-
-// Public member functions
-public:
-    interfaceRegisterHelper_t getRegisterHelper() {
-        return interfaceRegisterHelper_t{this};
-    }
     void handleOverrides(size_t length, bool read);
     void handleDQs(const Command& cmd, util::Clock &dqs, size_t length);
     void handleCommandBus(const Command& cmd);
     void handleData(const Command &cmd, bool read);
     void endOfSimulation(timestamp_t timestamp);
 
-    void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
-    void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
-    timestamp_t updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition);
-    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
-
-// Overrides
-public:
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
-
 // Public member variables
-public:
+private:
+    const MemSpecLPDDR4& m_memSpec;
     commandbus_t m_commandBus;
     databus_t m_dataBus;
     util::Clock m_readDQS;
     util::Clock m_writeDQS;
     util::Clock m_clock;
-private:
-    const MemSpecLPDDR4& m_memSpec;
-public:
     util::DBI<uint8_t, 1, util::PinState::L, util::StaticDBI> m_dbi;
     std::vector<pin_dbi_t> m_dbiread;
     std::vector<pin_dbi_t> m_dbiwrite;
-
-// Private member variables
     patternHandler_t m_patternHandler;
-    implicitCommandInserter_t m_implicitCommandInserter;
+    timestamp_t m_last_command_time = 0;
 };
 
 } // namespace DRAMPower
