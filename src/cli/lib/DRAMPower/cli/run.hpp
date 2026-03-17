@@ -15,7 +15,7 @@
 
 namespace DRAMPower::DRAMPowerCLI {
 
-std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data, std::optional<DRAMUtils::Config::ToggleRateDefinition> togglingRate = std::nullopt);
+std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data, const DRAMUtils::Config::ToggleRateDefinition& togglingRate);
 bool parse_command_list(std::string_view csv_file, std::vector<std::pair<Command, std::unique_ptr<uint8_t[]>>> &commandList);
 bool makeResult(std::optional<std::string> jsonfile, const std::unique_ptr<dram_base<CmdType>> &ddr);
 bool jsonFileResult(const std::string &jsonfile, const std::unique_ptr<dram_base<CmdType>> &ddr, const energy_t &core_energy, const interface_energy_info_t &interface_energy);

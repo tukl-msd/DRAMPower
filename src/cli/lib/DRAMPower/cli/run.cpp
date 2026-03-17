@@ -9,6 +9,8 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
+#include <DRAMPower/Types.h>
+
 #include <DRAMPower/dram/dram_base.h>
 
 #include <DRAMPower/data/energy.h>
@@ -42,7 +44,7 @@ namespace DRAMPower::DRAMPowerCLI {
 
 using namespace DRAMPower;
 
-std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data, std::optional<DRAMUtils::Config::ToggleRateDefinition> togglingRate)
+std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data, const DRAMUtils::Config::ToggleRateDefinition& togglingRate)
 {
 	try
 	{
@@ -53,34 +55,30 @@ std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data, std:
             return result;
 		}
 		// Get ddr
-		std::visit( [&result] (auto&& arg) {
+		std::visit( [&result, &togglingRate] (auto&& arg) {
 			using T = std::decay_t<decltype(arg)>;
 			if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecDDR4>)
 			{
 				MemSpecDDR4 ddr (static_cast<DRAMUtils::MemSpec::MemSpecDDR4>(arg));
-				result = std::make_unique<DDR4>(ddr);
+				result = std::make_unique<DDR4>(ddr, togglingRate);
 			}
 			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecDDR5>)
 			{
 				MemSpecDDR5 ddr (static_cast<DRAMUtils::MemSpec::MemSpecDDR5>(arg));
-				result = std::make_unique<DDR5>(ddr);
+				result = std::make_unique<DDR5>(ddr, togglingRate);
 			}
 			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecLPDDR4>)
 			{
 				MemSpecLPDDR4 ddr (static_cast<DRAMUtils::MemSpec::MemSpecLPDDR4>(arg));
-				result = std::make_unique<LPDDR4>(ddr);
+				result = std::make_unique<LPDDR4>(ddr, togglingRate);
 			}
 			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecLPDDR5>)
 			{
 				MemSpecLPDDR5 ddr (static_cast<DRAMUtils::MemSpec::MemSpecLPDDR5>(arg));
-				result = std::make_unique<LPDDR5>(ddr);
+				result = std::make_unique<LPDDR5>(ddr, togglingRate);
 			}
 		}, memspec->getVariant());
 
-        // Set toggling rate
-        if (togglingRate) {
-            result->setToggleRate(0, togglingRate);
-        }
 		return result;
 	}
 	catch(const std::exception& e)
@@ -239,24 +237,14 @@ bool stdoutResult(const std::unique_ptr<dram_base<CmdType>> &ddr, const energy_t
 
 bool getConfig(const std::string &configfile, config::CLIConfig &config)
 {
-    try
-    {
+    try {
         std::ifstream file(configfile);
         if (!file.is_open()) {
             return false;
         }
         json_t json_obj = json_t::parse(file, nullptr, false, true);
         config = json_obj;
-        if (config.useToggleRate) {
-            if (!config.toggleRateConfig) {
-                return false;
-            }
-        } else { // !config.useToggleRate
-            config.toggleRateConfig = std::nullopt;
-        }
-    }
-    catch (std::exception&)
-    {
+    } catch (std::exception&) {
         return false;
     }
     return true;
@@ -280,7 +268,7 @@ bool runCommands(std::unique_ptr<dram_base<CmdType>> &ddr, const std::vector<std
 {
     try {
 		for (auto &command : commandList ) {
-			ddr->doCoreInterfaceCommand(command.first);
+			ddr->doCommand(command.first);
 		}
 	} catch (std::exception &e) {
 		return false;
