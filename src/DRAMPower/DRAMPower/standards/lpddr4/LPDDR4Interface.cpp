@@ -5,7 +5,16 @@
 
 namespace DRAMPower {
 
-LPDDR4Interface::LPDDR4Interface(const MemSpecLPDDR4& memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate)
+static constexpr DRAMUtils::Config::ToggleRateDefinition busConfig {
+    0,
+    0,
+    0,
+    0,
+    DRAMUtils::Config::TogglingRateIdlePattern::H,
+    DRAMUtils::Config::TogglingRateIdlePattern::H
+};
+
+LPDDR4Interface::LPDDR4Interface(const MemSpecLPDDR4& memSpec, const config::SimConfig& simConfig)
     : m_memSpec(memSpec)
     , m_commandBus{6, 1, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
     , m_dataBus{
@@ -13,8 +22,11 @@ LPDDR4Interface::LPDDR4Interface(const MemSpecLPDDR4& memSpec, const DRAMUtils::
             util::DataBusConfig {
                 memSpec.bitWidth * memSpec.numberOfDevices,
                 memSpec.dataRate,
-                toggleRate
+                simConfig.toggleRateDefinition.value_or(busConfig)
             },
+            simConfig.toggleRateDefinition.has_value()
+                ? util::DataBusMode::TogglingRate
+                : util::DataBusMode::Bus,
             false
         )
     }

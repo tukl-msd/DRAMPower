@@ -14,7 +14,7 @@
 #include <DRAMPower/standards/ddr4/DDR4Core.h>
 #include <DRAMPower/memspec/MemSpecDDR4.h>
 
-#include "DRAMUtils/config/toggling_rate.h"
+#include "DRAMPower/simconfig/simconfig.h"
 
 #include <algorithm>
 
@@ -30,7 +30,7 @@ public:
     DDR4& operator=(DDR4&&) = delete; // move assignment operator
     ~DDR4() override = default;
     
-    DDR4(const MemSpecDDR4 &memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate);
+    DDR4(const MemSpecDDR4 &memSpec, const config::SimConfig &simConfig = {});
 
 // Public member functions
 public:

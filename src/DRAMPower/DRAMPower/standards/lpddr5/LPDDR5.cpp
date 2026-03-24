@@ -13,9 +13,9 @@
 
 namespace DRAMPower {
 
-    LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate)
+    LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec, const config::SimConfig& simConfig)
         : m_memSpec(memSpec)
-        , m_interface(m_memSpec, toggleRate)
+        , m_interface(m_memSpec, simConfig)
         , m_core(m_memSpec)
     {
         registerExtensions();

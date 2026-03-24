@@ -10,9 +10,9 @@ namespace DRAMPower {
 
     using namespace DRAMUtils::Config;
 
-    LPDDR4::LPDDR4(const MemSpecLPDDR4 &memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate)
+    LPDDR4::LPDDR4(const MemSpecLPDDR4 &memSpec, const config::SimConfig &simConfig)
         : m_memSpec(memSpec)
-        , m_interface(m_memSpec, toggleRate)
+        , m_interface(m_memSpec, simConfig)
         , m_core(m_memSpec)
     {
         registerExtensions();

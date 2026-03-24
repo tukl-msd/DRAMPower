@@ -48,6 +48,8 @@ FILES
 
     DRAMPower/dram/dram_base.h
 
+    DRAMPower/simconfig/simconfig.h
+
     DRAMPower/command/Command.h
     DRAMPower/data/energy.h
     DRAMPower/data/stats.h

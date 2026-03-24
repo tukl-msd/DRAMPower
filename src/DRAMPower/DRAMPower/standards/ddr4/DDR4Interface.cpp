@@ -1,10 +1,18 @@
 #include "DDR4Interface.h"
 #include "DRAMPower/util/databus_types.h"
-#include "DRAMUtils/config/toggling_rate.h"
 
 namespace DRAMPower {
 
-    DDR4Interface::DDR4Interface(const MemSpecDDR4& memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate)
+    static constexpr DRAMUtils::Config::ToggleRateDefinition busConfig {
+        0,
+        0,
+        0,
+        0,
+        DRAMUtils::Config::TogglingRateIdlePattern::H,
+        DRAMUtils::Config::TogglingRateIdlePattern::H
+    };
+
+    DDR4Interface::DDR4Interface(const MemSpecDDR4& memSpec, const config::SimConfig &simConfig)
         : m_memSpec(memSpec)
         , m_commandBus{cmdBusWidth, 1,
             util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
@@ -13,8 +21,11 @@ namespace DRAMPower {
                 util::DataBusConfig{
                     memSpec.bitWidth * memSpec.numberOfDevices,
                     memSpec.dataRate,
-                    toggleRate
+                    simConfig.toggleRateDefinition.value_or(busConfig)
                 },
+                simConfig.toggleRateDefinition.has_value()
+                    ? util::DataBusMode::TogglingRate
+                    : util::DataBusMode::Bus,
                 false
             )
         }

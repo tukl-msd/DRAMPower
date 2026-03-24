@@ -64,20 +64,20 @@ static constexpr BusInitPatternSpec convertInitPattern(const DRAMUtils::Config::
 
 // BusInitPatternSpec
 public:
-    DataBus(DataBusConfig&& config, bool IdlelastPatternOverride)
+    DataBus(DataBusConfig&& config, DataBusMode mode, bool IdlelastPatternOverride)
         : busRead(
             config.width,
             config.dataRate,
             convertIdlePattern(config.toggleRateConf.idlePatternRead, IdlelastPatternOverride),
             convertInitPattern(config.toggleRateConf.idlePatternRead),
-            !config.toggleRateConf.enableTogglingRate 
+            DataBusMode::Bus == mode
         )
         , busWrite(
             config.width,
             config.dataRate,
             convertIdlePattern(config.toggleRateConf.idlePatternWrite, IdlelastPatternOverride),
             convertInitPattern(config.toggleRateConf.idlePatternWrite),
-            !config.toggleRateConf.enableTogglingRate
+            DataBusMode::Bus == mode
         )
         , togglingHandleRead(
             config.width,
@@ -85,7 +85,7 @@ public:
             config.toggleRateConf.togglingRateRead,
             config.toggleRateConf.dutyCycleRead,
             config.toggleRateConf.idlePatternRead,
-            config.toggleRateConf.enableTogglingRate
+            DataBusMode::TogglingRate == mode
         )
         , togglingHandleWrite(
             config.width,
@@ -93,9 +93,9 @@ public:
             config.toggleRateConf.togglingRateWrite,
             config.toggleRateConf.dutyCycleWrite,
             config.toggleRateConf.idlePatternWrite,
-            config.toggleRateConf.enableTogglingRate
+            DataBusMode::TogglingRate == mode
         )
-        , busType(config.toggleRateConf.enableTogglingRate ? DataBusMode::TogglingRate : DataBusMode::Bus)
+        , busType(mode)
         , dataRate(config.dataRate)
         , width(config.width)
     {}

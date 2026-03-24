@@ -4,15 +4,15 @@
 #include <DRAMUtils/util/json.h>
 #include <DRAMUtils/util/json_utils.h>
 
-#include <DRAMUtils/config/toggling_rate.h>
+#include <DRAMPower/simconfig/simconfig.h>
 
 namespace DRAMPower::DRAMPowerCLI::config {
 
 struct CLIConfig {
-    DRAMUtils::Config::ToggleRateDefinition toggleRateConfig;
+    DRAMPower::config::SimConfig simconfig;
 };
 
-NLOHMANN_JSONIFY_ALL_THINGS(CLIConfig, toggleRateConfig)
+NLOHMANN_JSONIFY_ALL_THINGS(CLIConfig, simconfig)
 
 } // namespace DRAMPower::DRAMPowerCLI::config
 

@@ -8,6 +8,7 @@
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/data/stats.h>
 #include <DRAMPower/util/ImplicitCommandHandler.h>
+#include <DRAMPower/simconfig/simconfig.h>
 
 #include <DRAMPower/memspec/MemSpecDDR4.h>
 
