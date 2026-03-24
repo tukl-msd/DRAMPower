@@ -14,7 +14,7 @@
 #include <DRAMPower/standards/lpddr5/LPDDR5Core.h>
 #include <DRAMPower/memspec/MemSpecLPDDR5.h>
 
-#include <DRAMUtils/config/toggling_rate.h>
+#include "DRAMPower/simconfig/simconfig.h"
 
 #include <algorithm>
 
@@ -29,7 +29,7 @@ public:
     LPDDR5(LPDDR5&&) = default; // move constructor
     LPDDR5& operator=(LPDDR5&&) = delete; // move assignment operator
     ~LPDDR5() override = default;
-    LPDDR5(const MemSpecLPDDR5& memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate);
+    LPDDR5(const MemSpecLPDDR5& memSpec, const config::SimConfig& toggleRate = {});
 
 // Public member functions
 public:

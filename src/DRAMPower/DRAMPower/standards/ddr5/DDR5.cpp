@@ -12,9 +12,9 @@ namespace DRAMPower {
 
     using namespace DRAMUtils::Config;
 
-    DDR5::DDR5(const MemSpecDDR5 &memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate)
+    DDR5::DDR5(const MemSpecDDR5 &memSpec, const config::SimConfig &simConfig)
         : m_memSpec(memSpec)
-        , m_interface(m_memSpec, toggleRate)
+        , m_interface(m_memSpec, simConfig)
         , m_core(m_memSpec)
     {}
 

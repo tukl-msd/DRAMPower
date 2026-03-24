@@ -13,9 +13,9 @@ namespace DRAMPower {
 
     using namespace DRAMUtils::Config;
 
-    DDR4::DDR4(const MemSpecDDR4 &memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate)
+    DDR4::DDR4(const MemSpecDDR4 &memSpec, const config::SimConfig &simConfig)
         : m_memSpec(memSpec)
-        , m_interface(m_memSpec, toggleRate)
+        , m_interface(m_memSpec, simConfig)
         , m_core(m_memSpec)
     {
         this->registerExtensions();

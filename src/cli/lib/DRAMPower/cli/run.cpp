@@ -44,7 +44,7 @@ namespace DRAMPower::DRAMPowerCLI {
 
 using namespace DRAMPower;
 
-std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data, const DRAMUtils::Config::ToggleRateDefinition& togglingRate)
+std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data, const DRAMPower::config::SimConfig& simconfig)
 {
 	try
 	{
@@ -55,27 +55,27 @@ std::unique_ptr<dram_base<CmdType>> getMemory(const std::string_view &data, cons
             return result;
 		}
 		// Get ddr
-		std::visit( [&result, &togglingRate] (auto&& arg) {
+		std::visit( [&result, &simconfig] (auto&& arg) {
 			using T = std::decay_t<decltype(arg)>;
 			if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecDDR4>)
 			{
 				MemSpecDDR4 ddr (static_cast<DRAMUtils::MemSpec::MemSpecDDR4>(arg));
-				result = std::make_unique<DDR4>(ddr, togglingRate);
+				result = std::make_unique<DDR4>(ddr, simconfig);
 			}
 			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecDDR5>)
 			{
 				MemSpecDDR5 ddr (static_cast<DRAMUtils::MemSpec::MemSpecDDR5>(arg));
-				result = std::make_unique<DDR5>(ddr, togglingRate);
+				result = std::make_unique<DDR5>(ddr, simconfig);
 			}
 			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecLPDDR4>)
 			{
 				MemSpecLPDDR4 ddr (static_cast<DRAMUtils::MemSpec::MemSpecLPDDR4>(arg));
-				result = std::make_unique<LPDDR4>(ddr, togglingRate);
+				result = std::make_unique<LPDDR4>(ddr, simconfig);
 			}
 			else if constexpr (std::is_same_v<T, DRAMUtils::MemSpec::MemSpecLPDDR5>)
 			{
 				MemSpecLPDDR5 ddr (static_cast<DRAMUtils::MemSpec::MemSpecLPDDR5>(arg));
-				result = std::make_unique<LPDDR5>(ddr, togglingRate);
+				result = std::make_unique<LPDDR5>(ddr, simconfig);
 			}
 		}, memspec->getVariant());
 

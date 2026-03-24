@@ -15,7 +15,7 @@
 
 #include "DRAMPower/memspec/MemSpecDDR5.h"
 
-#include "DRAMUtils/config/toggling_rate.h"
+#include "DRAMPower/simconfig/simconfig.h"
 
 #include <stdint.h>
 #include <cstddef>
@@ -42,7 +42,7 @@ public:
     DDR5Interface(DDR5Interface&&) = default; // move constructor
     DDR5Interface& operator=(DDR5Interface&&) = delete; // move assignment operator
 
-    DDR5Interface(const MemSpecDDR5& memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate);
+    DDR5Interface(const MemSpecDDR5& memSpec, const config::SimConfig &simConfig = {});
 
 // Public member functions
 public:

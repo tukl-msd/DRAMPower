@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize memory / Create memory object
-	std::unique_ptr<dram_base<CmdType>> ddr = DRAMPower::DRAMPowerCLI::getMemory(std::string_view(memspec), config.toggleRateConfig);
+	std::unique_ptr<dram_base<CmdType>> ddr = DRAMPower::DRAMPowerCLI::getMemory(std::string_view(memspec), config.simconfig);
 	if (!ddr) {
 		spdlog::error("Invalid memory specification");
 		return 1;

@@ -18,7 +18,7 @@
 
 #include "DRAMPower/memspec/MemSpecDDR4.h"
 
-#include "DRAMUtils/config/toggling_rate.h"
+#include "DRAMPower/simconfig/simconfig.h"
 
 #include <stdint.h>
 #include <cstddef>
@@ -48,7 +48,7 @@ public:
     DDR4Interface(DDR4Interface&&) = default; // move constructor
     DDR4Interface& operator=(DDR4Interface&&) = delete; // move assignment operator
 
-    DDR4Interface(const MemSpecDDR4& memSpec, const DRAMUtils::Config::ToggleRateDefinition& toggleRate);
+    DDR4Interface(const MemSpecDDR4& memSpec, const config::SimConfig &simConfig = {});
 
 // Public member functions
 public:
