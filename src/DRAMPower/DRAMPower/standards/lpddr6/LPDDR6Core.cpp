@@ -1,7 +1,76 @@
 #include "LPDDR6Core.h"
 #include "DRAMPower/data/stats.h"
+#include "DRAMPower/Exceptions.h"
+#include "DRAMPower/util/RegisterHelper.h"
 
 namespace DRAMPower {
+
+void LPDDR6Core::doCommand(const Command& cmd) {
+    switch(cmd.type) {
+        case CmdType::ACT:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleAct);
+            break;
+        case CmdType::PRE:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePre);
+            break;
+        case CmdType::PREA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePreAll);
+            break;
+        case CmdType::REFB:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleRefPerBank);
+            break;
+        case CmdType::RD:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleRead);
+            break;
+        case CmdType::RDA:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleReadAuto);
+            break;
+        case CmdType::WR:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleWrite);
+            break;
+        case CmdType::WRA:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleWriteAuto);
+            break;
+        case CmdType::REFP2B:
+            if (m_memSpec.bank_arch != MemSpecLPDDR6::MBG && m_memSpec.bank_arch != MemSpecLPDDR6::M16B) {
+                throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
+            }
+            util::coreHelpers::bankGroupHandler(cmd, m_ranks, this, &LPDDR6Core::handleRefPerTwoBanks);
+            break;
+        case CmdType::REFA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleRefAll);
+            break;
+        case CmdType::SREFEN:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleSelfRefreshEntry);
+            break;
+        case CmdType::SREFEX:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleSelfRefreshExit);
+            break;
+        case CmdType::PDEA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownActEntry);
+            break;
+        case CmdType::PDEP:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownPreEntry);
+            break;
+        case CmdType::PDXA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownActExit);
+            break;
+        case CmdType::PDXP:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownPreExit);
+            break;
+        case CmdType::DSMEN:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleDSMEntry);
+            break;
+        case CmdType::DSMEX:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleDSMExit);
+            break;
+        case CmdType::END_OF_SIMULATION:
+            break;
+        default:
+            assert(false && "Unsupported command");
+            break;
+    }
+}
 
 void LPDDR6Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
     bank.counter.act++;

@@ -5,7 +5,6 @@
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
-#include "DRAMPower/util/RegisterHelper.h"
 #include "DRAMPower/util/Serialize.h"
 #include "DRAMPower/util/Deserialize.h"
 
@@ -19,7 +18,7 @@
 
 #include "DRAMPower/memspec/MemSpecLPDDR6.h"
 
-#include "DRAMUtils/config/toggling_rate.h"
+#include "DRAMPower/simconfig/simconfig.h"
 
 #include <stdint.h>
 #include <cstddef>
@@ -39,7 +38,6 @@ public:
     using databus_t = util::databus_presets::databus_preset_t;
     using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
     using patternHandler_t = PatternHandler<CmdType>;
-    using interfaceRegisterHelper_t = util::InterfaceRegisterHelper<LPDDR6Interface>;
 
 // Public constructor
 public:
@@ -49,56 +47,47 @@ public:
     LPDDR6Interface(LPDDR6Interface&&) = default; // move constructor
     LPDDR6Interface& operator=(LPDDR6Interface&&) = delete; // move assignment operator
 
-    LPDDR6Interface(const MemSpecLPDDR6 &memSpec, implicitCommandInserter_t&& implicitCommandInserter);
+    LPDDR6Interface(const MemSpecLPDDR6 &memSpec, const config::SimConfig &simConfig = {});
+
+// Public member functions
+public:
+// Member functions
+    timestamp_t getLastCommandTime() const;
+    void doCommand(const Command& cmd);
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+// Overrides
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
+// Extensions
+    void enableDBI(bool enable) {
+        m_dbi.enable(enable);
+    }
+    void setMetaData(uint16_t metaData);
+    uint16_t getMetaData();
 
 // Private member functions
 private:
     void registerPatterns();
     std::optional<const uint8_t *> handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
-    const uint8_t* formatData(const uint8_t* data, std::size_t n_bits, bool read);
-
-// Public member functions
-public:
-    interfaceRegisterHelper_t getRegisterHelper() {
-        return interfaceRegisterHelper_t{this};
-    }
     void handleOverrides(size_t length, bool read);
     void handleDQs(const Command& cmd, util::Clock &dqs, size_t length);
     void handleCommandBus(const Command& cmd);
     void handleData(const Command &cmd, bool read);
+    const uint8_t* formatData(const uint8_t* data, std::size_t n_bits, bool read);
     void endOfSimulation(timestamp_t timestamp);
-    
-    void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
-    void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
-    timestamp_t updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition);
-    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
 
-    void setMetaData(uint16_t metaData);
-    uint16_t getMetaData();
-
-// Overrides
-public:
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
-
-// Public members
-public:
+// Private members
+    const MemSpecLPDDR6& m_memSpec;
     commandbus_t m_commandBus;
     databus_t m_dataBus;
     util::Clock m_readDQS;
     util::Clock m_wck;
     util::Clock m_clock;
-private:
-    const MemSpecLPDDR6& m_memSpec;
-public:
     util::DBI<uint8_t, 2, util::PinState::L, util::StaticDBI> m_dbi;
-
-// Private member variables
-private:
     std::vector<uint8_t> m_formatResult;
     uint16_t m_metaData = 0;
     patternHandler_t m_patternHandler;
-    implicitCommandInserter_t m_implicitCommandInserter;
+    timestamp_t m_last_command_time;
 };
 
 } // namespace DRAMPower

@@ -1,34 +1,41 @@
 #include "LPDDR6Interface.h"
+#include "DRAMPower/util/databus_types.h"
 
 namespace DRAMPower {
 
-LPDDR6Interface::LPDDR6Interface(const MemSpecLPDDR6& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
-    : m_commandBus{cmdBusWidth, 2, // modelled with datarate 2
+static constexpr DRAMUtils::Config::ToggleRateDefinition busConfig {
+    0,
+    0,
+    0,
+    0,
+    DRAMUtils::Config::TogglingRateIdlePattern::L,
+    DRAMUtils::Config::TogglingRateIdlePattern::L
+};
+
+LPDDR6Interface::LPDDR6Interface(const MemSpecLPDDR6& memSpec, const config::SimConfig &simConfig)
+    : m_memSpec(memSpec)
+    , m_commandBus{cmdBusWidth, 2, // modelled with datarate 2
         util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
     , m_dataBus{
         util::databus_presets::getDataBusPreset(
-            memSpec.bitWidth * memSpec.numberOfDevices,
             util::DataBusConfig {
                 memSpec.bitWidth * memSpec.numberOfDevices,
                 memSpec.dataRate,
-                util::BusIdlePatternSpec::L,
-                util::BusInitPatternSpec::L,
-                DRAMUtils::Config::TogglingRateIdlePattern::L,
-                0.0,
-                0.0,
-                util::DataBusMode::Bus
-            }
+                simConfig.toggleRateDefinition.value_or(busConfig)
+            },
+            simConfig.toggleRateDefinition.has_value()
+                ? util::DataBusMode::TogglingRate
+                : util::DataBusMode::Bus,
+            false
         )
     }
     , m_readDQS(memSpec.dataRate, true)
     , m_wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
-    , m_memSpec(memSpec)
     , m_dbi(std::nullopt, m_memSpec.burstLength, nullptr, false)
     , m_patternHandler(PatternEncoderOverrides{}) // No overrides
-    , m_implicitCommandInserter(std::move(implicitCommandInserter))
 {
     registerPatterns();
-    m_formatResult.resize(12 * 24 / 8); // 288 bits bursts // 36 bites
+    m_formatResult.resize(12 * 24 / 8); // 288 bits bursts // 36 bytes
 }
 
 void LPDDR6Interface::registerPatterns() {
@@ -229,55 +236,49 @@ void LPDDR6Interface::registerPatterns() {
     // EOS
 }
 
-void LPDDR6Interface::enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp) {
-    // Change from bus to toggling rate
-    assert(enable_timestamp >= timestamp);
-    if ( enable_timestamp > timestamp ) {
-        // Schedule toggling rate enable
-        m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-            m_dataBus.enableTogglingRate(enable_timestamp);
-        });
-    } else {
-        m_dataBus.enableTogglingRate(enable_timestamp);
-    }
+timestamp_t LPDDR6Interface::getLastCommandTime() const {
+    return m_last_command_time;
 }
 
-void LPDDR6Interface::enableBus(timestamp_t timestamp, timestamp_t enable_timestamp) {
-    // Change from toggling rate to bus
-    assert(enable_timestamp >= timestamp);
-    if ( enable_timestamp > timestamp ) {
-        // Schedule toggling rate disable
-        m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-            m_dataBus.enableBus(enable_timestamp);
-        });
-    } else {
-        m_dataBus.enableBus(enable_timestamp);
+void LPDDR6Interface::doCommand(const Command& cmd) {
+    switch(cmd.type) {
+        case CmdType::ACT:
+        case CmdType::PRE:
+        case CmdType::PREA:
+        case CmdType::REFB:
+        case CmdType::REFA:
+        case CmdType::SREFEN:
+        case CmdType::SREFEX:
+        case CmdType::PDEA:
+        case CmdType::PDEP:
+        case CmdType::PDXA:
+        case CmdType::PDXP:
+        case CmdType::DSMEN:
+        case CmdType::DSMEX:
+            handleCommandBus(cmd);
+            break;
+        case CmdType::REFP2B:
+            if (m_memSpec.bank_arch != MemSpecLPDDR6::MBG && m_memSpec.bank_arch != MemSpecLPDDR6::M16B) {
+                throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
+            }
+            handleCommandBus(cmd);
+            break;
+        case CmdType::RD:
+        case CmdType::RDA:
+            handleData(cmd, true);
+            break;
+        case CmdType::WR:
+        case CmdType::WRA:
+            handleData(cmd, false);
+            break;
+        case CmdType::END_OF_SIMULATION:
+            endOfSimulation(cmd.timestamp);
+            break;
+        default:
+            assert(false && "Invalid command");
+            break;
     }
-}
-
-timestamp_t LPDDR6Interface::updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleratedefinition) {
-    timestamp_t enable_timestamp = timestamp;
-    if (toggleratedefinition) {
-        m_dataBus.setTogglingRateDefinition(*toggleratedefinition);
-        if (m_dataBus.isTogglingRate()) {
-            // toggling rate already enabled
-            return timestamp;
-        }
-        // Enable toggling rate
-        timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
-        enableTogglingHandle(enable_timestamp, enable_timestamp);
-        return enable_timestamp;
-    } else {
-        if (m_dataBus.isBus()) {
-            // Bus already enabled
-            return timestamp;
-        }
-        // Enable bus
-        timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
-        enableBus(enable_timestamp, enable_timestamp);
-        return enable_timestamp;
-    }
-    return enable_timestamp;
+    m_last_command_time = cmd.timestamp;
 }
 
 std::optional<const uint8_t *> LPDDR6Interface::handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read) {
@@ -429,6 +430,7 @@ void LPDDR6Interface::getWindowStats(timestamp_t timestamp, SimulationStats &sta
 }
 
 void LPDDR6Interface::serialize(std::ostream& stream) const {
+    stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
     m_patternHandler.serialize(stream);
     m_commandBus.serialize(stream);
     m_dataBus.serialize(stream);
@@ -438,6 +440,7 @@ void LPDDR6Interface::serialize(std::ostream& stream) const {
 }
 
 void LPDDR6Interface::deserialize(std::istream& stream) {
+    stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
     m_patternHandler.deserialize(stream);
     m_commandBus.deserialize(stream);
     m_dataBus.deserialize(stream);
