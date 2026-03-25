@@ -181,18 +181,22 @@ void compareStats(const std::vector<Command>& testPattern, std::unique_ptr<Stand
 }
 
 TEST_F(DramPowerTest_DDR4_Serialize, Test0){
+    createStandard(std::nullopt);
     compareStats(testPattern.at(0), ddr1, ddr2);
 }
 
 TEST_F(DramPowerTest_DDR5_Serialize, Test0){
+    createStandard(std::nullopt);
     compareStats(testPattern.at(0), ddr1, ddr2);
 }
 
 TEST_F(DramPowerTest_LPDDR4_Serialize, Test0){
+    createStandard(std::nullopt);
     compareStats(testPattern.at(0), ddr1, ddr2);
 }
 
 TEST_F(DramPowerTest_LPDDR5_Serialize, Test0){
+    createStandard(std::nullopt);
     compareStats(testPattern.at(0), ddr1, ddr2);
 }
 

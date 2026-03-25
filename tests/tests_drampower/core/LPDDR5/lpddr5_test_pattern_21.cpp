@@ -88,7 +88,7 @@ TEST_F(DramPowerTest_LPDDR5_21, Test)
         ddr->doCoreCommand(command);
     };
 
-    const Rank & rank_1 = internal::LPDDR5TestAccessor.getCore(*ddr).m_ranks[0];
+    const Rank & rank_1 = internal::LPDDR5TestAccessor.getRanks(ddr->getCore()).at(0);
     auto stats = ddr->getStats();
 
     // Check counter

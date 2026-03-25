@@ -87,7 +87,7 @@ TEST_F(DramPowerTest_DDR4_12, Test)
         ddr->doCoreCommand(command);
     };
 
-	const Rank & rank_1 = internal::DDR4TestAccessor.getCore(*ddr).m_ranks[0];
+	const Rank & rank_1 = internal::DDR4TestAccessor.getRanks(ddr->getCore()).at(0);
 	auto stats = ddr->getStats();
 
 	// Check global command count
