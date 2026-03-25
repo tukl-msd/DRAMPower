@@ -39,7 +39,7 @@ public:
         m_core.doCommand(cmd);
     }
 
-    void getWindowStats(timestamp_t timestamp, SimulationStats stats) {
+    void getWindowStats(timestamp_t timestamp, SimulationStats& stats) {
         processImplicitCommandQueue(timestamp, m_last_command_time);
         m_core.getWindowStats(timestamp, stats);
     }
