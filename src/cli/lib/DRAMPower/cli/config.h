@@ -9,10 +9,11 @@
 namespace DRAMPower::DRAMPowerCLI::config {
 
 struct CLIConfig {
+    bool useToggleRate;
     DRAMPower::config::SimConfig simconfig;
 };
 
-NLOHMANN_JSONIFY_ALL_THINGS(CLIConfig, simconfig)
+NLOHMANN_JSONIFY_ALL_THINGS(CLIConfig, useToggleRate, simconfig)
 
 } // namespace DRAMPower::DRAMPowerCLI::config
 
