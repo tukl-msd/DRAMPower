@@ -50,6 +50,8 @@ FILES
 
     DRAMPower/simconfig/simconfig.h
 
+    DRAMPower/util/CoreWrapper.h
+
     DRAMPower/command/Command.h
     DRAMPower/data/energy.h
     DRAMPower/data/stats.h
