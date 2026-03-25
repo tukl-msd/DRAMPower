@@ -91,7 +91,7 @@ public:
 private:
     const MemSpecLPDDR6& m_memSpec;
 public:
-    util::DBI<uint8_t, 1, util::PinState::L, util::StaticDBI> m_dbi;
+    util::DBI<uint8_t, 2, util::PinState::L, util::StaticDBI> m_dbi;
 
 // Private member variables
 private:
