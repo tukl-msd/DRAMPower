@@ -67,9 +67,10 @@ private:
 
 private:
 	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec_ init_pattern,
-		std::optional<burst_t> custom_init_pattern = std::nullopt
+		std::optional<burst_t> custom_init_pattern = std::nullopt, bool enableflag = true
 	) 
 		: burst_storage(width)
+		, enableflag(enableflag)
 		, width(width)
 		, datarate(datarate)
 		, idle_pattern(idle_pattern)
@@ -167,11 +168,11 @@ private:
 	}
 
 public: // Ensure type safety for init_pattern with 2 seperate constructors
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern)
-		: Bus(width, datarate, idle_pattern, convertInitPattern(init_pattern), std::nullopt) {}
+	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern, bool enable = true)
+		: Bus(width, datarate, idle_pattern, convertInitPattern(init_pattern), std::nullopt, enable) {}
 	
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern)
-		: Bus(width, datarate, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern) {}
+	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern, bool enable)
+		: Bus(width, datarate, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern, enable) {}
 
 	void set_idle_pattern(BusIdlePatternSpec idle_pattern)
 	{
@@ -336,7 +337,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 
 		auto stats = this->stats;
 
-		if(!this->init_load)
+		if(!this->init_load && this->enableflag)
 		{
 			// t > 0 and no load on bus
 			// only add init_transition if the bus was enabled at t=0

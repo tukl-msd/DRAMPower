@@ -5,7 +5,8 @@
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
-#include "DRAMPower/util/RegisterHelper.h"
+#include "DRAMPower/util/Serialize.h"
+#include "DRAMPower/util/Deserialize.h"
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/command/Command.h"
@@ -13,17 +14,16 @@
 #include "DRAMPower/data/stats.h"
 
 #include "DRAMPower/util/PatternHandler.h"
-#include "DRAMPower/util/ImplicitCommandHandler.h"
 #include "DRAMPower/util/dbi.h"
 
 #include "DRAMPower/memspec/MemSpecDDR4.h"
 
-#include "DRAMUtils/config/toggling_rate.h"
+#include "DRAMPower/simconfig/simconfig.h"
 
-#include <memory>
 #include <stdint.h>
 #include <cstddef>
 #include <vector>
+#include <optional>
 
 namespace DRAMPower {
 
@@ -38,9 +38,7 @@ public:
     using commandbus_t = util::Bus<cmdBusWidth>;
     using pin_dbi_t = util::Pin<8>; // max_burst_length = 8
     using databus_t = util::databus_presets::databus_preset_t;
-    using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
     using patternHandler_t = PatternHandler<CmdType>;
-    using interfaceRegisterHelper_t = util::InterfaceRegisterHelper<DDR4Interface>;
 
 // Public constructors and assignment operators
 public:
@@ -50,19 +48,27 @@ public:
     DDR4Interface(DDR4Interface&&) = default; // move constructor
     DDR4Interface& operator=(DDR4Interface&&) = delete; // move assignment operator
 
-    DDR4Interface(const MemSpecDDR4& memSpec, implicitCommandInserter_t&& implicitCommandInserter);
+    DDR4Interface(const MemSpecDDR4& memSpec, const config::SimConfig &simConfig = {});
+
+// Public member functions
+public:
+// Member functions
+    timestamp_t getLastCommandTime() const;
+    void doCommand(const Command& cmd);
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+// Overrides
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
+// Extensions
+    void enableDBI(bool enable) {
+        m_dbi.enable(enable);
+    }
 
 // Private member functions
 private:
     void registerPatterns();
     std::optional<const uint8_t *> handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
     void handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read);
-
-// Public member functions
-public:
-    interfaceRegisterHelper_t getRegisterHelper() {
-        return interfaceRegisterHelper_t{this};
-    }
     void handleOverrides(size_t length, bool read);
     void handleDQs(const Command& cmd, util::Clock &dqs, size_t length);
     void handleCommandBus(const Command& cmd);
@@ -74,38 +80,23 @@ public:
         bool                read
     );
     void endOfSimulation(timestamp_t timestamp);
-    
-    void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
-    void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
-    timestamp_t updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition);
-    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
 
-// Overrides
-public:
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
-
-// Public member variables
-public:
+// Private member variables
+private:
+    const MemSpecDDR4& m_memSpec;
     commandbus_t m_commandBus;
     databus_t m_dataBus;
     util::Clock m_readDQS;
     util::Clock m_writeDQS;
     util::Clock m_clock;
-private:
-    const MemSpecDDR4& m_memSpec;
-public:
     util::DBI<uint8_t, 1, util::PinState::H, util::StaticDBI> m_dbi;
     std::vector<pin_dbi_t> m_dbiread;
     std::vector<pin_dbi_t> m_dbiwrite;
     uint64_t prepostambleReadMinTccd;
     uint64_t prepostambleWriteMinTccd;
     std::vector<RankInterface> m_ranks;
-
-// Private member variables
-private:
     patternHandler_t m_patternHandler;
-    implicitCommandInserter_t m_implicitCommandInserter;
+    timestamp_t m_last_command_time;
 };
 
 } // namespace DRAMPower

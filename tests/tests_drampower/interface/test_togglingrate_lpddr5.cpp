@@ -30,7 +30,8 @@ static constexpr uint8_t rd_data[] = {
 
 class LPDDR5_TogglingRate_Tests : public ::testing::Test {
    public:
-    LPDDR5_TogglingRate_Tests() {
+
+    void SetUp() override {
         test_patterns.push_back({
             {0, CmdType::ACT, {1, 0, 0, 2}},
             {3, CmdType::WR, {1, 0, 0, 0, 8}, nullptr, datasize_bits},
@@ -40,12 +41,15 @@ class LPDDR5_TogglingRate_Tests : public ::testing::Test {
         });
 
         initSpec();
-        ddr = std::make_unique<LPDDR5>(*spec);
     }
 
     void initSpec() {
         auto data = DRAMUtils::parse_memspec_from_file(std::filesystem::path(TEST_RESOURCE_DIR) / "lpddr5.json");
         spec = std::make_unique<DRAMPower::MemSpecLPDDR5>(DRAMPower::MemSpecLPDDR5::from_memspec(*data));
+    }
+
+    void initDDR(const ToggleRateDefinition& trd) {
+        ddr = std::make_unique<LPDDR5>(*spec, config::SimConfig{trd});
     }
 
     void runCommands(const std::vector<Command> &commands) {
@@ -69,14 +73,15 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_0_LH) {
     double dutyCycleWrite = 0.4;
     TogglingRateIdlePattern idlePatternRead = TogglingRateIdlePattern::L;
     TogglingRateIdlePattern idlePatternWrite = TogglingRateIdlePattern::H;
-    ddr->setToggleRate(0, ToggleRateDefinition {
+    auto trd = ToggleRateDefinition {
         togglingRateRead, // togglingRateRead
         togglingRateWrite, // togglingRateWrite
         dutyCycleRead, // dutyCycleRead
         dutyCycleWrite, // dutyCycleWrite
         idlePatternRead, // idlePatternRead
         idlePatternWrite  // idlePatternWrite
-    });
+    };
+    initDDR(trd);
     // Run commands
     runCommands(test_patterns.at(0));
     // SZ_BITS: 256, width: 8 -> Burstlength: 32  (datarate bus)
@@ -169,14 +174,16 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_0_HZ) {
     double dutyCycleWrite = 0.4;
     TogglingRateIdlePattern idlePatternRead = TogglingRateIdlePattern::H;
     TogglingRateIdlePattern idlePatternWrite = TogglingRateIdlePattern::Z;
-    ddr->setToggleRate(0, ToggleRateDefinition {
+    auto trd = ToggleRateDefinition {
         togglingRateRead, // togglingRateRead
         togglingRateWrite, // togglingRateWrite
         dutyCycleRead, // dutyCycleRead
         dutyCycleWrite, // dutyCycleWrite
         idlePatternRead, // idlePatternRead
         idlePatternWrite  // idlePatternWrite
-    });
+    };
+    
+    initDDR(trd);
     // Run commands
     runCommands(test_patterns[0]);
     // SZ_BITS: 256, width: 8 -> Burstlength: 32  (datarate bus)
@@ -302,44 +309,38 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_1) {
     double dutyCycleWrite = 0.4;
     TogglingRateIdlePattern idlePatternRead = TogglingRateIdlePattern::L;
     TogglingRateIdlePattern idlePatternWrite = TogglingRateIdlePattern::H;
-    // Run commands
-    ddr->setToggleRate(0, std::nullopt);
-    ddr->doCoreInterfaceCommand({0, CmdType::ACT, {1, 0, 0, 2}});
-    ddr->doCoreInterfaceCommand({5, CmdType::WR, {1, 0, 0, 0, 8}, wr_data, SZ_BITS(wr_data)});
-    ddr->doCoreInterfaceCommand({14, CmdType::RD, {1, 0, 0, 0, 8}, rd_data, SZ_BITS(rd_data)});
-    // Enable toggling rate at beginning of read
-    // The toggling rate should be enabled at t=22
-    ddr->setToggleRate(14, ToggleRateDefinition {
+    auto trd = ToggleRateDefinition {
         togglingRateRead, // togglingRateRead
         togglingRateWrite, // togglingRateWrite
         dutyCycleRead, // dutyCycleRead
         dutyCycleWrite, // dutyCycleWrite
         idlePatternRead, // idlePatternRead
         idlePatternWrite  // idlePatternWrite
-    });
-    ddr->doCoreInterfaceCommand({23, CmdType::PRE, {1, 0, 0, 2}});
-    ddr->doCoreInterfaceCommand({30, CmdType::ACT, {1, 0, 0, 2}});
-    ddr->doCoreInterfaceCommand({35, CmdType::WR, {1, 0, 0, 0, 8}, nullptr, 16*8}); // burst length = 16
-    ddr->doCoreInterfaceCommand({44, CmdType::RD, {1, 0, 0, 0, 8}, nullptr, 16*8}); // burst length = 16
-    // Disable toggling rate during read
-    // The toggling rate should be disabled at t=52
-    ddr->setToggleRate(46, std::nullopt);
-    ddr->doCoreInterfaceCommand({53, CmdType::PRE, {1, 0, 0, 2}});
-    ddr->doCoreInterfaceCommand({56, CmdType::END_OF_SIMULATION});
-
-
+    };
+    
+    initDDR(trd);
+    // Run commands
+    ddr->doCommand({0, CmdType::ACT, {1, 0, 0, 2}});
+    ddr->doCommand({5, CmdType::WR, {1, 0, 0, 0, 8}, wr_data, SZ_BITS(wr_data)});
+    ddr->doCommand({14, CmdType::RD, {1, 0, 0, 0, 8}, rd_data, SZ_BITS(rd_data)});
+    ddr->doCommand({23, CmdType::PRE, {1, 0, 0, 2}});
+    ddr->doCommand({30, CmdType::ACT, {1, 0, 0, 2}});
+    ddr->doCommand({35, CmdType::WR, {1, 0, 0, 0, 8}, nullptr, 16*8}); // burst length = 16
+    ddr->doCommand({44, CmdType::RD, {1, 0, 0, 0, 8}, nullptr, 16*8}); // burst length = 16
+    ddr->doCommand({53, CmdType::PRE, {1, 0, 0, 2}});
+    ddr->doCommand({56, CmdType::END_OF_SIMULATION});
 
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(spec->dataRate, 2);
 
 // Toggling rate
-    uint64_t toggles_read = 16;
+    uint64_t toggles_read = 2 * 16;
     uint64_t idleread_ones = 0;
-    uint64_t idleread_zeroes = 44; // TogglingRateIdlePattern::L
+    uint64_t idleread_zeroes = 2 * 56 - toggles_read; // TogglingRateIdlePattern::L
 
-    uint64_t toggles_write = 16;
-    uint64_t idlewrite_ones = 44; // TogglingRateIdlePattern::H
+    uint64_t toggles_write = 2 * 16;
+    uint64_t idlewrite_ones = 2 * 56 - toggles_write; // TogglingRateIdlePattern::H
     uint64_t idlewrite_zeroes = 0;
 
     // Read bus
@@ -363,15 +364,15 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_1) {
     EXPECT_EQ(stats.togglingStats.write.zeroes_to_ones,  static_cast<uint64_t>(std::floor((togglingRateWrite / 2) * toggles_write)) * spec->bitWidth); // 32
 
 // Data bus
-    EXPECT_EQ(stats.readBus.zeroes_to_ones, 8);
+    EXPECT_EQ(stats.readBus.zeroes_to_ones, 0);
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 0);
-    EXPECT_EQ(stats.readBus.zeroes, 408);
-    EXPECT_EQ(stats.readBus.ones, 8);
+    EXPECT_EQ(stats.readBus.zeroes, 0);
+    EXPECT_EQ(stats.readBus.ones, 0);
 
-    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 8);
-    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 8);
-    EXPECT_EQ(stats.writeBus.zeroes, 408);
-    EXPECT_EQ(stats.writeBus.ones, 8);
+    EXPECT_EQ(stats.writeBus.zeroes_to_ones, 0);
+    EXPECT_EQ(stats.writeBus.ones_to_zeroes, 0);
+    EXPECT_EQ(stats.writeBus.zeroes, 0);
+    EXPECT_EQ(stats.writeBus.ones, 0);
 
 // Clock (see test_interface_lpddr5)
     EXPECT_EQ(stats.clockStats.zeroes_to_ones, 112);

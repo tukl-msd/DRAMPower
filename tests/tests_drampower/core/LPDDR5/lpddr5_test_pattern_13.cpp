@@ -99,7 +99,7 @@ TEST_F(DramPowerTest_LPDDR5_13, Pattern_2)
     };
 
 	// Inspect first rank
-	const Rank & rank_1 = internal::LPDDR5TestAccessor.getCore(*ddr).m_ranks[0];
+	const Rank & rank_1 = internal::LPDDR5TestAccessor.getRanks(ddr->getCore()).at(0);
 
 	// Check global command count
 	ASSERT_EQ(rank_1.commandCounter.get(CmdType::RD), 13);

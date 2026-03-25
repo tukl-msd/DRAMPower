@@ -86,7 +86,7 @@ TEST_F(DramPowerTest_LPDDR4_13, Test)
         ddr->doCoreCommand(command);
     };
 
-	const Rank & rank_1 = internal::LPDDR4TestAccessor.getCore(*ddr).m_ranks[0];
+	const Rank & rank_1 = internal::LPDDR4TestAccessor.getRanks(ddr->getCore()).at(0);
 	auto stats = ddr->getStats();
 
 	// Check global command count

@@ -1,6 +1,8 @@
 #ifndef DRAMPOWER_UTIL_DATABUS
 #define DRAMPOWER_UTIL_DATABUS
 
+#include "DRAMPower/Exceptions.h"
+#include "DRAMPower/util/bus_types.h"
 #include <cstddef>
 #include <type_traits>
 #include <utility>
@@ -27,36 +29,76 @@ public:
     using IdlePattern_t = util::BusIdlePatternSpec;
     using InitPattern_t = util::BusInitPatternSpec;
 
-public:
-    DataBus(std::size_t width, std::size_t dataRate,
-        IdlePattern_t idlePattern, InitPattern_t initPattern,
-            DRAMUtils::Config::TogglingRateIdlePattern togglingRateIdlePattern = DRAMUtils::Config::TogglingRateIdlePattern::Z,
-            const double togglingRate = 0.0, const double dutyCycle = 0.0,
-            DataBusMode busType = DataBusMode::Bus
-        )
-        : busRead(width, dataRate, idlePattern, initPattern)
-        , busWrite(width, dataRate, idlePattern, initPattern)
-        , togglingHandleRead(width, dataRate, togglingRate, dutyCycle, togglingRateIdlePattern, false)
-        , togglingHandleWrite(width, dataRate, togglingRate, dutyCycle, togglingRateIdlePattern, false)
-        , busType(busType)
-        , dataRate(dataRate)
-        , width(width)
-    {
-        switch(busType) {
-            case DataBusMode::Bus:
-                busWrite.enable(0);
-                busRead.enable(0);
-                break;
-            case DataBusMode::TogglingRate:
-                togglingHandleRead.enable(0);
-                togglingHandleWrite.enable(0);
-                break;
-        }
+static constexpr BusIdlePatternSpec convertIdlePattern(const DRAMUtils::Config::TogglingRateIdlePattern idlePattern, bool lastPattern) {
+    using namespace DRAMUtils::Config;
+    if (lastPattern) {
+        return BusIdlePatternSpec::LAST_PATTERN;
     }
-    DataBus(DataBusConfig&& config)
-    : DataBus(config.width, config.dataRate, config.idlePattern, config.initPattern,
-        config.togglingRateIdlePattern, config.togglingRate, config.dutyCycle, config.busType
-    ) {}
+    switch(idlePattern) {
+        case TogglingRateIdlePattern::L:
+            return BusIdlePatternSpec::L;
+        case TogglingRateIdlePattern::H:
+            return BusIdlePatternSpec::H;
+        case TogglingRateIdlePattern::Z:
+            return BusIdlePatternSpec::Z;
+        case TogglingRateIdlePattern::Invalid:
+            throw Exception("Invalid TogglingRateIdlePattern");
+    }
+    return BusIdlePatternSpec::Z; // Unreachable
+}
+
+static constexpr BusInitPatternSpec convertInitPattern(const DRAMUtils::Config::TogglingRateIdlePattern initPattern) {
+    using namespace DRAMUtils::Config;
+    switch(initPattern) {
+        case TogglingRateIdlePattern::L:
+            return BusInitPatternSpec::L;
+        case TogglingRateIdlePattern::H:
+            return BusInitPatternSpec::H;
+        case TogglingRateIdlePattern::Z:
+            return BusInitPatternSpec::Z;
+        case TogglingRateIdlePattern::Invalid:
+            throw Exception("Invalid TogglingRateIdlePattern");
+    }
+    return BusInitPatternSpec::Z; // Unreachable
+}
+
+// BusInitPatternSpec
+public:
+    DataBus(DataBusConfig&& config, DataBusMode mode, bool IdlelastPatternOverride)
+        : busRead(
+            config.width,
+            config.dataRate,
+            convertIdlePattern(config.toggleRateConf.idlePatternRead, IdlelastPatternOverride),
+            convertInitPattern(config.toggleRateConf.idlePatternRead),
+            DataBusMode::Bus == mode
+        )
+        , busWrite(
+            config.width,
+            config.dataRate,
+            convertIdlePattern(config.toggleRateConf.idlePatternWrite, IdlelastPatternOverride),
+            convertInitPattern(config.toggleRateConf.idlePatternWrite),
+            DataBusMode::Bus == mode
+        )
+        , togglingHandleRead(
+            config.width,
+            config.dataRate,
+            config.toggleRateConf.togglingRateRead,
+            config.toggleRateConf.dutyCycleRead,
+            config.toggleRateConf.idlePatternRead,
+            DataBusMode::TogglingRate == mode
+        )
+        , togglingHandleWrite(
+            config.width,
+            config.dataRate,
+            config.toggleRateConf.togglingRateWrite,
+            config.toggleRateConf.dutyCycleWrite,
+            config.toggleRateConf.idlePatternWrite,
+            DataBusMode::TogglingRate == mode
+        )
+        , busType(mode)
+        , dataRate(config.dataRate)
+        , width(config.width)
+    {}
 
 private:
     void load(Bus_t &bus, TogglingHandle &togglingHandle, timestamp_t timestamp, std::size_t n_bits, const uint8_t *data = nullptr) {

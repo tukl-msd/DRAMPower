@@ -1,6 +1,59 @@
 #include "DDR4Core.h"
+#include "DRAMPower/util/RegisterHelper.h"
 
 namespace DRAMPower {
+
+void DDR4Core::doCommand(const Command& cmd) {
+    switch(cmd.type) {
+        case CmdType::ACT:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR4Core::handleAct);
+            break;
+        case CmdType::PRE:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR4Core::handlePre);
+            break;
+        case CmdType::PREA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR4Core::handlePreAll);
+            break;
+        case CmdType::REFA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR4Core::handleRefAll);
+            break;
+        case CmdType::RD:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR4Core::handleRead);
+            break;
+        case CmdType::RDA:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR4Core::handleReadAuto);
+            break;
+        case CmdType::WR:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR4Core::handleWrite);
+            break;
+        case CmdType::WRA:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR4Core::handleWriteAuto);
+            break;
+        case CmdType::SREFEN:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR4Core::handleSelfRefreshEntry);
+            break;
+        case CmdType::SREFEX:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR4Core::handleSelfRefreshExit);
+            break;
+        case CmdType::PDEA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR4Core::handlePowerDownActEntry);
+            break;
+        case CmdType::PDEP:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR4Core::handlePowerDownPreEntry);
+            break;
+        case CmdType::PDXA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR4Core::handlePowerDownActExit);
+            break;
+        case CmdType::PDXP:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR4Core::handlePowerDownPreExit);
+            break;
+        case CmdType::END_OF_SIMULATION:
+            break;
+        default:
+            assert(false && "Unsupported command");
+            break;
+    }
+}
 
 void DDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
     bank.counter.act++;
