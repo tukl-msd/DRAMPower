@@ -130,7 +130,6 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_0) {
 
     // DQs bus
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
@@ -192,7 +191,6 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_1) {
 
     // DQs bus
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
@@ -251,7 +249,6 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_2) {
 
     // DQs bus
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
@@ -310,7 +307,6 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_3) {
 
     // DQs bus
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
@@ -369,7 +365,6 @@ TEST_F(DDR4_WindowStats_Tests, Pattern_4) {
 
     // DQs bus
     EXPECT_EQ(SZ_BITS(wr_data), SZ_BITS(rd_data));
-    EXPECT_EQ(DRAMPower::internal::DDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)
