@@ -337,7 +337,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 
 		auto stats = this->stats;
 
-		if(!this->init_load)
+		if(!this->init_load && this->enableflag)
 		{
 			// t > 0 and no load on bus
 			// only add init_transition if the bus was enabled at t=0
