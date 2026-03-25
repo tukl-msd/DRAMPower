@@ -10,8 +10,8 @@ static constexpr DRAMUtils::Config::ToggleRateDefinition busConfig {
     0,
     0,
     0,
-    DRAMUtils::Config::TogglingRateIdlePattern::H,
-    DRAMUtils::Config::TogglingRateIdlePattern::H
+    DRAMUtils::Config::TogglingRateIdlePattern::L,
+    DRAMUtils::Config::TogglingRateIdlePattern::L
 };
 
 LPDDR4Interface::LPDDR4Interface(const MemSpecLPDDR4& memSpec, const config::SimConfig& simConfig)
