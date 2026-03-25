@@ -244,6 +244,13 @@ bool getConfig(const std::string &configfile, config::CLIConfig &config)
         }
         json_t json_obj = json_t::parse(file, nullptr, false, true);
         config = json_obj;
+        if (!config.useToggleRate) {
+            config.simconfig.toggleRateDefinition = std::nullopt;
+        }
+        if (config.useToggleRate && !config.simconfig.toggleRateDefinition.has_value()) {
+            spdlog::error("Provide a toggleRateDefinition for a simulation with toggling rates");
+            return false;
+        }
     } catch (std::exception&) {
         return false;
     }
