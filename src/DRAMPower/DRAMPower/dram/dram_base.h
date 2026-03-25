@@ -69,6 +69,11 @@ public:
         doInterfaceCommandImpl(command);
     }
 
+    // deprecated
+    void doCoreInterfaceCommand(const Command& command) {
+        doCommand(command);
+    }
+
     timestamp_t getLastCommandTime() const {
         return getLastCommandTime_impl();
     }
