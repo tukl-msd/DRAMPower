@@ -12,7 +12,7 @@ class InterfaceCalculation_LPDDR5 {
    public:
     InterfaceCalculation_LPDDR5(const MemSpecLPDDR5 &memspec);
 
-    interface_energy_info_t calculateEnergy(const SimulationStats &stats);
+    interface_energy_info_t calculateEnergy(const SimulationStats &stats) const;
 
    private:
     const MemSpecLPDDR5 &memspec_;
@@ -21,12 +21,12 @@ class InterfaceCalculation_LPDDR5 {
     double t_WCK_;
     double VDDQ_;
 
-    interface_energy_info_t calcClockEnergy(const SimulationStats &stats);
-    interface_energy_info_t calcDQSEnergy(const SimulationStats &stats);
-    interface_energy_info_t calcDQEnergy(const SimulationStats &stats);
-    interface_energy_info_t calcCAEnergy(const SimulationStats &stats);
-    interface_energy_info_t calcDQEnergyTogglingRate(const TogglingStats &stats);
-    interface_energy_info_t calcDBIEnergy(const SimulationStats &stats);
+    interface_energy_info_t calcClockEnergy(const SimulationStats &stats) const;
+    interface_energy_info_t calcDQSEnergy(const SimulationStats &stats) const;
+    interface_energy_info_t calcDQEnergy(const SimulationStats &stats) const;
+    interface_energy_info_t calcCAEnergy(const SimulationStats &stats) const;
+    interface_energy_info_t calcDQEnergyTogglingRate(const TogglingStats &stats) const;
+    interface_energy_info_t calcDBIEnergy(const SimulationStats &stats) const;
 };
 
 }  // namespace DRAMPower
