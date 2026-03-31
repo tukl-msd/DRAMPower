@@ -97,8 +97,14 @@ public:
 
 // Public virtual methods
 public:
-    virtual energy_t calcCoreEnergy(timestamp_t timestamp) = 0;
-    virtual interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) = 0;
+    virtual energy_t calcCoreEnergyStats(const SimulationStats& stats) const = 0;
+    energy_t calcCoreEnergy(timestamp_t timestamp) {
+        return calcCoreEnergyStats(getWindowStats(timestamp));
+    }
+    virtual interface_energy_info_t calcInterfaceEnergyStats(const SimulationStats& stats) const = 0;
+    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) {
+        return calcInterfaceEnergyStats(getWindowStats(timestamp));
+    }
     virtual SimulationStats getWindowStats(timestamp_t timestamp) = 0;
     virtual util::CLIArchitectureConfig getCLIArchitectureConfig() = 0;
     virtual bool isSerializable() const = 0;
