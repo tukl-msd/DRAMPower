@@ -9,15 +9,15 @@ InterfaceCalculation_LPDDR4::InterfaceCalculation_LPDDR4(const MemSpecLPDDR4 & m
 , VDDQ(memspec.vddq)
 {}
 
-double InterfaceCalculation_LPDDR4::calc_static_energy(const uint64_t NxBits, const double R_eq, const double t_CK, const double voltage) {
+static double calc_static_energy(const uint64_t NxBits, const double R_eq, const double t_CK, const double voltage) {
     return NxBits * ((voltage * voltage) / R_eq) * t_CK; // N * P * t = N * E
 }
 
-double InterfaceCalculation_LPDDR4::calc_dynamic_energy(const uint64_t NxBits, const double energy) {
+static double calc_dynamic_energy(const uint64_t NxBits, const double energy) {
     return NxBits * energy;
 }
 
-double InterfaceCalculation_LPDDR4::calcStaticTermination(const bool termination, const DRAMPower::util::bus_stats_t &stats, const double R_eq, const double t_CK, const uint64_t datarate, const double voltage)
+static double calcStaticTermination(const bool termination, const DRAMPower::util::bus_stats_t &stats, const double R_eq, const double t_CK, const uint64_t datarate, const double voltage)
 {
     if (termination == false) {
         return 0; // No static termination
@@ -26,7 +26,7 @@ double InterfaceCalculation_LPDDR4::calcStaticTermination(const bool termination
     return calc_static_energy(stats.ones, R_eq, t_CK / datarate, voltage);
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR4::calcClockEnergy(const SimulationStats &stats)
+interface_energy_info_t InterfaceCalculation_LPDDR4::calcClockEnergy(const SimulationStats &stats) const
 {
     interface_energy_info_t result;
 
@@ -38,7 +38,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calcClockEnergy(const Simul
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQSEnergy(const SimulationStats & stats)
+interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQSEnergy(const SimulationStats & stats) const
 {
     // Datarate of data bus
     interface_energy_info_t result;
@@ -54,7 +54,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQSEnergy(const Simulat
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR4::calcCAEnergy(const SimulationStats& bus_stats)
+interface_energy_info_t InterfaceCalculation_LPDDR4::calcCAEnergy(const SimulationStats& bus_stats) const
 {
     interface_energy_info_t result;
     result.controller.staticEnergy = 
@@ -64,7 +64,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calcCAEnergy(const Simulati
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQEnergy(const SimulationStats& bus_stats)
+interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQEnergy(const SimulationStats& bus_stats) const
 {
     interface_energy_info_t result;
 
@@ -83,7 +83,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQEnergy(const Simulati
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQEnergyTogglingRate(const TogglingStats &stats)
+interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQEnergyTogglingRate(const TogglingStats &stats) const
 {
     interface_energy_info_t result;
 
@@ -102,7 +102,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calcDQEnergyTogglingRate(co
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR4::calculateEnergy(const SimulationStats& stats)
+interface_energy_info_t InterfaceCalculation_LPDDR4::calculateEnergy(const SimulationStats& stats) const
 {
     interface_energy_info_t result;
     
@@ -116,7 +116,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR4::calculateEnergy(const Simul
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR4::calcDBIEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_LPDDR4::calcDBIEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
     // Read
     result.dram.staticEnergy +=

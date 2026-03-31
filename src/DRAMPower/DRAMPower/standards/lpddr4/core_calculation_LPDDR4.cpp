@@ -8,43 +8,43 @@ namespace DRAMPower {
         : m_memSpec(memSpec)
     {}
 
-    double Calculation_LPDDR4::E_pre(double VDD, double IBeta, double IDD2N, double t_RP, uint64_t N_pre) {
+    double Calculation_LPDDR4::E_pre(double VDD, double IBeta, double IDD2N, double t_RP, uint64_t N_pre) const {
         return VDD * (IBeta - IDD2N) * t_RP * N_pre;
     }
 
-    double Calculation_LPDDR4::E_act(double VDD, double I_theta, double IDD3N, double t_RAS, uint64_t N_act) {
+    double Calculation_LPDDR4::E_act(double VDD, double I_theta, double IDD3N, double t_RAS, uint64_t N_act) const {
         return VDD * (I_theta - IDD3N) * t_RAS * N_act;
     }
 
-    double Calculation_LPDDR4::E_BG_pre(std::size_t B, double VDD, double IDD2N, double T_BG_pre) {
+    double Calculation_LPDDR4::E_BG_pre(std::size_t B, double VDD, double IDD2N, double T_BG_pre) const {
         return (1.0 / B) * VDD * IDD2N * T_BG_pre;
     }
 
-    double Calculation_LPDDR4::E_BG_act_star(std::size_t B, double VDD, double IDD3N, double I_p, double T_BG_act_star) {
+    double Calculation_LPDDR4::E_BG_act_star(std::size_t B, double VDD, double IDD3N, double I_p, double T_BG_act_star) const {
         return VDD * (1.0 / B) * (IDD3N - I_p) * T_BG_act_star;
     }
 
-    double Calculation_LPDDR4::E_BG_act_shared(double VDD, double I_p, double T_bg_act) {
+    double Calculation_LPDDR4::E_BG_act_shared(double VDD, double I_p, double T_bg_act) const {
         return VDD * I_p * T_bg_act;
     }
 
-    double Calculation_LPDDR4::E_RD(double VDD, double IDD4_R, double IDD3N, std::size_t BL, std::size_t DR, double t_CK, uint64_t N_RD) {
+    double Calculation_LPDDR4::E_RD(double VDD, double IDD4_R, double IDD3N, std::size_t BL, std::size_t DR, double t_CK, uint64_t N_RD) const {
         return VDD * (IDD4_R - IDD3N) * (BL / DR) * t_CK * N_RD;
     }
 
-    double Calculation_LPDDR4::E_WR(double VDD, double IDD4_W, double IDD3N, std::size_t BL, std::size_t DR, double t_CK, uint64_t N_WR) {
+    double Calculation_LPDDR4::E_WR(double VDD, double IDD4_W, double IDD3N, std::size_t BL, std::size_t DR, double t_CK, uint64_t N_WR) const {
         return VDD * (IDD4_W - IDD3N) * (BL / DR) * t_CK * N_WR;
     }
 
-    double Calculation_LPDDR4::E_ref_ab(std::size_t B, double VDD, double IDD5, double approx_IDD3N, double tRFC, uint64_t N_REF) {
+    double Calculation_LPDDR4::E_ref_ab(std::size_t B, double VDD, double IDD5, double approx_IDD3N, double tRFC, uint64_t N_REF) const {
         return (1.0 / B) * VDD * (IDD5 - approx_IDD3N) * tRFC * N_REF;
     }
 
-    double Calculation_LPDDR4::E_ref_pb(double VDD, double IDD5PB_B, double IDD3N, double tRFCPB, uint64_t N_PB_REF) {
+    double Calculation_LPDDR4::E_ref_pb(double VDD, double IDD5PB_B, double IDD3N, double tRFCPB, uint64_t N_PB_REF) const {
         return VDD * (IDD5PB_B - IDD3N) * tRFCPB * N_PB_REF;
     }
 
-    energy_t Calculation_LPDDR4::calcEnergy(const SimulationStats &stats) {
+    energy_t Calculation_LPDDR4::calcEnergy(const SimulationStats &stats) const {
         auto t_CK = m_memSpec.memTimingSpec.tCK;
         auto t_RAS = m_memSpec.memTimingSpec.tRAS * t_CK;
         auto t_RP = m_memSpec.memTimingSpec.tRP * t_CK;

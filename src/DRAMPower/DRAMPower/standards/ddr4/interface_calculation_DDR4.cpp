@@ -20,15 +20,14 @@ static double calcStaticTermination(const bool termination, const DRAMPower::uti
     return calc_static_energy(stats.zeroes, R_eq, t_CK / datarate, voltage);
 };
 
-InterfaceCalculation_DDR4::InterfaceCalculation_DDR4(const MemSpecDDR4 &memspec) :
-    memspec_(memspec), 
-    impedances_(memspec_.memImpedanceSpec) 
-{
-    t_CK_ = memspec_.memTimingSpec.tCK;
-    VDD_ = memspec_.vddq;
-}
+InterfaceCalculation_DDR4::InterfaceCalculation_DDR4(const MemSpecDDR4 &memspec)
+    : memspec_(memspec)
+    , impedances_(memspec.memImpedanceSpec) 
+    , t_CK_(memspec.memTimingSpec.tCK)
+    , VDD_(memspec.vddq)
+{}
 
-interface_energy_info_t InterfaceCalculation_DDR4::calculateEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_DDR4::calculateEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
     result += calcClockEnergy(stats);
     result += calcDQSEnergy(stats);
@@ -40,7 +39,7 @@ interface_energy_info_t InterfaceCalculation_DDR4::calculateEnergy(const Simulat
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR4::calcClockEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_DDR4::calcClockEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
     // Pull up -> zeros
     result.controller.staticEnergy =
@@ -51,7 +50,7 @@ interface_energy_info_t InterfaceCalculation_DDR4::calcClockEnergy(const Simulat
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR4::calcDQSEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_DDR4::calcDQSEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
     // Pull up -> zeros
     uint_fast8_t NumDQsPairs = 1;
@@ -117,7 +116,7 @@ interface_energy_info_t InterfaceCalculation_DDR4::calcDQSEnergy(const Simulatio
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR4::calcDQEnergyTogglingRate(const TogglingStats &stats)
+interface_energy_info_t InterfaceCalculation_DDR4::calcDQEnergyTogglingRate(const TogglingStats &stats) const
 {
     interface_energy_info_t result;
 
@@ -136,7 +135,7 @@ interface_energy_info_t InterfaceCalculation_DDR4::calcDQEnergyTogglingRate(cons
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR4::calcDQEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_DDR4::calcDQEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
     // Read
     result.dram.staticEnergy +=
@@ -153,7 +152,7 @@ interface_energy_info_t InterfaceCalculation_DDR4::calcDQEnergy(const Simulation
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR4::calcCAEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_DDR4::calcCAEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
     // Pull up -> zeros
     result.controller.staticEnergy =
@@ -165,7 +164,7 @@ interface_energy_info_t InterfaceCalculation_DDR4::calcCAEnergy(const Simulation
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR4::calcDBIEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_DDR4::calcDBIEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
     // Read
     result.dram.staticEnergy +=
