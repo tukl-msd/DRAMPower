@@ -1,4 +1,5 @@
 #include "LPDDR4.h"
+#include "DRAMPower/data/stats.h"
 
 #include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/standards/lpddr4/core_calculation_LPDDR4.h>
@@ -38,19 +39,18 @@ namespace DRAMPower {
     }
 
 // Calculation
-    energy_t LPDDR4::calcCoreEnergy(timestamp_t timestamp) {
+    energy_t LPDDR4::calcCoreEnergyStats(const SimulationStats& stats) const {
         Calculation_LPDDR4 calculation(m_memSpec);
-        return calculation.calcEnergy(getWindowStats(timestamp));
+        return calculation.calcEnergy(stats);
     }
 
-    interface_energy_info_t LPDDR4::calcInterfaceEnergy(timestamp_t timestamp) {
+    interface_energy_info_t LPDDR4::calcInterfaceEnergyStats(const SimulationStats& stats) const {
         InterfaceCalculation_LPDDR4 interface_calc(m_memSpec);
-        return interface_calc.calculateEnergy(getWindowStats(timestamp));
+        return interface_calc.calculateEnergy(stats);
     }
 
 // Stats
     SimulationStats LPDDR4::getWindowStats(timestamp_t timestamp) {
-        // If there are still implicit commands queued up, process them first
         SimulationStats stats;
         m_core.getWindowStats(timestamp, stats);
         m_interface.getWindowStats(timestamp, stats);

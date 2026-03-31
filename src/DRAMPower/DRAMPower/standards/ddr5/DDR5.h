@@ -2,7 +2,6 @@
 #define DRAMPOWER_STANDARDS_DDR5_DDR5_H
 
 
-#include "DRAMPower/util/CoreWrapper.h"
 #include "DRAMPower/util/cli_architecture_config.h"
 
 #include "DRAMPower/Types.h"
@@ -35,8 +34,8 @@ public:
 
 // Public member functions
 public:
-    energy_t calcCoreEnergy(timestamp_t timestamp) override;
-    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
+    energy_t calcCoreEnergyStats(const SimulationStats& stats) const override;
+    interface_energy_info_t calcInterfaceEnergyStats(const SimulationStats& stats) const override;
     SimulationStats getWindowStats(timestamp_t timestamp) override;
     util::CLIArchitectureConfig getCLIArchitectureConfig() override;
     bool isSerializable() const override {
@@ -44,10 +43,10 @@ public:
     }
 // member functions
     DDR5Core& getCore() {
-        return m_core.getCore();
+        return m_core;
     }
     const DDR5Core& getCore() const {
-        return m_core.getCore();
+        return m_core;
     }
     DDR5Interface& getInterface() {
         return m_interface;
@@ -75,7 +74,7 @@ private:
 private:
     MemSpecDDR5 m_memSpec;
     DDR5Interface m_interface;
-    CoreWrapper<DDR5Core> m_core;
+    DDR5Core m_core;
 };
 
 }  // namespace DRAMPower
