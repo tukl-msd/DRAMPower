@@ -87,7 +87,7 @@ TEST_F(DramPowerTest_DDR5_14, Test)
         ddr->doCoreCommand(command);
     };
 
-	const Rank & rank_1 = internal::DDR5TestAccessor.getCore(*ddr).m_ranks[0];
+	const Rank & rank_1 = internal::DDR5TestAccessor.getRanks(ddr->getCore()).at(0);
 	auto stats = ddr->getStats();
 
 	// Check global command count

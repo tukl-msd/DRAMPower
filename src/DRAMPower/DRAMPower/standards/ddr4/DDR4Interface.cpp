@@ -1,44 +1,50 @@
 #include "DDR4Interface.h"
-#include <optional>
+#include "DRAMPower/util/databus_types.h"
 
 namespace DRAMPower {
 
-    DDR4Interface::DDR4Interface(const MemSpecDDR4& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
-    : m_commandBus{cmdBusWidth, 1,
-        util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
-    , m_dataBus{
-        util::databus_presets::getDataBusPreset(
-            memSpec.bitWidth * memSpec.numberOfDevices,
-            util::DataBusConfig {
-                memSpec.bitWidth * memSpec.numberOfDevices,
-                memSpec.dataRate,
-                util::BusIdlePatternSpec::H,
-                util::BusInitPatternSpec::H,
-                DRAMUtils::Config::TogglingRateIdlePattern::H,
-                0.0,
-                0.0,
-                util::DataBusMode::Bus
-            }
-        )
-    }
-    , m_readDQS(memSpec.dataRate, true)
-    , m_writeDQS(memSpec.dataRate, true)
-    , m_clock(2, false)
-    , m_memSpec(memSpec)
-    , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
-        [this](timestamp_t load_timestamp, timestamp_t, std::size_t pin, bool inversion_state, bool read) {
-        this->handleDBIPinChange(load_timestamp, pin, inversion_state, read);
-    }, false)
-    , m_dbiread(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
-    , m_dbiwrite(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
-    , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
-    , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
-    , m_ranks(memSpec.numberOfRanks)
-    , m_patternHandler(PatternEncoderOverrides {
+    static constexpr DRAMUtils::Config::ToggleRateDefinition busConfig {
+        0,
+        0,
+        0,
+        0,
+        DRAMUtils::Config::TogglingRateIdlePattern::H,
+        DRAMUtils::Config::TogglingRateIdlePattern::H
+    };
+
+    DDR4Interface::DDR4Interface(const MemSpecDDR4& memSpec, const config::SimConfig &simConfig)
+        : m_memSpec(memSpec)
+        , m_commandBus{cmdBusWidth, 1,
+            util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
+        , m_dataBus{
+            util::databus_presets::getDataBusPreset(
+                util::DataBusConfig{
+                    memSpec.bitWidth * memSpec.numberOfDevices,
+                    memSpec.dataRate,
+                    simConfig.toggleRateDefinition.value_or(busConfig)
+                },
+                simConfig.toggleRateDefinition.has_value()
+                    ? util::DataBusMode::TogglingRate
+                    : util::DataBusMode::Bus,
+                false
+            )
+        }
+        , m_readDQS(memSpec.dataRate, true)
+        , m_writeDQS(memSpec.dataRate, true)
+        , m_clock(2, false)
+        , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
+            [this](timestamp_t load_timestamp, timestamp_t, std::size_t pin, bool inversion_state, bool read) {
+            this->handleDBIPinChange(load_timestamp, pin, inversion_state, read);
+        }, false)
+        , m_dbiread(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
+        , m_dbiwrite(m_dbi.getChunksPerWidth().value(), pin_dbi_t{m_dbi.getIdlePattern(), m_dbi.getIdlePattern()})
+        , prepostambleReadMinTccd(memSpec.prePostamble.readMinTccd)
+        , prepostambleWriteMinTccd(memSpec.prePostamble.writeMinTccd)
+        , m_ranks(memSpec.numberOfRanks)
+        , m_patternHandler(PatternEncoderOverrides {
             {pattern_descriptor::V, PatternEncoderBitSpec::H},
             {pattern_descriptor::X, PatternEncoderBitSpec::H},
         }, cmdBusInitPattern)
-    , m_implicitCommandInserter(std::move(implicitCommandInserter))
     {
         registerPatterns();
     }
@@ -135,56 +141,40 @@ namespace DRAMPower {
         });
     }
 
-    // Update toggling rate
-    void DDR4Interface::enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp) {
-        // Change from bus to toggling rate
-        assert(enable_timestamp >= timestamp);
-        if ( enable_timestamp > timestamp ) {
-            // Schedule toggling rate enable
-            m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-                m_dataBus.enableTogglingRate(enable_timestamp);
-            });
-        } else {
-            m_dataBus.enableTogglingRate(enable_timestamp);
-        }
+    timestamp_t DDR4Interface::getLastCommandTime() const {
+        return m_last_command_time;
     }
 
-    void DDR4Interface::enableBus(timestamp_t timestamp, timestamp_t enable_timestamp) {
-        // Change from toggling rate to bus
-        assert(enable_timestamp >= timestamp);
-        if ( enable_timestamp > timestamp ) {
-            // Schedule toggling rate disable
-            m_implicitCommandInserter.addImplicitCommand(enable_timestamp, [this, enable_timestamp]() {
-                m_dataBus.enableBus(enable_timestamp);
-            });
-        } else {
-            m_dataBus.enableBus(enable_timestamp);
+    void DDR4Interface::doCommand(const Command& cmd) {
+        switch(cmd.type) {
+            case CmdType::ACT:
+            case CmdType::PRE:
+            case CmdType::PREA:
+            case CmdType::REFA:
+            case CmdType::SREFEN:
+            case CmdType::SREFEX:
+            case CmdType::PDEA:
+            case CmdType::PDEP:
+            case CmdType::PDXA:
+            case CmdType::PDXP:
+                handleCommandBus(cmd);
+                break;
+            case CmdType::RD:
+            case CmdType::RDA:
+                handleData(cmd, true);
+                break;
+            case CmdType::WR:
+            case CmdType::WRA:
+                handleData(cmd, false);
+                break;
+            case CmdType::END_OF_SIMULATION:
+                endOfSimulation(cmd.timestamp);
+                break;
+            default:
+                assert(false && "Invalid command");
+                break;
         }
-    }
-
-    timestamp_t DDR4Interface::updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleratedefinition)
-    {
-        if (toggleratedefinition) {
-            m_dataBus.setTogglingRateDefinition(*toggleratedefinition);
-            if (m_dataBus.isTogglingRate()) {
-                // toggling rate already enabled
-                return timestamp;
-            }
-            // Enable toggling rate
-            timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
-            enableTogglingHandle(timestamp, enable_timestamp);
-            return enable_timestamp;
-        } else {
-            if (m_dataBus.isBus()) {
-                // Bus already enabled
-                return timestamp;
-            }
-            // Enable bus
-            timestamp_t enable_timestamp = std::max(timestamp, m_dataBus.lastBurst());
-            enableBus(timestamp, enable_timestamp);
-            return enable_timestamp;
-        }
-        return timestamp;
+        m_last_command_time = cmd.timestamp;
     }
 
     void DDR4Interface::handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read) {
@@ -383,6 +373,7 @@ namespace DRAMPower {
     }
 
     void DDR4Interface::serialize(std::ostream& stream) const {
+        stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
         m_patternHandler.serialize(stream);
         m_commandBus.serialize(stream);
         m_dataBus.serialize(stream);
@@ -402,6 +393,7 @@ namespace DRAMPower {
     }
 
     void DDR4Interface::deserialize(std::istream& stream) {
+        stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
         m_patternHandler.deserialize(stream);
         m_commandBus.deserialize(stream);
         m_dataBus.deserialize(stream);

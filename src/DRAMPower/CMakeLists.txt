@@ -35,7 +35,6 @@ add_library(DRAMPower
     DRAMPower/standards/lpddr5/LPDDR5Interface.cpp
     DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.cpp
     DRAMPower/util/extensions.cpp
-    DRAMPower/util/ImplicitCommandHandler.cpp
 )
 
 target_sources(DRAMPower
@@ -47,6 +46,10 @@ FILES
     DRAMPower/Exceptions.h
 
     DRAMPower/dram/dram_base.h
+
+    DRAMPower/simconfig/simconfig.h
+
+    DRAMPower/util/CoreWrapper.h
 
     DRAMPower/command/Command.h
     DRAMPower/data/energy.h

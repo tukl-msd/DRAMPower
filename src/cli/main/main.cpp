@@ -1,16 +1,8 @@
 
 #include <stdint.h>
-#include <unordered_map>
-#include <array>
 #include <utility>
-#include <iostream>
-#include <variant>
 #include <optional>
-#include <filesystem>
 #include <string_view>
-#include <type_traits>
-#include <exception>
-
 
 #include <DRAMPower/cli/run.hpp>
 #include <DRAMPower/cli/config.h>
@@ -89,7 +81,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize memory / Create memory object
-	std::unique_ptr<dram_base<CmdType>> ddr = DRAMPower::DRAMPowerCLI::getMemory(std::string_view(memspec), config.toggleRateConfig);
+	std::unique_ptr<dram_base<CmdType>> ddr = DRAMPower::DRAMPowerCLI::getMemory(std::string_view(memspec), config.simconfig);
 	if (!ddr) {
 		spdlog::error("Invalid memory specification");
 		return 1;

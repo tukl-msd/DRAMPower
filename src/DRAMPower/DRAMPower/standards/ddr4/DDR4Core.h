@@ -8,77 +8,84 @@
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/data/stats.h>
 #include <DRAMPower/util/ImplicitCommandHandler.h>
-#include <DRAMPower/util/RegisterHelper.h>
+#include <DRAMPower/simconfig/simconfig.h>
 
 #include <DRAMPower/memspec/MemSpecDDR4.h>
 
-#include <memory>
 #include <vector>
-#include <cstddef>
-#include <cassert>
 
 namespace DRAMPower {
 
+namespace internal {
+    template<typename Core>
+    class TestAccessor;
+}
+
 class DDR4Core : public util::Serialize, public util::Deserialize {
-// Public type definitions
-public:
-    using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
-    using coreRegisterHelper_t = util::CoreRegisterHelper<DDR4Core>;
+// Friend classes
+friend class internal::TestAccessor<DDR4Core>;
 
 // Public constructors and assignment operators
 public:
     DDR4Core() = delete; // No default constructor
     DDR4Core(const DDR4Core&) = default; // copy constructor
     DDR4Core& operator=(const DDR4Core&) = delete; // copy assignment operator
-    DDR4Core(DDR4Core&&) = default; // move constructor
-    DDR4Core& operator=(DDR4Core&&) = delete; // move assignment operator
-    DDR4Core(const MemSpecDDR4& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
-        : m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)}) 
-        , m_memSpec(memSpec)
-        , m_implicitCommandInserter(std::move(implicitCommandInserter))
+    DDR4Core(DDR4Core&&) noexcept = default; // move constructor
+    DDR4Core(DDR4Core&& other, MemSpecDDR4& memSpec) noexcept // TODO
+        : m_memSpec(memSpec)
+        , m_ranks(std::move(other.m_ranks))
+        , m_implicitCommandHandler(std::move(other.m_implicitCommandHandler))
+    {}
+    DDR4Core(const DDR4Core& other, MemSpecDDR4& memSpec) // TODO
+        : m_memSpec(memSpec)
+        , m_ranks(other.m_ranks)
+        , m_implicitCommandHandler(other.m_implicitCommandHandler)
+    {}
+    DDR4Core& operator=(DDR4Core&&) noexcept = delete; // move assignment operator
+    DDR4Core(const MemSpecDDR4& memSpec)
+        : m_memSpec(memSpec)
+        , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)}) 
     {}
 
 // Public member functions
 public:
-    coreRegisterHelper_t getRegisterHelper() {
-        return coreRegisterHelper_t{this, m_ranks};
-    }
-
-    void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handlePre(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handlePreAll(Rank & rank, timestamp_t timestamp); 
-    void handleRefAll(Rank & rank, timestamp_t timestamp);
-    void handleSelfRefreshEntry(Rank & rank, timestamp_t timestamp);
-    void handleSelfRefreshExit(Rank & rank, timestamp_t timestamp);
-    void handleRead(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleWrite(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleReadAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleWriteAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handlePowerDownActEntry(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownActExit(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownPreEntry(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownPreExit(Rank & rank, timestamp_t timestamp);
-
-    timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) const;
-
-    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
-
+// Member functions
+    void doCommand(const Command& cmd);
+    timestamp_t getLastCommandTime() const;
+    bool isSerializable() const;
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
 // Overrides
-public:
     void serialize(std::ostream& stream) const override;
     void deserialize(std::istream& stream) override;
 
-// Public member variables
-public:
-    std::vector<Rank> m_ranks;
+// Private member functions
+private:
+    void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);
+    void handlePre(Rank & rank, Bank & bank, timestamp_t timestamp);
+    void handlePreAll(Rank & rank, timestamp_t timestamp); 
+    void handleRefAll(std::size_t rank_idx, timestamp_t timestamp);
+    void handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timestamp);
+    void handleSelfRefreshExit(Rank & rank, timestamp_t timestamp);
+    void handleRead(Rank & rank, Bank & bank, timestamp_t timestamp);
+    void handleWrite(Rank & rank, Bank & bank, timestamp_t timestamp);
+    void handleReadAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
+    void handleWriteAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
+    void handlePowerDownActEntry(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownActExit(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownPreEntry(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownPreExit(std::size_t rank_idx, timestamp_t timestamp);
+
+    timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) const;
+
 
 // Private members variables
 private:
     const MemSpecDDR4& m_memSpec;
-    implicitCommandInserter_t m_implicitCommandInserter;
+    std::vector<Rank> m_ranks;
+    ImplicitCommandHandler<DDR4Core> m_implicitCommandHandler;
+    timestamp_t m_last_command_time = 0;
 };
 
 } // namespace DRAMPower
-
 
 #endif /* DRAMPOWER_STANDARDS_DDR4_DDR4CORE_H */

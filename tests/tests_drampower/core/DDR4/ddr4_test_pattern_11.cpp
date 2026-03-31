@@ -89,7 +89,7 @@ TEST_F(DramPowerTest_DDR4_11, Pattern_2)
     };
 
 	// Inspect first rank
-	const Rank & rank_1 = internal::DDR4TestAccessor.getCore(*ddr).m_ranks[0];
+	const Rank & rank_1 = internal::DDR4TestAccessor.getRanks(ddr->getCore()).at(0);
 
 	// Check global command count
 	ASSERT_EQ(rank_1.commandCounter.get(CmdType::RD), 13);

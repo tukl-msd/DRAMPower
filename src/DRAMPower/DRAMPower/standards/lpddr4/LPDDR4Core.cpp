@@ -1,6 +1,72 @@
 #include "LPDDR4Core.h"
+#include "DRAMPower/util/RegisterHelper.h"
 
 namespace DRAMPower {
+
+void LPDDR4Core::doCommand(const Command& cmd) {
+    m_implicitCommandHandler.processImplicitCommandQueue(cmd.timestamp, m_last_command_time);
+    m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
+    switch(cmd.type) {
+        case CmdType::ACT:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR4Core::handleAct);
+            break;
+        case CmdType::PRE:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR4Core::handlePre);
+            break;
+        case CmdType::PREA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR4Core::handlePreAll);
+            break;
+        case CmdType::REFB:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR4Core::handleRefPerBank);
+            break;
+        case CmdType::RD:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR4Core::handleRead);
+            break;
+        case CmdType::RDA:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR4Core::handleReadAuto);
+            break;
+        case CmdType::WR:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR4Core::handleWrite);
+            break;
+        case CmdType::WRA:
+            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR4Core::handleWriteAuto);
+            break;
+        case CmdType::REFA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR4Core::handleRefAll);
+            break;
+        case CmdType::PDEA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR4Core::handlePowerDownActEntry);
+            break;
+        case CmdType::PDXA:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR4Core::handlePowerDownActExit);
+            break;
+        case CmdType::PDEP:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR4Core::handlePowerDownPreEntry);
+            break;
+        case CmdType::PDXP:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR4Core::handlePowerDownPreExit);
+            break;
+        case CmdType::SREFEN:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR4Core::handleSelfRefreshEntry);
+            break;
+        case CmdType::SREFEX:
+            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR4Core::handleSelfRefreshExit);
+            break;
+        case CmdType::END_OF_SIMULATION:
+            break;
+        default:
+            assert(false && "Unsupported command");
+            break;
+    }
+}
+
+timestamp_t LPDDR4Core::getLastCommandTime() const {
+    return m_last_command_time;
+}
+
+bool LPDDR4Core::isSerializable() const {
+    return 0 == m_implicitCommandHandler.implicitCommandCount();
+}
 
 void LPDDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
     bank.counter.act++;
@@ -48,7 +114,7 @@ void LPDDR4Core::handleRefreshOnBank(Rank &rank, Bank &bank, timestamp_t timesta
         bank.cycles.act.start_interval(timestamp);
 
     // Execute implicit pre-charge at refresh end
-    m_implicitCommandInserter.addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
+    m_implicitCommandHandler.addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
         bank.bankState = Bank::BankState::BANK_PRECHARGED;
         bank.cycles.act.close_interval(timestamp_end);
 
@@ -74,7 +140,7 @@ void LPDDR4Core::handleSelfRefreshEntry(Rank &rank, timestamp_t timestamp) {
     handleRefAll(rank, timestamp);
     // Handle self-refresh entry after tRFC
     auto timestampSelfRefreshStart = timestamp + m_memSpec.memTimingSpec.tRFC;
-    m_implicitCommandInserter.addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
+    m_implicitCommandHandler.addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
         rank.counter.selfRefresh++;
         rank.cycles.sref.start_interval(timestampSelfRefreshStart);
         rank.memState = MemState::SREF;
@@ -90,7 +156,7 @@ void LPDDR4Core::handleSelfRefreshExit(Rank &rank, timestamp_t timestamp) {
 void LPDDR4Core::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
     auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
     auto entryTime = std::max(timestamp, earliestPossibleEntry);
-    m_implicitCommandInserter.addImplicitCommand(entryTime, [&rank, entryTime]() {
+    m_implicitCommandHandler.addImplicitCommand(entryTime, [&rank, entryTime]() {
         rank.cycles.powerDownAct.start_interval(entryTime);
         rank.memState = MemState::PDN_ACT;
         if (rank.cycles.act.is_open()) {
@@ -108,7 +174,7 @@ void LPDDR4Core::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-    m_implicitCommandInserter.addImplicitCommand(exitTime, [&rank, exitTime]() {
+    m_implicitCommandHandler.addImplicitCommand(exitTime, [&rank, exitTime]() {
         rank.memState = MemState::NOT_IN_PD;
         rank.cycles.powerDownAct.close_interval(exitTime);
 
@@ -131,7 +197,7 @@ void LPDDR4Core::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
 void LPDDR4Core::handlePowerDownPreEntry(Rank &rank, timestamp_t timestamp) {
     auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
     auto entryTime = std::max(timestamp, earliestPossibleEntry);
-    m_implicitCommandInserter.addImplicitCommand(entryTime, [&rank, entryTime]() {
+    m_implicitCommandHandler.addImplicitCommand(entryTime, [&rank, entryTime]() {
         rank.cycles.powerDownPre.start_interval(entryTime);
         rank.memState = MemState::PDN_PRE;
     });
@@ -141,7 +207,7 @@ void LPDDR4Core::handlePowerDownPreExit(Rank &rank, timestamp_t timestamp) {
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-    m_implicitCommandInserter.addImplicitCommand(exitTime, [&rank, exitTime]() {
+    m_implicitCommandHandler.addImplicitCommand(exitTime, [&rank, exitTime]() {
         rank.memState = MemState::NOT_IN_PD;
         rank.cycles.powerDownPre.close_interval(exitTime);
     });
@@ -164,7 +230,7 @@ void LPDDR4Core::handleReadAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
     auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
     // Execute PRE after minimum active time
-    m_implicitCommandInserter.addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
+    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
         this->handlePre(rank, bank, delayed_timestamp);
     });
 }
@@ -178,7 +244,7 @@ void LPDDR4Core::handleWriteAuto(Rank &rank, Bank &bank, timestamp_t timestamp) 
     auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
 
     // Execute PRE after minimum active time
-    m_implicitCommandInserter.addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
+    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
         this->handlePre(rank, bank, delayed_timestamp);
     });
 }
@@ -197,7 +263,8 @@ timestamp_t LPDDR4Core::earliestPossiblePowerDownEntryTime(Rank & rank) const {
     return entryTime;
 };
 
-void LPDDR4Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
+void LPDDR4Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
+    m_implicitCommandHandler.processImplicitCommandQueue(timestamp, m_last_command_time);
     stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks);
     stats.rank_total.resize(m_memSpec.numberOfRanks);
 
@@ -242,12 +309,14 @@ void LPDDR4Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) c
 }
 
 void LPDDR4Core::serialize(std::ostream& stream) const {
+    stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
     for (const auto& rank : m_ranks) {
         rank.serialize(stream);
     }
 }
 
 void LPDDR4Core::deserialize(std::istream& stream) {
+    stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
     for (auto& rank : m_ranks) {
         rank.deserialize(stream);
     }

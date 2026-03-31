@@ -1,9 +1,8 @@
 #ifndef DRAMPOWER_STANDARDS_DDR5_DDR5CORE_H
 #define DRAMPOWER_STANDARDS_DDR5_DDR5CORE_H
 
+#include "DRAMPower/command/Command.h"
 #include "DRAMPower/dram/Rank.h"
-#include "DRAMPower/util/RegisterHelper.h"
-#include "DRAMPower/util/RegisterHelper.h"
 #include "DRAMPower/util/ImplicitCommandHandler.h"
 #include "DRAMPower/util/Deserialize.h"
 #include "DRAMPower/util/Serialize.h"
@@ -15,30 +14,40 @@
 
 namespace DRAMPower {
 
+namespace internal {
+    template<typename Core>
+    class TestAccessor;
+}
+
 class DDR5Core : public util::Serialize, public util::Deserialize {
-// Public type definitions
-public:
-    using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
-    using coreRegisterHelper_t = util::CoreRegisterHelper<DDR5Core>;
-// Public constructors
+// Friend classes
+friend class internal::TestAccessor<DDR5Core>;
+
+// Public constructors and assignment operators
 public:
     DDR5Core() = delete; // No default constructor
     DDR5Core(const DDR5Core&) = default; // copy constructor
     DDR5Core& operator=(const DDR5Core&) = delete; // copy assignment operator
     DDR5Core(DDR5Core&&) = default; // move constructor
     DDR5Core& operator=(DDR5Core&&) = delete; // move assignment operator
-    DDR5Core(const MemSpecDDR5& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
-        : m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
-        , m_memSpec(memSpec)
-        , m_implicitCommandInserter(std::move(implicitCommandInserter))
+    DDR5Core(const MemSpecDDR5& memSpec)
+        : m_memSpec(memSpec)
+        , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
     {}
 
 // Public member functions
 public:
-    coreRegisterHelper_t getRegisterHelper() {
-        return coreRegisterHelper_t{this, m_ranks};
-    }
+// Member functions
+    void doCommand(const Command& cmd);
+    timestamp_t getLastCommandTime() const;
+    bool isSerializable() const;
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
+// Overrides
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
 
+// Private member functions
+private:
     void handleAct(Rank& rank, Bank& bank, timestamp_t timestamp);
     void handlePre(Rank& rank, Bank& bank, timestamp_t timestamp);
     void handlePreSameBank(Rank& rank, std::size_t bank_id, timestamp_t timestamp);
@@ -59,21 +68,12 @@ public:
 
     timestamp_t earliestPossiblePowerDownEntryTime(Rank& rank);
 
-    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
-
-// Overrides
-public:
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
-
-// Publie member variables:
-public:
-    std::vector<Rank> m_ranks;
-
 // Private member variables
 private:
     const MemSpecDDR5& m_memSpec;
-    implicitCommandInserter_t m_implicitCommandInserter;
+    std::vector<Rank> m_ranks;
+    ImplicitCommandHandler<> m_implicitCommandHandler;
+    timestamp_t m_last_command_time = 0;
 };
 
 } // namespace DRAMPower

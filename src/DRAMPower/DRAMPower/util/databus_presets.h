@@ -1,6 +1,7 @@
 #ifndef DRAMPOWER_UTIL_DATABUS_PRESETS
 #define DRAMPOWER_UTIL_DATABUS_PRESETS
 
+#include "DRAMPower/util/databus_types.h"
 #include <optional>
 
 #include <DRAMPower/util/databus.h>
@@ -23,20 +24,21 @@ namespace DRAMPower::util::databus_presets {
     using databus_preset_t = util::DataBusContainerProxy<databus_preset_sequence_t>;
 
     inline databus_preset_t getDataBusPreset(
-        const size_t width,
-        DataBusConfig&& busConfig
+        DataBusConfig&& busConfig,
+        util::DataBusMode mode,
+        bool IdleLastPatternOverride
     ) {
-        if (width <= 64) {
-            return databus_64_t(std::move(busConfig));
-        } else if (width <= 256) {
-            return databus_256_t(std::move(busConfig));
-        } else if (width <= 1024) {
-            return databus_1024_t(std::move(busConfig));
-        } else if (width > 4096) {
+        if (busConfig.width <= 64) {
+            return databus_64_t(std::move(busConfig), mode, IdleLastPatternOverride);
+        } else if (busConfig.width <= 256) {
+            return databus_256_t(std::move(busConfig), mode, IdleLastPatternOverride);
+        } else if (busConfig.width <= 1024) {
+            return databus_1024_t(std::move(busConfig), mode, IdleLastPatternOverride);
+        } else if (busConfig.width > 4096) {
             assert(false);
             throw std::runtime_error("Data bus width exceeds maximum.");
         }
-        return databus_4096_t(std::move(busConfig));
+        return databus_4096_t(std::move(busConfig), mode, IdleLastPatternOverride);
     }
 
 } // namespace DRAMPower::util::databus_presets

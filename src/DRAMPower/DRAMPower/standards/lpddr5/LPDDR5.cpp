@@ -1,6 +1,5 @@
 #include "LPDDR5.h"
 #include "DRAMPower/Types.h"
-#include "DRAMPower/command/CmdType.h"
 #include "DRAMPower/data/stats.h"
 
 #include <DRAMPower/command/Pattern.h>
@@ -10,17 +9,15 @@
 #include <DRAMPower/Exceptions.h>
 
 #include <iostream>
-#include <string>
 
 
 namespace DRAMPower {
 
-    LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec)
+    LPDDR5::LPDDR5(const MemSpecLPDDR5 &memSpec, const config::SimConfig& simConfig)
         : m_memSpec(memSpec)
-        , m_interface(m_memSpec, getImplicitCommandHandler().createInserter())
-        , m_core(m_memSpec, getImplicitCommandHandler().createInserter())
+        , m_interface(m_memSpec, simConfig)
+        , m_core(m_memSpec)
     {
-        registerCommands();
         registerExtensions();
     }
 
@@ -28,92 +25,9 @@ namespace DRAMPower {
     void LPDDR5::registerExtensions() {
         getExtensionManager().registerExtension<extensions::DBI>([this](const timestamp_t, const bool enable){
             // Assumption: the enabling of the DBI does not interleave with previous data on the bus
-            m_interface.m_dbi.enable(enable);
+            m_interface.enableDBI(enable);
             return true;
         }, false);
-    }
-
-// Commands
-    void LPDDR5::registerCommands() {
-        auto interfaceregistrar = m_interface.getRegisterHelper();
-        auto coreregistrar = m_core.getRegisterHelper();
-        // ACT
-        routeCoreCommand<CmdType::ACT>(coreregistrar.registerBankHandler(&LPDDR5Core::handleAct));
-        routeInterfaceCommand<CmdType::ACT>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // PRE
-        routeCoreCommand<CmdType::PRE>(coreregistrar.registerBankHandler(&LPDDR5Core::handlePre));
-        routeInterfaceCommand<CmdType::PRE>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // PREA
-        routeCoreCommand<CmdType::PREA>(coreregistrar.registerRankHandler(&LPDDR5Core::handlePreAll));
-        routeInterfaceCommand<CmdType::PREA>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // REFB
-        routeCoreCommand<CmdType::REFB>(coreregistrar.registerBankHandler(&LPDDR5Core::handleRefPerBank));
-        routeInterfaceCommand<CmdType::REFB>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // RD
-        routeCoreCommand<CmdType::RD>(coreregistrar.registerBankHandler(&LPDDR5Core::handleRead));
-        routeInterfaceCommand<CmdType::RD>([this](const Command &cmd) { m_interface.handleData(cmd, true); });
-        // RDA
-        routeCoreCommand<CmdType::RDA>(coreregistrar.registerBankHandler(&LPDDR5Core::handleReadAuto));
-        routeInterfaceCommand<CmdType::RDA>([this](const Command &cmd) { m_interface.handleData(cmd, true); });
-        // WR
-        routeCoreCommand<CmdType::WR>(coreregistrar.registerBankHandler(&LPDDR5Core::handleWrite));
-        routeInterfaceCommand<CmdType::WR>([this](const Command &cmd) { m_interface.handleData(cmd, false); });
-        // WRA
-        routeCoreCommand<CmdType::WRA>(coreregistrar.registerBankHandler(&LPDDR5Core::handleWriteAuto));
-        routeInterfaceCommand<CmdType::WRA>([this](const Command &cmd) { m_interface.handleData(cmd, false); });
-        // REFP2B
-        if (m_memSpec.bank_arch == MemSpecLPDDR5::MBG || m_memSpec.bank_arch == MemSpecLPDDR5::M16B) {
-            routeCoreCommand<CmdType::REFP2B>(coreregistrar.registerBankGroupHandler(&LPDDR5Core::handleRefPerTwoBanks));
-            routeInterfaceCommand<CmdType::REFP2B>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        } else {
-            // If the command is executed for an invalid bank architecture, throw an exception
-            routeCoreCommand<CmdType::REFP2B>([](const Command &) {
-                throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
-            });
-            routeInterfaceCommand<CmdType::REFP2B>([](const Command &) {
-                throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
-            });
-        }
-        // REFA
-        routeCoreCommand<CmdType::REFA>(coreregistrar.registerRankHandler(&LPDDR5Core::handleRefAll));
-        routeInterfaceCommand<CmdType::REFA>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // SREFEN
-        routeCoreCommand<CmdType::SREFEN>(coreregistrar.registerRankHandler(&LPDDR5Core::handleSelfRefreshEntry));
-        routeInterfaceCommand<CmdType::SREFEN>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // SREFEX
-        routeCoreCommand<CmdType::SREFEX>(coreregistrar.registerRankHandler(&LPDDR5Core::handleSelfRefreshExit));
-        routeInterfaceCommand<CmdType::SREFEX>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // PDEA
-        routeCoreCommand<CmdType::PDEA>(coreregistrar.registerRankHandler(&LPDDR5Core::handlePowerDownActEntry));
-        routeInterfaceCommand<CmdType::PDEA>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // PDEP
-        routeCoreCommand<CmdType::PDEP>(coreregistrar.registerRankHandler(&LPDDR5Core::handlePowerDownPreEntry));
-        routeInterfaceCommand<CmdType::PDEP>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // PDXA
-        routeCoreCommand<CmdType::PDXA>(coreregistrar.registerRankHandler(&LPDDR5Core::handlePowerDownActExit));
-        routeInterfaceCommand<CmdType::PDXA>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // PDXP
-        routeCoreCommand<CmdType::PDXP>(coreregistrar.registerRankHandler(&LPDDR5Core::handlePowerDownPreExit));
-        routeInterfaceCommand<CmdType::PDXP>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // DSMEN
-        routeCoreCommand<CmdType::DSMEN>(coreregistrar.registerRankHandler(&LPDDR5Core::handleDSMEntry));
-        routeInterfaceCommand<CmdType::DSMEN>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // DSMEX
-        routeCoreCommand<CmdType::DSMEX>(coreregistrar.registerRankHandler(&LPDDR5Core::handleDSMExit));
-        routeInterfaceCommand<CmdType::DSMEX>(interfaceregistrar.registerHandler(&LPDDR5Interface::handleCommandBus));
-        // EOS
-        getCommandCoreRouter().routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) { this->endOfSimulation(cmd.timestamp); });
-        getCommandInterfaceRouter().routeCommand<CmdType::END_OF_SIMULATION>([this](const Command &cmd) {
-            this->endOfSimulation(cmd.timestamp);
-            m_interface.endOfSimulation(cmd.timestamp);
-        });
-        
-    }
-
-    void LPDDR5::endOfSimulation(timestamp_t) {
-        if (this->implicitCommandCount() > 0) {
-            std::cout << ("[WARN] End of simulation but still implicit commands left!") << std::endl;
-        }
     }
 
 // Getters for CLI
@@ -125,27 +39,19 @@ namespace DRAMPower {
         };
     }
 
-// Update toggling rate
-    timestamp_t LPDDR5::update_toggling_rate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleratedefinition)
-    {
-        return m_interface.updateTogglingRate(timestamp, toggleratedefinition);
-    }
-
 // Calculation
-    energy_t LPDDR5::calcCoreEnergy(timestamp_t timestamp) {
+    energy_t LPDDR5::calcCoreEnergyStats(const SimulationStats& stats) const {
         Calculation_LPDDR5 calculation(m_memSpec);
-        return calculation.calcEnergy(getWindowStats(timestamp));
+        return calculation.calcEnergy(stats);
     }
 
-    interface_energy_info_t LPDDR5::calcInterfaceEnergy(timestamp_t timestamp) {
+    interface_energy_info_t LPDDR5::calcInterfaceEnergyStats(const SimulationStats& stats) const {
         InterfaceCalculation_LPDDR5 calculation(m_memSpec);
-        return calculation.calculateEnergy(getWindowStats(timestamp));
+        return calculation.calculateEnergy(stats);
     }
 
 // Stats
     SimulationStats LPDDR5::getWindowStats(timestamp_t timestamp) {
-        // If there are still implicit commands queued up, process them first
-        processImplicitCommandQueue(timestamp);
         SimulationStats stats;
         m_core.getWindowStats(timestamp, stats);
         m_interface.getWindowStats(timestamp, stats);
