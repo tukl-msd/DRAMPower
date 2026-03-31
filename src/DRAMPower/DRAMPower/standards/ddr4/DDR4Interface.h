@@ -43,12 +43,39 @@ public:
 // Public constructors and assignment operators
 public:
     DDR4Interface() = delete; // no default constructor
-    DDR4Interface(const DDR4Interface&) = default; // copy constructor
-    DDR4Interface& operator=(const DDR4Interface&) = delete; // copy assignment operator
-    DDR4Interface(DDR4Interface&&) = default; // move constructor
-    DDR4Interface& operator=(DDR4Interface&&) = delete; // move assignment operator
-
     DDR4Interface(const MemSpecDDR4& memSpec, const config::SimConfig &simConfig = {});
+    DDR4Interface(const DDR4Interface& other, MemSpecDDR4& memSpec)
+        : m_memSpec(memSpec)
+        , m_commandBus(other.m_commandBus)
+        , m_dataBus(other.m_dataBus)
+        , m_readDQS(other.m_readDQS)
+        , m_writeDQS(other.m_writeDQS)
+        , m_clock(other.m_clock)
+        , m_dbi(other.m_dbi)
+        , m_dbiread(other.m_dbiread)
+        , m_dbiwrite(other.m_dbiwrite)
+        , prepostambleReadMinTccd(other.prepostambleReadMinTccd)
+        , prepostambleWriteMinTccd(other.prepostambleWriteMinTccd)
+        , m_ranks(other.m_ranks)
+        , m_patternHandler(other.m_patternHandler)
+        , m_last_command_time(other.m_last_command_time)
+    {}
+    DDR4Interface(DDR4Interface&& other, MemSpecDDR4& memSpec) noexcept // TODO
+        : m_memSpec(memSpec)
+        , m_commandBus(std::move(other.m_commandBus))
+        , m_dataBus(std::move(other.m_dataBus))
+        , m_readDQS(std::move(other.m_readDQS))
+        , m_writeDQS(std::move(other.m_writeDQS))
+        , m_clock(std::move(other.m_clock))
+        , m_dbi(std::move(other.m_dbi))
+        , m_dbiread(std::move(other.m_dbiread))
+        , m_dbiwrite(std::move(other.m_dbiwrite))
+        , prepostambleReadMinTccd(std::move(other.prepostambleReadMinTccd))
+        , prepostambleWriteMinTccd(std::move(other.prepostambleWriteMinTccd))
+        , m_ranks(std::move(other.m_ranks))
+        , m_patternHandler(std::move(other.m_patternHandler))
+        , m_last_command_time(std::move(other.m_last_command_time))
+    {}
 
 // Public member functions
 public:

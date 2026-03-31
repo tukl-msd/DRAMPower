@@ -1,12 +1,11 @@
 #include "DDR4.h"
 #include "DRAMPower/Types.h"
+#include "DRAMPower/data/stats.h"
 #include "DRAMPower/memspec/MemSpecDDR4.h"
 #include "DRAMPower/standards/ddr4/DDR4Interface.h"
 #include "DRAMPower/util/cli_architecture_config.h"
 
 #include <DRAMPower/command/Pattern.h>
-#include <DRAMPower/standards/ddr4/core_calculation_DDR4.h>
-#include <DRAMPower/standards/ddr4/interface_calculation_DDR4.h>
 #include <DRAMPower/util/extensions.h>
 
 namespace DRAMPower {
@@ -17,6 +16,8 @@ namespace DRAMPower {
         : m_memSpec(memSpec)
         , m_interface(m_memSpec, simConfig)
         , m_core(m_memSpec)
+        , m_calc_interface(m_memSpec)
+        , m_calc_core(m_memSpec)
     {
         this->registerExtensions();
     }
@@ -45,19 +46,16 @@ namespace DRAMPower {
     }
 
 // Calculation
-    energy_t DDR4::calcCoreEnergy(timestamp_t timestamp) {
-        Calculation_DDR4 calculation(m_memSpec);
-        return calculation.calcEnergy(getWindowStats(timestamp));
+    energy_t DDR4::calcCoreEnergyStats(const SimulationStats& stats) const {
+        return m_calc_core.calcEnergy(stats);
     }
 
-    interface_energy_info_t DDR4::calcInterfaceEnergy(timestamp_t timestamp) {
-        InterfaceCalculation_DDR4 calculation(m_memSpec);
-        return calculation.calculateEnergy(getWindowStats(timestamp));
+    interface_energy_info_t DDR4::calcInterfaceEnergyStats(const SimulationStats& stats) const {
+        return m_calc_interface.calculateEnergy(stats);
     }
 
 // Stats
     SimulationStats DDR4::getWindowStats(timestamp_t timestamp) {
-        // If there are still implicit commands queued up, process them first
         SimulationStats stats;
         m_core.getWindowStats(timestamp, stats);
         m_interface.getWindowStats(timestamp, stats);
