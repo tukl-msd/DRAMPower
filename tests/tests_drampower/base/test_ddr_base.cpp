@@ -4,6 +4,7 @@
 #include "DRAMPower/Types.h"
 #include "DRAMPower/command/Command.h"
 
+#include "DRAMPower/data/stats.h"
 #include "DRAMPower/dram/dram_base.h"
 
 #include "DRAMPower/util/cli_architecture_config.h"
@@ -16,9 +17,9 @@ using namespace DRAMPower;
 class test_ddr : public dram_base<CmdType>
 {
 public:
-    energy_t calcCoreEnergy(timestamp_t) override { return energy_t(1); };
-    interface_energy_info_t calcInterfaceEnergy(timestamp_t) override { return interface_energy_info_t(); };
-    SimulationStats getWindowStats(timestamp_t) override { return SimulationStats(); };
+    energy_t calcCoreEnergyStats(const SimulationStats&) const override { return energy_t(1); };
+    interface_energy_info_t calcInterfaceEnergyStats(const SimulationStats&) const override { return interface_energy_info_t(); };
+    SimulationStats getWindowStats(timestamp_t) override { return {}; };
     util::CLIArchitectureConfig getCLIArchitectureConfig() override { return util::CLIArchitectureConfig{}; };
     bool isSerializable() const override {
         return false;
@@ -73,7 +74,7 @@ private:
 
 public:
 	std::vector<timestamp_t> execution_order;
-    ImplicitCommandHandler_t implicitCommandHandler;
+    ImplicitCommandHandler<> implicitCommandHandler;
 };
 
 class DDR_Base_Test : public ::testing::Test {
