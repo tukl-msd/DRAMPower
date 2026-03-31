@@ -24,10 +24,6 @@ class LPDDR4Core : public util::Serialize, public util::Deserialize {
 // Friend classes
 friend class internal::TestAccessor<LPDDR4Core>;
 
-// Public type definitions
-public:
-    using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
-
 // Public constructors amd assignment operators
 public:
     LPDDR4Core() = delete; // No default constructor
@@ -35,17 +31,18 @@ public:
     LPDDR4Core& operator=(const LPDDR4Core&) = delete; // copy assignment operator
     LPDDR4Core(LPDDR4Core&&) = default; // move constructor
     LPDDR4Core& operator=(LPDDR4Core&&) = delete; // move assignment operator
-    LPDDR4Core(implicitCommandInserter_t&& implicitCommandInserter, const MemSpecLPDDR4& memSpec)
+    LPDDR4Core(const MemSpecLPDDR4& memSpec)
         : m_memSpec(memSpec)
         , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
-        , m_implicitCommandInserter(std::move(implicitCommandInserter))
     {}
 
 // Public member functions
 public:
 // Member functions
     void doCommand(const Command& cmd);
-    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+    timestamp_t getLastCommandTime() const;
+    bool isSerializable() const;
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
 // Overrides
     void serialize(std::ostream& stream) const override;
     void deserialize(std::istream& stream) override;
@@ -75,7 +72,8 @@ private:
 private:
     const MemSpecLPDDR4& m_memSpec;
     std::vector<Rank> m_ranks;
-    implicitCommandInserter_t m_implicitCommandInserter;
+    ImplicitCommandHandler<> m_implicitCommandHandler;
+    timestamp_t m_last_command_time = 0;
 };
 
 } // namespace DRAMPower

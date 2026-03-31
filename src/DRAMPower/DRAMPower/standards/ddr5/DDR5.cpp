@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "DRAMPower/data/stats.h"
 #include "DRAMPower/memspec/MemSpecDDR5.h"
 #include "DRAMPower/standards/ddr5/DDR5Interface.h"
 #include "DRAMPower/standards/ddr5/core_calculation_DDR5.h"
@@ -28,19 +29,18 @@ namespace DRAMPower {
     }
 
 // Calculation
-    energy_t DDR5::calcCoreEnergy(timestamp_t timestamp) {
+    energy_t DDR5::calcCoreEnergyStats(const SimulationStats& stats) const {
         Calculation_DDR5 calculation(m_memSpec);
-        return calculation.calcEnergy(getWindowStats(timestamp));
+        return calculation.calcEnergy(stats);
     }
 
-    interface_energy_info_t DDR5::calcInterfaceEnergy(timestamp_t timestamp) {
+    interface_energy_info_t DDR5::calcInterfaceEnergyStats(const SimulationStats& stats) const {
         InterfaceCalculation_DDR5 calculation(m_memSpec);
-        return calculation.calculateEnergy(getWindowStats(timestamp));
+        return calculation.calculateEnergy(stats);
     }
 
 // Stats
     SimulationStats DDR5::getWindowStats(timestamp_t timestamp) {
-        // If there are still implicit commands queued up, process them first
         SimulationStats stats;
         m_core.getWindowStats(timestamp, stats);
         m_interface.getWindowStats(timestamp, stats);

@@ -24,28 +24,25 @@ class LPDDR5Core : public util::Serialize, public util::Deserialize {
 // Friend classes
 friend class internal::TestAccessor<LPDDR5Core>;
 
-// Public type definitions
-public:
-    using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
-
-    // Public constructors
+// Public constructors
 public:
     LPDDR5Core() = delete; // No default constructor
     LPDDR5Core(const LPDDR5Core&) = default; // copy constructor
     LPDDR5Core& operator=(const LPDDR5Core&) = delete; // copy assignment operator
     LPDDR5Core(LPDDR5Core&&) = default; // move constructor
     LPDDR5Core& operator=(LPDDR5Core&&) = delete; // move assignment operator
-    LPDDR5Core(implicitCommandInserter_t&& implicitCommandInserter, const MemSpecLPDDR5& memSpec)
+    LPDDR5Core(const MemSpecLPDDR5& memSpec)
         : m_memSpec(memSpec)
         , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
-        , m_implicitCommandInserter(std::move(implicitCommandInserter))
     {}
 
 // Public member functions
 public:
 // Member functions
     void doCommand(const Command& cmd);
-    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+    timestamp_t getLastCommandTime() const;
+    bool isSerializable() const;
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
 // Overrides
     void serialize(std::ostream& stream) const override;
     void deserialize(std::istream& stream) override;
@@ -79,7 +76,8 @@ private:
 private:
     const MemSpecLPDDR5& m_memSpec;
     std::vector<Rank> m_ranks;
-    implicitCommandInserter_t m_implicitCommandInserter;
+    ImplicitCommandHandler<> m_implicitCommandHandler;
+    timestamp_t m_last_command_time = 0;
 };
 
 } // namespace DRAMPower

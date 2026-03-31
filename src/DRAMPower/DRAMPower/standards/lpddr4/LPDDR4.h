@@ -1,7 +1,6 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR4_LPDDR4_H
 #define DRAMPOWER_STANDARDS_LPDDR4_LPDDR4_H
 
-#include "DRAMPower/util/CoreWrapper.h"
 #include "DRAMPower/util/cli_architecture_config.h"
 
 #include <DRAMPower/Types.h>
@@ -36,10 +35,10 @@ public:
 public:
 // Member functions
     LPDDR4Core& getCore() {
-        return m_core.getCore();
+        return m_core;
     }
     const LPDDR4Core& getCore() const {
-        return m_core.getCore();
+        return m_core;
     }
     LPDDR4Interface& getInterface() {
         return m_interface;
@@ -48,8 +47,8 @@ public:
         return m_interface;
     }
 // Overrides
-    energy_t calcCoreEnergy(timestamp_t timestamp) override;
-    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
+    energy_t calcCoreEnergyStats(const SimulationStats& stats) const override;
+    interface_energy_info_t calcInterfaceEnergyStats(const SimulationStats& stats) const override;
     SimulationStats getWindowStats(timestamp_t timestamp) override;
     util::CLIArchitectureConfig getCLIArchitectureConfig() override;
     bool isSerializable() const override {
@@ -78,7 +77,7 @@ private:
 private:
     MemSpecLPDDR4 m_memSpec;
     LPDDR4Interface m_interface;
-    CoreWrapper<LPDDR4Core> m_core;
+    LPDDR4Core m_core;
 };
 
 } // namespace DRAMPower
