@@ -19,7 +19,7 @@ public:
 private:
     std::optional<timestamp_t> last_start;
     clock_stats_t stats;
-    const std::size_t dataRate;
+    std::size_t dataRate;
 
 private:
     clock_stats_t count(timestamp_t duration) const

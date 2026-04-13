@@ -24,9 +24,9 @@ class LPDDR4 : public dram_base<CmdType>{
 public:
     LPDDR4() = delete; // No default constructor
     LPDDR4(const LPDDR4&) = default; // copy constructor
-    LPDDR4& operator=(const LPDDR4&) = delete; // copy assignment operator
+    LPDDR4& operator=(const LPDDR4&) = default; // copy assignment operator
     LPDDR4(LPDDR4&&) = default; // move constructor
-    LPDDR4& operator=(LPDDR4&&) = delete; // move assignment operator
+    LPDDR4& operator=(LPDDR4&&) = default; // move assignment operator
     ~LPDDR4() override = default;
     
     LPDDR4(const MemSpecLPDDR4& memSpec, const config::SimConfig &simConfig = {});

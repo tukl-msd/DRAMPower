@@ -20,17 +20,41 @@ namespace internal {
     class TestAccessor;
 }
 
+struct LPDDR5CoreMemSpec {
+    LPDDR5CoreMemSpec(const MemSpecLPDDR5& memSpec)
+        : numberOfBanks(memSpec.numberOfBanks)
+        , numberOfRanks(memSpec.numberOfRanks)
+        , tRFC(memSpec.memTimingSpec.tRFC)
+        , tRFCPB(memSpec.memTimingSpec.tRFCPB)
+        , tRAS(memSpec.memTimingSpec.tRAS)
+        , tRCD(memSpec.memTimingSpec.tRCD)
+        , tRP(memSpec.memTimingSpec.tRP)
+        , bank_arch(memSpec.bank_arch)
+        , perTwoBankOffset(memSpec.perTwoBankOffset)
+        , prechargeOffsetRD(memSpec.prechargeOffsetRD)
+        , prechargeOffsetWR(memSpec.prechargeOffsetWR)
+    {}
+
+    uint64_t numberOfBanks;
+    uint64_t numberOfRanks;
+
+    uint64_t tRFC;
+    uint64_t tRFCPB;
+    uint64_t tRAS;
+    uint64_t tRCD;
+    uint64_t tRP;
+    MemSpecLPDDR5::BankArchitectureMode bank_arch;
+    std::size_t perTwoBankOffset;
+    uint64_t prechargeOffsetRD;
+    uint64_t prechargeOffsetWR;
+};
+
 class LPDDR5Core : public util::Serialize, public util::Deserialize {
 // Friend classes
 friend class internal::TestAccessor<LPDDR5Core>;
 
 // Public constructors
 public:
-    LPDDR5Core() = delete; // No default constructor
-    LPDDR5Core(const LPDDR5Core&) = default; // copy constructor
-    LPDDR5Core& operator=(const LPDDR5Core&) = delete; // copy assignment operator
-    LPDDR5Core(LPDDR5Core&&) = default; // move constructor
-    LPDDR5Core& operator=(LPDDR5Core&&) = delete; // move assignment operator
     LPDDR5Core(const MemSpecLPDDR5& memSpec)
         : m_memSpec(memSpec)
         , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
@@ -74,7 +98,7 @@ private:
 
 // Private member variables
 private:
-    const MemSpecLPDDR5& m_memSpec;
+    LPDDR5CoreMemSpec m_memSpec;
     std::vector<Rank> m_ranks;
     ImplicitCommandHandler<LPDDR5Core> m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;

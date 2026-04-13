@@ -25,6 +25,18 @@
 
 namespace DRAMPower {
 
+struct LPDDR4InterfaceMemSpec {
+    LPDDR4InterfaceMemSpec(const MemSpecLPDDR4& memSpec)
+        : dataRate(memSpec.dataRate)
+        , burstLength(memSpec.burstLength)
+        , bitWidth(memSpec.bitWidth)
+    {}
+
+    uint64_t dataRate;
+    uint64_t burstLength;
+    uint64_t bitWidth;
+};
+
 class LPDDR4Interface : public util::Serialize, public util::Deserialize {
 // Public constants
 public:
@@ -40,14 +52,7 @@ public:
 
 // Public constructors and assignment operators
 public:
-    LPDDR4Interface() = delete; // no default constructor
-    LPDDR4Interface(const LPDDR4Interface&) = default; // copy constructor
-    LPDDR4Interface& operator=(const LPDDR4Interface&) = delete; // copy assignment operator
-    LPDDR4Interface(LPDDR4Interface&&) = default; // move constructor
-    LPDDR4Interface& operator=(LPDDR4Interface&&) = delete; // move assignment operator
-
     LPDDR4Interface(const MemSpecLPDDR4& memSpec, const config::SimConfig &simConfig = {});
-
 
 // Public member functions
 public:
@@ -76,7 +81,7 @@ private:
 
 // Public member variables
 private:
-    const MemSpecLPDDR4& m_memSpec;
+    LPDDR4InterfaceMemSpec m_memSpec;
     commandbus_t m_commandBus;
     databus_t m_dataBus;
     util::Clock m_readDQS;

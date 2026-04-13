@@ -32,7 +32,7 @@ namespace DRAMPower {
         , m_readDQS(memSpec.dataRate, true)
         , m_writeDQS(memSpec.dataRate, true)
         , m_clock(2, false)
-        , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
+        , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, memSpec.burstLength,
             [this](timestamp_t load_timestamp, timestamp_t, std::size_t pin, bool inversion_state, bool read) {
             this->handleDBIPinChange(load_timestamp, pin, inversion_state, read);
         }, false)

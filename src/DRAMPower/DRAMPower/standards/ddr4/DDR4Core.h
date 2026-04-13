@@ -21,30 +21,38 @@ namespace internal {
     class TestAccessor;
 }
 
+struct DDR4CoreMemSpec {
+    DDR4CoreMemSpec(const MemSpecDDR4& memSpec)
+        : numberOfBanks(memSpec.numberOfBanks)
+        , numberOfRanks(memSpec.numberOfRanks)
+        , tRFC(memSpec.memTimingSpec.tRFC)
+        , tRAS(memSpec.memTimingSpec.tRAS)
+        , tRCD(memSpec.memTimingSpec.tRCD)
+        , tRP(memSpec.memTimingSpec.tRP)
+        , prechargeOffsetRD(memSpec.prechargeOffsetRD)
+        , prechargeOffsetWR(memSpec.prechargeOffsetWR)
+    {}
+
+    uint64_t numberOfBanks;
+    uint64_t numberOfRanks;
+
+    uint64_t tRFC;
+    uint64_t tRAS;
+    uint64_t tRCD;
+    uint64_t tRP;
+    uint64_t prechargeOffsetRD;
+    uint64_t prechargeOffsetWR;
+};
+
 class DDR4Core : public util::Serialize, public util::Deserialize {
 // Friend classes
 friend class internal::TestAccessor<DDR4Core>;
 
 // Public constructors and assignment operators
 public:
-    DDR4Core() = delete; // No default constructor
-    DDR4Core(const DDR4Core&) = default; // copy constructor
-    DDR4Core& operator=(const DDR4Core&) = delete; // copy assignment operator
-    DDR4Core(DDR4Core&&) noexcept = default; // move constructor
-    DDR4Core(DDR4Core&& other, MemSpecDDR4& memSpec) noexcept // TODO
-        : m_memSpec(memSpec)
-        , m_ranks(std::move(other.m_ranks))
-        , m_implicitCommandHandler(std::move(other.m_implicitCommandHandler))
-    {}
-    DDR4Core(const DDR4Core& other, MemSpecDDR4& memSpec) // TODO
-        : m_memSpec(memSpec)
-        , m_ranks(other.m_ranks)
-        , m_implicitCommandHandler(other.m_implicitCommandHandler)
-    {}
-    DDR4Core& operator=(DDR4Core&&) noexcept = delete; // move assignment operator
     DDR4Core(const MemSpecDDR4& memSpec)
         : m_memSpec(memSpec)
-        , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)}) 
+        , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
     {}
 
 // Public member functions
@@ -80,7 +88,7 @@ private:
 
 // Private members variables
 private:
-    const MemSpecDDR4& m_memSpec;
+    DDR4CoreMemSpec m_memSpec;
     std::vector<Rank> m_ranks;
     ImplicitCommandHandler<DDR4Core> m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;

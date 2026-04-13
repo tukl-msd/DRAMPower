@@ -3,6 +3,8 @@
 #include "DRAMPower/data/stats.h"
 #include "DRAMPower/memspec/MemSpecDDR4.h"
 #include "DRAMPower/standards/ddr4/DDR4Interface.h"
+#include "DRAMPower/standards/ddr4/core_calculation_DDR4.h"
+#include "DRAMPower/standards/ddr4/interface_calculation_DDR4.h"
 #include "DRAMPower/util/cli_architecture_config.h"
 
 #include <DRAMPower/command/Pattern.h>
@@ -16,8 +18,6 @@ namespace DRAMPower {
         : m_memSpec(memSpec)
         , m_interface(m_memSpec, simConfig)
         , m_core(m_memSpec)
-        , m_calc_interface(m_memSpec)
-        , m_calc_core(m_memSpec)
     {
         this->registerExtensions();
     }
@@ -47,11 +47,13 @@ namespace DRAMPower {
 
 // Calculation
     energy_t DDR4::calcCoreEnergyStats(const SimulationStats& stats) const {
-        return m_calc_core.calcEnergy(stats);
+        Calculation_DDR4 calculation(m_memSpec);
+        return calculation.calcEnergy(stats);
     }
 
     interface_energy_info_t DDR4::calcInterfaceEnergyStats(const SimulationStats& stats) const {
-        return m_calc_interface.calculateEnergy(stats);
+        InterfaceCalculation_DDR4 calculation(m_memSpec);
+        return calculation.calculateEnergy(stats);
     }
 
 // Stats

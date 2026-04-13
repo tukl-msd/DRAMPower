@@ -25,9 +25,9 @@ class DDR5 : public dram_base<CmdType> {
 public:
     DDR5() = delete; // No default constructor
     DDR5(const DDR5&) = default; // copy constructor
-    DDR5& operator=(const DDR5&) = delete; // copy assignment operator
+    DDR5& operator=(const DDR5&) = default; // copy assignment operator
     DDR5(DDR5&&) = default; // move constructor
-    DDR5& operator=(DDR5&&) = delete; // move assignment operator
+    DDR5& operator=(DDR5&&) = default; // move assignment operator
     ~DDR5() override = default;
 
     DDR5(const MemSpecDDR5& memSpec, const config::SimConfig &simConfig = {});

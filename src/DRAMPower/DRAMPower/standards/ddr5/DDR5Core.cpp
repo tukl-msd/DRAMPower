@@ -117,7 +117,7 @@ void DDR5Core::handleRefSameBank(std::size_t rank_idx, std::size_t bank_id, time
     for(unsigned bank_group = 0; bank_group < m_memSpec.numberOfBankGroups; bank_group++) {
         std::size_t bank_idx = bank_group * m_memSpec.banksPerGroup + bank_id_inside_bg;
         auto& counter = m_ranks[rank_idx].banks[bank_idx].counter.refSameBank;
-        handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.memTimingSpec.tRFCsb, counter);
+        handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFCsb, counter);
     }
 }
 
@@ -126,10 +126,10 @@ void DDR5Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
     // for (auto [bank_idx, bank] : type_traits::enumerate(rank.banks)) {
     for (std::size_t bank_idx = 0; bank_idx < rank.banks.size(); ++bank_idx) {
         auto& counter = m_ranks[rank_idx].banks[bank_idx].counter.refAllBank;
-        handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.memTimingSpec.tRFC, counter);
+        handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFC, counter);
     }
 
-    rank.endRefreshTime = timestamp + m_memSpec.memTimingSpec.tRFC;
+    rank.endRefreshTime = timestamp + m_memSpec.tRFC;
 }
 
 void DDR5Core::handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp, uint64_t timing, uint64_t & counter){
@@ -171,7 +171,7 @@ void DDR5Core::handleReadAuto(std::size_t rank_idx, std::size_t bank_idx, timest
     auto& bank = m_ranks[rank_idx].banks[bank_idx];
     ++bank.counter.readAuto;
 
-    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
+    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.tRAS;
     auto minReadActiveTime = timestamp + m_memSpec.prechargeOffsetRD;
 
     auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
@@ -192,7 +192,7 @@ void DDR5Core::handleWriteAuto(std::size_t rank_idx, std::size_t bank_idx, times
     auto& bank = m_ranks[rank_idx].banks[bank_idx];
     ++bank.counter.writeAuto;
 
-    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
+    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.tRAS;
     auto minWriteActiveTime = timestamp + m_memSpec.prechargeOffsetWR;
 
     auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
@@ -210,7 +210,7 @@ void DDR5Core::handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timestam
     handleRefAll(rank_idx, timestamp);
 
     // Handle self-refresh entry after tRFC
-    auto timestampSelfRefreshStart = timestamp + m_memSpec.memTimingSpec.tRFC;
+    auto timestampSelfRefreshStart = timestamp + m_memSpec.tRFC;
 
     m_implicitCommandHandler.addImplicitCommand(timestampSelfRefreshStart, [rank_idx, timestampSelfRefreshStart](DDR5Core& self) {
         auto& rank = self.m_ranks[rank_idx];
@@ -302,8 +302,8 @@ timestamp_t DDR5Core::earliestPossiblePowerDownEntryTime(Rank &rank) {
         entryTime = std::max(
             {entryTime,
                 bank.counter.act == 0 ? 0
-                                    : bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRCD,
-                bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.memTimingSpec.tRP,
+                                    : bank.cycles.act.get_start() + m_memSpec.tRCD,
+                bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.tRP,
                 bank.refreshEndTime});
     }
 

@@ -25,25 +25,13 @@ class DDR4 : public dram_base<CmdType> {
 // Public constructors and assignment operators
 public:
     DDR4() = delete; // No default constructor
-    DDR4& operator=(const DDR4&) = delete; // copy assignment operator
-    DDR4& operator=(DDR4&&) = delete; // move assignment operator
+    DDR4(const DDR4& other) = default; // copy constructor
+    DDR4(DDR4&& other) noexcept = default; // move constructor
+    DDR4& operator=(const DDR4&) = default; // copy assignment operator
+    DDR4& operator=(DDR4&&) = default; // move assignment operator
     ~DDR4() override = default;
     
     DDR4(const MemSpecDDR4 &memSpec, const config::SimConfig &simConfig = {});
-    DDR4(const DDR4& other)
-        : m_memSpec(other.m_memSpec)
-        , m_interface(other.m_interface, m_memSpec)
-        , m_core(other.m_core, m_memSpec)
-        , m_calc_interface(m_memSpec)
-        , m_calc_core(m_memSpec)
-    {}
-    DDR4(DDR4&& other) noexcept // TODO
-        : m_memSpec(std::move(other.m_memSpec))
-        , m_interface(std::move(other.m_interface), m_memSpec)
-        , m_core(std::move(other.m_core), m_memSpec)
-        , m_calc_interface(m_memSpec)
-        , m_calc_core(m_memSpec)
-    {}
 
 // Public member functions
 public:
@@ -91,8 +79,6 @@ private:
     MemSpecDDR4 m_memSpec;
     DDR4Interface m_interface;
     DDR4Core m_core;
-    InterfaceCalculation_DDR4 m_calc_interface;
-    Calculation_DDR4 m_calc_core;
 };
 
 } // namespace DRAMPower

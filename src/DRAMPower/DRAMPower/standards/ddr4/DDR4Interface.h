@@ -27,6 +27,20 @@
 
 namespace DRAMPower {
 
+struct DDR4InterfaceMemSpec {
+    DDR4InterfaceMemSpec(const MemSpecDDR4& memSpec)
+        : dataRate(memSpec.dataRate)
+        , burstLength(memSpec.burstLength)
+        , bitWidth(memSpec.bitWidth)
+        , numberOfRanks(memSpec.numberOfRanks)
+    {}
+
+    uint64_t dataRate;
+    uint64_t burstLength;
+    uint64_t bitWidth;
+    uint64_t numberOfRanks;
+};
+
 class DDR4Interface : public util::Serialize, public util::Deserialize {
 // Public constants
 public:
@@ -42,40 +56,7 @@ public:
 
 // Public constructors and assignment operators
 public:
-    DDR4Interface() = delete; // no default constructor
     DDR4Interface(const MemSpecDDR4& memSpec, const config::SimConfig &simConfig = {});
-    DDR4Interface(const DDR4Interface& other, MemSpecDDR4& memSpec)
-        : m_memSpec(memSpec)
-        , m_commandBus(other.m_commandBus)
-        , m_dataBus(other.m_dataBus)
-        , m_readDQS(other.m_readDQS)
-        , m_writeDQS(other.m_writeDQS)
-        , m_clock(other.m_clock)
-        , m_dbi(other.m_dbi)
-        , m_dbiread(other.m_dbiread)
-        , m_dbiwrite(other.m_dbiwrite)
-        , prepostambleReadMinTccd(other.prepostambleReadMinTccd)
-        , prepostambleWriteMinTccd(other.prepostambleWriteMinTccd)
-        , m_ranks(other.m_ranks)
-        , m_patternHandler(other.m_patternHandler)
-        , m_last_command_time(other.m_last_command_time)
-    {}
-    DDR4Interface(DDR4Interface&& other, MemSpecDDR4& memSpec) noexcept // TODO
-        : m_memSpec(memSpec)
-        , m_commandBus(std::move(other.m_commandBus))
-        , m_dataBus(std::move(other.m_dataBus))
-        , m_readDQS(std::move(other.m_readDQS))
-        , m_writeDQS(std::move(other.m_writeDQS))
-        , m_clock(std::move(other.m_clock))
-        , m_dbi(std::move(other.m_dbi))
-        , m_dbiread(std::move(other.m_dbiread))
-        , m_dbiwrite(std::move(other.m_dbiwrite))
-        , prepostambleReadMinTccd(std::move(other.prepostambleReadMinTccd))
-        , prepostambleWriteMinTccd(std::move(other.prepostambleWriteMinTccd))
-        , m_ranks(std::move(other.m_ranks))
-        , m_patternHandler(std::move(other.m_patternHandler))
-        , m_last_command_time(std::move(other.m_last_command_time))
-    {}
 
 // Public member functions
 public:
@@ -110,7 +91,7 @@ private:
 
 // Private member variables
 private:
-    const MemSpecDDR4& m_memSpec;
+    DDR4InterfaceMemSpec m_memSpec;
     commandbus_t m_commandBus;
     databus_t m_dataBus;
     util::Clock m_readDQS;
