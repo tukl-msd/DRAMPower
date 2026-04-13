@@ -54,17 +54,17 @@ private:
     void handlePreAll(Rank & rank, timestamp_t timestamp);
     void handleRead(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handleWrite(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleReadAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleWriteAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleRefAll(Rank & rank, timestamp_t timestamp);
-    void handleRefPerBank(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleRefreshOnBank(Rank & rank, Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t & counter);
-    void handleSelfRefreshEntry(Rank & rank, timestamp_t timestamp);
+    void handleReadAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
+    void handleWriteAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
+    void handleRefAll(std::size_t rank_idx, timestamp_t timestamp);
+    void handleRefPerBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
+    void handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp, uint64_t timing, uint64_t & counter);
+    void handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timestamp);
     void handleSelfRefreshExit(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownActEntry(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownActExit(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownPreEntry(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownPreExit(Rank & rank, timestamp_t timestamp);
+    void handlePowerDownActEntry(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownActExit(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownPreEntry(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownPreExit(std::size_t rank_idx, timestamp_t timestamp);
 
     timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) const;
 
@@ -72,7 +72,7 @@ private:
 private:
     const MemSpecLPDDR4& m_memSpec;
     std::vector<Rank> m_ranks;
-    ImplicitCommandHandler<> m_implicitCommandHandler;
+    ImplicitCommandHandler<LPDDR4Core> m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;
 };
 

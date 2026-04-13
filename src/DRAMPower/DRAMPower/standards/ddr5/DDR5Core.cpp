@@ -4,7 +4,7 @@
 namespace DRAMPower {
 
 void DDR5Core::doCommand(const Command& cmd) {
-    m_implicitCommandHandler.processImplicitCommandQueue(cmd.timestamp, m_last_command_time);
+    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp, m_last_command_time);
     m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
     switch(cmd.type) {
         case CmdType::ACT:
@@ -17,43 +17,43 @@ void DDR5Core::doCommand(const Command& cmd) {
             util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR5Core::handleRead);
             break;
         case CmdType::RDA:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR5Core::handleReadAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handleReadAuto);
             break;
         case CmdType::WR:
             util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR5Core::handleWrite);
             break;
         case CmdType::WRA:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR5Core::handleWriteAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handleWriteAuto);
             break;
         case CmdType::PRESB:
             util::coreHelpers::bankGroupHandler(cmd, m_ranks, this, &DDR5Core::handlePreSameBank);
             break;
         case CmdType::REFSB:
-            util::coreHelpers::bankGroupHandler(cmd, m_ranks, this, &DDR5Core::handleRefSameBank);
+            util::coreHelpers::bankGroupHandlerIdx(cmd, m_ranks, this, &DDR5Core::handleRefSameBank);
             break;
         case CmdType::REFA:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR5Core::handleRefAll);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handleRefAll);
             break;
         case CmdType::PREA:
             util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR5Core::handlePreAll);
             break;
         case CmdType::SREFEN:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR5Core::handleSelfRefreshEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handleSelfRefreshEntry);
             break;
         case CmdType::SREFEX:
             util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR5Core::handleSelfRefreshExit);
             break;
         case CmdType::PDEA:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR5Core::handlePowerDownActEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handlePowerDownActEntry);
             break;
         case CmdType::PDEP:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR5Core::handlePowerDownPreEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handlePowerDownPreEntry);
             break;
         case CmdType::PDXA:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR5Core::handlePowerDownActExit);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handlePowerDownActExit);
             break;
         case CmdType::PDXP:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR5Core::handlePowerDownPreExit);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handlePowerDownPreExit);
             break;
         case CmdType::NOP:
         case CmdType::END_OF_SIMULATION:
@@ -112,24 +112,30 @@ void DDR5Core::handlePreAll(Rank &rank, timestamp_t timestamp) {
     }
 }
 
-void DDR5Core::handleRefSameBank(Rank & rank, std::size_t bank_id, timestamp_t timestamp) {
+void DDR5Core::handleRefSameBank(std::size_t rank_idx, std::size_t bank_id, timestamp_t timestamp) {
     auto bank_id_inside_bg = bank_id % m_memSpec.banksPerGroup;
     for(unsigned bank_group = 0; bank_group < m_memSpec.numberOfBankGroups; bank_group++) {
-        auto & bank = rank.banks[bank_group * m_memSpec.banksPerGroup + bank_id_inside_bg];
-        handleRefreshOnBank(rank, bank, timestamp, m_memSpec.memTimingSpec.tRFCsb, bank.counter.refSameBank);
+        std::size_t bank_idx = bank_group * m_memSpec.banksPerGroup + bank_id_inside_bg;
+        auto& counter = m_ranks[rank_idx].banks[bank_idx].counter.refSameBank;
+        handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.memTimingSpec.tRFCsb, counter);
     }
 }
 
-void DDR5Core::handleRefAll(Rank &rank, timestamp_t timestamp) {
-    for (auto& bank : rank.banks) {
-        handleRefreshOnBank(rank, bank, timestamp, m_memSpec.memTimingSpec.tRFC, bank.counter.refAllBank);
+void DDR5Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
+    auto& rank = m_ranks[rank_idx];
+    // for (auto [bank_idx, bank] : type_traits::enumerate(rank.banks)) {
+    for (std::size_t bank_idx = 0; bank_idx < rank.banks.size(); ++bank_idx) {
+        auto& counter = m_ranks[rank_idx].banks[bank_idx].counter.refAllBank;
+        handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.memTimingSpec.tRFC, counter);
     }
 
     rank.endRefreshTime = timestamp + m_memSpec.memTimingSpec.tRFC;
 }
 
-void DDR5Core::handleRefreshOnBank(Rank & rank, Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t & counter){
+void DDR5Core::handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp, uint64_t timing, uint64_t & counter){
     ++counter;
+    auto& rank = m_ranks[rank_idx];
+    auto& bank = rank.banks[bank_idx];
 
     if (!rank.isActive(timestamp)) {
         rank.cycles.act.start_interval(timestamp);
@@ -145,7 +151,9 @@ void DDR5Core::handleRefreshOnBank(Rank & rank, Bank & bank, timestamp_t timesta
         bank.cycles.act.start_interval(timestamp);
 
     // Execute implicit pre-charge at refresh end
-    m_implicitCommandHandler.addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
+    m_implicitCommandHandler.addImplicitCommand(timestamp_end, [rank_idx, bank_idx, timestamp_end](DDR5Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
+        auto& bank = rank.banks[bank_idx];
         bank.bankState = Bank::BankState::BANK_PRECHARGED;
         bank.cycles.act.close_interval(timestamp_end);
 
@@ -159,7 +167,8 @@ void DDR5Core::handleRead(Rank&, Bank &bank, timestamp_t){
     ++bank.counter.reads;
 }
 
-void DDR5Core::handleReadAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
+void DDR5Core::handleReadAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp) {
+    auto& bank = m_ranks[rank_idx].banks[bank_idx];
     ++bank.counter.readAuto;
 
     auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
@@ -168,8 +177,10 @@ void DDR5Core::handleReadAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
     auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
     // Execute PRE after minimum active time
-    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
-        this->handlePre(rank, bank, delayed_timestamp);
+    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, [rank_idx, bank_idx, delayed_timestamp](DDR5Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
+        auto& bank = rank.banks[bank_idx];
+        self.handlePre(rank, bank, delayed_timestamp);
     });
 }
 
@@ -177,7 +188,8 @@ void DDR5Core::handleWrite(Rank&, Bank &bank, timestamp_t) {
     ++bank.counter.writes;
 }
 
-void DDR5Core::handleWriteAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
+void DDR5Core::handleWriteAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp) {
+    auto& bank = m_ranks[rank_idx].banks[bank_idx];
     ++bank.counter.writeAuto;
 
     auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
@@ -186,19 +198,22 @@ void DDR5Core::handleWriteAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
     auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
 
     // Execute PRE after minimum active time
-    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
-        this->handlePre(rank, bank, delayed_timestamp);
+    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, [rank_idx, bank_idx, delayed_timestamp](DDR5Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
+        auto& bank = rank.banks[bank_idx];
+        self.handlePre(rank, bank, delayed_timestamp);
     });
 }
 
-void DDR5Core::handleSelfRefreshEntry(Rank &rank, timestamp_t timestamp) {
+void DDR5Core::handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timestamp) {
     // Issue implicit refresh
-    handleRefAll(rank, timestamp);
+    handleRefAll(rank_idx, timestamp);
 
     // Handle self-refresh entry after tRFC
     auto timestampSelfRefreshStart = timestamp + m_memSpec.memTimingSpec.tRFC;
 
-    m_implicitCommandHandler.addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
+    m_implicitCommandHandler.addImplicitCommand(timestampSelfRefreshStart, [rank_idx, timestampSelfRefreshStart](DDR5Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
         rank.counter.selfRefresh++;
         rank.cycles.sref.start_interval(timestampSelfRefreshStart);
         rank.memState = MemState::SREF;
@@ -211,10 +226,12 @@ void DDR5Core::handleSelfRefreshExit(Rank &rank, timestamp_t timestamp) {
     rank.memState = MemState::NOT_IN_PD;
 }
 
-void DDR5Core::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
+void DDR5Core::handlePowerDownActEntry(std::size_t rank_idx, timestamp_t timestamp) {
+    auto& rank = m_ranks[rank_idx];
     auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
     auto entryTime = std::max(timestamp, earliestPossibleEntry);
-    m_implicitCommandHandler.addImplicitCommand(entryTime, [&rank, entryTime]() {
+    m_implicitCommandHandler.addImplicitCommand(entryTime, [rank_idx, entryTime](DDR5Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
         rank.cycles.powerDownAct.start_interval(entryTime);
         rank.memState = MemState::PDN_ACT;
         if (rank.cycles.act.is_open()) {
@@ -228,11 +245,13 @@ void DDR5Core::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
     });
 }
 
-void DDR5Core::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
+void DDR5Core::handlePowerDownActExit(std::size_t rank_idx, timestamp_t timestamp) {
+    auto& rank = m_ranks[rank_idx];
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-    m_implicitCommandHandler.addImplicitCommand(exitTime, [&rank, exitTime]() {
+    m_implicitCommandHandler.addImplicitCommand(exitTime, [rank_idx, exitTime](DDR5Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
         rank.memState = MemState::NOT_IN_PD;
         rank.cycles.powerDownAct.close_interval(exitTime);
 
@@ -252,21 +271,25 @@ void DDR5Core::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
     });
 }
 
-void DDR5Core::handlePowerDownPreEntry(Rank &rank, timestamp_t timestamp) {
+void DDR5Core::handlePowerDownPreEntry(std::size_t rank_idx, timestamp_t timestamp) {
+    auto& rank = m_ranks[rank_idx];
     auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
     auto entryTime = std::max(timestamp, earliestPossibleEntry);
 
-    m_implicitCommandHandler.addImplicitCommand(entryTime, [&rank, entryTime]() {
+    m_implicitCommandHandler.addImplicitCommand(entryTime, [rank_idx, entryTime](DDR5Core &self) {
+        auto& rank = self.m_ranks[rank_idx];
         rank.cycles.powerDownPre.start_interval(entryTime);
         rank.memState = MemState::PDN_PRE;
     });
 }
 
-void DDR5Core::handlePowerDownPreExit(Rank &rank, timestamp_t timestamp) {
+void DDR5Core::handlePowerDownPreExit(std::size_t rank_idx, timestamp_t timestamp) {
+    auto& rank = m_ranks[rank_idx];
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-    m_implicitCommandHandler.addImplicitCommand(exitTime, [&rank, exitTime]() {
+    m_implicitCommandHandler.addImplicitCommand(exitTime, [rank_idx, exitTime](DDR5Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
         rank.memState = MemState::NOT_IN_PD;
         rank.cycles.powerDownPre.close_interval(exitTime);
     });
@@ -288,7 +311,7 @@ timestamp_t DDR5Core::earliestPossiblePowerDownEntryTime(Rank &rank) {
 }
 
 void DDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
-    m_implicitCommandHandler.processImplicitCommandQueue(timestamp, m_last_command_time);
+    m_implicitCommandHandler.processImplicitCommandQueue(*this, timestamp, m_last_command_time);
     stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks);
     stats.rank_total.resize(m_memSpec.numberOfRanks);
 
