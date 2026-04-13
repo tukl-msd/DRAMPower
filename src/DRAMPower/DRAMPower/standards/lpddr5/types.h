@@ -12,7 +12,7 @@
 namespace DRAMPower {
 
 struct LPDDR5Types {
-    using JSONMemSpec_t = DRAMUtils::MemSpec::MemSpecLPDDR5;
+    using DRAMUtilsMemSpec_t = DRAMUtils::MemSpec::MemSpecLPDDR5;
     using MemSpec_t = MemSpecLPDDR5;
     using Core_t = LPDDR5Core;
     using Interface_t = LPDDR5Interface;
