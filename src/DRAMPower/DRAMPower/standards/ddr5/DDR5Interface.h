@@ -22,6 +22,18 @@
 
 namespace DRAMPower {
 
+struct DDR5InterfaceMemSpec {
+    DDR5InterfaceMemSpec(const MemSpecDDR5& memSpec)
+        : dataRate(memSpec.dataRate)
+        , burstLength(memSpec.burstLength)
+        , bitWidth(memSpec.bitWidth)
+    {}
+
+    uint64_t dataRate;
+    uint64_t burstLength;
+    uint64_t bitWidth;
+};
+
 class DDR5Interface : public util::Serialize, public util::Deserialize {
 // Public constants
 public:
@@ -36,12 +48,6 @@ public:
 
 // Public constructors and assignment operators
 public:
-    DDR5Interface() = delete; // no default constructor
-    DDR5Interface(const DDR5Interface&) = default; // copy constructor
-    DDR5Interface& operator=(const DDR5Interface&) = delete; // copy assignment operator
-    DDR5Interface(DDR5Interface&&) = default; // move constructor
-    DDR5Interface& operator=(DDR5Interface&&) = delete; // move assignment operator
-
     DDR5Interface(const MemSpecDDR5& memSpec, const config::SimConfig &simConfig = {});
 
 // Public member functions
@@ -64,7 +70,7 @@ private:
 
 // Private member variables
 private:
-    const MemSpecDDR5& m_memSpec;
+    DDR5InterfaceMemSpec m_memSpec;
     commandbus_t m_commandBus;
     databus_t m_dataBus;
     util::Clock m_readDQS;

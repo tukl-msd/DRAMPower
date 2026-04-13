@@ -25,6 +25,22 @@
 
 namespace DRAMPower {
 
+struct LPDDR5InterfaceMemSpec {
+    LPDDR5InterfaceMemSpec(const MemSpecLPDDR5& memSpec)
+        : dataRate(memSpec.dataRate)
+        , burstLength(memSpec.burstLength)
+        , bitWidth(memSpec.bitWidth)
+        , bank_arch(memSpec.bank_arch)
+        , wckAlwaysOnMode(memSpec.wckAlwaysOnMode)
+    {}
+
+    uint64_t dataRate;
+    uint64_t burstLength;
+    uint64_t bitWidth;
+    MemSpecLPDDR5::BankArchitectureMode bank_arch;
+    bool wckAlwaysOnMode;
+};
+
 class LPDDR5Interface : public util::Serialize, public util::Deserialize {
 // Public constants
 public:
@@ -40,12 +56,6 @@ public:
 
 // Public constructors and assignment operators
 public:
-    LPDDR5Interface() = delete; // no default constructor
-    LPDDR5Interface(const LPDDR5Interface&) = default; // copy constructor
-    LPDDR5Interface& operator=(const LPDDR5Interface&) = delete; // copy assignment operator
-    LPDDR5Interface(LPDDR5Interface&&) = default; // move constructor
-    LPDDR5Interface& operator=(LPDDR5Interface&&) = delete; // move assignment operator
-
     LPDDR5Interface(const MemSpecLPDDR5& memSpec, const config::SimConfig& simConfig);
 
 // Public member functions
@@ -75,7 +85,7 @@ private:
 
 // Private member variables
 private:
-    const MemSpecLPDDR5& m_memSpec;
+    LPDDR5InterfaceMemSpec m_memSpec;
     commandbus_t m_commandBus;
     databus_t m_dataBus;
     util::Clock m_readDQS;

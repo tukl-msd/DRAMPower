@@ -20,17 +20,37 @@ namespace internal {
     class TestAccessor;
 }
 
+struct LPDDR4CoreMemSpec {
+    LPDDR4CoreMemSpec(const MemSpecLPDDR4& memSpec)
+        : numberOfBanks(memSpec.numberOfBanks)
+        , numberOfRanks(memSpec.numberOfRanks)
+        , tRFC(memSpec.memTimingSpec.tRFC)
+        , tRFCPB(memSpec.memTimingSpec.tRFCPB)
+        , tRAS(memSpec.memTimingSpec.tRAS)
+        , tRCD(memSpec.memTimingSpec.tRCD)
+        , tRP(memSpec.memTimingSpec.tRP)
+        , prechargeOffsetRD(memSpec.prechargeOffsetRD)
+        , prechargeOffsetWR(memSpec.prechargeOffsetWR)
+    {}
+
+    uint64_t numberOfBanks;
+    uint64_t numberOfRanks;
+
+    uint64_t tRFC;
+    uint64_t tRFCPB;
+    uint64_t tRAS;
+    uint64_t tRCD;
+    uint64_t tRP;
+    uint64_t prechargeOffsetRD;
+    uint64_t prechargeOffsetWR;
+};
+
 class LPDDR4Core : public util::Serialize, public util::Deserialize {
 // Friend classes
 friend class internal::TestAccessor<LPDDR4Core>;
 
 // Public constructors amd assignment operators
 public:
-    LPDDR4Core() = delete; // No default constructor
-    LPDDR4Core(const LPDDR4Core&) = default; // copy constructor
-    LPDDR4Core& operator=(const LPDDR4Core&) = delete; // copy assignment operator
-    LPDDR4Core(LPDDR4Core&&) = default; // move constructor
-    LPDDR4Core& operator=(LPDDR4Core&&) = delete; // move assignment operator
     LPDDR4Core(const MemSpecLPDDR4& memSpec)
         : m_memSpec(memSpec)
         , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
@@ -70,7 +90,7 @@ private:
 
 // Private member variables
 private:
-    const MemSpecLPDDR4& m_memSpec;
+    LPDDR4CoreMemSpec m_memSpec;
     std::vector<Rank> m_ranks;
     ImplicitCommandHandler<LPDDR4Core> m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;

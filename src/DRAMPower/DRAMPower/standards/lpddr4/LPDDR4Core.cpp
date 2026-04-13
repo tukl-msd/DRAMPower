@@ -132,21 +132,21 @@ void LPDDR4Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
     auto& rank = m_ranks[rank_idx];
     for (std::size_t bank_idx = 0; bank_idx < rank.banks.size(); ++bank_idx) {
         auto& counter = rank.banks[bank_idx].counter.refAllBank;
-        handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.memTimingSpec.tRFC, counter);
+        handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFC, counter);
     }
-    rank.endRefreshTime = timestamp + m_memSpec.memTimingSpec.tRFC;
+    rank.endRefreshTime = timestamp + m_memSpec.tRFC;
 }
 
 void LPDDR4Core::handleRefPerBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp) {
     auto& counter = m_ranks[rank_idx].banks[bank_idx].counter.refPerBank;
-    handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.memTimingSpec.tRFCPB, counter);
+    handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFCPB, counter);
 }
 
 void LPDDR4Core::handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timestamp) {
     // Issue implicit refresh
     handleRefAll(rank_idx, timestamp);
     // Handle self-refresh entry after tRFC
-    auto timestampSelfRefreshStart = timestamp + m_memSpec.memTimingSpec.tRFC;
+    auto timestampSelfRefreshStart = timestamp + m_memSpec.tRFC;
     m_implicitCommandHandler.addImplicitCommand(timestampSelfRefreshStart, [rank_idx, timestampSelfRefreshStart](LPDDR4Core& self) {
         auto& rank = self.m_ranks[rank_idx];
         rank.counter.selfRefresh++;
@@ -241,7 +241,7 @@ void LPDDR4Core::handleReadAuto(std::size_t rank_idx, std::size_t bank_idx, time
     auto& bank = m_ranks[rank_idx].banks[bank_idx];
     ++bank.counter.readAuto;
 
-    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
+    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.tRAS;
     auto minReadActiveTime = timestamp + m_memSpec.prechargeOffsetRD;
 
     auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
@@ -258,7 +258,7 @@ void LPDDR4Core::handleWriteAuto(std::size_t rank_idx, std::size_t bank_idx, tim
     auto& bank = m_ranks[rank_idx].banks[bank_idx];
     ++bank.counter.writeAuto;
 
-    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRAS;
+    auto minBankActiveTime = bank.cycles.act.get_start() + m_memSpec.tRAS;
     auto minWriteActiveTime = timestamp + m_memSpec.prechargeOffsetWR;
 
     auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
@@ -276,8 +276,8 @@ timestamp_t LPDDR4Core::earliestPossiblePowerDownEntryTime(Rank & rank) const {
 
     for (const auto & bank : rank.banks) {
         entryTime = std::max({ entryTime,
-                                bank.counter.act == 0 ? 0 :  bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRCD,
-                                bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.memTimingSpec.tRP,
+                                bank.counter.act == 0 ? 0 :  bank.cycles.act.get_start() + m_memSpec.tRCD,
+                                bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.tRP,
                                 bank.refreshEndTime
                                 });
     }

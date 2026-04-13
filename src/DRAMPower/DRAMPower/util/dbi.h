@@ -155,13 +155,6 @@ private:
 
 // Public contructors, destructors and assignment operators
 public:
-    DBI() = delete;
-    DBI(const DBI&) = default;
-    DBI(DBI&&) = default;
-    DBI& operator=(const DBI&) = delete;
-    DBI& operator=(DBI&&) = delete;
-    ~DBI() = default;
-
     template<typename T>
     constexpr std::enable_if_t<std::is_integral_v<T>> set_all_bits(bool ones, T& out_val) const {
         out_val = ones ? ~T{0} : T{0};
@@ -461,8 +454,8 @@ private:
 // Private member variables
 private:
 
-    const std::optional<std::size_t> m_width = std::nullopt; // Width of the complete bus
-    const std::size_t m_burstLength = 0; // Width of the complete bus
+    std::optional<std::size_t> m_width = std::nullopt; // Width of the complete bus
+    std::size_t m_burstLength = 0; // Width of the complete bus
 
     bool lastBurstRead = false;
     LastBurst_t m_lastBurst_read;  // Last burst end timestamp

@@ -50,8 +50,8 @@ private:
 	timestamp_t last_load = 0;
 	bool enableflag = true;
 	timestamp_t virtual_disable_timestamp = 0;
-	const std::size_t width = 0;
-	const uint64_t datarate = 1;
+	std::size_t width = 0;
+	uint64_t datarate = 1;
 	bool init_load = false;
 	
 	PendingStats<stats_t> pending_stats;
@@ -63,7 +63,7 @@ private:
 	
 	BusIdlePatternSpec idle_pattern;
 	BusInitPatternSpec_ init_pattern;
-	const std::optional<burst_t> custom_init_pattern;
+	std::optional<burst_t> custom_init_pattern;
 
 private:
 	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec_ init_pattern,

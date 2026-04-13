@@ -207,8 +207,8 @@ private:
     TogglingHandle togglingHandleRead;
     TogglingHandle togglingHandleWrite;
     DataBusMode busType;
-    const std::size_t dataRate;
-    const std::size_t width;
+    std::size_t dataRate;
+    std::size_t width;
 };
 
 /** DataBusContainer class

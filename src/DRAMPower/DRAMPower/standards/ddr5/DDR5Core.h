@@ -19,17 +19,41 @@ namespace internal {
     class TestAccessor;
 }
 
+struct DDR5CoreMemSpec {
+    DDR5CoreMemSpec(const MemSpecDDR5& memSpec)
+        : numberOfBanks(memSpec.numberOfBanks)
+        , numberOfRanks(memSpec.numberOfRanks)
+        , banksPerGroup(memSpec.banksPerGroup)
+        , numberOfBankGroups(memSpec.numberOfBankGroups)
+        , tRFC(memSpec.memTimingSpec.tRFC)
+        , tRFCsb(memSpec.memTimingSpec.tRFCsb)
+        , tRAS(memSpec.memTimingSpec.tRAS)
+        , tRCD(memSpec.memTimingSpec.tRCD)
+        , tRP(memSpec.memTimingSpec.tRP)
+        , prechargeOffsetRD(memSpec.prechargeOffsetRD)
+        , prechargeOffsetWR(memSpec.prechargeOffsetWR)
+    {}
+
+    uint64_t numberOfBanks;
+    uint64_t numberOfRanks;
+    uint64_t banksPerGroup;
+    uint64_t numberOfBankGroups;
+
+    uint64_t tRFC;
+    uint64_t tRFCsb;
+    uint64_t tRAS;
+    uint64_t tRCD;
+    uint64_t tRP;
+    uint64_t prechargeOffsetRD;
+    uint64_t prechargeOffsetWR;
+};
+
 class DDR5Core : public util::Serialize, public util::Deserialize {
 // Friend classes
 friend class internal::TestAccessor<DDR5Core>;
 
 // Public constructors and assignment operators
 public:
-    DDR5Core() = delete; // No default constructor
-    DDR5Core(const DDR5Core&) = default; // copy constructor
-    DDR5Core& operator=(const DDR5Core&) = delete; // copy assignment operator
-    DDR5Core(DDR5Core&&) = default; // move constructor
-    DDR5Core& operator=(DDR5Core&&) = delete; // move assignment operator
     DDR5Core(const MemSpecDDR5& memSpec)
         : m_memSpec(memSpec)
         , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
@@ -70,7 +94,7 @@ private:
 
 // Private member variables
 private:
-    const MemSpecDDR5& m_memSpec;
+    DDR5CoreMemSpec m_memSpec;
     std::vector<Rank> m_ranks;
     ImplicitCommandHandler<DDR5Core> m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;
