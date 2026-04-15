@@ -123,7 +123,6 @@ void DDR5Core::handleRefSameBank(std::size_t rank_idx, std::size_t bank_id, time
 
 void DDR5Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
     auto& rank = m_ranks[rank_idx];
-    // for (auto [bank_idx, bank] : type_traits::enumerate(rank.banks)) {
     for (std::size_t bank_idx = 0; bank_idx < rank.banks.size(); ++bank_idx) {
         auto& counter = m_ranks[rank_idx].banks[bank_idx].counter.refAllBank;
         handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFC, counter);
