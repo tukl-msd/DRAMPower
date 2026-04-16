@@ -91,7 +91,7 @@ private:
     std::vector<pin_dbi_t> m_dbiread;
     std::vector<pin_dbi_t> m_dbiwrite;
     patternHandler_t m_patternHandler;
-    timestamp_t m_last_command_time;
+    timestamp_t m_last_command_time = 0;
 };
 
 } // namespace DRAMPower
