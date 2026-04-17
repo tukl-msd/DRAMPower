@@ -1,5 +1,5 @@
-#ifndef DRAMPOWER_STANDARDS_DDR4_ROUTER_H
-#define DRAMPOWER_STANDARDS_DDR4_ROUTER_H
+#ifndef DRAMPOWER_UTIL_ROUTER_H
+#define DRAMPOWER_UTIL_ROUTER_H
 
 #include <DRAMPower/command/Command.h>
 
@@ -61,4 +61,4 @@ private:
 
 } // namespace DRAMPower
 
-#endif /* DRAMPOWER_STANDARDS_DDR4_ROUTER_H */
+#endif /* DRAMPOWER_UTIL_ROUTER_H */

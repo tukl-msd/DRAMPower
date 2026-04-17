@@ -1,5 +1,5 @@
-#ifndef DRAMPOWER_STANDARDS_TEST_INTERNAL_H
-#define DRAMPOWER_STANDARDS_TEST_INTERNAL_H
+#ifndef DRAMPOWER_STANDARDS_TEST_ACCESSOR_H
+#define DRAMPOWER_STANDARDS_TEST_ACCESSOR_H
 
 #include "DRAMPower/standards/ddr4/DDR4Core.h"
 #include "DRAMPower/standards/ddr5/DDR5Core.h"
@@ -30,4 +30,4 @@ static const TestAccessor<LPDDR5Core> LPDDR5TestAccessor;
 
 } // namespace DRAMPower::internal
 
-#endif /* DRAMPOWER_STANDARDS_TEST_INTERNAL_H */
+#endif /* DRAMPOWER_STANDARDS_TEST_ACCESSOR_H */
