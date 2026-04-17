@@ -1,21 +1,19 @@
 #ifndef CLI_CONFIG_H
 #define CLI_CONFIG_H
 
-#include <optional>
-
 #include <DRAMUtils/util/json.h>
 #include <DRAMUtils/util/json_utils.h>
 
-#include <DRAMUtils/config/toggling_rate.h>
+#include <DRAMPower/simconfig/simconfig.h>
 
 namespace DRAMPower::DRAMPowerCLI::config {
 
 struct CLIConfig {
     bool useToggleRate;
-    std::optional<DRAMUtils::Config::ToggleRateDefinition> toggleRateConfig;
+    DRAMPower::config::SimConfig simconfig;
 };
 
-NLOHMANN_JSONIFY_ALL_THINGS(CLIConfig, useToggleRate, toggleRateConfig)
+NLOHMANN_JSONIFY_ALL_THINGS(CLIConfig, useToggleRate, simconfig)
 
 } // namespace DRAMPower::DRAMPowerCLI::config
 

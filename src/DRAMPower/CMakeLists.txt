@@ -35,7 +35,6 @@ add_library(DRAMPower
     DRAMPower/standards/lpddr5/LPDDR5Interface.cpp
     DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.cpp
     DRAMPower/util/extensions.cpp
-    DRAMPower/util/ImplicitCommandHandler.cpp
 )
 
 target_sources(DRAMPower
@@ -48,6 +47,8 @@ FILES
 
     DRAMPower/dram/dram_base.h
 
+    DRAMPower/simconfig/simconfig.h
+
     DRAMPower/command/Command.h
     DRAMPower/data/energy.h
     DRAMPower/data/stats.h
@@ -59,15 +60,35 @@ FILES
 
     DRAMPower/memspec/MemSpecDDR4.h
     DRAMPower/standards/ddr4/DDR4.h
+    DRAMPower/standards/ddr4/DDR4Core.h
+    DRAMPower/standards/ddr4/DDR4Interface.h
+    DRAMPower/standards/ddr4/core_calculation_DDR4.h
+    DRAMPower/standards/ddr4/interface_calculation_DDR4.h
+    DRAMPower/standards/ddr4/types.h
     
     DRAMPower/memspec/MemSpecDDR5.h
     DRAMPower/standards/ddr5/DDR5.h
+    DRAMPower/standards/ddr5/DDR5Core.h
+    DRAMPower/standards/ddr5/DDR5Interface.h
+    DRAMPower/standards/ddr5/core_calculation_DDR5.h
+    DRAMPower/standards/ddr5/interface_calculation_DDR5.h
+    DRAMPower/standards/ddr5/types.h
     
     DRAMPower/memspec/MemSpecLPDDR4.h
     DRAMPower/standards/lpddr4/LPDDR4.h
+    DRAMPower/standards/lpddr4/LPDDR4Core.h
+    DRAMPower/standards/lpddr4/LPDDR4Interface.h
+    DRAMPower/standards/lpddr4/core_calculation_LPDDR4.h
+    DRAMPower/standards/lpddr4/interface_calculation_LPDDR4.h
+    DRAMPower/standards/lpddr4/types.h
     
     DRAMPower/memspec/MemSpecLPDDR5.h
     DRAMPower/standards/lpddr5/LPDDR5.h
+    DRAMPower/standards/lpddr5/LPDDR5Core.h
+    DRAMPower/standards/lpddr5/LPDDR5Interface.h
+    DRAMPower/standards/lpddr5/core_calculation_LPDDR5.h
+    DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.h
+    DRAMPower/standards/lpddr5/types.h
     
     DRAMPower/util/Serialize.h
     DRAMPower/util/Deserialize.h

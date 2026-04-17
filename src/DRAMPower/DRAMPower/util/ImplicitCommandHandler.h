@@ -1,11 +1,11 @@
-#ifndef DRAMPOWER_STANDARDS_DDR4_IMPLICITCOMMANDHANDLER_H
-#define DRAMPOWER_STANDARDS_DDR4_IMPLICITCOMMANDHANDLER_H
+#ifndef DRAMPOWER_UTIL_IMPLICITCOMMANDHANDLER_H
+#define DRAMPOWER_UTIL_IMPLICITCOMMANDHANDLER_H
 
 #include <DRAMPower/Types.h>
 
 #include <deque>
 #include <functional>
-#include <memory>
+#include <type_traits>
 #include <utility>
 #include <algorithm>
 #include <cstddef>
@@ -25,66 +25,57 @@ namespace details {
         queue.emplace(upper, entry);
     }
 
-}
+} // namespace details
 
+template <typename CommandContext = void>
+class ImplicitCommandHandler;
+
+template<typename CommandContext>
 class ImplicitCommandHandler {
+// Public type definitions
+public:
+    using CommandContext_t = std::add_lvalue_reference_t<std::remove_reference_t<CommandContext>>;
+    using implicitCommand_t = std::function<void(CommandContext_t)>;
+    using implicitCommandListEntry_t = std::pair<timestamp_t, implicitCommand_t>;
+    using implicitCommandList_t = std::deque<implicitCommandListEntry_t>;
+
+    
+// Public member functions
+public:
+    template <typename Func>
+    void addImplicitCommand(timestamp_t timestamp, Func&& func)
+    {
+        details::addImplicitCommand(m_implicitCommandList, timestamp, std::forward<Func>(func));
+    }
+
+    void processImplicitCommandQueue(CommandContext_t context, timestamp_t timestamp, timestamp_t &last_command_time) {
+        while (!m_implicitCommandList.empty() && m_implicitCommandList.front().first <= timestamp) {
+            // Execute implicit command functor
+            auto& [i_timestamp, i_implicitCommand] = m_implicitCommandList.front();
+            i_implicitCommand(context);
+            last_command_time = i_timestamp;
+            m_implicitCommandList.pop_front();
+        }
+    }
+
+    std::size_t implicitCommandCount() const {
+        return m_implicitCommandList.size();
+    }
+
+// Private member variables
+private:
+    implicitCommandList_t m_implicitCommandList;
+};
+
+template<>
+class ImplicitCommandHandler<void> {
 // Public type definitions
 public:
     using implicitCommand_t = std::function<void(void)>;
     using implicitCommandListEntry_t = std::pair<timestamp_t, implicitCommand_t>;
     using implicitCommandList_t = std::deque<implicitCommandListEntry_t>;
 
-// Helper classes
-public:
-class Inserter {
-// Friend classes
-    friend class ImplicitCommandHandler;
-
-// Private constructors and assignment operators
-private:
-    // Constructor that takes a reference to the implicit command list
-    explicit Inserter(implicitCommandList_t& implicitCommandList);
-
-// Public constructors and assignment operators
-public:
-    Inserter() = delete; // No default constructor
-    Inserter(const Inserter&) = default; // copy constructor
-    Inserter& operator=(const Inserter&) = delete; // copy assignment operator
-
-    Inserter(Inserter&&) = default; // move constructor
-    Inserter& operator=(Inserter&&) = delete; // move assignment operator
-
 // Public member functions
-public:
-    // Add an implicit command to the list
-    template <typename Func>
-    void addImplicitCommand(timestamp_t timestamp, Func&& func)
-    {
-        details::addImplicitCommand(m_implicitCommandList, timestamp, std::forward<Func>(func));
-    }
-
-    std::size_t implicitCommandCount() const;
-
-// Private member variables
-private:
-    implicitCommandList_t& m_implicitCommandList;
-};
-
-// Helper type definitions
-public:
-    using Inserter_t = Inserter;
-
-// Constructors and assignment operators
-public:
-    ImplicitCommandHandler() = default; // default constructor
-    ImplicitCommandHandler(const ImplicitCommandHandler&) = default; // copy constructor
-    ImplicitCommandHandler& operator=(const ImplicitCommandHandler&) = default; // copy assignment operator
-    ImplicitCommandHandler(ImplicitCommandHandler&&) = default; // move constructor
-    ImplicitCommandHandler& operator=(ImplicitCommandHandler&&) = default; // move assignment operator
-    ~ImplicitCommandHandler() = default;
-
-
-// Inserter forwards
 public:
     template <typename Func>
     void addImplicitCommand(timestamp_t timestamp, Func&& func)
@@ -92,14 +83,19 @@ public:
         details::addImplicitCommand(m_implicitCommandList, timestamp, std::forward<Func>(func));
     }
 
-// Public member functions
-public:
-    // Create a inserter for adding implicit commands which holds a reference to the implicit command list
-    // The lifetime of the inserter must be managed by the caller
-    Inserter_t createInserter();
-    // Process implicit command queue
-    void processImplicitCommandQueue(timestamp_t timestamp, timestamp_t &last_command_time);
-    std::size_t implicitCommandCount() const;
+    void processImplicitCommandQueue(timestamp_t timestamp, timestamp_t &last_command_time) {
+        while (!m_implicitCommandList.empty() && m_implicitCommandList.front().first <= timestamp) {
+            // Execute implicit command functor
+            auto& [i_timestamp, i_implicitCommand] = m_implicitCommandList.front();
+            i_implicitCommand();
+            last_command_time = i_timestamp;
+            m_implicitCommandList.pop_front();
+        }
+    }
+
+    std::size_t implicitCommandCount() const {
+        return m_implicitCommandList.size();
+    }
 
 // Private member variables
 private:
@@ -108,4 +104,4 @@ private:
 
 } // namespace DRAMPower
 
-#endif /* DRAMPOWER_STANDARDS_DDR4_IMPLICITCOMMANDHANDLER_H */
+#endif /* DRAMPOWER_UTIL_IMPLICITCOMMANDHANDLER_H */

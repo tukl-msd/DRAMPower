@@ -1,12 +1,13 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR4_LPDDR4CORE_H
 #define DRAMPOWER_STANDARDS_LPDDR4_LPDDR4CORE_H
 
-#include "DRAMPower/dram/Rank.h"
-#include "DRAMPower/util/RegisterHelper.h"
-#include "DRAMPower/util/RegisterHelper.h"
-#include "DRAMPower/util/ImplicitCommandHandler.h"
 #include "DRAMPower/util/Deserialize.h"
 #include "DRAMPower/util/Serialize.h"
+#include <DRAMPower/Types.h>
+#include "DRAMPower/dram/Rank.h"
+#include "DRAMPower/command/Command.h"
+#include <DRAMPower/data/stats.h>
+#include <DRAMPower/util/ImplicitCommandHandler.h>
 
 #include "DRAMPower/memspec/MemSpecLPDDR4.h"
 
@@ -14,63 +15,85 @@
 
 namespace DRAMPower {
 
+namespace internal {
+    template<typename Core>
+    class TestAccessor;
+}
+
+struct LPDDR4CoreMemSpec {
+    LPDDR4CoreMemSpec(const MemSpecLPDDR4& memSpec)
+        : numberOfBanks(memSpec.numberOfBanks)
+        , numberOfRanks(memSpec.numberOfRanks)
+        , tRFC(memSpec.memTimingSpec.tRFC)
+        , tRFCPB(memSpec.memTimingSpec.tRFCPB)
+        , tRAS(memSpec.memTimingSpec.tRAS)
+        , tRCD(memSpec.memTimingSpec.tRCD)
+        , tRP(memSpec.memTimingSpec.tRP)
+        , prechargeOffsetRD(memSpec.prechargeOffsetRD)
+        , prechargeOffsetWR(memSpec.prechargeOffsetWR)
+    {}
+
+    uint64_t numberOfBanks;
+    uint64_t numberOfRanks;
+
+    uint64_t tRFC;
+    uint64_t tRFCPB;
+    uint64_t tRAS;
+    uint64_t tRCD;
+    uint64_t tRP;
+    uint64_t prechargeOffsetRD;
+    uint64_t prechargeOffsetWR;
+};
+
 class LPDDR4Core : public util::Serialize, public util::Deserialize {
-// Public type definitions
+// Friend classes
+friend class internal::TestAccessor<LPDDR4Core>;
+
+// Public constructors amd assignment operators
 public:
-    using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
-    using coreRegisterHelper_t = util::CoreRegisterHelper<LPDDR4Core>;
-// Public constructors
-public:
-    LPDDR4Core() = delete; // No default constructor
-    LPDDR4Core(const LPDDR4Core&) = default; // copy constructor
-    LPDDR4Core& operator=(const LPDDR4Core&) = delete; // copy assignment operator
-    LPDDR4Core(LPDDR4Core&&) = default; // move constructor
-    LPDDR4Core& operator=(LPDDR4Core&&) = delete; // move assignment operator
-    LPDDR4Core(const MemSpecLPDDR4& memSpec, implicitCommandInserter_t&& implicitCommandInserter)
-        : m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
-        , m_memSpec(memSpec)
-        , m_implicitCommandInserter(std::move(implicitCommandInserter))
+    LPDDR4Core(const MemSpecLPDDR4& memSpec)
+        : m_memSpec(memSpec)
+        , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
     {}
 
 // Public member functions
 public:
-    coreRegisterHelper_t getRegisterHelper() {
-        return coreRegisterHelper_t{this, m_ranks};
-    }
+// Member functions
+    void doCommand(const Command& cmd);
+    timestamp_t getLastCommandTime() const;
+    bool isSerializable() const;
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
+// Overrides
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
 
+// Private member functions
+private:
     void handleAct(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handlePre(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handlePreAll(Rank & rank, timestamp_t timestamp);
     void handleRead(Rank & rank, Bank & bank, timestamp_t timestamp);
     void handleWrite(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleReadAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleWriteAuto(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleRefAll(Rank & rank, timestamp_t timestamp);
-    void handleRefPerBank(Rank & rank, Bank & bank, timestamp_t timestamp);
-    void handleRefreshOnBank(Rank & rank, Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t & counter);
-    void handleSelfRefreshEntry(Rank & rank, timestamp_t timestamp);
+    void handleReadAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
+    void handleWriteAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
+    void handleRefAll(std::size_t rank_idx, timestamp_t timestamp);
+    void handleRefPerBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
+    void handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp, uint64_t timing, uint64_t & counter);
+    void handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timestamp);
     void handleSelfRefreshExit(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownActEntry(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownActExit(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownPreEntry(Rank & rank, timestamp_t timestamp);
-    void handlePowerDownPreExit(Rank & rank, timestamp_t timestamp);
+    void handlePowerDownActEntry(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownActExit(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownPreEntry(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownPreExit(std::size_t rank_idx, timestamp_t timestamp);
 
     timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) const;
-    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
-
-// Overrides
-public:
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
-
-// Publie member variables:
-public:
-    std::vector<Rank> m_ranks;
 
 // Private member variables
 private:
-    const MemSpecLPDDR4& m_memSpec;
-    implicitCommandInserter_t m_implicitCommandInserter;
+    LPDDR4CoreMemSpec m_memSpec;
+    std::vector<Rank> m_ranks;
+    ImplicitCommandHandler<LPDDR4Core> m_implicitCommandHandler;
+    timestamp_t m_last_command_time = 0;
 };
 
 } // namespace DRAMPower

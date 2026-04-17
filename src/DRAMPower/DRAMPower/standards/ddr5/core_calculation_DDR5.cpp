@@ -8,48 +8,48 @@ namespace DRAMPower {
         : m_memSpec(memSpec)
     {}
 
-    double Calculation_DDR5::E_BG_pre(std::size_t B, double VDD, double IDD2_N, double T_BG_pre) {
+    double Calculation_DDR5::E_BG_pre(std::size_t B, double VDD, double IDD2_N, double T_BG_pre) const {
         return (1.0 / B) * VDD * IDD2_N * T_BG_pre;
     };
 
-    double Calculation_DDR5::E_BG_act_shared(double VDD, double I_rho, double T_BG_act) {
+    double Calculation_DDR5::E_BG_act_shared(double VDD, double I_rho, double T_BG_act) const {
         return VDD * I_rho * T_BG_act;
     }
 
     double
-    Calculation_DDR5::E_BG_act_star(std::size_t B, double VDD, double IDD3_N, double I_rho, double T_BG_act_star) {
+    Calculation_DDR5::E_BG_act_star(std::size_t B, double VDD, double IDD3_N, double I_rho, double T_BG_act_star) const {
         return VDD * (1.0 / B) * (IDD3_N - I_rho) * T_BG_act_star;
     }
 
-    double Calculation_DDR5::E_pre(double VDD, double IBeta, double IDD2_N, double t_RP, uint64_t N_pre) {
+    double Calculation_DDR5::E_pre(double VDD, double IBeta, double IDD2_N, double t_RP, uint64_t N_pre) const {
         return VDD * (IBeta - IDD2_N) * t_RP * N_pre;
     }
 
-    double Calculation_DDR5::E_act(double VDD, double I_theta, double I_1, double t_RAS, uint64_t N_act) {
+    double Calculation_DDR5::E_act(double VDD, double I_theta, double I_1, double t_RAS, uint64_t N_act) const {
         return VDD * (I_theta - I_1) * t_RAS * N_act;
     }
 
     double Calculation_DDR5::E_RD(double VDD, double IDD4_R, double IDD3_N, double t_CK, std::size_t BL, std::size_t DR,
-                                  uint64_t N_RD) {
+                                  uint64_t N_RD) const {
         return VDD * (IDD4_R - IDD3_N) * (double(BL) / DR) * t_CK * N_RD;
     }
 
     double Calculation_DDR5::E_WR(double VDD, double IDD4_W, double IDD3_N, double t_CK, std::size_t BL, std::size_t DR,
-                                  uint64_t N_WR) {
+                                  uint64_t N_WR) const {
         return VDD * (IDD4_W - IDD3_N) * (BL / DR) * t_CK * N_WR;
     }
 
     double
-    Calculation_DDR5::E_ref_ab(std::size_t B, double VDD, double IDD5B, double IDD3_N, double tRFC, uint64_t N_REF) {
+    Calculation_DDR5::E_ref_ab(std::size_t B, double VDD, double IDD5B, double IDD3_N, double tRFC, uint64_t N_REF) const {
         return (1.0 / B) * VDD * (IDD5B - IDD3_N) * tRFC * N_REF;
     }
 
     double Calculation_DDR5::E_ref_sb(double VDD, double IDD5C, double I_BG, double tRFCsb, std::size_t BG,
-                                      uint64_t N_SB_REF) {
+                                      uint64_t N_SB_REF) const {
         return VDD * (IDD5C - I_BG) * tRFCsb * N_SB_REF * (1.0 / BG);
     }
 
-    energy_t Calculation_DDR5::calcEnergy(const SimulationStats &stats) {
+    energy_t Calculation_DDR5::calcEnergy(const SimulationStats &stats) const {
         double t_CK = m_memSpec.memTimingSpec.tCK;
         auto t_RAS = m_memSpec.memTimingSpec.tRAS * t_CK;
         auto t_RP = m_memSpec.memTimingSpec.tRP * t_CK;
