@@ -1,5 +1,5 @@
-#ifndef DRAMPOWER_STANDARDS_REGISTERHELPER_H
-#define DRAMPOWER_STANDARDS_REGISTERHELPER_H
+#ifndef DRAMPOWER_UTIL_REGISTERHELPER_H
+#define DRAMPOWER_UTIL_REGISTERHELPER_H
 
 #include <vector>
 
@@ -8,111 +8,75 @@
 
 namespace DRAMPower::util {
 
-template<typename Core>
-struct CoreRegisterHelper {
-// Public constructors and assignment operators
-public:
-    CoreRegisterHelper(Core *core, std::vector<Rank> &ranks)
-        : m_core(core)
-        , m_ranks(ranks)
-    {}
-    CoreRegisterHelper(const CoreRegisterHelper&) = delete; // No copy constructor
-    CoreRegisterHelper& operator=(const CoreRegisterHelper&) = delete; // No copy assignment operator
-    CoreRegisterHelper(CoreRegisterHelper&&) = default; // Move constructor
-    CoreRegisterHelper& operator=(CoreRegisterHelper&&) = default; // Move assignment operator
-    ~CoreRegisterHelper() = default; // Destructor
+namespace coreHelpers {
+    template<typename Func, typename Owner>
+    decltype(auto) bankHandler(const Command& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
+        assert(ranks.size()>cmd.targetCoordinate.rank);
+        auto & rank = ranks.at(cmd.targetCoordinate.rank);
 
-// Public member functions
-public:
-    template<typename Func>
-    decltype(auto) registerBankHandler(Func &&member_func) {
-        Core* this_ptr = m_core;
-        return [this_ptr, ranks_ref = std::ref(m_ranks), member_func](const Command & command) {
-            auto &this_ranks = ranks_ref.get();
-            assert(this_ranks.size()>command.targetCoordinate.rank);
-            auto & rank = this_ranks.at(command.targetCoordinate.rank);
+        assert(rank.banks.size()>cmd.targetCoordinate.bank);
+        auto & bank = rank.banks.at(cmd.targetCoordinate.bank);
 
-            assert(rank.banks.size()>command.targetCoordinate.bank);
-            auto & bank = rank.banks.at(command.targetCoordinate.bank);
-
-            rank.commandCounter.inc(command.type);
-            (this_ptr->*member_func)(rank, bank, command.timestamp);
-        };
+        rank.commandCounter.inc(cmd.type);
+        return (owner->*member_func)(rank, bank, cmd.timestamp);
     }
 
-    template<typename Func>
-    decltype(auto) registerRankHandler(Func &&member_func) {
-        Core* this_ptr = m_core;
-        return [this_ptr, ranks_ref = std::ref(m_ranks), member_func](const Command & command) {
-            auto &this_ranks = ranks_ref.get();
-            assert(this_ranks.size()>command.targetCoordinate.rank);
-            auto & rank = this_ranks.at(command.targetCoordinate.rank);
+    template<typename Func, typename Owner>
+    decltype(auto) bankHandlerIdx(const Command& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
+        assert(ranks.size()>cmd.targetCoordinate.rank);
+        assert(ranks.at(cmd.targetCoordinate.rank).banks.size()>cmd.targetCoordinate.bank);
 
-            rank.commandCounter.inc(command.type);
-            (this_ptr->*member_func)(rank, command.timestamp);
-        };
+        ranks.at(cmd.targetCoordinate.rank).commandCounter.inc(cmd.type);
+        return (owner->*member_func)(cmd.targetCoordinate.rank, cmd.targetCoordinate.bank, cmd.timestamp);
     }
 
-    template <typename Func>
-    decltype(auto) registerBankGroupHandler(Func &&member_func) {
-        Core *this_ptr = m_core;
-        return [this_ptr, ranks_ref = std::ref(m_ranks), member_func](const Command & command) {
-            auto &this_ranks = ranks_ref.get();
-            assert(this_ranks.size()>command.targetCoordinate.rank);
-            auto& rank = this_ranks.at(command.targetCoordinate.rank);
+    template<typename Func, typename Owner>
+    decltype(auto) rankHandler(const Command& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
+        assert(ranks.size()>cmd.targetCoordinate.rank);
+        auto & rank = ranks.at(cmd.targetCoordinate.rank);
 
-            assert(rank.banks.size()>command.targetCoordinate.bank);
-            if (command.targetCoordinate.bank >= rank.banks.size()) {
-                throw std::invalid_argument("Invalid bank targetcoordinate");
-            }
-            auto bank_id = command.targetCoordinate.bank;
-            
-            rank.commandCounter.inc(command.type);
-            (this_ptr->*member_func)(rank, bank_id, command.timestamp);
-        };
+        rank.commandCounter.inc(cmd.type);
+        return (owner->*member_func)(rank, cmd.timestamp);
     }
 
-    template<typename Func>
-    decltype(auto) registerHandler(Func &&member_func) {
-        Core* this_ptr = m_core;
-        return [this_ptr, member_func](const Command & command) {
-            (this_ptr->*member_func)(command.timestamp);
-        };
+    template<typename Func, typename Owner>
+    decltype(auto) rankHandlerIdx(const Command& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
+        assert(ranks.size()>cmd.targetCoordinate.rank);
+        ranks.at(cmd.targetCoordinate.rank).commandCounter.inc(cmd.type);
+        return (owner->*member_func)(cmd.targetCoordinate.rank, cmd.timestamp);
     }
 
-// Private member variables
-private:
-    Core *m_core;
-    std::vector<Rank> &m_ranks;
-};
+    template<typename Func, typename Owner>
+    decltype(auto) bankGroupHandler(const Command& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
+        assert(ranks.size()>cmd.targetCoordinate.rank);
+        auto& rank = ranks.at(cmd.targetCoordinate.rank);
 
-template<typename Interface>
-struct InterfaceRegisterHelper {
-// Public constructors and assignment operators
-public:
-    InterfaceRegisterHelper(Interface *interface)
-        : m_interface(interface)
-    {}
-    InterfaceRegisterHelper(const InterfaceRegisterHelper&) = default; // copy constructor
-    InterfaceRegisterHelper& operator=(const InterfaceRegisterHelper&) = default; // copy assignment operator
-    InterfaceRegisterHelper(InterfaceRegisterHelper&&) = default; // Move constructor
-    InterfaceRegisterHelper& operator=(InterfaceRegisterHelper&&) = default; // Move assignment operator
-    ~InterfaceRegisterHelper() = default; // Destructor
+        assert(rank.banks.size()>cmd.targetCoordinate.bank);
+        if (cmd.targetCoordinate.bank >= rank.banks.size()) {
+            throw std::invalid_argument("Invalid bank targetcoordinate");
+        }
+        auto bank_id = cmd.targetCoordinate.bank;
 
-// Public member functions
-    template<typename Func>
-    decltype(auto) registerHandler(Func &&member_func) {
-        Interface *this_ptr = m_interface;
-        return [this_ptr, member_func](const Command & command) {
-            (this_ptr->*member_func)(command);
-        };
+        rank.commandCounter.inc(cmd.type);
+        return (owner->*member_func)(rank, bank_id, cmd.timestamp);
     }
 
-// Private member variables
-private:
-    Interface *m_interface;
-};
+    template<typename Func, typename Owner>
+    decltype(auto) bankGroupHandlerIdx(const Command& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
+        assert(ranks.size()>cmd.targetCoordinate.rank);
+        auto& rank = ranks.at(cmd.targetCoordinate.rank);
+
+        assert(rank.banks.size()>cmd.targetCoordinate.bank);
+        if (cmd.targetCoordinate.bank >= rank.banks.size()) {
+            throw std::invalid_argument("Invalid bank targetcoordinate");
+        }
+        auto bank_id = cmd.targetCoordinate.bank;
+
+        rank.commandCounter.inc(cmd.type);
+        return (owner->*member_func)(cmd.targetCoordinate.rank, bank_id, cmd.timestamp);
+    }
+} // namespace coreHelpers
 
 } // namespace DRAMPower::util
 
-#endif /* DRAMPOWER_STANDARDS_REGISTERHELPER_H */
+#endif /* DRAMPOWER_UTIL_REGISTERHELPER_H */

@@ -26,7 +26,7 @@ InterfaceCalculation_DDR5::InterfaceCalculation_DDR5(const MemSpecDDR5 &memspec)
     VDDQ_ = memspec_.vddq;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(const SimulationStats &stats) const {
     interface_energy_info_t clock_energy = calcClockEnergy(stats);
     interface_energy_info_t DQS_energy = calcDQSEnergy(stats);
     interface_energy_info_t DQ_energy = calcDQEnergy(stats);
@@ -42,7 +42,7 @@ interface_energy_info_t InterfaceCalculation_DDR5::calculateEnergy(const Simulat
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
 
     result.controller.staticEnergy =
@@ -53,7 +53,7 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcClockEnergy(const Simulat
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR5::calcDQSEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_DDR5::calcDQSEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
     result.dram.staticEnergy +=
         calcStaticTermination(impedances_.rdqs_termination, stats.readDQSStats, impedances_.rdqs_R_eq, t_CK_, memspec_.dataRateSpec.dqsBusRate, VDDQ_);
@@ -68,8 +68,7 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcDQSEnergy(const Simulatio
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR5::calcDQEnergyTogglingRate(const TogglingStats &stats)
-{
+interface_energy_info_t InterfaceCalculation_DDR5::calcDQEnergyTogglingRate(const TogglingStats &stats) const {
     interface_energy_info_t result;
 
     // Read
@@ -87,7 +86,7 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcDQEnergyTogglingRate(cons
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR5::calcDQEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_DDR5::calcDQEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
 
     // Read
@@ -105,7 +104,7 @@ interface_energy_info_t InterfaceCalculation_DDR5::calcDQEnergy(const Simulation
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_DDR5::calcCAEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_DDR5::calcCAEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
     result.controller.staticEnergy =
         calcStaticTermination(impedances_.ca_termination, stats.commandBus, impedances_.ca_R_eq, t_CK_, 1, VDDQ_);

@@ -8,7 +8,6 @@
 #include <DRAMUtils/config/toggling_rate.h>
 
 
-
 namespace DRAMPower::util {
 
 enum class DataBusMode {
@@ -19,12 +18,7 @@ enum class DataBusMode {
 struct DataBusConfig {
     std::size_t width;
     std::size_t dataRate;
-    util::BusIdlePatternSpec idlePattern;
-    util::BusInitPatternSpec initPattern;
-    DRAMUtils::Config::TogglingRateIdlePattern togglingRateIdlePattern;
-    double togglingRate;
-    double dutyCycle;
-    DataBusMode busType;
+    DRAMUtils::Config::ToggleRateDefinition toggleRateConf;
 };
 
 } // namespace DRAMPower::util

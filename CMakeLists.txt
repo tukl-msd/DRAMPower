@@ -32,21 +32,22 @@
 #    Thomas Psota
 #    Marco Mörz
 
-###############################################
-###              DRAMPower 5.0              ###
-###############################################
+#########################################
+###             DRAMPower             ###
+#########################################
 cmake_minimum_required(VERSION 3.22.0)
 
 # TODO change for release
-set(DRAMPOWER_VERSION_MAJOR 5)
-set(DRAMPOWER_VERSION_MINOR 1)
-set(DRAMPOWER_VERSION_STRING "${DRAMPOWER_VERSION_MAJOR}.${DRAMPOWER_VERSION_MINOR}")
+set(DRAMPOWER_VERSION_MAJOR 6)
+set(DRAMPOWER_VERSION_MINOR 0)
+set(DRAMPOWER_VERSION_PATCH 0)
+set(DRAMPOWER_VERSION_STRING "${DRAMPOWER_VERSION_MAJOR}.${DRAMPOWER_VERSION_MINOR}.${DRAMPOWER_VERSION_PATCH}")
 add_compile_definitions(DRAMPOWER_VERSION_STRING="${DRAMPOWER_VERSION_STRING}")
 
 set(PROJECT_NAME "DRAMPower ${DRAMPOWER_VERSION_STRING}")
 set(PROJECT_SHORTNAME "DRAMPower")
 
-project(${PROJECT_NAME} VERSION ${DRAMPOWER_VERSION_MAJOR}.${DRAMPOWER_VERSION_MINOR} LANGUAGES CXX)
+project(${PROJECT_NAME} VERSION ${DRAMPOWER_VERSION_MAJOR}.${DRAMPOWER_VERSION_MINOR}.${DRAMPOWER_VERSION_PATCH} LANGUAGES CXX)
 
 if(POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)

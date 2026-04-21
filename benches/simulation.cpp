@@ -34,6 +34,7 @@
  *    Marco Mörz
  */
 
+#include <DRAMPower/simconfig/simconfig.h>
 #include <DRAMPower/memspec/MemSpecLPDDR4.h>
 #include <DRAMUtils/memspec/MemSpec.h>
 #include <DRAMUtils/memspec/standards/MemSpecLPDDR4.h>
@@ -106,15 +107,15 @@ BENCHMARK_DEFINE_F(LPDDR4_Bench, lpddr4PowerSimulationToggling)(benchmark::State
     auto rdbuf = std::cout.rdbuf(nullptr);
     for (auto _ : state)
     {
-        std::unique_ptr<BaseDDR_t> ddr = std::make_unique<DRAMPower::LPDDR4>(*memspec);
-        ddr->setToggleRate(0, DRAMUtils::Config::ToggleRateDefinition{
+        auto trd = DRAMUtils::Config::ToggleRateDefinition{
             0.5, // togglingRateRead
             0.5, // togglingRateWrite
             0.5, // dutyCycleRead
             0.5, // dutyCycleWrite
             DRAMUtils::Config::TogglingRateIdlePattern::L, // idlePatternRead
             DRAMUtils::Config::TogglingRateIdlePattern::L  // idlePatternWrite
-        });
+        };
+        std::unique_ptr<BaseDDR_t> ddr = std::make_unique<DRAMPower::LPDDR4>(*memspec, DRAMPower::config::SimConfig{trd});
         DRAMPower::DRAMPowerCLI::runCommands(ddr, commandlist);
     }
     std::cout.rdbuf(rdbuf);

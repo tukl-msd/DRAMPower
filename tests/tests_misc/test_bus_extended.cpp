@@ -73,7 +73,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLow_3)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, util::BusIdlePatternSpec::L, burst_custom);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::L, burst_custom, true);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_zeroes);
 	ASSERT_EQ_BURST(bus.at(1), burst_zeroes);
@@ -109,7 +109,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleHigh_3)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, util::BusIdlePatternSpec::H, burst_custom);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::H, burst_custom, true);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_ones);
 	ASSERT_EQ_BURST(bus.at(1), burst_ones);
@@ -145,7 +145,7 @@ TEST_F(ExtendedBusIdlePatternTest, EmptyIdleLastPattern_3)
 	Bus_8::burst_t burst_zeroes;
 	Bus_8::burst_t burst_custom;
 	Init<8>(burst_ones, burst_zeroes, burst_custom);
-	Bus_8 bus(8, 1, util::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
+	Bus_8 bus(8, 1, util::BusIdlePatternSpec::LAST_PATTERN, burst_custom, true);
 
 	ASSERT_EQ_BURST(bus.at(0), burst_custom);
 	ASSERT_EQ_BURST(bus.at(1), burst_custom);
@@ -304,7 +304,7 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_1)
 	Bus_128::burst_t burst_custom{128};
 	Init<128>(burst_ones, burst_zeroes, burst_custom);
 
-	Bus_128 bus(128, 1, util::BusIdlePatternSpec::L, burst_custom);
+	Bus_128 bus(128, 1, util::BusIdlePatternSpec::L, burst_custom, true);
 	std::size_t custom_ones = burst_custom.count();
 	std::size_t custom_zeroes = buswidth - custom_ones;
 	uint8_t burst_ones_data[bus_array_size];
@@ -368,7 +368,7 @@ TEST_F(ExtendedBusStatsTest, Stats_Pattern_2)
 	Bus_128::burst_t burst_custom{128};
 	Init<128>(burst_ones, burst_zeroes, burst_custom);
 
-	Bus_128 bus(128, 1, util::BusIdlePatternSpec::LAST_PATTERN, burst_custom);
+	Bus_128 bus(128, 1, util::BusIdlePatternSpec::LAST_PATTERN, burst_custom, true);
 	std::size_t custom_ones = burst_custom.count();
 	std::size_t custom_zeroes = buswidth - custom_ones;
 	uint8_t burst_ones_data[bus_array_size];

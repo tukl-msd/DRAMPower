@@ -5,7 +5,6 @@
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
-#include "DRAMPower/util/RegisterHelper.h"
 #include "DRAMPower/util/Serialize.h"
 #include "DRAMPower/util/Deserialize.h"
 
@@ -14,18 +13,33 @@
 #include "DRAMPower/data/stats.h"
 
 #include "DRAMPower/util/PatternHandler.h"
-#include "DRAMPower/util/ImplicitCommandHandler.h"
 #include "DRAMPower/util/dbi.h"
 
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
 
-#include "DRAMUtils/config/toggling_rate.h"
+#include "DRAMPower/simconfig/simconfig.h"
 
 #include <stdint.h>
 #include <cstddef>
 #include <vector>
 
 namespace DRAMPower {
+
+struct LPDDR5InterfaceMemSpec {
+    LPDDR5InterfaceMemSpec(const MemSpecLPDDR5& memSpec)
+        : dataRate(memSpec.dataRate)
+        , burstLength(memSpec.burstLength)
+        , bitWidth(memSpec.bitWidth)
+        , bank_arch(memSpec.bank_arch)
+        , wckAlwaysOnMode(memSpec.wckAlwaysOnMode)
+    {}
+
+    uint64_t dataRate;
+    uint64_t burstLength;
+    uint64_t bitWidth;
+    MemSpecLPDDR5::BankArchitectureMode bank_arch;
+    bool wckAlwaysOnMode;
+};
 
 class LPDDR5Interface : public util::Serialize, public util::Deserialize {
 // Public constants
@@ -38,67 +52,52 @@ public:
     using commandbus_t = util::Bus<cmdBusWidth>;
     using pin_dbi_t = util::Pin<32>; // max_burst_length = 32
     using databus_t = util::databus_presets::databus_preset_t;
-    using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
     using patternHandler_t = PatternHandler<CmdType>;
-    using interfaceRegisterHelper_t = util::InterfaceRegisterHelper<LPDDR5Interface>;
 
 // Public constructors and assignment operators
 public:
-    LPDDR5Interface() = delete; // no default constructor
-    LPDDR5Interface(const LPDDR5Interface&) = default; // copy constructor
-    LPDDR5Interface& operator=(const LPDDR5Interface&) = delete; // copy assignment operator
-    LPDDR5Interface(LPDDR5Interface&&) = default; // move constructor
-    LPDDR5Interface& operator=(LPDDR5Interface&&) = delete; // move assignment operator
+    LPDDR5Interface(const MemSpecLPDDR5& memSpec, const config::SimConfig& simConfig);
 
-    LPDDR5Interface(const MemSpecLPDDR5& memSpec, implicitCommandInserter_t&& implicitCommandInserter);
+// Public member functions
+public:
+// Member functions
+    timestamp_t getLastCommandTime() const;
+    void doCommand(const Command& cmd);
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+// Override
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
+// Extensions
+    void enableDBI(bool enable) {
+        m_dbi.enable(enable);
+    }
 
-// Private member functions
+// Public member functions
 private:
     void registerPatterns();
     std::optional<const uint8_t *> handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
     void handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read);
-
-// Public member functions
-public:
-    interfaceRegisterHelper_t getRegisterHelper() {
-        return interfaceRegisterHelper_t{this};
-    }
     void handleOverrides(size_t length, bool read);
     void handleDQs(const Command& cmd, util::Clock &dqs, size_t length, uint64_t datarate);
     void handleCommandBus(const Command& cmd);
     void handleData(const Command &cmd, bool read);
     void endOfSimulation(timestamp_t timestamp);
 
-    void enableTogglingHandle(timestamp_t timestamp, timestamp_t enable_timestamp);
-    void enableBus(timestamp_t timestamp, timestamp_t enable_timestamp);
-    timestamp_t updateTogglingRate(timestamp_t timestamp, const std::optional<DRAMUtils::Config::ToggleRateDefinition> &toggleRateDefinition);
-    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
-
-// Overrides
-public:
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
-
-// Public member variables
-public:
+// Private member variables
+private:
+    LPDDR5InterfaceMemSpec m_memSpec;
     commandbus_t m_commandBus;
     databus_t m_dataBus;
     util::Clock m_readDQS;
     util::Clock m_wck;
     util::Clock m_clock;
-private:
-    const MemSpecLPDDR5& m_memSpec;
-public:
     util::DBI<uint8_t, 1, util::PinState::L, util::StaticDBI> m_dbi;
     std::vector<pin_dbi_t> m_dbiread;
     std::vector<pin_dbi_t> m_dbiwrite;
-
-// Private member variables
-private:
     patternHandler_t m_patternHandler;
-    implicitCommandInserter_t m_implicitCommandInserter;
+    timestamp_t m_last_command_time = 0;
 };
 
-}
+} // namespace DRAMPower
 
 #endif /* DRAMPOWER_STANDARDS_LPDDR5_LPDDR5INTERFACE_H */

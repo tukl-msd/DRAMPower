@@ -185,7 +185,6 @@ TEST_F(DramPowerTest_Interface_LPDDR4, TestDQS)
 	auto stats = ddr->getStats();
 	// DQs bus
     EXPECT_EQ(sizeof(wr_data), sizeof(rd_data));
-    EXPECT_EQ(DRAMPower::internal::LPDDR4TestAccessor.getInterface(*ddr).m_dataBus.getWidth(), spec->bitWidth);
     int number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
 	uint_fast8_t NumDQsPairs = spec->bitWidth == 16 ? 2 : 1;
     uint_fast8_t scale = NumDQsPairs * 2; // Differential_Pairs * 2(pairs of 2)

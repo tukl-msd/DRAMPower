@@ -27,7 +27,7 @@ InterfaceCalculation_LPDDR5::InterfaceCalculation_LPDDR5(const MemSpecLPDDR5 &me
     VDDQ_ = memspec_.vddq;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR5::calculateEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_LPDDR5::calculateEnergy(const SimulationStats &stats) const {
     interface_energy_info_t clock_energy = calcClockEnergy(stats);
     interface_energy_info_t DQS_energy = calcDQSEnergy(stats);
     interface_energy_info_t DQ_energy = calcDQEnergy(stats);
@@ -45,7 +45,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calculateEnergy(const Simul
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR5::calcClockEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_LPDDR5::calcClockEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
 
     result.controller.staticEnergy =
@@ -61,7 +61,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcClockEnergy(const Simul
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQSEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQSEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
 
     // Read
@@ -73,7 +73,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQSEnergy(const Simulat
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQEnergyTogglingRate(const TogglingStats &stats)
+interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQEnergyTogglingRate(const TogglingStats &stats) const
 {
     interface_energy_info_t result;
 
@@ -92,7 +92,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQEnergyTogglingRate(co
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
 
     // Write
@@ -110,7 +110,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQEnergy(const Simulati
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR5::calcCAEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_LPDDR5::calcCAEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
 
     result.controller.staticEnergy =
@@ -122,7 +122,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcCAEnergy(const Simulati
     return result;
 }
 
-interface_energy_info_t InterfaceCalculation_LPDDR5::calcDBIEnergy(const SimulationStats &stats) {
+interface_energy_info_t InterfaceCalculation_LPDDR5::calcDBIEnergy(const SimulationStats &stats) const {
     interface_energy_info_t result;
     // Read
     result.dram.staticEnergy +=
