@@ -1,6 +1,6 @@
 <img src="docs/images/logo_drampower_5_0.png" alt="DRAMPower 5.0" width="350" style="float: left;"/>  
 
-# DRAM Power Model (DRAMPower 5.0)
+# DRAM Power Model (DRAMPower 6.0.0)
 
 - [Releases](#releases)
 - [Installation of the DRAMPower library](#installation-of-the-drampower-library)
@@ -15,7 +15,7 @@
 - [Contact Information](#contact-information)
 
 ## Releases
-The last official release can be found here: https://github.com/tukl-msd/DRAMPower/releases/tag/5.0
+The last official release can be found here: https://github.com/tukl-msd/DRAMPower/releases/tag/v6.0.0
 
 The master branch of the repository should be regarded as the bleeding-edge version, which has all the latest features, but also all the latest bugs. Use at your own discretion.
 
