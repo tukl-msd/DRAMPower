@@ -13,6 +13,9 @@ double energy_info_t::total() const
         + E_WR
         + E_RDA
         + E_WRA
+
+        // The precharge energy of E_pre_RDA/WRA is already added
+        // to E_pre due to the implicit commands scheduled in WRA/RDA
         //+ E_pre_RDA
         //+ E_pre_WRA
 

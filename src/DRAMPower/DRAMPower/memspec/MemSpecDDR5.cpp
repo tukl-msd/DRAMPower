@@ -66,11 +66,11 @@ MemSpecDDR5::MemSpecDDR5(const DRAMUtils::MemSpec::MemSpecDDR5 &memspec)
 
     if (memspec.bankwisespec.has_value())
     {
-        bwParams.bwPowerFactRho = memspec.bankwisespec.value().factRho.value_or(1);
+        bwParams.bwPowerFactRho = memspec.bankwisespec.value().factRho.value_or(0);
     }
     else
     {
-        bwParams.bwPowerFactRho = 1;
+        bwParams.bwPowerFactRho = 0;
     }
 
     memTimingSpec.tBurst = burstLength/dataRate;
