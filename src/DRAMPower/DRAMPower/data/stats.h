@@ -66,6 +66,22 @@ namespace DRAMPower
 					readAuto == rhs.readAuto &&
 					writeAuto == rhs.writeAuto;
 			}
+
+			// operator +=
+			command_stats_t& operator+=(const command_stats_t& rhs) {
+				act += rhs.act;
+				pre += rhs.pre;
+				preSameBank += rhs.preSameBank;
+				reads += rhs.reads;
+				writes += rhs.writes;
+				refAllBank += rhs.refAllBank;
+				refPerBank += rhs.refPerBank;
+				refPerTwoBanks += rhs.refPerTwoBanks;
+				refSameBank += rhs.refSameBank;
+				readAuto += rhs.readAuto;
+				writeAuto += rhs.writeAuto;
+				return *this;
+			}
 		} counter;
 
 		struct cycles_t : public util::Serialize, public util::Deserialize {
@@ -104,6 +120,17 @@ namespace DRAMPower
 					selfRefresh == rhs.selfRefresh &&
 					deepSleepMode == rhs.deepSleepMode;
 			}
+
+			// operator +=
+			cycles_t& operator+=(const cycles_t& rhs) {
+				act += rhs.act;
+				pre += rhs.pre;
+				powerDownAct += rhs.powerDownAct;
+				powerDownPre += rhs.powerDownPre;
+				selfRefresh += rhs.selfRefresh;
+				deepSleepMode += rhs.deepSleepMode;
+				return *this;
+			}
 		} cycles;
 
 		struct prepos_t : public util::Serialize, public util::Deserialize {
@@ -140,6 +167,17 @@ namespace DRAMPower
 					readSeamless == rhs.readSeamless &&
 					writeSeamless == rhs.writeSeamless;
 			}
+
+			// operator +=
+			prepos_t& operator+=(const prepos_t& rhs) {
+				readMerged += rhs.readMerged;
+				readMergedTime += rhs.readMergedTime;
+				writeMerged += rhs.writeMerged;
+				writeMergedTime += rhs.writeMergedTime;
+				readSeamless += rhs.readSeamless;
+				writeSeamless += rhs.writeSeamless;
+				return *this;
+			}
 		} prepos;
 
 		void serialize(std::ostream& stream) const override {
@@ -158,6 +196,14 @@ namespace DRAMPower
 			return counter == rhs.counter &&
 				cycles == rhs.cycles &&
 				prepos == rhs.prepos;
+		}
+
+		// operator +=
+		CycleStats& operator+=(const CycleStats& rhs) {
+			counter += rhs.counter;
+			cycles += rhs.cycles;
+			prepos += rhs.prepos;
+			return *this;
 		}
 	};
 
@@ -224,6 +270,39 @@ namespace DRAMPower
 				writeDQSStats == other.writeDQSStats &&
 				banksEqual &&
 				rank_totalEqual;
+		}
+
+		SimulationStats& operator+=(const SimulationStats& rhs) {
+			std::size_t min_bank = std::min(bank.size(), rhs.bank.size());
+			for (std::size_t i = 0; i < min_bank; ++i)
+			{
+				bank[i] += rhs.bank[i];
+			}
+			if (bank.size() < rhs.bank.size()) {
+				bank.insert(bank.end(), rhs.bank.begin() + min_bank, rhs.bank.end());
+			}
+
+			std::size_t min_rank_total = std::min(rank_total.size(), rhs.rank_total.size());
+			for (std::size_t i = 0; i < min_rank_total; ++i)
+			{
+				rank_total[i] += rhs.rank_total[i];
+			}
+			if (rank_total.size() < rhs.rank_total.size()) {
+				rank_total.insert(rank_total.end(), rhs.rank_total.begin() + min_rank_total, rhs.rank_total.end());
+			}
+
+			commandBus += rhs.commandBus;
+			readBus += rhs.readBus;
+			writeBus += rhs.writeBus;
+			clockStats += rhs.clockStats;
+			wClockStats += rhs.wClockStats;
+			readDBI += rhs.readDBI;
+			writeDBI += rhs.writeDBI;
+			togglingStats.read += rhs.togglingStats.read;
+			togglingStats.write += rhs.togglingStats.write;
+			readDQSStats += rhs.readDQSStats;
+			writeDQSStats += rhs.writeDQSStats;
+			return *this;
 		}
 	};
 };
