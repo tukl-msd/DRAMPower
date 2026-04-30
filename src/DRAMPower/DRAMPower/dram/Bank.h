@@ -17,7 +17,7 @@ public:
         BANK_ACTIVE = 1,
     };
 public:
-    CycleStats::command_stats_t counter;
+    command_stats_t counter;
 
     struct {
         interval_t act;
