@@ -6,6 +6,7 @@
 namespace DRAMPower {
 
 void LPDDR6Core::doCommand(const Command& cmd) {
+    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp, m_last_command_time);
     switch(cmd.type) {
         case CmdType::ACT:
             util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleAct);
@@ -17,46 +18,46 @@ void LPDDR6Core::doCommand(const Command& cmd) {
             util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePreAll);
             break;
         case CmdType::REFB:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleRefPerBank);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleRefPerBank);
             break;
         case CmdType::RD:
             util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleRead);
             break;
         case CmdType::RDA:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleReadAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleReadAuto);
             break;
         case CmdType::WR:
             util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleWrite);
             break;
         case CmdType::WRA:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleWriteAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleWriteAuto);
             break;
         case CmdType::REFP2B:
             if (m_memSpec.bank_arch != MemSpecLPDDR6::MBG && m_memSpec.bank_arch != MemSpecLPDDR6::M16B) {
                 throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
             }
-            util::coreHelpers::bankGroupHandler(cmd, m_ranks, this, &LPDDR6Core::handleRefPerTwoBanks);
+            util::coreHelpers::bankGroupHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleRefPerTwoBanks);
             break;
         case CmdType::REFA:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleRefAll);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleRefAll);
             break;
         case CmdType::SREFEN:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleSelfRefreshEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleSelfRefreshEntry);
             break;
         case CmdType::SREFEX:
             util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleSelfRefreshExit);
             break;
         case CmdType::PDEA:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownActEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownActEntry);
             break;
         case CmdType::PDEP:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownPreEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownPreEntry);
             break;
         case CmdType::PDXA:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownActExit);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownActExit);
             break;
         case CmdType::PDXP:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownPreExit);
+            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownPreExit);
             break;
         case CmdType::DSMEN:
             util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleDSMEntry);
@@ -70,6 +71,14 @@ void LPDDR6Core::doCommand(const Command& cmd) {
             assert(false && "Unsupported command");
             break;
     }
+}
+
+timestamp_t LPDDR6Core::getLastCommandTime() const {
+    return m_last_command_time;
+}
+
+bool LPDDR6Core::isSerializable() const {
+    return 0 == m_implicitCommandHandler.implicitCommandCount();
 }
 
 void LPDDR6Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
@@ -104,26 +113,33 @@ void LPDDR6Core::handlePreAll(Rank &rank, timestamp_t timestamp) {
     }
 }
 
-void LPDDR6Core::handleRefPerBank(Rank & rank, Bank & bank, timestamp_t timestamp) {
-    handleRefreshOnBank(rank, bank, timestamp, m_memSpec.memTimingSpec.tRFCPB, bank.counter.refPerBank);
+void LPDDR6Core::handleRefPerBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp) {
+    auto& counter = m_ranks[rank_idx].banks[bank_idx].counter.refPerBank;
+    handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFCPB, counter);
 }
 
-void LPDDR6Core::handleRefPerTwoBanks(Rank & rank, std::size_t bank_id, timestamp_t timestamp) {
-    Bank & bank_1 = rank.banks[bank_id];
-    Bank & bank_2 = rank.banks[(bank_id + m_memSpec.perTwoBankOffset)%16];
-    handleRefreshOnBank(rank, bank_1, timestamp, m_memSpec.memTimingSpec.tRFCPB, bank_1.counter.refPerTwoBanks);
-    handleRefreshOnBank(rank, bank_2, timestamp, m_memSpec.memTimingSpec.tRFCPB, bank_2.counter.refPerTwoBanks);
+void LPDDR6Core::handleRefPerTwoBanks(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp) {
+    auto& rank = m_ranks[rank_idx];
+    std::size_t bank_2_idx = (bank_idx + m_memSpec.perTwoBankOffset) % 16;
+    auto& counter1 = rank.banks[bank_idx].counter.refPerTwoBanks;
+    auto& counter2 = rank.banks[bank_2_idx].counter.refPerTwoBanks;
+    handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFCPB, counter1);
+    handleRefreshOnBank(rank_idx, bank_2_idx, timestamp, m_memSpec.tRFCPB, counter2);
 }
 
-void LPDDR6Core::handleRefAll(Rank &rank, timestamp_t timestamp) {
-    for (auto& bank : rank.banks) {
-        handleRefreshOnBank(rank, bank, timestamp, m_memSpec.memTimingSpec.tRFC, bank.counter.refAllBank);
+void LPDDR6Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
+    auto &rank = m_ranks[rank_idx];
+    for (std::size_t bank_idx = 0; bank_idx < rank.banks.size(); ++bank_idx) {
+        auto& counter = rank.banks[bank_idx].counter.refAllBank;
+        handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFC, counter);
     }
-    rank.endRefreshTime = timestamp + m_memSpec.memTimingSpec.tRFC;
+    rank.endRefreshTime = timestamp + m_memSpec.tRFC;
 }
 
-void LPDDR6Core::handleRefreshOnBank(Rank & rank, Bank & bank, timestamp_t timestamp, uint64_t timing, uint64_t & counter){
+void LPDDR6Core::handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp, uint64_t timing, uint64_t & counter){
     ++counter;
+    auto& rank = m_ranks[rank_idx];
+    auto& bank = rank.banks[bank_idx];
     if (!rank.isActive(timestamp)) {
         rank.cycles.act.start_interval(timestamp);
     }
@@ -134,7 +150,9 @@ void LPDDR6Core::handleRefreshOnBank(Rank & rank, Bank & bank, timestamp_t times
         bank.cycles.act.start_interval(timestamp);
 
     // Execute implicit pre-charge at refresh end
-    m_implicitCommandInserter.addImplicitCommand(timestamp_end, [&bank, &rank, timestamp_end]() {
+    m_implicitCommandHandler.addImplicitCommand(timestamp_end, [rank_idx, bank_idx, timestamp_end](LPDDR6Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
+        auto& bank = rank.banks[bank_idx];
         bank.bankState = Bank::BankState::BANK_PRECHARGED;
         bank.cycles.act.close_interval(timestamp_end);
 
@@ -148,17 +166,20 @@ void LPDDR6Core::handleRead(Rank&, Bank &bank, timestamp_t) {
     ++bank.counter.reads;
 }
 
-void LPDDR6Core::handleReadAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
+void LPDDR6Core::handleReadAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp) {
+    auto& bank = m_ranks[rank_idx].banks[bank_idx];
     ++bank.counter.readAuto;
 
-    auto minBankActiveTime = bank.cycles.act.get_start() + this->m_memSpec.memTimingSpec.tRAS;
+    auto minBankActiveTime = bank.cycles.act.get_start() + this->m_memSpec.tRAS;
     auto minReadActiveTime = timestamp + this->m_memSpec.prechargeOffsetRD;
 
     auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
     // Execute PRE after minimum active time
-    m_implicitCommandInserter.addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
-        this->handlePre(rank, bank, delayed_timestamp);
+    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, [rank_idx, bank_idx, delayed_timestamp](LPDDR6Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
+        auto& bank = rank.banks[bank_idx];
+        self.handlePre(rank, bank, delayed_timestamp);
     });
 }
 
@@ -166,25 +187,29 @@ void LPDDR6Core::handleWrite(Rank&, Bank &bank, timestamp_t) {
     ++bank.counter.writes;
 }
 
-void LPDDR6Core::handleWriteAuto(Rank &rank, Bank &bank, timestamp_t timestamp) {
+void LPDDR6Core::handleWriteAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp) {
+    auto& bank = m_ranks[rank_idx].banks[bank_idx];
     ++bank.counter.writeAuto;
 
-    auto minBankActiveTime = bank.cycles.act.get_start() + this->m_memSpec.memTimingSpec.tRAS;
+    auto minBankActiveTime = bank.cycles.act.get_start() + this->m_memSpec.tRAS;
     auto minWriteActiveTime = timestamp + this->m_memSpec.prechargeOffsetWR;
 
     auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
     // Execute PRE after minimum active time
-    m_implicitCommandInserter.addImplicitCommand(delayed_timestamp, [this, &rank, &bank, delayed_timestamp]() {
-        this->handlePre(rank, bank, delayed_timestamp);
+    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, [rank_idx, bank_idx, delayed_timestamp](LPDDR6Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
+        auto& bank = rank.banks[bank_idx];
+        self.handlePre(rank, bank, delayed_timestamp);
     });
 }
 
-void LPDDR6Core::handleSelfRefreshEntry(Rank &rank, timestamp_t timestamp) {
+void LPDDR6Core::handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timestamp) {
     // Issue implicit refresh
-    handleRefAll(rank, timestamp);
+    handleRefAll(rank_idx, timestamp);
     // Handle self-refresh entry after tRFC
-    auto timestampSelfRefreshStart = timestamp + m_memSpec.memTimingSpec.tRFC;
-    m_implicitCommandInserter.addImplicitCommand(timestampSelfRefreshStart, [&rank, timestampSelfRefreshStart]() {
+    auto timestampSelfRefreshStart = timestamp + m_memSpec.tRFC;
+    m_implicitCommandHandler.addImplicitCommand(timestampSelfRefreshStart, [rank_idx, timestampSelfRefreshStart](LPDDR6Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
         rank.counter.selfRefresh++;
         rank.cycles.sref.start_interval(timestampSelfRefreshStart);
         rank.memState = MemState::SREF;
@@ -197,10 +222,12 @@ void LPDDR6Core::handleSelfRefreshExit(Rank &rank, timestamp_t timestamp) {
     rank.memState = MemState::NOT_IN_PD;
 }
 
-void LPDDR6Core::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
+void LPDDR6Core::handlePowerDownActEntry(std::size_t rank_idx, timestamp_t timestamp) {
+    auto& rank = m_ranks[rank_idx];
     auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
     auto entryTime = std::max(timestamp, earliestPossibleEntry);
-    m_implicitCommandInserter.addImplicitCommand(entryTime, [&rank, entryTime]() {
+    m_implicitCommandHandler.addImplicitCommand(entryTime, [rank_idx, entryTime](LPDDR6Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
         rank.cycles.powerDownAct.start_interval(entryTime);
         rank.memState = MemState::PDN_ACT;
         if (rank.cycles.act.is_open()) {
@@ -214,12 +241,13 @@ void LPDDR6Core::handlePowerDownActEntry(Rank &rank, timestamp_t timestamp) {
     });
 }
 
-void LPDDR6Core::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
-    // TODO: Is this computation necessary?
+void LPDDR6Core::handlePowerDownActExit(std::size_t rank_idx, timestamp_t timestamp) {
+    auto& rank = m_ranks[rank_idx];
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-    m_implicitCommandInserter.addImplicitCommand(exitTime, [&rank, exitTime]() {
+    m_implicitCommandHandler.addImplicitCommand(exitTime, [rank_idx, exitTime](LPDDR6Core& self) {
+        auto& rank = self.m_ranks[rank_idx];
         rank.memState = MemState::NOT_IN_PD;
         rank.cycles.powerDownAct.close_interval(exitTime);
 
@@ -239,21 +267,24 @@ void LPDDR6Core::handlePowerDownActExit(Rank &rank, timestamp_t timestamp) {
     });
 }
 
-void LPDDR6Core::handlePowerDownPreEntry(Rank &rank, timestamp_t timestamp) {
+void LPDDR6Core::handlePowerDownPreEntry(std::size_t rank_idx, timestamp_t timestamp) {
+    auto& rank = m_ranks[rank_idx];
     auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
     auto entryTime = std::max(timestamp, earliestPossibleEntry);
-    m_implicitCommandInserter.addImplicitCommand(entryTime, [&rank, entryTime]() {
+    m_implicitCommandHandler.addImplicitCommand(entryTime, [rank_idx, entryTime](LPDDR6Core& self) {
+    auto& rank = self.m_ranks[rank_idx];
         rank.cycles.powerDownPre.start_interval(entryTime);
         rank.memState = MemState::PDN_PRE;
     });
 }
 
-void LPDDR6Core::handlePowerDownPreExit(Rank &rank, timestamp_t timestamp) {
-    // TODO: Is this computation necessary?
+void LPDDR6Core::handlePowerDownPreExit(std::size_t rank_idx, timestamp_t timestamp) {
+    auto& rank = m_ranks[rank_idx];
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-    m_implicitCommandInserter.addImplicitCommand(exitTime, [&rank, exitTime]() {
+    m_implicitCommandHandler.addImplicitCommand(exitTime, [rank_idx, exitTime](LPDDR6Core& self) {
+    auto& rank = self.m_ranks[rank_idx];
         rank.memState = MemState::NOT_IN_PD;
         rank.cycles.powerDownPre.close_interval(exitTime);
     });
@@ -279,15 +310,16 @@ timestamp_t LPDDR6Core::earliestPossiblePowerDownEntryTime(Rank & rank) const {
         entryTime = std::max(
             {entryTime,
                 bank.counter.act == 0 ? 0
-                                    : bank.cycles.act.get_start() + m_memSpec.memTimingSpec.tRCD,
-                bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.memTimingSpec.tRP,
+                                    : bank.cycles.act.get_start() + m_memSpec.tRCD,
+                bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.tRP,
                 bank.refreshEndTime});
     }
 
     return entryTime;
 }
 
-void LPDDR6Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
+void LPDDR6Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
+    m_implicitCommandHandler.processImplicitCommandQueue(*this, timestamp, m_last_command_time);
     stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks);
     stats.rank_total.resize(m_memSpec.numberOfRanks);
 
@@ -336,11 +368,13 @@ void LPDDR6Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) c
 }
 
 void LPDDR6Core::serialize(std::ostream& stream) const {
+    stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
     for (const auto& rank : m_ranks) {
         rank.serialize(stream);
     }
 }
 void LPDDR6Core::deserialize(std::istream& stream) {
+    stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
     for (auto& rank : m_ranks) {
         rank.deserialize(stream);
     }

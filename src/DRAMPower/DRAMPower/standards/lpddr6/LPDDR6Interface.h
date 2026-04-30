@@ -1,7 +1,6 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR6_LPDDR6INTERFACE_H
 #define DRAMPOWER_STANDARDS_LPDDR6_LPDDR6INTERFACE_H
 
-#include "DRAMPower/util/pin.h"
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
@@ -13,7 +12,6 @@
 #include "DRAMPower/data/stats.h"
 
 #include "DRAMPower/util/PatternHandler.h"
-#include "DRAMPower/util/ImplicitCommandHandler.h"
 #include "DRAMPower/util/dbi.h"
 
 #include "DRAMPower/memspec/MemSpecLPDDR6.h"
@@ -25,6 +23,22 @@
 
 namespace DRAMPower {
 
+struct LPDDR6InterfaceMemSpec {
+    LPDDR6InterfaceMemSpec(const MemSpecLPDDR6& memSpec)
+        : dataRate(memSpec.dataRate)
+        , burstLength(memSpec.burstLength)
+        , bitWidth(memSpec.bitWidth)
+        , bank_arch(memSpec.bank_arch)
+        , wckAlwaysOnMode(memSpec.wckAlwaysOnMode)
+    {}
+
+    uint64_t dataRate;
+    uint64_t burstLength;
+    uint64_t bitWidth;
+    MemSpecLPDDR6::BankArchitectureMode bank_arch;
+    bool wckAlwaysOnMode;
+};
+
 class LPDDR6Interface : public util::Serialize, public util::Deserialize {
 // Public constants
 public:
@@ -34,20 +48,12 @@ public:
 // Public type definitions
 public:
     using commandbus_t = util::Bus<cmdBusWidth>;
-    using pin_dbi_t = util::Pin<8>; // max_burst_length = 8
     using databus_t = util::databus_presets::databus_preset_t;
-    using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
     using patternHandler_t = PatternHandler<CmdType>;
 
 // Public constructor
 public:
-    LPDDR6Interface() = delete; // no default constructor
-    LPDDR6Interface(const LPDDR6Interface&) = default; // copy constructor
-    LPDDR6Interface& operator=(const LPDDR6Interface&) = delete; // copy assignment operator
-    LPDDR6Interface(LPDDR6Interface&&) = default; // move constructor
-    LPDDR6Interface& operator=(LPDDR6Interface&&) = delete; // move assignment operator
-
-    LPDDR6Interface(const MemSpecLPDDR6 &memSpec, const config::SimConfig &simConfig = {});
+    LPDDR6Interface(const MemSpecLPDDR6 &memSpec, const config::SimConfig &simConfig);
 
 // Public member functions
 public:
@@ -77,7 +83,7 @@ private:
     void endOfSimulation(timestamp_t timestamp);
 
 // Private members
-    const MemSpecLPDDR6& m_memSpec;
+    LPDDR6InterfaceMemSpec m_memSpec;
     commandbus_t m_commandBus;
     databus_t m_dataBus;
     util::Clock m_readDQS;

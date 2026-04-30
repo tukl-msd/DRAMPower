@@ -11,7 +11,6 @@
 #include "DRAMPower/memspec/MemSpecLPDDR6.h"
 #include "DRAMPower/standards/lpddr6/LPDDR6Core.h"
 #include "DRAMPower/standards/lpddr6/LPDDR6Interface.h"
-#include "DRAMPower/util/CoreWrapper.h"
 #include "DRAMPower/util/cli_architecture_config.h"
 
 #include <algorithm>
@@ -23,9 +22,9 @@ class LPDDR6 : public dram_base<CmdType> {
 public:
     LPDDR6() = delete; // No default constructor
     LPDDR6(const LPDDR6&) = default; // copy constructor
-    LPDDR6& operator=(const LPDDR6&) = delete; // copy assignment operator
+    LPDDR6& operator=(const LPDDR6&) = default; // copy assignment operator
     LPDDR6(LPDDR6&&) = default; // move constructor
-    LPDDR6& operator=(LPDDR6&&) = delete; // move assignment operator
+    LPDDR6& operator=(LPDDR6&&) = default; // move assignment operator
     ~LPDDR6() override = default;
     LPDDR6(const MemSpecLPDDR6& memSpec, const config::SimConfig &simConfig = {});
 
@@ -33,10 +32,10 @@ public:
 public:
 // Member functions
     LPDDR6Core& getCore() {
-        return m_core.getCore();
+        return m_core;
     }
     const LPDDR6Core& getCore() const {
-        return m_core.getCore();
+        return m_core;
     }
     LPDDR6Interface& getInterface() {
         return m_interface;
@@ -45,8 +44,8 @@ public:
         return m_interface;
     }
 // Overrided
-    energy_t calcCoreEnergy(timestamp_t timestamp) override;
-    interface_energy_info_t calcInterfaceEnergy(timestamp_t timestamp) override;
+    energy_t calcCoreEnergyStats(const SimulationStats& stats) const override;
+    interface_energy_info_t calcInterfaceEnergyStats(const SimulationStats& stats) const override;
     SimulationStats getWindowStats(timestamp_t timestamp) override;
     util::CLIArchitectureConfig getCLIArchitectureConfig() override;
     bool isSerializable() const override {
@@ -74,7 +73,7 @@ private:
 private:
     MemSpecLPDDR6 m_memSpec;
     LPDDR6Interface m_interface;
-    CoreWrapper<LPDDR6Core> m_core;
+    LPDDR6Core m_core;
 };
 
 }  // namespace DRAMPower

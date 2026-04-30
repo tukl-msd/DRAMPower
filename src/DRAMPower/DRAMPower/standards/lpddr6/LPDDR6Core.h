@@ -18,28 +18,53 @@ namespace internal {
     class TestAccessor;
 }
 
+struct LPDDR6CoreMemSpec {
+    LPDDR6CoreMemSpec(const MemSpecLPDDR6& memSpec)
+        : numberOfBanks(memSpec.numberOfBanks)
+        , numberOfRanks(memSpec.numberOfRanks)
+        , tRFC(memSpec.memTimingSpec.tRFC)
+        , tRFCPB(memSpec.memTimingSpec.tRFCPB)
+        , tRAS(memSpec.memTimingSpec.tRAS)
+        , tRCD(memSpec.memTimingSpec.tRCD)
+        , tRP(memSpec.memTimingSpec.tRP)
+        , bank_arch(memSpec.bank_arch)
+        , perTwoBankOffset(memSpec.perTwoBankOffset)
+        , prechargeOffsetRD(memSpec.prechargeOffsetRD)
+        , prechargeOffsetWR(memSpec.prechargeOffsetWR)
+    {}
+
+    uint64_t numberOfBanks;
+    uint64_t numberOfRanks;
+
+    uint64_t tRFC;
+    uint64_t tRFCPB;
+    uint64_t tRAS;
+    uint64_t tRCD;
+    uint64_t tRP;
+    MemSpecLPDDR6::BankArchitectureMode bank_arch;
+    std::size_t perTwoBankOffset;
+    uint64_t prechargeOffsetRD;
+    uint64_t prechargeOffsetWR;
+};
+
 class LPDDR6Core : public util::Serialize, public util::Deserialize {
-// Public type definitions
+// Friend classes
+friend class internal::TestAccessor<LPDDR6Core>;
+
+// Public constructors and assignment operators
 public:
-    using implicitCommandInserter_t = ImplicitCommandHandler::Inserter_t;
-// Public constructors
-public:
-    LPDDR6Core() = delete; // No default constructor
-    LPDDR6Core(const LPDDR6Core&) = default; // copy constructor
-    LPDDR6Core& operator=(const LPDDR6Core&) = delete; // copy assignment operator
-    LPDDR6Core(LPDDR6Core&&) = default; // move constructor
-    LPDDR6Core& operator=(LPDDR6Core&&) = delete; // move assignment operator
-    LPDDR6Core(implicitCommandInserter_t&& implicitCommandInserter, const MemSpecLPDDR6& memSpec)
+    LPDDR6Core(const MemSpecLPDDR6& memSpec)
         : m_memSpec(memSpec)
         , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
-        , m_implicitCommandInserter(std::move(implicitCommandInserter))
     {}
 
 // Public member functions
 public:
 // Member functions
     void doCommand(const Command& cmd);
-    void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+    timestamp_t getLastCommandTime() const;
+    bool isSerializable() const;
+    void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
 // Overrides
     void serialize(std::ostream& stream) const override;
     void deserialize(std::istream& stream) override;
@@ -51,19 +76,19 @@ private:
     void handlePreAll(Rank& rank, timestamp_t timestamp);
     void handleRead(Rank& rank, Bank& bank, timestamp_t timestamp);
     void handleWrite(Rank& rank, Bank& bank, timestamp_t timestamp);
-    void handleReadAuto(Rank& rank, Bank& bank, timestamp_t timestamp);
-    void handleWriteAuto(Rank& rank, Bank& bank, timestamp_t timestamp);
-    void handleRefAll(Rank& rank, timestamp_t timestamp);
-    void handleRefPerBank(Rank& rank, Bank& bank, timestamp_t timestamp);
-    void handleRefPerTwoBanks(Rank& rank, std::size_t bank_id, timestamp_t timestamp);
-    void handleRefreshOnBank(Rank& rank, Bank& bank, timestamp_t timestamp, uint64_t timing,
+    void handleReadAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
+    void handleWriteAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
+    void handleRefAll(std::size_t rank_idx, timestamp_t timestamp);
+    void handleRefPerBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
+    void handleRefPerTwoBanks(std::size_t rank_idx, std::size_t bank_id, timestamp_t timestamp);
+    void handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp, uint64_t timing,
                              uint64_t& counter);
-    void handleSelfRefreshEntry(Rank& rank, timestamp_t timestamp);
+    void handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timestamp);
     void handleSelfRefreshExit(Rank& rank, timestamp_t timestamp);
-    void handlePowerDownActEntry(Rank& rank, timestamp_t timestamp);
-    void handlePowerDownActExit(Rank& rank, timestamp_t timestamp);
-    void handlePowerDownPreEntry(Rank& rank, timestamp_t timestamp);
-    void handlePowerDownPreExit(Rank& rank, timestamp_t timestamp);
+    void handlePowerDownActEntry(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownActExit(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownPreEntry(std::size_t rank_idx, timestamp_t timestamp);
+    void handlePowerDownPreExit(std::size_t rank_idx, timestamp_t timestamp);
     void handleDSMEntry(Rank& rank, timestamp_t timestamp);
     void handleDSMExit(Rank& rank, timestamp_t timestamp);
 
@@ -71,9 +96,10 @@ private:
 
 // Private member variables
 private:
-    const MemSpecLPDDR6& m_memSpec;
+    LPDDR6CoreMemSpec m_memSpec;
     std::vector<Rank> m_ranks;
-    implicitCommandInserter_t m_implicitCommandInserter;
+    ImplicitCommandHandler<LPDDR6Core> m_implicitCommandHandler;
+    timestamp_t m_last_command_time = 0;
 };
 
 } // namespace DRAMPower

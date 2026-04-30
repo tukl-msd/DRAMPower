@@ -8,47 +8,47 @@ namespace DRAMPower {
         : m_memSpec(memSpec)
     {}
 
-    double Calculation_LPDDR6::E_pre(double VDD, double IBeta, double IDD2_N, double t_RP, uint64_t N_pre) {
+    double Calculation_LPDDR6::E_pre(double VDD, double IBeta, double IDD2_N, double t_RP, uint64_t N_pre) const {
         return VDD * (IBeta - IDD2_N) * t_RP * N_pre;
     }
 
-    double Calculation_LPDDR6::E_act(double VDD, double I_theta, double I_1, double t_RAS, uint64_t N_act) {
+    double Calculation_LPDDR6::E_act(double VDD, double I_theta, double I_1, double t_RAS, uint64_t N_act) const {
         return VDD * (I_theta - I_1) * t_RAS * N_act;
     }
 
-    double Calculation_LPDDR6::E_BG_pre(std::size_t B, double VDD, double IDD2_N, double T_BG_pre) {
+    double Calculation_LPDDR6::E_BG_pre(std::size_t B, double VDD, double IDD2_N, double T_BG_pre) const {
         return (1.0 / B) * VDD * IDD2_N * T_BG_pre;
     }
 
-    double Calculation_LPDDR6::E_BG_act_star(std::size_t B, double VDD, double IDD3_N, double I_p, double T_BG_act_star) {
+    double Calculation_LPDDR6::E_BG_act_star(std::size_t B, double VDD, double IDD3_N, double I_p, double T_BG_act_star) const {
         return VDD * (1.0 / B) * (IDD3_N - I_p) * T_BG_act_star;
     }
 
-    double Calculation_LPDDR6::E_BG_act_shared(double VDD, double I_p, double T_bg_act) {
+    double Calculation_LPDDR6::E_BG_act_shared(double VDD, double I_p, double T_bg_act) const {
         return VDD * I_p * T_bg_act;
     }
 
-    double Calculation_LPDDR6::E_RD(double VDD, double IDD4_R, double I_i, std::size_t BL, std::size_t DR, double t_WCK, uint64_t N_RD) {
+    double Calculation_LPDDR6::E_RD(double VDD, double IDD4_R, double I_i, std::size_t BL, std::size_t DR, double t_WCK, uint64_t N_RD) const {
         return VDD * (IDD4_R - I_i) * (BL / DR) * t_WCK * N_RD;
     }
 
-    double Calculation_LPDDR6::E_WR(double VDD, double IDD4_R, double I_i, std::size_t BL, std::size_t DR, double t_WCK, uint64_t N_WR) {
+    double Calculation_LPDDR6::E_WR(double VDD, double IDD4_R, double I_i, std::size_t BL, std::size_t DR, double t_WCK, uint64_t N_WR) const {
         return VDD * (IDD4_R - I_i) * (BL / DR) * t_WCK * N_WR;
     }
 
-    double Calculation_LPDDR6::E_ref_ab(std::size_t B, double VDD, double IDD5B, double IDD3_N, double tRFC, uint64_t N_REF) {
+    double Calculation_LPDDR6::E_ref_ab(std::size_t B, double VDD, double IDD5B, double IDD3_N, double tRFC, uint64_t N_REF) const {
         return (1.0 / B) * VDD * (IDD5B - IDD3_N) * tRFC * N_REF;
     }
 
-    double Calculation_LPDDR6::E_ref_pb(double VDD, double IDD5PB_B, double I_1, double tRFCPB, uint64_t N_PB_REF) {
+    double Calculation_LPDDR6::E_ref_pb(double VDD, double IDD5PB_B, double I_1, double tRFCPB, uint64_t N_PB_REF) const {
         return VDD * (IDD5PB_B - I_1) * tRFCPB * N_PB_REF;
     }
 
-    double Calculation_LPDDR6::E_ref_p2b(double VDD, double IDD5PB_B, double I_2, double tRFCPB, uint64_t N_P2B_REF) {
+    double Calculation_LPDDR6::E_ref_p2b(double VDD, double IDD5PB_B, double I_2, double tRFCPB, uint64_t N_P2B_REF) const {
         return 0.5 * VDD * (IDD5PB_B - I_2) * tRFCPB * N_P2B_REF;
     }
 
-    energy_t Calculation_LPDDR6::calcEnergy(const SimulationStats &stats) {
+    energy_t Calculation_LPDDR6::calcEnergy(const SimulationStats &stats) const {
         auto t_CK = m_memSpec.memTimingSpec.tCK;
         auto t_WCK = m_memSpec.memTimingSpec.tWCK;
         auto t_RAS = m_memSpec.memTimingSpec.tRAS * t_CK;

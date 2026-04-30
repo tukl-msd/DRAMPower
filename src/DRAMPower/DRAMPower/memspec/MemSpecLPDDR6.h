@@ -29,13 +29,12 @@ namespace DRAMPower {
         MemSpecLPDDR6(json_t &data) = delete;
         MemSpecLPDDR6(const json_t &data) = delete;
 
-        // Copy constructor
+        // Copy constructor and assignment operator
         MemSpecLPDDR6(const MemSpecLPDDR6&) = default;
+        MemSpecLPDDR6& operator=(const MemSpecLPDDR6&) = default;
 
-        // Move constructor
+        // Move constructor and assignment operator
         MemSpecLPDDR6(MemSpecLPDDR6&&) = default;
-
-        // Move assignment operator
         MemSpecLPDDR6& operator=(MemSpecLPDDR6&&) = default;
 
 	    ~MemSpecLPDDR6() = default;
