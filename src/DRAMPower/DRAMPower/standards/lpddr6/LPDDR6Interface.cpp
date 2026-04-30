@@ -46,66 +46,63 @@ void LPDDR6Interface::registerPatterns() {
     // ACT-1 must be followed by ACT-2 in almost every case (CAS, WRITE,
     // MASK WRITE and READ commands can be issued inbetween ACT-1 and ACT-2)
     // Here we consider ACT = ACT-1 + ACT-2, not considering interleaving
+    auto SC = V;
+    auto AB = V;
+    auto RFM = V;
     commandPattern_t act_pattern = {
         // ACT-1
         // R1
-        H, H, H, R14, R15, R16, R17,
+        H, H, H, V,
         // F1
-        BA0, BA1, BA2, BA3, R11, R12, R13,
-        // ACT-2
+        H, R15, R16, SC,
         // R2
-        H, H, L, R7, R8, R9, R10,
+        R11, R12, R13, R14,
         // F2
-        R0, R1, R2, R3, R4, R5, R6
+        BA0, BA1, BG0, BG1,
+        // ACT-2
+        // R1
+        H, H, H, V,
+        // F1
+        L, R8, R0, R10,
+        // R2
+        R4, R5, R6, R7,
+        // F2
+        R0, R1, R2, R3
     };
-    if (m_memSpec.bank_arch == MemSpecLPDDR6::MBG) {
-        act_pattern[9] = BG0;
-        act_pattern[10] = BG1;
-    } else if (m_memSpec.bank_arch == MemSpecLPDDR6::M8B) {
-        act_pattern[10] = V;
-    }
     m_patternHandler.registerPattern<CmdType::ACT>(act_pattern);
+    // PRE / PREA
+    auto pre_pattern_gen = [](t SC, t AB) -> commandPattern_t {
+        return {
+            // R1
+            L, L, L, V,
+            // F1
+            H, H, V, SC,
+            // R2
+            V, V, V, AB,
+            // F2
+            BA0, BA1, BG0, BG1
+        };
+    };
     // PRE
-    commandPattern_t pre_pattern = {
-        // R1
-        L, L, L, H, H, H, H,
-        // F1
-        BA0, BA1, BA2, BA3, V, V, L
-    };
-    if (m_memSpec.bank_arch == MemSpecLPDDR6::MBG) {
-        pre_pattern[9] = BG0;
-        pre_pattern[10] = BG1;
-    } else if (m_memSpec.bank_arch == MemSpecLPDDR6::M8B) {
-        pre_pattern[10] = V;
-    }
-    m_patternHandler.registerPattern<CmdType::PRE>(pre_pattern);
+    m_patternHandler.registerPattern<CmdType::PRE>(pre_pattern_gen(SC, AB));
     // PREA
-    commandPattern_t prea_pattern = {
-        // R1
-        L, L, L, H, H, H, H,
-        // F1
-        V, V, V, V, V, V, H
+    m_patternHandler.registerPattern<CmdType::PREA>(pre_pattern_gen(SC, AB));
+    // REF (dual Bank, All banks)
+    auto ref_pattern_gen = [](t SC, t RFM, t AB) -> commandPattern_t {
+        return {
+            // R1
+            L, L, L, V,
+            // F1
+            H, L, RFM, SC,
+            // R2
+            dBG0, dBG1, V, AB,
+            // F2
+            BA0, BA1, BG0, BG1
+        };
     };
-    if (m_memSpec.bank_arch == MemSpecLPDDR6::MBG) {
-        prea_pattern[9] = BG0;
-        prea_pattern[10] = BG1;
-    } else if (m_memSpec.bank_arch == MemSpecLPDDR6::M8B) {
-        prea_pattern[10] = V;
-    }
-    m_patternHandler.registerPattern<CmdType::PREA>(prea_pattern);
-    // REFB
-    // For refresh commands LPDDR6 has RFM (Refresh Management)
-    // Considering RFM is disabled, CA3 is V
-    commandPattern_t refb_pattern = {
-        // R1
-        L, L, L, H, H, H, L,
-        // F1
-        BA0, BA1, BA2, V, V, V, L
-    };
-    if (m_memSpec.bank_arch == MemSpecLPDDR6::MBG) {
-        refb_pattern[9] = BG0;
-    }
-    m_patternHandler.registerPattern<CmdType::REFB>(refb_pattern);
+    // TODO: For refresh commands LPDDR6 has RFM (Refresh Management)
+    // TODO: Considering RFM is disabled, CA3 is V
+    m_patternHandler.registerPattern<CmdType::REFB>(ref_pattern_gen(SC, RFM, AB));
     // RD
     commandPattern_t rd_pattern = {
         // R1
@@ -382,6 +379,7 @@ void LPDDR6Interface::handleData(const Command &cmd, bool read) {
         }
     } else {
         std::optional<const uint8_t *> dbi_data = std::nullopt;
+        for (std::size_t i = 0; i < )
         // Data provided by command
         if (m_dataBus.isBus() && m_dbi.isEnabled()) {
             dbi_data = handleDBIInterface(cmd.timestamp, cmd.sz_bits, cmd.data, read);
