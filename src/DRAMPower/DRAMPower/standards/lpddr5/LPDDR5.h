@@ -28,7 +28,7 @@ public:
     LPDDR5(LPDDR5&&) = default; // move constructor
     LPDDR5& operator=(LPDDR5&&) = default; // move assignment operator
     ~LPDDR5() override = default;
-    LPDDR5(const MemSpecLPDDR5& memSpec, const config::SimConfig& toggleRate = {});
+    LPDDR5(const MemSpecLPDDR5& memSpec, const config::SimConfig& simConfig = {});
 
 // Public member functions
 public:
