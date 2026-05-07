@@ -1,6 +1,7 @@
 #ifndef DRAMPOWER_STANDARDS_DDR4_DDR4CORE_H
 #define DRAMPOWER_STANDARDS_DDR4_DDR4CORE_H
 
+#include "DRAMPower/standards/ddr4/DDR4ImplicitCommands.h"
 #include "DRAMPower/util/Deserialize.h"
 #include "DRAMPower/util/Serialize.h"
 #include <DRAMPower/Types.h>
@@ -20,6 +21,16 @@ namespace internal {
     template<typename Core>
     class TestAccessor;
 }
+
+// Forward declares Implicit Commands
+struct DDR4ImplicitCommandsBridge;
+class DDR4ImplicitCommandPreAfterRef;
+class DDR4ImplicitCommandPre;
+class DDR4ImplicitCommandRefEntry;
+class DDR4ImplicitCommandPDActEntry;
+class DDR4ImplicitCommandPDPreEntry;
+class DDR4ImplicitCommandPDExit;
+
 
 struct DDR4CoreMemSpec {
     DDR4CoreMemSpec(const MemSpecDDR4& memSpec)
@@ -47,6 +58,7 @@ struct DDR4CoreMemSpec {
 class DDR4Core : public util::Serialize, public util::Deserialize {
 // Friend classes
 friend class internal::TestAccessor<DDR4Core>;
+friend struct DDR4ImplicitCommandsBridge;
 
 // Public constructors and assignment operators
 public:
@@ -90,7 +102,11 @@ private:
 private:
     DDR4CoreMemSpec m_memSpec;
     std::vector<Rank> m_ranks;
-    ImplicitCommandHandler<DDR4Core> m_implicitCommandHandler;
+    ImplicitCommandHandler<DDR4Core,
+        DDR4ImplicitCommandPreAfterRef, DDR4ImplicitCommandPre,
+        DDR4ImplicitCommandRefEntry, DDR4ImplicitCommandPDActEntry,
+        DDR4ImplicitCommandPDPreEntry, DDR4ImplicitCommandPDExit
+    > m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;
 };
 

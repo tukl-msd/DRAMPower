@@ -1,14 +1,18 @@
 #ifndef DRAMPOWER_UTIL_IMPLICITCOMMANDHANDLER_H
 #define DRAMPOWER_UTIL_IMPLICITCOMMANDHANDLER_H
 
+#include "DRAMPower/util/adl_serializer.h"
 #include <DRAMPower/Types.h>
 
 #include <deque>
 #include <functional>
+#include <istream>
+#include <ostream>
 #include <type_traits>
 #include <utility>
 #include <algorithm>
 #include <cstddef>
+#include <variant>
 
 namespace DRAMPower {
 
@@ -27,11 +31,11 @@ namespace details {
 
 } // namespace details
 
-template <typename CommandContext = void>
+template <typename CommandContext = void, typename... Commands>
 class ImplicitCommandHandler;
 
 template<typename CommandContext>
-class ImplicitCommandHandler {
+class ImplicitCommandHandler<CommandContext> {
 // Public type definitions
 public:
     using CommandContext_t = std::add_lvalue_reference_t<std::remove_reference_t<CommandContext>>;
@@ -60,6 +64,65 @@ public:
 
     std::size_t implicitCommandCount() const {
         return m_implicitCommandList.size();
+    }
+
+// Private member variables
+private:
+    implicitCommandList_t m_implicitCommandList;
+};
+
+template<typename CommandContext, typename... Commands>
+class ImplicitCommandHandler {
+// Public type definitions
+public:
+    using variant_t = std::variant<Commands...>;
+    using CommandContext_t = std::add_lvalue_reference_t<std::remove_reference_t<CommandContext>>;
+    using implicitCommandListEntry_t = std::pair<timestamp_t, variant_t>;
+    using implicitCommandList_t = std::deque<implicitCommandListEntry_t>;
+
+    
+// Public member functions
+public:
+    template <typename Command>
+    void addImplicitCommand(timestamp_t timestamp, Command&& command)
+    {
+        details::addImplicitCommand(m_implicitCommandList, timestamp, variant_t(std::forward<Command>(command)));
+    }
+
+    void processImplicitCommandQueue(CommandContext_t context, timestamp_t timestamp, timestamp_t &last_command_time) {
+        while (!m_implicitCommandList.empty() && m_implicitCommandList.front().first <= timestamp) {
+            // Execute implicit command functor
+            auto& [i_timestamp, i_implicitCommand] = m_implicitCommandList.front();
+            std::visit([&context](auto& var){
+                var(context);
+            }, i_implicitCommand);
+            last_command_time = i_timestamp;
+            m_implicitCommandList.pop_front();
+        }
+    }
+
+    std::size_t implicitCommandCount() const {
+        return m_implicitCommandList.size();
+    }
+
+    void serialize(std::ostream& stream) const {
+        uint32_t size = m_implicitCommandList.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        for (const implicitCommandListEntry_t& entry : m_implicitCommandList) {
+            stream.write(reinterpret_cast<const char*>(&entry.first), sizeof(entry.first));
+            type_utils::ADLSerializer<variant_t>::serialize(stream, entry.second);
+        }
+    }
+    void deserialize(std::istream& stream) {
+        m_implicitCommandList.clear();
+        uint32_t size = 0;
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        m_implicitCommandList.resize(size);
+        for (std::size_t i = 0; i < size; ++i) {
+            auto& entry = m_implicitCommandList[i];
+            stream.read(reinterpret_cast<char*>(&entry.first), sizeof(entry.first));
+            type_utils::ADLDeserializer<variant_t>::deserialize(stream, entry.second);
+        }
     }
 
 // Private member variables
