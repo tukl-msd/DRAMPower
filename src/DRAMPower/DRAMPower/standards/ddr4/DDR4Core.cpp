@@ -1,6 +1,7 @@
 #include "DDR4Core.h"
 #include "DRAMPower/Types.h"
 #include "DRAMPower/util/RegisterHelper.h"
+#include "DRAMPower/standards/ddr4/DDR4ImplicitCommands.h"
 #include <cstddef>
 
 namespace DRAMPower {
@@ -117,18 +118,7 @@ void DDR4Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
         bank.refreshEndTime = timestamp_end;                                    // used for earliest power down calculation
 
         // Execute implicit pre-charge at refresh end
-        m_implicitCommandHandler.addImplicitCommand(timestamp_end, [rank_idx, bank_idx = bank_idx, timestamp_end](DDR4Core& self) {
-            auto& rank = self.m_ranks[rank_idx];
-            auto& bank = rank.banks[bank_idx];
-            bank.bankState = Bank::BankState::BANK_PRECHARGED;
-            bank.cycles.act.close_interval(timestamp_end);
-            // stop rank active interval if no more banks active
-            if (!rank.isActive(timestamp_end))                                  // stop rank active interval if no more banks active
-            {
-                rank.cycles.act.close_interval(timestamp_end);
-                //rank.cycles.pre.start_interval(timestamp_end);
-            }
-        });
+        m_implicitCommandHandler.addImplicitCommand(timestamp_end, DDR4ImplicitCommandPreAfterRef(rank_idx, bank_idx, timestamp_end));
     }
 
     // Required for precharge power-down
@@ -148,9 +138,7 @@ void DDR4Core::handleReadAuto(std::size_t rank_idx, std::size_t bank_idx, timest
     auto delayed_timestamp = std::max(minBankActiveTime, minReadActiveTime);
 
     // Execute PRE after minimum active time
-    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, [rank_idx, bank_idx, delayed_timestamp](DDR4Core& self) {
-        self.handlePre(self.m_ranks[rank_idx], self.m_ranks[rank_idx].banks[bank_idx], delayed_timestamp);
-    });
+    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, DDR4ImplicitCommandPre(rank_idx, bank_idx, delayed_timestamp));
 }
 
 void DDR4Core::handleWrite(Rank&, Bank &bank, timestamp_t) {
@@ -167,9 +155,7 @@ void DDR4Core::handleWriteAuto(std::size_t rank_idx, std::size_t bank_idx, times
     auto delayed_timestamp = std::max(minBankActiveTime, minWriteActiveTime);
 
     // Execute PRE after minimum active time
-    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, [rank_idx, bank_idx, delayed_timestamp](DDR4Core& self) {
-        self.handlePre(self.m_ranks[rank_idx], self.m_ranks[rank_idx].banks[bank_idx], delayed_timestamp);
-    });
+    m_implicitCommandHandler.addImplicitCommand(delayed_timestamp, DDR4ImplicitCommandPre(rank_idx, bank_idx, delayed_timestamp));
 }
 
 void DDR4Core::handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timestamp) {
@@ -177,12 +163,7 @@ void DDR4Core::handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timestam
     handleRefAll(rank_idx, timestamp);
     // Handle self-refresh entry after tRFC
     auto timestampSelfRefreshStart = timestamp + m_memSpec.tRFC;
-    m_implicitCommandHandler.addImplicitCommand(timestampSelfRefreshStart, [rank_idx, timestampSelfRefreshStart](DDR4Core& self) {
-        auto& rank = self.m_ranks[rank_idx];
-        rank.counter.selfRefresh++;
-        rank.cycles.sref.start_interval(timestampSelfRefreshStart);
-        rank.memState = MemState::SREF;
-    });
+    m_implicitCommandHandler.addImplicitCommand(timestampSelfRefreshStart, DDR4ImplicitCommandRefEntry(rank_idx, timestampSelfRefreshStart));
 }
 
 void DDR4Core::handleSelfRefreshExit(Rank &rank, timestamp_t timestamp) {
@@ -195,16 +176,7 @@ void DDR4Core::handlePowerDownActEntry(std::size_t rank_idx, timestamp_t timesta
     auto& rank = m_ranks[rank_idx];
     auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
     auto entryTime = std::max(timestamp, earliestPossibleEntry);
-    m_implicitCommandHandler.addImplicitCommand(entryTime, [rank_idx, entryTime](DDR4Core& self) {
-        auto& rank = self.m_ranks[rank_idx];
-        rank.memState = MemState::PDN_ACT;
-        rank.cycles.powerDownAct.start_interval(entryTime);
-        rank.cycles.act.close_interval(entryTime);
-        //rank.cycles.pre.close_interval(entryTime);
-        for (auto & bank : rank.banks) {
-            bank.cycles.act.close_interval(entryTime);
-        }
-    });
+    m_implicitCommandHandler.addImplicitCommand(entryTime, DDR4ImplicitCommandPDActEntry(rank_idx, entryTime));
 }
 
 void DDR4Core::handlePowerDownActExit(std::size_t rank_idx, timestamp_t timestamp) {
@@ -213,25 +185,7 @@ void DDR4Core::handlePowerDownActExit(std::size_t rank_idx, timestamp_t timestam
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-    m_implicitCommandHandler.addImplicitCommand(exitTime, [rank_idx, exitTime](DDR4Core& self) {
-        auto& rank = self.m_ranks[rank_idx];
-        rank.memState = MemState::NOT_IN_PD;
-        rank.cycles.powerDownAct.close_interval(exitTime);
-
-        // Activate banks that were active prior to PDA
-        for (auto & bank : rank.banks)
-        {
-            if (bank.bankState==Bank::BankState::BANK_ACTIVE)
-            {
-                bank.cycles.act.start_interval(exitTime);
-            }
-        }
-        // Activate rank if at least one bank is active
-        // At least one bank must be active for PDA -> remove if statement?
-        if(rank.isActive(exitTime))
-            rank.cycles.act.start_interval(exitTime); 
-
-    });
+    m_implicitCommandHandler.addImplicitCommand(exitTime, DDR4ImplicitCommandPDExit(rank_idx, exitTime));
 }
 
 void DDR4Core::handlePowerDownPreEntry(std::size_t rank_idx, timestamp_t timestamp) {
@@ -239,15 +193,7 @@ void DDR4Core::handlePowerDownPreEntry(std::size_t rank_idx, timestamp_t timesta
     auto earliestPossibleEntry = this->earliestPossiblePowerDownEntryTime(rank);
     auto entryTime = std::max(timestamp, earliestPossibleEntry);
 
-    m_implicitCommandHandler.addImplicitCommand(entryTime, [rank_idx, entryTime](DDR4Core& self) {
-        auto& rank = self.m_ranks[rank_idx];
-        for (auto &bank : rank.banks)
-            bank.cycles.act.close_interval(entryTime);
-        rank.memState = MemState::PDN_PRE;
-        rank.cycles.powerDownPre.start_interval(entryTime);
-        //rank.cycles.pre.close_interval(entryTime);
-        rank.cycles.act.close_interval(entryTime);
-    });
+    m_implicitCommandHandler.addImplicitCommand(entryTime, DDR4ImplicitCommandPDPreEntry(rank_idx, entryTime));
 }
 
 void DDR4Core::handlePowerDownPreExit(std::size_t rank_idx, timestamp_t timestamp) {
@@ -256,25 +202,7 @@ void DDR4Core::handlePowerDownPreExit(std::size_t rank_idx, timestamp_t timestam
     auto earliestPossibleExit = this->earliestPossiblePowerDownEntryTime(rank);
     auto exitTime = std::max(timestamp, earliestPossibleExit);
 
-    m_implicitCommandHandler.addImplicitCommand(exitTime, [rank_idx, exitTime](DDR4Core& self) {
-        auto& rank = self.m_ranks[rank_idx];
-        rank.memState = MemState::NOT_IN_PD;
-        rank.cycles.powerDownPre.close_interval(exitTime);
-
-        // Precharge banks that were precharged prior to PDP
-        for (auto & bank : rank.banks)
-        {
-            if (bank.bankState==Bank::BankState::BANK_ACTIVE)
-            {
-                bank.cycles.act.start_interval(exitTime);
-            }
-        }
-        // Precharge rank if all banks are precharged
-        // At least one bank must be precharged for PDP -> remove if statement?
-        // If statement ensures right state diagramm traversal
-        //if(!rank.isActive(exitTime))
-        //    rank.cycles.pre.start_interval(exitTime); 
-    });
+    m_implicitCommandHandler.addImplicitCommand(exitTime, DDR4ImplicitCommandPDExit(rank_idx, exitTime));
 }
 
 timestamp_t DDR4Core::earliestPossiblePowerDownEntryTime(Rank & rank) const {
@@ -333,6 +261,7 @@ void DDR4Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
 }
 
 void DDR4Core::serialize(std::ostream& stream) const {
+    m_implicitCommandHandler.serialize(stream);
     stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
     // Serialize the ranks
     for (const auto& rank : m_ranks) {
@@ -341,6 +270,7 @@ void DDR4Core::serialize(std::ostream& stream) const {
 }
 
 void DDR4Core::deserialize(std::istream& stream) {
+    m_implicitCommandHandler.deserialize(stream);
     stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
     // Deserialize the ranks
     for (auto &rank : m_ranks) {
