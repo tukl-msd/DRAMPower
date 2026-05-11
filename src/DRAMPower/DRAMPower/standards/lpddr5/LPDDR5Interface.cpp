@@ -322,7 +322,7 @@ void LPDDR5Interface::handleOverrides(size_t length, bool /*read*/) {
 }
 
 void LPDDR5Interface::handleCommandBus(const Command &cmd) {
-    auto pattern = m_patternHandler.getCommandPattern(cmd);
+    auto pattern = m_patternHandler.getCommandPattern(cmd.type, cmd.targetCoordinate);
     auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_commandBus.get_width();
     m_commandBus.load(cmd.timestamp, pattern, ca_length);
 }
