@@ -305,7 +305,7 @@ uint16_t LPDDR6Interface::getMetaDataB2() const {
 
 void LPDDR6Interface::setParityCheckMode(bool state) {
     // TODO WCK Always ON mode must be set active when CA parity is enabled
-    assert(((m_memSpec.wckAlwaysOnMode && state) || !m_memSpec.wckAlwaysOnMode) && "Invalid wckAlwaysOnMode for state = true");
+    assert(((m_memSpec.wckAlwaysOnMode && state) || !state) && "Invalid wckAlwaysOnMode");
     m_patternHandler.getEncoder().getExtraData().parity_check_mode = state;
 }
 bool LPDDR6Interface::getParityCheckMode() const {
