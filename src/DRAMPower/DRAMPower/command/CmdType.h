@@ -22,20 +22,21 @@ enum class CmdType {
 	PRE,    				// 6
 	REFB,   				// 7
 	REFP2B,					// 8
-	PRESB,  				// 9
-	REFSB,  				// 10
-	PREA,   				// 11
-	REFA,   				// 12
-	PDEA,   				// 13
-	PDEP,   				// 14
-	PDXA,   				// 15
-	PDXP,   				// 16
-	SREFEN, 				// 17
-	SREFEX,  				// 18
-	DSMEN,					// 19
-	DSMEX,					// 20
-	END_OF_SIMULATION,		// 21
-	COUNT,					// 22
+    REFDB,                  // 9
+	PRESB,  				// 10
+	REFSB,  				// 11
+	PREA,   				// 12
+	REFA,   				// 13
+	PDEA,   				// 14
+	PDEP,   				// 15
+	PDXA,   				// 16
+	PDXP,   				// 17
+	SREFEN, 				// 18
+	SREFEX,  				// 19
+	DSMEN,					// 20
+	DSMEX,					// 21
+	END_OF_SIMULATION,		// 22
+	COUNT,					// 23
 };
 
 namespace CmdTypeUtil
