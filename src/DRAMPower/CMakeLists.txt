@@ -39,6 +39,8 @@ add_library(DRAMPower
     DRAMPower/standards/lpddr6/LPDDR6.cpp
     DRAMPower/standards/lpddr6/LPDDR6Core.cpp
     DRAMPower/standards/lpddr6/LPDDR6Interface.cpp
+    DRAMPower/standards/lpddr6/LPDDR6Command.cpp
+    DRAMPower/standards/lpddr6/LPDDR6Pattern.cpp
     DRAMPower/standards/lpddr6/interface_calculation_LPDDR6.cpp
     DRAMPower/util/extensions.cpp
 )
