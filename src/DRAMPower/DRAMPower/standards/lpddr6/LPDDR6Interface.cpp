@@ -215,29 +215,28 @@ timestamp_t LPDDR6Interface::getLastCommandTime() const {
 }
 
 void LPDDR6Interface::doCommand(const LPDDR6Command& cmd) {
-    // TODO
     switch(cmd.type) {
-        case CmdType::ACT:
-        case CmdType::PRE:
-        case CmdType::PREA:
-        case CmdType::REFB:
-        case CmdType::REFA:
-        case CmdType::SREFEN:
-        case CmdType::SREFEX:
+        case CmdType::NOP:
         case CmdType::PDEA:
         case CmdType::PDEP:
         case CmdType::PDXA:
         case CmdType::PDXP:
-        case CmdType::REFP2B:
+        case CmdType::SREFEN:
+        case CmdType::SREFEX:
+        case CmdType::PRE:
+        case CmdType::PREA:
+        case CmdType::REFB:
+        case CmdType::REFDB:
+        case CmdType::ACT:
             handleCommandBus(cmd);
-            break;
-        case CmdType::RD:
-        case CmdType::RDA:
-            handleData(cmd, true);
             break;
         case CmdType::WR:
         case CmdType::WRA:
             handleData(cmd, false);
+            break;
+        case CmdType::RD:
+        case CmdType::RDA:
+            handleData(cmd, true);
             break;
         case CmdType::END_OF_SIMULATION:
             endOfSimulation(cmd.timestamp);
