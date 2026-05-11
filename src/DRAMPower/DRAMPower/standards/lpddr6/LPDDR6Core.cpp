@@ -1,11 +1,11 @@
 #include "LPDDR6Core.h"
 #include "DRAMPower/data/stats.h"
-#include "DRAMPower/Exceptions.h"
+#include "DRAMPower/standards/lpddr6/LPDDR6Command.h"
 #include "DRAMPower/util/RegisterHelper.h"
 
 namespace DRAMPower {
 
-void LPDDR6Core::doCommand(const Command& cmd) {
+void LPDDR6Core::doCommand(const LPDDR6Command& cmd) {
     m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp, m_last_command_time);
     switch(cmd.type) {
         case CmdType::ACT:
@@ -16,9 +16,6 @@ void LPDDR6Core::doCommand(const Command& cmd) {
             break;
         case CmdType::PREA:
             util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePreAll);
-            break;
-        case CmdType::REFB:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleRefPerBank);
             break;
         case CmdType::RD:
             util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleRead);
@@ -32,12 +29,20 @@ void LPDDR6Core::doCommand(const Command& cmd) {
         case CmdType::WRA:
             util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleWriteAuto);
             break;
-        case CmdType::REFP2B:
-            if (m_memSpec.bank_arch != MemSpecLPDDR6::MBG && m_memSpec.bank_arch != MemSpecLPDDR6::M16B) {
-                throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
+        case CmdType::REFDB: {
+            assert(m_ranks.size()>cmd.targetCoordinate.rank);
+            auto& rank = m_ranks.at(cmd.targetCoordinate.rank);
+            assert(rank.banks.size()>cmd.targetCoordinate.bank);
+            assert(rank.banks.size()>cmd.targetCoordinate.dbank);
+            if (cmd.targetCoordinate.bank >= rank.banks.size() || cmd.targetCoordinate.dbank >= rank.banks.size()) {
+                throw std::invalid_argument("Invalid bank targetcoordinate");
             }
-            util::coreHelpers::bankGroupHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleRefPerTwoBanks);
+            auto bank_id1 = cmd.targetCoordinate.bank;
+            auto bank_id2 = cmd.targetCoordinate.dbank;
+            rank.commandCounter.inc(cmd.type);
+            handleRefPerTwoBanks(cmd.targetCoordinate.rank, bank_id1, bank_id2, cmd.timestamp);
             break;
+        }
         case CmdType::REFA:
             util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleRefAll);
             break;
@@ -58,12 +63,6 @@ void LPDDR6Core::doCommand(const Command& cmd) {
             break;
         case CmdType::PDXP:
             util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownPreExit);
-            break;
-        case CmdType::DSMEN:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleDSMEntry);
-            break;
-        case CmdType::DSMEX:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleDSMExit);
             break;
         case CmdType::END_OF_SIMULATION:
             break;
@@ -118,13 +117,12 @@ void LPDDR6Core::handleRefPerBank(std::size_t rank_idx, std::size_t bank_idx, ti
     handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFCPB, counter);
 }
 
-void LPDDR6Core::handleRefPerTwoBanks(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp) {
+void LPDDR6Core::handleRefDualBanks(std::size_t rank_idx, std::size_t bank_idx1, std::size_t bank_idx2, timestamp_t timestamp) {
     auto& rank = m_ranks[rank_idx];
-    std::size_t bank_2_idx = (bank_idx + m_memSpec.perTwoBankOffset) % 16;
-    auto& counter1 = rank.banks[bank_idx].counter.refPerTwoBanks;
-    auto& counter2 = rank.banks[bank_2_idx].counter.refPerTwoBanks;
-    handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFCPB, counter1);
-    handleRefreshOnBank(rank_idx, bank_2_idx, timestamp, m_memSpec.tRFCPB, counter2);
+    auto& counter1 = rank.banks[bank_idx1].counter.refPerTwoBanks;
+    auto& counter2 = rank.banks[bank_idx2].counter.refPerTwoBanks;
+    handleRefreshOnBank(rank_idx, bank_idx1, timestamp, m_memSpec.tRFCPB, counter1);
+    handleRefreshOnBank(rank_idx, bank_idx2, timestamp, m_memSpec.tRFCPB, counter2);
 }
 
 void LPDDR6Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
@@ -290,20 +288,7 @@ void LPDDR6Core::handlePowerDownPreExit(std::size_t rank_idx, timestamp_t timest
     });
 }
 
-void LPDDR6Core::handleDSMEntry(Rank &rank, timestamp_t timestamp) {
-    assert(rank.memState == MemState::SREF);
-    rank.cycles.deepSleepMode.start_interval(timestamp);
-    rank.counter.deepSleepMode++;
-    rank.memState = MemState::DSM;
-}
-
-void LPDDR6Core::handleDSMExit(Rank &rank, timestamp_t timestamp) {
-    assert(rank.memState == MemState::DSM);
-    rank.cycles.deepSleepMode.close_interval(timestamp);
-    rank.memState = MemState::SREF;
-}
-
-timestamp_t LPDDR6Core::earliestPossiblePowerDownEntryTime(Rank & rank) const {
+timestamp_t LPDDR6Core::earliestPossiblePowerDownEntryTime(Rank& rank) const {
     timestamp_t entryTime = 0;
 
     for (const auto &bank : rank.banks) {

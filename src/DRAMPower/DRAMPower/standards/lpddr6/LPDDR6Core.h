@@ -2,7 +2,7 @@
 #define DRAMPOWER_STANDARDS_LPDDR6_LPDDR6CORE_H
 
 #include "DRAMPower/dram/Rank.h"
-#include "DRAMPower/command/Command.h"
+#include "DRAMPower/standards/lpddr6/LPDDR6Command.h"
 #include "DRAMPower/util/ImplicitCommandHandler.h"
 #include "DRAMPower/util/Serialize.h"
 #include "DRAMPower/util/Deserialize.h"
@@ -61,7 +61,7 @@ public:
 // Public member functions
 public:
 // Member functions
-    void doCommand(const Command& cmd);
+    void doCommand(const LPDDR6Command& cmd);
     timestamp_t getLastCommandTime() const;
     bool isSerializable() const;
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
@@ -80,7 +80,7 @@ private:
     void handleWriteAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
     void handleRefAll(std::size_t rank_idx, timestamp_t timestamp);
     void handleRefPerBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
-    void handleRefPerTwoBanks(std::size_t rank_idx, std::size_t bank_id, timestamp_t timestamp);
+    void handleRefDualBanks(std::size_t rank_idx, std::size_t bank_idx1, std::size_t bank_idx2, timestamp_t timestamp);
     void handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp, uint64_t timing,
                              uint64_t& counter);
     void handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timestamp);
@@ -89,8 +89,6 @@ private:
     void handlePowerDownActExit(std::size_t rank_idx, timestamp_t timestamp);
     void handlePowerDownPreEntry(std::size_t rank_idx, timestamp_t timestamp);
     void handlePowerDownPreExit(std::size_t rank_idx, timestamp_t timestamp);
-    void handleDSMEntry(Rank& rank, timestamp_t timestamp);
-    void handleDSMExit(Rank& rank, timestamp_t timestamp);
 
     timestamp_t earliestPossiblePowerDownEntryTime(Rank & rank) const;
 
