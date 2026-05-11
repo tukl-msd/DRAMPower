@@ -376,7 +376,6 @@ void LPDDR6Interface::handleData(const LPDDR6Command& cmd, bool read) {
         // No data provided by command
         if (m_dataBus.isTogglingRate()) {
             length = m_memSpec.burstLength;
-            // TODO length invalid
             (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
         }
     } else {
