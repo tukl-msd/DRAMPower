@@ -40,7 +40,7 @@ void LPDDR6Core::doCommand(const LPDDR6Command& cmd) {
             auto bank_id1 = cmd.targetCoordinate.bank;
             auto bank_id2 = cmd.targetCoordinate.dbank;
             rank.commandCounter.inc(cmd.type);
-            handleRefPerTwoBanks(cmd.targetCoordinate.rank, bank_id1, bank_id2, cmd.timestamp);
+            handleRefDualBanks(cmd.targetCoordinate.rank, bank_id1, bank_id2, cmd.timestamp);
             break;
         }
         case CmdType::REFA:
