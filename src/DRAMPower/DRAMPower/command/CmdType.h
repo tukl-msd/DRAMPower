@@ -22,20 +22,21 @@ enum class CmdType {
 	PRE,    				// 6
 	REFB,   				// 7
 	REFP2B,					// 8
-	PRESB,  				// 9
-	REFSB,  				// 10
-	PREA,   				// 11
-	REFA,   				// 12
-	PDEA,   				// 13
-	PDEP,   				// 14
-	PDXA,   				// 15
-	PDXP,   				// 16
-	SREFEN, 				// 17
-	SREFEX,  				// 18
-	DSMEN,					// 19
-	DSMEX,					// 20
-	END_OF_SIMULATION,		// 21
-	COUNT,					// 22
+    REFDB,                  // 9
+	PRESB,  				// 10
+	REFSB,  				// 11
+	PREA,   				// 12
+	REFA,   				// 13
+	PDEA,   				// 14
+	PDEP,   				// 15
+	PDXA,   				// 16
+	PDXP,   				// 17
+	SREFEN, 				// 18
+	SREFEX,  				// 19
+	DSMEN,					// 20
+	DSMEX,					// 21
+	END_OF_SIMULATION,		// 22
+	COUNT,					// 23
 };
 
 namespace CmdTypeUtil
@@ -54,6 +55,7 @@ namespace CmdTypeUtil
 		};
 	};
 
+	// An invalid string is mapped to CmdType::NOP
 	constexpr CmdType from_string(const std::string_view& str)
 	{
 		if (str == "NOP")
@@ -74,6 +76,8 @@ namespace CmdTypeUtil
 			return CmdType::REFSB;
 		if (str == "REFP2B")
 			return CmdType::REFP2B;
+		if (str == "REFDB")
+			return CmdType::REFDB;
 		if (str == "RD")
 			return CmdType::RD;
 		if (str == "RDA")
@@ -103,11 +107,13 @@ namespace CmdTypeUtil
 		return CmdType::NOP;
 	};
 
+	// COUNT is mapped to "NOP"
 	constexpr const char * to_string(CmdType cmd)
 	{
 		switch (cmd)
 		{
 		case CmdType::NOP:
+		case CmdType::COUNT:
 			return "NOP";
 		case CmdType::ACT:
 			return "ACT";
@@ -131,6 +137,8 @@ namespace CmdTypeUtil
 			return "REFSB";
 		case CmdType::REFP2B:
 			return "REFP2B";
+		case CmdType::REFDB:
+			return "REFDB";
 		case CmdType::PRESB:
 			return "PRESB";
 		case CmdType::PDEA:
@@ -151,8 +159,6 @@ namespace CmdTypeUtil
 			return "DSMEX";
 		case CmdType::END_OF_SIMULATION:
 			return "END_OF_SIMULATION";
-		default:
-			return "to_string()";
 		}
 	}
 

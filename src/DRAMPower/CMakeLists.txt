@@ -14,6 +14,7 @@ add_library(DRAMPower
     DRAMPower/memspec/MemSpecDDR5.cpp
     DRAMPower/memspec/MemSpecLPDDR4.cpp
     DRAMPower/memspec/MemSpecLPDDR5.cpp
+    DRAMPower/memspec/MemSpecLPDDR6.cpp
     DRAMPower/standards/ddr4/core_calculation_DDR4.cpp
     DRAMPower/standards/ddr4/DDR4.cpp
     DRAMPower/standards/ddr4/DDR4Core.cpp
@@ -34,6 +35,13 @@ add_library(DRAMPower
     DRAMPower/standards/lpddr5/LPDDR5Core.cpp
     DRAMPower/standards/lpddr5/LPDDR5Interface.cpp
     DRAMPower/standards/lpddr5/interface_calculation_LPDDR5.cpp
+    DRAMPower/standards/lpddr6/core_calculation_LPDDR6.cpp
+    DRAMPower/standards/lpddr6/LPDDR6.cpp
+    DRAMPower/standards/lpddr6/LPDDR6Core.cpp
+    DRAMPower/standards/lpddr6/LPDDR6Interface.cpp
+    DRAMPower/standards/lpddr6/LPDDR6Command.cpp
+    DRAMPower/standards/lpddr6/LPDDR6Pattern.cpp
+    DRAMPower/standards/lpddr6/interface_calculation_LPDDR6.cpp
     DRAMPower/util/extensions.cpp
 )
 add_library(DRAMPower::DRAMPower ALIAS DRAMPower)

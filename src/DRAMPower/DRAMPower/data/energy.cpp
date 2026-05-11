@@ -19,7 +19,8 @@ double energy_info_t::total() const
         + E_ref_AB
         + E_ref_PB
         + E_ref_SB
-        + E_ref_2B;
+        + E_ref_2B
+        + E_ref_DB;
 
     return total;
 };
@@ -40,7 +41,8 @@ void energy_info_t::to_json(json_t &j) const
         {"REF_AB", E_ref_AB},
         {"REF_PB", E_ref_PB},
         {"REF_SB", E_ref_SB},
-        {"REF_2B", E_ref_2B}
+        {"REF_2B", E_ref_2B},
+        {"REF_DB", E_ref_DB}
     };
 
 }
@@ -63,6 +65,7 @@ energy_info_t& energy_info_t::operator+=(const DRAMPower::energy_info_t& other)
     this->E_ref_PB += other.E_ref_PB;
     this->E_ref_SB += other.E_ref_SB;
     this->E_ref_2B += other.E_ref_2B;
+    this->E_ref_DB += other.E_ref_DB;
 
     return *this;
 }

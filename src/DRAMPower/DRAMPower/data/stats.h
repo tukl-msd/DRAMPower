@@ -20,6 +20,7 @@ namespace DRAMPower
 		uint64_t refAllBank = 0;
 		uint64_t refPerBank = 0;
 		uint64_t refPerTwoBanks = 0;
+		uint64_t refDualBanks = 0;
 		uint64_t refSameBank = 0;
 		uint64_t readAuto = 0;
 		uint64_t writeAuto = 0;
@@ -32,6 +33,7 @@ namespace DRAMPower
 			stream.write(reinterpret_cast<const char *>(&refAllBank), sizeof(refAllBank));
 			stream.write(reinterpret_cast<const char *>(&refPerBank), sizeof(refPerBank));
 			stream.write(reinterpret_cast<const char *>(&refPerTwoBanks), sizeof(refPerTwoBanks));
+			stream.write(reinterpret_cast<const char *>(&refDualBanks), sizeof(refDualBanks));
 			stream.write(reinterpret_cast<const char *>(&refSameBank), sizeof(refSameBank));
 			stream.write(reinterpret_cast<const char *>(&readAuto), sizeof(readAuto));
 			stream.write(reinterpret_cast<const char *>(&writeAuto), sizeof(writeAuto));
@@ -44,6 +46,7 @@ namespace DRAMPower
 			stream.read(reinterpret_cast<char *>(&refAllBank), sizeof(refAllBank));
 			stream.read(reinterpret_cast<char *>(&refPerBank), sizeof(refPerBank));
 			stream.read(reinterpret_cast<char *>(&refPerTwoBanks), sizeof(refPerTwoBanks));
+			stream.read(reinterpret_cast<char *>(&refDualBanks), sizeof(refDualBanks));
 			stream.read(reinterpret_cast<char *>(&refSameBank), sizeof(refSameBank));
 			stream.read(reinterpret_cast<char *>(&readAuto), sizeof(readAuto));
 			stream.read(reinterpret_cast<char *>(&writeAuto), sizeof(writeAuto));
@@ -58,6 +61,7 @@ namespace DRAMPower
 				refAllBank == rhs.refAllBank &&
 				refPerBank == rhs.refPerBank &&
 				refPerTwoBanks == rhs.refPerTwoBanks &&
+				refDualBanks == rhs.refDualBanks &&
 				refSameBank == rhs.refSameBank &&
 				readAuto == rhs.readAuto &&
 				writeAuto == rhs.writeAuto;
@@ -72,13 +76,14 @@ namespace DRAMPower
 			refAllBank += rhs.refAllBank;
 			refPerBank += rhs.refPerBank;
 			refPerTwoBanks += rhs.refPerTwoBanks;
+			refDualBanks += rhs.refDualBanks;
 			refSameBank += rhs.refSameBank;
 			readAuto += rhs.readAuto;
 			writeAuto += rhs.writeAuto;
 			return *this;
 		}
 	};
-	NLOHMANN_JSONIFY_ALL_THINGS(command_stats_t, act, pre, reads, writes, refAllBank, refPerBank, refPerTwoBanks, refSameBank, readAuto, writeAuto);
+	NLOHMANN_JSONIFY_ALL_THINGS(command_stats_t, act, pre, reads, writes, refAllBank, refPerBank, refPerTwoBanks, refDualBanks, refSameBank, readAuto, writeAuto);
 
 	struct cycles_t : public util::Serialize, public util::Deserialize {
 		uint64_t act = 0;

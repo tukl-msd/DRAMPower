@@ -25,6 +25,7 @@ struct energy_info_t
 	double E_ref_PB = 0.0;
 	double E_ref_SB = 0.0;
 	double E_ref_2B = 0.0;
+	double E_ref_DB = 0.0;
 
 	double total() const;
 	void to_json(json_t &j) const;
