@@ -1,90 +1,11 @@
 #include "Pattern.h"
-#include <limits>
 #include <cassert>
 #include <bitset>
+#include <variant>
 
 namespace DRAMPower {
 
-    PatternEncoderOverrides::PatternEncoderOverrides(std::initializer_list<PatternEncoderSettingsEntry> _settings)
-    {
-        for (const auto &setting : _settings)
-        {
-            this->settings.emplace(setting.descriptor, setting.bitSpec);
-        }
-    }
-
-    void PatternEncoderOverrides::updateSettings(std::initializer_list<PatternEncoderSettingsEntry> _settings)
-    {
-        // Update settings if descriptor is already present
-        for (const auto &setting : _settings)
-        {
-            this->settings[setting.descriptor] = setting.bitSpec;
-        }
-    }
-
-    std::unordered_map<pattern_descriptor::t, PatternEncoderBitSpec> PatternEncoderOverrides::getSettings()
-    {
-        return this->settings;
-    }
-    
-    const std::unordered_map<pattern_descriptor::t, PatternEncoderBitSpec>& PatternEncoderOverrides::getSettings() const {
-        return this->settings;
-    }
-
-    PatternEncoderBitSpec PatternEncoderOverrides::getSetting(pattern_descriptor::t descriptor)
-    {
-        if (this->settings.find(descriptor) != this->settings.end())
-        {
-            return this->settings.at(descriptor);
-        }
-        return PatternEncoderBitSpec::INVALID;
-    }
-
-    bool PatternEncoderOverrides::hasSetting(pattern_descriptor::t descriptor)
-    {
-        return this->settings.find(descriptor) != this->settings.end();
-    }
-
-    bool PatternEncoderOverrides::removeSetting(pattern_descriptor::t descriptor)
-    {
-        return this->settings.erase(descriptor) > 0;
-    }
-
-    PatternEncoder::PatternEncoder(PatternEncoderOverrides settings)
-        : settings(settings) 
-    {}
-
-    inline bool PatternEncoder::applyBitSpec(
-        PatternEncoderOverrides &spec,
-        pattern_descriptor::t descriptor,
-        bool LAST_BIT,
-        bool default_bit
-    )
-    {
-        auto setting = spec.getSetting(descriptor);
-        switch (setting)
-        {
-        case PatternEncoderBitSpec::L:
-            return false;
-        case PatternEncoderBitSpec::H:
-            return true;
-        case PatternEncoderBitSpec::LAST_BIT:
-            return LAST_BIT;
-        case PatternEncoderBitSpec::INVALID:
-            return default_bit;
-        default:
-            assert(false);
-            break;
-        }
-        return false;
-    }
-
-    uint64_t PatternEncoder::encode(const Command& cmd, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern)
-    {
-        return encode(cmd.targetCoordinate, pattern, lastpattern);
-    }
-
-    uint64_t PatternEncoder::encode(const TargetCoordinate& targetCoordinate, const std::vector<pattern_descriptor::t>& pattern, const uint64_t lastpattern)
+    uint64_t DefaultEncoder::encode(const TargetCoordinate& targetCoordinate, const std::vector<pattern_descriptor::t>& pattern, const PatternEncoderOverrides& settings, const uint64_t lastpattern, [[maybe_unused]] const std::monostate& extraData)
     {
         using namespace pattern_descriptor;
 
@@ -95,8 +16,6 @@ namespace DRAMPower {
         std::bitset<32> bank_group_bits(targetCoordinate.bankGroup);
 
         std::size_t n = pattern.size() - 1;
-        uint64_t opcodeshifter = 1;
-        uint16_t opcodecount = 0;
 
         assert(n < 64);
 
@@ -117,12 +36,12 @@ namespace DRAMPower {
             case CID1:
             case CID2:
             case CID3:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, true);
+                bitset[n] = patternApplyBitSpec<>(settings, descriptor, ((lastpattern >> n) & 1) == 1, true);
                 break;
             case V:
             case X:
             case AP:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, false);
+                bitset[n] = patternApplyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, false);
                 break;
 
             // Target Coordinate bits
@@ -168,19 +87,19 @@ namespace DRAMPower {
                 break;
 
             case C0:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[0]);
+                bitset[n] = patternApplyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[0]);
                 break;
             case C1:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[1]);
+                bitset[n] = patternApplyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[1]);
                 break;
             case C2:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[2]);
+                bitset[n] = patternApplyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[2]);
                 break;
             case C3:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[3]);
+                bitset[n] = patternApplyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[3]);
                 break;
             case C4:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[4]);
+                bitset[n] = patternApplyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[4]);
                 break;
             case C5:
                 bitset[n] = column_bits[5];
@@ -198,25 +117,25 @@ namespace DRAMPower {
                 bitset[n] = column_bits[9];
                 break;
             case C10:
-                bitset[n] = applyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[10]);
+                bitset[n] = patternApplyBitSpec(settings, descriptor, ((lastpattern >> n) & 1) == 1, column_bits[10]);
                 break;
             case C11:
-                bitset[n] = column_bits[C11];
+                bitset[n] = column_bits[11];
                 break;
             case C12:
-                bitset[n] = column_bits[C12];
+                bitset[n] = column_bits[12];
                 break;
             case C13:
-                bitset[n] = column_bits[C13];
+                bitset[n] = column_bits[13];
                 break;
             case C14:
-                bitset[n] = column_bits[C14];
+                bitset[n] = column_bits[14];
                 break;
             case C15:
-                bitset[n] = column_bits[C15];
+                bitset[n] = column_bits[15];
                 break;
             case C16:
-                bitset[n] = column_bits[C16];
+                bitset[n] = column_bits[16];
                 break;
             // Row bits
             case R0:
@@ -273,15 +192,8 @@ namespace DRAMPower {
             case R17:
                 bitset[n] = row_bits[17];
                 break;
-            case OPCODE:
-                // Example: opcode 0x31 results in pattern 0b0011'0001
-                assert(m_opcodeLength > opcodecount);
-                bitset[n] = m_opcode & opcodeshifter;
-                opcodeshifter <<= 1;
-                ++opcodecount;
-                break;
-            
-            default:
+
+                default:
                 break;
             }
 
@@ -289,47 +201,6 @@ namespace DRAMPower {
         }
 
         return bitset.to_ullong();
-    }
-
-    void PatternEncoder::setOpcode(uint64_t opcode, uint16_t opcodeLength) {
-        m_opcode = opcode;
-        m_opcodeLength = opcodeLength;
-    }
-
-    uint64_t PatternEncoder::getOpcode() const {
-        return m_opcode;
-    }
-
-    uint16_t PatternEncoder::getOpcodeLength() const {
-        return m_opcodeLength;
-    }
-
-    void PatternEncoder::serialize(std::ostream& stream) const {
-        stream.write(reinterpret_cast<const char*>(&m_opcode), sizeof(m_opcode));
-        stream.write(reinterpret_cast<const char*>(&m_opcodeLength), sizeof(m_opcodeLength));
-        // settings
-        const std::size_t settingsSize = settings.getSettings().size();
-        stream.write(reinterpret_cast<const char*>(&settingsSize), sizeof(settingsSize));
-        for (const auto& [descriptor, bitSpec] : settings.getSettings()) {
-            stream.write(reinterpret_cast<const char*>(&descriptor), sizeof(descriptor));
-            stream.write(reinterpret_cast<const char*>(&bitSpec), sizeof(bitSpec));
-        }
-    }
-
-    void PatternEncoder::deserialize(std::istream& stream) {
-        stream.read(reinterpret_cast<char*>(&m_opcode), sizeof(m_opcode));
-        stream.read(reinterpret_cast<char*>(&m_opcodeLength), sizeof(m_opcodeLength));
-        // settings
-        std::size_t settingsSize = 0;
-        stream.read(reinterpret_cast<char*>(&settingsSize), sizeof(settingsSize));
-        settings = PatternEncoderOverrides{};
-        for (std::size_t i = 0; i < settingsSize; ++i) {
-            pattern_descriptor::t descriptor;
-            PatternEncoderBitSpec bitSpec;
-            stream.read(reinterpret_cast<char*>(&descriptor), sizeof(descriptor));
-            stream.read(reinterpret_cast<char*>(&bitSpec), sizeof(bitSpec));
-            settings.updateSettings({{descriptor, bitSpec}});
-        }
     }
 
 } // namespace DRAMPower

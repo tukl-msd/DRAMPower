@@ -6,6 +6,8 @@
 #include <DRAMPower/util/Serialize.h>
 #include <DRAMPower/util/Deserialize.h>
 
+#include <utility>
+#include <variant>
 #include <vector>
 #include <cstddef>
 #include <cstdint>
@@ -15,13 +17,20 @@
 
 namespace DRAMPower {
 
-template <typename CommandEnum>
+template <
+    typename CommandEnum,
+    typename pattern_t = pattern_descriptor::t,
+    typename TargetCoordinate_t = TargetCoordinate,
+    typename Encoder_t = DefaultEncoder,
+    typename ExtraData_t = std::monostate
+>
 class PatternHandler : public util::Serialize, public util::Deserialize {
 // Public type definitions+
 public:
     using commandEnum_t = CommandEnum;
-    using commandPattern_t = std::vector<pattern_descriptor::t>;
+    using commandPattern_t = std::vector<pattern_t>;
     using commandPatternMap_t = std::vector<commandPattern_t>;
+    using PatternEncoder_t = BasePatternEncoder<pattern_t, TargetCoordinate_t, Encoder_t, ExtraData_t>;
 
 // Constructors and assignment operators
 public:
@@ -33,8 +42,9 @@ public:
     ~PatternHandler() = default;
 
     // Constructor with encoder overrides and initial patterns
-    explicit PatternHandler(PatternEncoderOverrides encoderoverrides, uint64_t initPattern = 0)
-        : m_encoder(encoderoverrides)
+    template<typename... ExtraDataArgs>
+    explicit PatternHandler(BasePatternEncoderOverrides<pattern_t> encoderoverrides, uint64_t initPattern = 0, ExtraDataArgs&&... extraDataArgs)
+        : m_encoder(encoderoverrides, std::forward<ExtraDataArgs>(extraDataArgs)...)
         , m_commandPatternMap(static_cast<std::size_t>(commandEnum_t::COUNT), commandPattern_t {})
         , m_lastPattern(initPattern)
     {}
@@ -46,8 +56,8 @@ public:
 
 // Public member functions
 public:
-    PatternEncoder& getEncoder() { return m_encoder; }
-    const PatternEncoder& getEncoder() const { return m_encoder; }
+    PatternEncoder_t& getEncoder() { return m_encoder; }
+    const PatternEncoder_t& getEncoder() const { return m_encoder; }
 
     template <commandEnum_t cmd_type>
     void registerPattern(const commandPattern_t &pattern)
@@ -62,19 +72,19 @@ public:
         m_commandPatternMap[static_cast<std::size_t>(cmd_type)] = commandPattern_t(pattern);
     }
 
-    const commandPattern_t& getPattern(CmdType cmd_type) const
+    const commandPattern_t& getPattern(commandEnum_t cmd_type) const
     {
         assert(m_commandPatternMap.size() > static_cast<std::size_t>(cmd_type));
         return m_commandPatternMap[static_cast<std::size_t>(cmd_type)];
     }
-    uint64_t getCommandPattern(const Command& cmd)
+    uint64_t getCommandPattern(commandEnum_t type, const TargetCoordinate_t& coordinate)
     {
-        if (m_commandPatternMap[static_cast<std::size_t>(cmd.type)].empty()) {
+        if (m_commandPatternMap[static_cast<std::size_t>(type)].empty()) {
             // No pattern registered for this command
             throw std::runtime_error("No pattern registered for this command");
         }
-        const auto& pattern = m_commandPatternMap[static_cast<std::size_t>(cmd.type)];
-        m_lastPattern = m_encoder.encode(cmd, pattern, m_lastPattern);
+        const auto& pattern = m_commandPatternMap[static_cast<std::size_t>(type)];
+        m_lastPattern = m_encoder.encode(coordinate, pattern, m_lastPattern);
         return m_lastPattern;
     }
 
@@ -99,7 +109,7 @@ public:
 
 // Private member variables
 private:
-    PatternEncoder m_encoder;
+    PatternEncoder_t m_encoder;
     commandPatternMap_t m_commandPatternMap;
     uint64_t m_lastPattern;
 };
