@@ -7,6 +7,7 @@
 #include <DRAMPower/util/Deserialize.h>
 
 #include <utility>
+#include <variant>
 #include <vector>
 #include <cstddef>
 #include <cstdint>
@@ -21,7 +22,7 @@ template <
     typename pattern_t = pattern_descriptor::t,
     typename TargetCoordinate_t = TargetCoordinate,
     typename Encoder_t = DefaultEncoder,
-    typename ExtraData_t = Unit
+    typename ExtraData_t = std::monostate
 >
 class PatternHandler : public util::Serialize, public util::Deserialize {
 // Public type definitions+
