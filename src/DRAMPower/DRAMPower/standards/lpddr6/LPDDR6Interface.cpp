@@ -1,5 +1,9 @@
 #include "LPDDR6Interface.h"
+#include "DRAMPower/command/Pattern.h"
+#include "DRAMPower/standards/lpddr6/LPDDR6Command.h"
+#include "DRAMPower/standards/lpddr6/LPDDR6Pattern.h"
 #include "DRAMPower/util/databus_types.h"
+#include <tuple>
 
 namespace DRAMPower {
 
@@ -12,7 +16,7 @@ static constexpr DRAMUtils::Config::ToggleRateDefinition busConfig {
     DRAMUtils::Config::TogglingRateIdlePattern::L
 };
 
-LPDDR6Interface::LPDDR6Interface(const MemSpecLPDDR6& memSpec, const config::SimConfig &simConfig)
+LPDDR6Interface::LPDDR6Interface(const MemSpecLPDDR6& memSpec, const config::SimConfig &simConfig, bool enabled)
     : m_memSpec(memSpec)
     , m_commandBus{cmdBusWidth, 2, // modelled with datarate 2
         util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
@@ -30,29 +34,131 @@ LPDDR6Interface::LPDDR6Interface(const MemSpecLPDDR6& memSpec, const config::Sim
         )
     }
     , m_readDQS(memSpec.dataRate, true)
-    , m_wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
+    , m_wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !enabled || !memSpec.wckAlwaysOnMode)
+    , m_clock(2, !enabled)
     , m_dbi(std::nullopt, m_memSpec.burstLength, nullptr, false)
-    , m_patternHandler(PatternEncoderOverrides{}) // No overrides
+    , m_patternHandler(BasePatternEncoderOverrides<pattern_descriptor_LPDDR6::t>{}) // No overrides
+    , m_enabled(enabled)
 {
     registerPatterns();
-    m_formatResult.resize(12 * 24 / 8); // 288 bits bursts // 36 bytes
+    m_formatResult.resize(12 * 24 * 2 / 8); // 576 bits bursts // 72 bytes
 }
 
 void LPDDR6Interface::registerPatterns() {
-    using namespace pattern_descriptor;
-    using commandPattern_t = std::vector<pattern_descriptor::t>;
-    // ACT
+    using namespace pattern_descriptor_LPDDR6;
+    using commandPattern_t = std::vector<pattern_descriptor_LPDDR6::t>;
+    
     // LPDDR6 needs 2 commands for activation (ACT-1 and ACT-2)
     // ACT-1 must be followed by ACT-2 in almost every case (CAS, WRITE,
     // MASK WRITE and READ commands can be issued inbetween ACT-1 and ACT-2)
     // Here we consider ACT = ACT-1 + ACT-2, not considering interleaving
-    auto SC = V;
-    auto AB = V;
-    auto RFM = V;
+    // NOP
+    commandPattern_t nop_pattern = {
+        // R1
+        L, L, L, PAR,
+        // F1
+        L, L, L, V,
+        // R2
+        X, X, X, X,
+        // F2
+        X, X, X, X
+    };
+    m_patternHandler.registerPattern<CmdType::NOP>(nop_pattern);
+
+    // PDE
+    commandPattern_t pde_pattern = {
+        // R1
+        L, L, L, PAR,
+        // F1
+        L, H, L, V,
+        // R2
+        X, X, X, X,
+        // F2
+        X, X, X, X
+    };
+    m_patternHandler.registerPattern<CmdType::PDEA>(pde_pattern);
+    m_patternHandler.registerPattern<CmdType::PDEP>(pde_pattern);
+    
+    // PDX
+    commandPattern_t pdx_pattern = {
+        // R1
+        V, X, X, X,
+        // F1
+        V, X, X, X,
+        // R2
+        V, X, X, X,
+        // F2
+        V, X, X, X
+    };
+    m_patternHandler.registerPattern<CmdType::PDXA>(pdx_pattern);
+    m_patternHandler.registerPattern<CmdType::PDXP>(pdx_pattern);
+
+    // SRE
+    auto sre_gen = [](t PD) -> commandPattern_t {
+        return {
+            // R1
+            L, L, L, PAR,
+            // F1
+            L, L, H, PD,
+            // R2
+            X, X, X, X,
+            // F2
+            X, X, X, X
+        };
+    };
+    // SRE with PD
+    m_patternHandler.registerPattern<CmdType::SREFEN>(sre_gen(H));
+
+    // SRX
+    commandPattern_t srx_pattern = {
+        // R1
+        L, L, L, PAR,
+        // F1
+        L, H, H, V,
+        // R2
+        X, X, X, X,
+        // F2
+        X, X, X, X
+    };
+    m_patternHandler.registerPattern<CmdType::SREFEX>(srx_pattern);
+
+    // PRE / PREA
+    auto pre_gen = [](bool AB) -> commandPattern_t {
+        return {
+            // R1
+            L, L, L, PAR,
+            // F1
+            H, H, V, SC,
+            // R2
+            V, V, V, AB?H:L,
+            // F2
+            AB?BA0:L, AB?BA1:L, AB?BG0:L, AB?BG1:L
+        };
+    };
+    m_patternHandler.registerPattern<CmdType::PRE>(pre_gen(false));
+    m_patternHandler.registerPattern<CmdType::PREA>(pre_gen(true));
+
+    // REF / REFDB
+    auto ref_gen = [](t RFM, bool AB) -> commandPattern_t {
+        return {
+            // R1
+            L, L, L, PAR,
+            // F1
+            H, L, RFM, SC,
+            // R2
+            AB?X:DBG0, AB?X:DBG1, V, AB?H:L,
+            // F2
+            AB?X:BA0, AB?X:BA1, AB?X:BG0, AB?X:BG1
+        };
+    };
+    m_patternHandler.registerPattern<CmdType::REFDB>(ref_gen(L, false));
+    m_patternHandler.registerPattern<CmdType::REFA>(ref_gen(L, true));
+
+    // ACT
     commandPattern_t act_pattern = {
         // ACT-1
         // R1
-        H, H, H, V,
+        H, H, H, PAR,
         // F1
         H, R15, R16, SC,
         // R2
@@ -61,183 +167,55 @@ void LPDDR6Interface::registerPatterns() {
         BA0, BA1, BG0, BG1,
         // ACT-2
         // R1
-        H, H, H, V,
+        H, H, H, PAR,
         // F1
-        L, R8, R0, R10,
+        L, R8, R9, R10,
         // R2
         R4, R5, R6, R7,
         // F2
         R0, R1, R2, R3
     };
     m_patternHandler.registerPattern<CmdType::ACT>(act_pattern);
-    // PRE / PREA
-    auto pre_pattern_gen = [](t SC, t AB) -> commandPattern_t {
+
+    // WR / WRA
+    auto wr_gen = [](t AP) -> commandPattern_t {
         return {
             // R1
-            L, L, L, V,
+            BL, L, H, PAR,
             // F1
-            H, H, V, SC,
+            C0, C1, AP, SC,
             // R2
-            V, V, V, AB,
+            C2, C3, C4, C5,
             // F2
             BA0, BA1, BG0, BG1
         };
     };
-    // PRE
-    m_patternHandler.registerPattern<CmdType::PRE>(pre_pattern_gen(SC, AB));
-    // PREA
-    m_patternHandler.registerPattern<CmdType::PREA>(pre_pattern_gen(SC, AB));
-    // REF (dual Bank, All banks)
-    auto ref_pattern_gen = [](t SC, t RFM, t AB) -> commandPattern_t {
+    m_patternHandler.registerPattern<CmdType::WR>(wr_gen(L));
+    m_patternHandler.registerPattern<CmdType::WRA>(wr_gen(H));
+
+    // RD / RDA
+    auto rd_gen = [](t AP) -> commandPattern_t {
         return {
             // R1
-            L, L, L, V,
+            BL, H, L, PAR,
             // F1
-            H, L, RFM, SC,
+            C0, C1, AP, SC,
             // R2
-            dBG0, dBG1, V, AB,
+            C2, C3, C4, C5,
             // F2
             BA0, BA1, BG0, BG1
         };
     };
-    // TODO: For refresh commands LPDDR6 has RFM (Refresh Management)
-    // TODO: Considering RFM is disabled, CA3 is V
-    m_patternHandler.registerPattern<CmdType::REFB>(ref_pattern_gen(SC, RFM, AB));
-    // RD
-    commandPattern_t rd_pattern = {
-        // R1
-        H, L, L, C0, C3, C4, C5,
-        // F1
-        BA0, BA1, BA2, BA3, C1, C2, L
-    };
-    if (m_memSpec.bank_arch == MemSpecLPDDR6::MBG) {
-        rd_pattern[9] = BG0;
-        rd_pattern[10] = BG1;
-    } else if (m_memSpec.bank_arch == MemSpecLPDDR6::M8B) {
-        rd_pattern[10] = L; // B4
-    }
-    m_patternHandler.registerPattern<CmdType::RD>(rd_pattern);
-    // RDA
-    commandPattern_t rda_pattern = {
-        // R1
-        H, L, L, C0, C3, C4, C5,
-        // F1
-        BA0, BA1, BA2, BA3, C1, C2, H
-    };
-    if (m_memSpec.bank_arch == MemSpecLPDDR6::MBG) {
-        rda_pattern[9] = BG0;
-        rda_pattern[10] = BG1;
-    } else if (m_memSpec.bank_arch == MemSpecLPDDR6::M8B) {
-        rda_pattern[10] = L;
-    }
-    m_patternHandler.registerPattern<CmdType::RDA>(rda_pattern);
-    // WR
-    commandPattern_t wr_pattern = {
-        // R1
-        L, H, H, C0, C3, C4, C5,
-        // F1
-        BA0, BA1, BA2, BA3, C1, C2, L
-    };
-    if (m_memSpec.bank_arch == MemSpecLPDDR6::MBG) {
-        wr_pattern[9] = BG0;
-        wr_pattern[10] = BG1;
-    } else if (m_memSpec.bank_arch == MemSpecLPDDR6::M8B) {
-        wr_pattern[10] = V;
-    }
-    m_patternHandler.registerPattern<CmdType::WR>(wr_pattern);
-    // WRA
-    commandPattern_t wra_pattern = {
-        // R1
-        L, H, H, C0, C3, C4, C5,
-        // F1
-        BA0, BA1, BA2, BA3, C1, C2, H
-    };
-    if (m_memSpec.bank_arch == MemSpecLPDDR6::MBG) {
-        wra_pattern[9] = BG0;
-        wra_pattern[10] = BG1;
-    } else if (m_memSpec.bank_arch == MemSpecLPDDR6::M8B) {
-        wra_pattern[10] = V;
-    }
-    m_patternHandler.registerPattern<CmdType::WRA>(wra_pattern);
-    // REFP2B
-    if (m_memSpec.bank_arch == MemSpecLPDDR6::MBG || m_memSpec.bank_arch == MemSpecLPDDR6::M16B) {
-        m_patternHandler.registerPattern<CmdType::REFP2B>(refb_pattern);
-    }
-    // REFA
-    commandPattern_t refa_pattern = {
-        // R1
-        L, L, L, H, H, H, L,
-        // F1
-        V, V, V, V, V, V, H
-    };
-    if (m_memSpec.bank_arch == MemSpecLPDDR6::MBG) {
-        refa_pattern[9] = BG0;
-    }
-    m_patternHandler.registerPattern<CmdType::REFA>(refa_pattern);
-    // SREFEN
-    m_patternHandler.registerPattern<CmdType::SREFEN>({
-        // R1
-        L, L, L, H, L, H, H,
-        // F1
-        V, V, V, V, V, L, L
-    });
-    // SREFEX
-    m_patternHandler.registerPattern<CmdType::SREFEX>({
-        // R1
-        L, L, L, H, L, H, L,
-        // F1
-        V, V, V, V, V, V, V
-    });
-    // PDEA
-    m_patternHandler.registerPattern<CmdType::PDEA>({
-        // R1
-        L, L, L, H, L, H, H,
-        // F1
-        V, V, V, V, V, L, H
-    });
-    // PDEP
-    m_patternHandler.registerPattern<CmdType::PDEP>({
-        // R1
-        L, L, L, H, L, H, H,
-        // F1
-        V, V, V, V, V, L, H
-    });
-    // PDXA
-    m_patternHandler.registerPattern<CmdType::PDXA>({
-        // R1
-        L, L, L, H, L, H, L,
-        // F1
-        V, V, V, V, V, V, V
-    });
-    // PDXP
-    m_patternHandler.registerPattern<CmdType::PDXP>({
-        // R1
-        L, L, L, H, L, H, L,
-        // F1
-        V, V, V, V, V, V, V
-    });
-    // DSMEN
-    m_patternHandler.registerPattern<CmdType::DSMEN>({
-        // R1
-        L, L, L, H, L, H, H,
-        // F1
-        V, V, V, V, V, H, L
-    });
-    // DSMEX
-    m_patternHandler.registerPattern<CmdType::DSMEX>({
-        // R1
-        L, L, L, H, L, H, L,
-        // F1
-        V, V, V, V, V, V, V
-    });
-    // EOS
+    m_patternHandler.registerPattern<CmdType::RD>(rd_gen(L));
+    m_patternHandler.registerPattern<CmdType::RDA>(rd_gen(H));
 }
 
 timestamp_t LPDDR6Interface::getLastCommandTime() const {
     return m_last_command_time;
 }
 
-void LPDDR6Interface::doCommand(const Command& cmd) {
+void LPDDR6Interface::doCommand(const LPDDR6Command& cmd) {
+    // TODO
     switch(cmd.type) {
         case CmdType::ACT:
         case CmdType::PRE:
@@ -250,14 +228,7 @@ void LPDDR6Interface::doCommand(const Command& cmd) {
         case CmdType::PDEP:
         case CmdType::PDXA:
         case CmdType::PDXP:
-        case CmdType::DSMEN:
-        case CmdType::DSMEX:
-            handleCommandBus(cmd);
-            break;
         case CmdType::REFP2B:
-            if (m_memSpec.bank_arch != MemSpecLPDDR6::MBG && m_memSpec.bank_arch != MemSpecLPDDR6::M16B) {
-                throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
-            }
             handleCommandBus(cmd);
             break;
         case CmdType::RD:
@@ -288,40 +259,64 @@ std::optional<const uint8_t *> LPDDR6Interface::handleDBIInterface(timestamp_t t
     return m_dbi.updateDBI(virtual_time, n_bits, data, read);
 }
 
-void LPDDR6Interface::handleOverrides(size_t length, bool /*read*/) {
-    // Set command bus pattern overrides
-    switch(length) {
-        case 32:
-            m_patternHandler.getEncoder().settings.updateSettings({
-                {pattern_descriptor::C0, PatternEncoderBitSpec::L},
-            });
-            break;
-        default:
-            // Pull down
-            // No interface power needed for PatternEncoderBitSpec::L
-            // Defaults to burst length 16
-        case 16:
-            m_patternHandler.getEncoder().settings.removeSetting(pattern_descriptor::C0);
-            break;
-    }
-}
-
-void LPDDR6Interface::handleCommandBus(const Command &cmd) {
-    auto pattern = m_patternHandler.getCommandPattern(cmd);
+void LPDDR6Interface::handleCommandBus(const LPDDR6Command& cmd) {
+    auto pattern = m_patternHandler.getCommandPattern(cmd.type, cmd.targetCoordinate);
     auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_commandBus.get_width();
     m_commandBus.load(cmd.timestamp, pattern, ca_length);
 }
 
-void LPDDR6Interface::setMetaData(uint16_t metaData) {
-    m_metaData = metaData;
+void LPDDR6Interface::enable(timestamp_t timestamp) {
+    if (m_enabled) return;
+    if (m_memSpec.wckAlwaysOnMode) {
+        m_wck.start(timestamp);
+    }
+    m_clock.start(timestamp);
+    m_last_command_time = timestamp;
+    m_enabled = true;
 }
 
-uint16_t LPDDR6Interface::getMetaData() {
-    return m_metaData;
+void LPDDR6Interface::disable(timestamp_t timestamp) {
+    if (!m_enabled) return;
+    if (m_memSpec.wckAlwaysOnMode) {
+        m_wck.stop(timestamp);
+    }
+    m_clock.stop(timestamp);
+    m_last_command_time = timestamp;
+    m_enabled = false;
 }
 
-const uint8_t* LPDDR6Interface::formatData(const uint8_t* data, std::size_t n_bits, bool read) {
-    assert(256 == n_bits && "Invalid LPDDR6 burst");
+bool LPDDR6Interface::isEnabled() const {
+    return m_enabled;
+}
+
+void LPDDR6Interface::setMetaDataB1(uint16_t metaData) {
+    m_metaData[0] = metaData;
+}
+void LPDDR6Interface::setMetaDataB2(uint16_t metaData) {
+    m_metaData[1] = metaData;
+}
+
+uint16_t LPDDR6Interface::getMetaDataB1() const {
+    return m_metaData[0];
+}
+uint16_t LPDDR6Interface::getMetaDataB2() const {
+    return m_metaData[1];
+}
+
+void LPDDR6Interface::setParityCheckMode(bool state) {
+    // TODO WCK Always ON mode must be set active when CA parity is enabled
+    assert(((m_memSpec.wckAlwaysOnMode && state) || !m_memSpec.wckAlwaysOnMode) && "Invalid wckAlwaysOnMode for state = true");
+    m_patternHandler.getEncoder().getExtraData().parity_check_mode = state;
+}
+bool LPDDR6Interface::getParityCheckMode() const {
+    return m_patternHandler.getEncoder().getExtraData().parity_check_mode;
+}
+
+std::tuple<const uint8_t*, std::size_t> LPDDR6Interface::formatData(const uint8_t* data, std::size_t n_bits, bool read) {
+    if (nullptr == data) return std::make_tuple(nullptr, n_bits);
+    assert((256 == n_bits || 512 == n_bits) && "Invalid burst");
+    std::size_t n_nbursts = (512 == n_bits) ? 2 : 1;
+    static constexpr std::size_t burst_offset = 256 + 4 * 8;
 
     uint16_t dbival = 0;
     if (m_dbi.isEnabled()) {
@@ -332,60 +327,67 @@ const uint8_t* LPDDR6Interface::formatData(const uint8_t* data, std::size_t n_bi
         }
     }
 
+    // TODO necessary?
     std::fill(m_formatResult.begin(), m_formatResult.end(), 0);
 
-    std::size_t dataBitIdx = 0;
-    std::size_t burst = 0;
-    std::size_t dq = 0;
+    std::size_t dataBitIdx;
+    std::size_t burst;
+    std::size_t dq;
 
-    for (int i = 0; i < 288; ++i) {
-        bool isSpecial = (dq == 4 || dq == 5 || dq == 10 || dq == 11);
-        bool isMeta    = (burst >= 8  && burst < 12) && isSpecial;
-        bool isDbi     = (burst >= 20 && burst < 24) && isSpecial;
-        bool isData    = !(isMeta || isDbi);
+    for (std::size_t burst24 = 0; burst24 < n_nbursts; ++burst24) {
+        dataBitIdx = 0;
+        burst = 0;
+        dq = 0;
+        for (int i = 0; i < 288; ++i) {
+            bool isSpecial = (dq == 4 || dq == 5 || dq == 10 || dq == 11);
+            bool isMeta    = (burst >= 8  && burst < 12) && isSpecial;
+            bool isDbi     = (burst >= 20 && burst < 24) && isSpecial;
+            bool isData    = !(isMeta || isDbi);
 
 
-        int group = (((dq >> 2) & 2) | (dq & 1)) * isSpecial; // 4: 0, 5: 1, 10: 2, 11: 3
-        int bitOffsetSub = (isMeta * 8) + (isDbi * 20);
-        int bitOffset   = (group * 4) + (burst - bitOffsetSub);
+            int group = (((dq >> 2) & 2) | (dq & 1)) * isSpecial; // 4: 0, 5: 1, 10: 2, 11: 3
+            int bitOffsetSub = (isMeta * 8) + (isDbi * 20);
+            int bitOffset   = (group * 4) + (burst - bitOffsetSub);
 
 
-        bool metaBit = (m_metaData >> bitOffset) & 1;
-        bool dbiBit = (dbival >> bitOffset) & 1;
-        bool dataBit = (data[dataBitIdx >> 3] >> (dataBitIdx & 7)) & 1;
+            bool metaBit = (m_metaData[burst24] >> bitOffset) & 1;
+            bool dbiBit = (dbival >> bitOffset) & 1;
+            bool dataBit = (data[(burst24 * burst_offset) + (dataBitIdx >> 3)] >> (dataBitIdx & 7)) & 1;
 
-        bool bitValue = (isMeta * metaBit) | (isDbi * dbiBit) | (isData * dataBit);
+            bool bitValue = (isMeta * metaBit) | (isDbi * dbiBit) | (isData * dataBit);
 
-        m_formatResult[i >> 3] |= (static_cast<uint8_t>(bitValue) << (i & 7));
-        
-        dataBitIdx += isData;
+            m_formatResult[(burst24 * burst_offset) + (i >> 3)] |= (static_cast<uint8_t>(bitValue) << (i & 7));
 
-        if (12 == ++dq) {
-            dq = 0;
-            ++burst;
+            dataBitIdx += isData;
+
+            if (12 == ++dq) {
+                dq = 0;
+                ++burst;
+            }
         }
     }
-    return m_formatResult.data();
+    return std::make_tuple(m_formatResult.data(), n_nbursts * 288);
 }
 
-void LPDDR6Interface::handleData(const Command &cmd, bool read) {
+void LPDDR6Interface::handleData(const LPDDR6Command& cmd, bool read) {
     auto loadfunc = read ? &databus_t::loadRead : &databus_t::loadWrite;
     size_t length = 0;
     if (0 == cmd.sz_bits) {
         // No data provided by command
         if (m_dataBus.isTogglingRate()) {
             length = m_memSpec.burstLength;
+            // TODO length invalid
             (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
         }
     } else {
         std::optional<const uint8_t *> dbi_data = std::nullopt;
-        for (std::size_t i = 0; i < )
         // Data provided by command
         if (m_dataBus.isBus() && m_dbi.isEnabled()) {
             dbi_data = handleDBIInterface(cmd.timestamp, cmd.sz_bits, cmd.data, read);
         }
-        length = cmd.sz_bits / m_dataBus.getWidth();
-        (m_dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, formatData(dbi_data.value_or(cmd.data), cmd.sz_bits, read));
+        auto[data_ptr, data_ptr_sz_bits] = formatData(dbi_data.value_or(cmd.data), cmd.sz_bits, read);
+        (m_dataBus.*loadfunc)(cmd.timestamp, data_ptr_sz_bits, data_ptr);
+        length = data_ptr_sz_bits / m_dataBus.getWidth();
     }
     // DQS
     if (read) {
@@ -403,7 +405,7 @@ void LPDDR6Interface::handleData(const Command &cmd, bool read) {
             m_wck.stop(cmd.timestamp + length / m_memSpec.dataRate);
         }
     }
-    handleOverrides(length, read);
+    m_patternHandler.getEncoder().getExtraData().currentBurstLength = length;
     handleCommandBus(cmd);
 }
 
