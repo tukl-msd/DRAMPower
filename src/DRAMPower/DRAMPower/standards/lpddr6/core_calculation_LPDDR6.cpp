@@ -40,12 +40,9 @@ namespace DRAMPower {
         return (1.0 / B) * VDD * (IDD5B - IDD3_N) * tRFC * N_REF;
     }
 
-    double Calculation_LPDDR6::E_ref_pb(double VDD, double IDD5PB_B, double I_1, double tRFCPB, uint64_t N_PB_REF) const {
-        return VDD * (IDD5PB_B - I_1) * tRFCPB * N_PB_REF;
-    }
-
-    double Calculation_LPDDR6::E_ref_p2b(double VDD, double IDD5PB_B, double I_2, double tRFCPB, uint64_t N_P2B_REF) const {
-        return 0.5 * VDD * (IDD5PB_B - I_2) * tRFCPB * N_P2B_REF;
+    double Calculation_LPDDR6::E_ref_db(double VDD, double IDD5DB_B, double I_2, double tRFCDB, uint64_t N_DB_REF) const {
+        // halfed cause only half of the energy is contributed by this bank
+        return 0.5 * VDD * (IDD5DB_B - I_2) * tRFCDB * N_DB_REF;
     }
 
     energy_t Calculation_LPDDR6::calcEnergy(const SimulationStats &stats) const {
@@ -53,8 +50,8 @@ namespace DRAMPower {
         auto t_WCK = m_memSpec.memTimingSpec.tWCK;
         auto t_RAS = m_memSpec.memTimingSpec.tRAS * t_CK;
         auto t_RP = m_memSpec.memTimingSpec.tRP * t_CK;
-        auto t_RFC = m_memSpec.memTimingSpec.tRFC * t_CK;
-        auto t_RFCPB = m_memSpec.memTimingSpec.tRFCPB * t_CK;
+        auto t_RFCAB = m_memSpec.memTimingSpec.tRFCAB * t_CK;
+        auto t_RFCDB = m_memSpec.memTimingSpec.tRFCDB * t_CK;
         auto t_REFI = m_memSpec.memTimingSpec.tREFI * t_CK;
 
         auto rho = m_memSpec.bwParams.bwPowerFactRho;
@@ -64,7 +61,7 @@ namespace DRAMPower {
 
         energy_t energy(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks * m_memSpec.numberOfDevices);
 
-        for (auto vd : {MemSpecLPDDR6::VoltageDomain::VDD1, MemSpecLPDDR6::VoltageDomain::VDD2H, MemSpecLPDDR6::VoltageDomain::VDD2L}) {
+        for (auto vd : {MemSpecLPDDR6::VoltageDomain::VDD1, MemSpecLPDDR6::VoltageDomain::VDD2C, MemSpecLPDDR6::VoltageDomain::VDD2D}) {
             auto VDD = m_memSpec.memPowerSpec[vd].vDDX;
             auto IDD_0 = m_memSpec.memPowerSpec[vd].iDD0X;
             auto IDD2N = m_memSpec.memPowerSpec[vd].iDD2NX;
@@ -74,7 +71,7 @@ namespace DRAMPower {
             auto IDD4R = m_memSpec.memPowerSpec[vd].iDD4RX;
             auto IDD4W = m_memSpec.memPowerSpec[vd].iDD4WX;
             auto IDD5 = m_memSpec.memPowerSpec[vd].iDD5X;
-            auto IDD5PB = m_memSpec.memPowerSpec[vd].iDD5PBX;
+            auto IDD5PDB = m_memSpec.memPowerSpec[vd].iDD5PDBX;
             auto IDD6 = m_memSpec.memPowerSpec[vd].iDD6X;
             auto IDD6DS = m_memSpec.memPowerSpec[vd].iDD6DSX;
             auto IBeta = m_memSpec.memPowerSpec[vd].iBeta;
@@ -82,8 +79,8 @@ namespace DRAMPower {
             auto I_rho = rho * (IDD3N - IDD2N) + IDD2N;
             auto I_2 = IDD3N + (IDD3N - I_rho);
             auto I_theta = (IDD_0 * (t_RP + t_RAS) - IBeta * t_RP) * (1 / t_RAS);
-            auto IDD5PB_B =
-                (IDD5PB * (t_REFI / 8) - IDD2N * ((t_REFI / 8) - t_RFCPB)) * (1.0 / t_RFCPB);
+            auto IDD5PDB_B =
+                (IDD5PDB * (t_REFI / 8) - IDD2N * ((t_REFI / 8) - t_RFCDB)) * (1.0 / t_RFCDB); // TODO: validate
             auto approx_IDD3N = I_rho + B * (IDD3N - I_rho);
 
             size_t energy_offset = 0;
@@ -105,35 +102,22 @@ namespace DRAMPower {
                                         stats.bank[bank_offset + b].cycles.activeTime() * t_CK);
                         energy.bank_energy[energy_offset + b].E_bg_pre +=
                             E_BG_pre(B, VDD, IDD2N, stats.rank_total[i].cycles.pre * t_CK);
-                        if (m_memSpec.bank_arch == MemSpecLPDDR6::MBG) {
-                            energy.bank_energy[energy_offset + b].E_RD +=
-                                E_RD(VDD, IDD4R, I_2, BL, DR, t_WCK, bank.counter.reads);
-                            energy.bank_energy[energy_offset + b].E_WR +=
-                                E_WR(VDD, IDD4W, I_2, BL, DR, t_WCK, bank.counter.writes);
-                            energy.bank_energy[energy_offset + b].E_RDA +=
-                                E_RD(VDD, IDD4R, I_2, BL, DR, t_WCK, bank.counter.readAuto);
-                            energy.bank_energy[energy_offset + b].E_WRA +=
-                                E_WR(VDD, IDD4W, I_2, BL, DR, t_WCK, bank.counter.writeAuto);
-                        } else {
-                            energy.bank_energy[energy_offset + b].E_RD +=
-                                E_RD(VDD, IDD4R, IDD3N, BL, DR, t_WCK, bank.counter.reads);
-                            energy.bank_energy[energy_offset + b].E_WR +=
-                                E_WR(VDD, IDD4W, IDD3N, BL, DR, t_WCK, bank.counter.writes);
-                            energy.bank_energy[energy_offset + b].E_RDA +=
-                                E_RD(VDD, IDD4R, IDD3N, BL, DR, t_WCK, bank.counter.readAuto);
-                            energy.bank_energy[energy_offset + b].E_WRA +=
-                                E_WR(VDD, IDD4W, IDD3N, BL, DR, t_WCK, bank.counter.writeAuto);
-                        }
+                        energy.bank_energy[energy_offset + b].E_RD +=
+                            E_RD(VDD, IDD4R, I_2, BL, DR, t_WCK, bank.counter.reads);
+                        energy.bank_energy[energy_offset + b].E_WR +=
+                            E_WR(VDD, IDD4W, I_2, BL, DR, t_WCK, bank.counter.writes);
+                        energy.bank_energy[energy_offset + b].E_RDA +=
+                            E_RD(VDD, IDD4R, I_2, BL, DR, t_WCK, bank.counter.readAuto);
+                        energy.bank_energy[energy_offset + b].E_WRA +=
+                            E_WR(VDD, IDD4W, I_2, BL, DR, t_WCK, bank.counter.writeAuto);
                         energy.bank_energy[energy_offset + b].E_pre_RDA +=
                             E_pre(VDD, IBeta, IDD2N, t_RP, bank.counter.readAuto);
                         energy.bank_energy[energy_offset + b].E_pre_WRA +=
                             E_pre(VDD, IBeta, IDD2N, t_RP, bank.counter.writeAuto);
                         energy.bank_energy[energy_offset + b].E_ref_AB +=
-                            E_ref_ab(B, VDD, IDD5, approx_IDD3N, t_RFC, bank.counter.refAllBank);
-                        energy.bank_energy[energy_offset + b].E_ref_PB +=
-                            E_ref_pb(VDD, IDD5PB_B, IDD3N, t_RFCPB, bank.counter.refPerBank);
+                            E_ref_ab(B, VDD, IDD5, approx_IDD3N, t_RFCAB, bank.counter.refAllBank);
                         energy.bank_energy[energy_offset + b].E_ref_2B +=
-                            E_ref_p2b(VDD, IDD5PB_B, I_2, t_RFCPB, bank.counter.refPerTwoBanks);
+                            E_ref_db(VDD, IDD5PDB_B, I_2, t_RFCDB, bank.counter.refPerTwoBanks);
                     }
                 }
 

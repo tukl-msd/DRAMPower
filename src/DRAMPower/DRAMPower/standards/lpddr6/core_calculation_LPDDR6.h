@@ -29,8 +29,7 @@ namespace DRAMPower
         double E_RD(double VDD, double IDD4_R, double I_i, std::size_t BL, std::size_t DR, double t_WCK, uint64_t N_RD) const;
         double E_WR(double VDD, double IDD4_W, double I_i, std::size_t BL, std::size_t DR, double t_WCK, uint64_t N_WR) const;
         double E_ref_ab(std::size_t B, double VDD, double IDD5B, double IDD3_N, double tRFC, uint64_t N_REF) const;
-        double E_ref_pb(double VDD, double IDD5PB_B, double I_1, double tRFCPB, uint64_t N_PB_REF) const;
-        double E_ref_p2b(double VDD, double IDD5PB_B, double I_2, double tRFCPB, uint64_t N_P2B_REF) const;
+        double E_ref_db(double VDD, double IDD5DB_B, double I_2, double tRFCDB, uint64_t N_DB_REF) const;
 
     public:
         energy_t calcEnergy(const SimulationStats &stats) const;
