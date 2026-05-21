@@ -22,12 +22,12 @@ struct LPDDR6CoreMemSpec {
     LPDDR6CoreMemSpec(const MemSpecLPDDR6& memSpec)
         : numberOfBanks(memSpec.numberOfBanks)
         , numberOfRanks(memSpec.numberOfRanks)
-        , tRFC(memSpec.memTimingSpec.tRFC)
-        , tRFCPB(memSpec.memTimingSpec.tRFCPB)
+        , tRFCAB(memSpec.memTimingSpec.tRFCAB)
+        , tRFCDB(memSpec.memTimingSpec.tRFCDB)
         , tRAS(memSpec.memTimingSpec.tRAS)
-        , tRCD(memSpec.memTimingSpec.tRCD)
+        , tRCDR(memSpec.memTimingSpec.tRCDR)
+        , tRCDW(memSpec.memTimingSpec.tRCDW)
         , tRP(memSpec.memTimingSpec.tRP)
-        , bank_arch(memSpec.bank_arch)
         , perTwoBankOffset(memSpec.perTwoBankOffset)
         , prechargeOffsetRD(memSpec.prechargeOffsetRD)
         , prechargeOffsetWR(memSpec.prechargeOffsetWR)
@@ -36,12 +36,12 @@ struct LPDDR6CoreMemSpec {
     uint64_t numberOfBanks;
     uint64_t numberOfRanks;
 
-    uint64_t tRFC;
-    uint64_t tRFCPB;
+    uint64_t tRFCAB;
+    uint64_t tRFCDB;
     uint64_t tRAS;
-    uint64_t tRCD;
+    uint64_t tRCDR;
+    uint64_t tRCDW;
     uint64_t tRP;
-    MemSpecLPDDR6::BankArchitectureMode bank_arch;
     std::size_t perTwoBankOffset;
     uint64_t prechargeOffsetRD;
     uint64_t prechargeOffsetWR;

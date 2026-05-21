@@ -128,9 +128,11 @@ void LPDDR6Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
     auto &rank = m_ranks[rank_idx];
     for (std::size_t bank_idx = 0; bank_idx < rank.banks.size(); ++bank_idx) {
         auto& counter = rank.banks[bank_idx].counter.refAllBank;
-        handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFC, counter);
+        // TODO timing
+        handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFCAB, counter);
     }
-    rank.endRefreshTime = timestamp + m_memSpec.tRFC;
+    // TODO timing
+    rank.endRefreshTime = timestamp + m_memSpec.tRFCAB;
 }
 
 void LPDDR6Core::handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp, uint64_t timing, uint64_t & counter){
@@ -204,7 +206,7 @@ void LPDDR6Core::handleSelfRefreshEntry(std::size_t rank_idx, timestamp_t timest
     // Issue implicit refresh
     handleRefAll(rank_idx, timestamp);
     // Handle self-refresh entry after tRFC
-    auto timestampSelfRefreshStart = timestamp + m_memSpec.tRFC;
+    auto timestampSelfRefreshStart = timestamp + m_memSpec.tRFCDB; // TODO: tRFCDB
     m_implicitCommandHandler.addImplicitCommand(timestampSelfRefreshStart, [rank_idx, timestampSelfRefreshStart](LPDDR6Core& self) {
         auto& rank = self.m_ranks[rank_idx];
         rank.counter.selfRefresh++;
@@ -294,7 +296,7 @@ timestamp_t LPDDR6Core::earliestPossiblePowerDownEntryTime(Rank& rank) const {
         entryTime = std::max(
             {entryTime,
                 bank.counter.act == 0 ? 0
-                                    : bank.cycles.act.get_start() + m_memSpec.tRCD,
+                    : bank.cycles.act.get_start() + std::min(m_memSpec.tRCDR, m_memSpec.tRCDW), // TODO: RCDR, RCDW
                 bank.counter.pre == 0 ? 0 : bank.latestPre + m_memSpec.tRP,
                 bank.refreshEndTime});
     }
