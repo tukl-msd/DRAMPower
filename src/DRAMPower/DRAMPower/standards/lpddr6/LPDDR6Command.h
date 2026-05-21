@@ -12,20 +12,12 @@ namespace DRAMPower {
 
 struct LPDDR6TargetCoordinate {
     LPDDR6TargetCoordinate() = default;
-    LPDDR6TargetCoordinate(const TargetCoordinate& targetCoordinate)
-        : bank(targetCoordinate.bank)
-        , dbank((targetCoordinate.bank + 8) % 16)
-        , bankGroup(targetCoordinate.bankGroup)
-        , dbankGroup((targetCoordinate.bankGroup + 2) % 4)
-        , rank(targetCoordinate.rank)
-        , row(targetCoordinate.row)
-        , column(targetCoordinate.column)
-    {}
+    LPDDR6TargetCoordinate(const TargetCoordinate& targetCoordinate);
 
     std::size_t bank = 0;
-    std::size_t dbank = 0;
+    std::optional<std::size_t> dbank = std::nullopt;
     std::size_t bankGroup = 0;
-    std::size_t dbankGroup = 0;
+    std::optional<std::size_t> dbankGroup = std::nullopt;
     std::size_t rank = 0;
     std::size_t row = 0;
     std::size_t column = 0;

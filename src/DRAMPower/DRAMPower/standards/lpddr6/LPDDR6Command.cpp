@@ -5,6 +5,14 @@
 
 namespace DRAMPower {
 
+LPDDR6TargetCoordinate::LPDDR6TargetCoordinate(const TargetCoordinate& targetCoordinate)
+    : bank(targetCoordinate.bank)
+    , bankGroup(targetCoordinate.bankGroup)
+    , rank(targetCoordinate.rank)
+    , row(targetCoordinate.row)
+    , column(targetCoordinate.column)
+{}
+    
 LPDDR6Command::LPDDR6Command(timestamp_t timestamp, CmdType type, LPDDR6TargetCoordinate targetCoord, const uint8_t * data, std::size_t sz_bits)
     : timestamp(timestamp)
     , type(type)
