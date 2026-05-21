@@ -11,14 +11,8 @@ namespace DRAMPower {
         using MemImpedanceSpec = DRAMUtils::MemSpec::MemImpedanceSpecTypeLPDDR6;
         enum VoltageDomain {
             VDD1 = 0,
-            VDD2H,
-            VDD2L,
-        };
-
-        enum BankArchitectureMode {
-            MBG,   // 4 banks, 4 bank groups
-            M16B,  // 16 banks, no bank groups
-            M8B    // 8 banks, no bank groups
+            VDD2C,
+            VDD2D,
         };
 
     public:
@@ -43,7 +37,6 @@ namespace DRAMPower {
         uint64_t banksPerGroup;
         uint64_t numberOfRanks;
         std::size_t perTwoBankOffset = 8;
-        BankArchitectureMode bank_arch;
         bool wckAlwaysOnMode;
 
         double vddq;
@@ -56,12 +49,13 @@ namespace DRAMPower {
             double tWCK;
             uint64_t WCKtoCK;
             uint64_t tRAS;
-            uint64_t tRCD;
+            uint64_t tRCDR;
+            uint64_t tRCDW;
             uint64_t tRL;
             uint64_t tWL;
             uint64_t tWR;
-            uint64_t tRFC;
-            uint64_t tRFCPB;
+            uint64_t tRFCDB;
+            uint64_t tRFCAB;
             uint64_t tREFI;
             uint64_t tRP;
             uint64_t tRBTP;
@@ -80,7 +74,7 @@ namespace DRAMPower {
             double iDD4RX;
             double iDD4WX;
             double iDD5X;
-            double iDD5PBX;
+            double iDD5PDBX;
             double iDD6X;
             double iDD6DSX;
             double iBeta;
