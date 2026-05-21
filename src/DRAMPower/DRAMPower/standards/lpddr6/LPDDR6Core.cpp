@@ -1,8 +1,10 @@
 #include "LPDDR6Core.h"
+#include "DRAMPower/Types.h"
 #include "DRAMPower/data/stats.h"
 #include "DRAMPower/standards/lpddr6/LPDDR6Command.h"
 #include "DRAMPower/util/RegisterHelper.h"
 #include <algorithm>
+#include <optional>
 
 namespace DRAMPower {
 
@@ -76,6 +78,10 @@ void LPDDR6Core::doCommand(const LPDDR6Command& cmd) {
 
 timestamp_t LPDDR6Core::getLastCommandTime() const {
     return m_last_command_time;
+}
+
+std::optional<timestamp_t> LPDDR6Core::getLastImplicitCommandTime() const {
+    return m_implicitCommandHandler.getLastTime();
 }
 
 bool LPDDR6Core::isSerializable() const {

@@ -1,6 +1,7 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR6_LPDDR6CORE_H
 #define DRAMPOWER_STANDARDS_LPDDR6_LPDDR6CORE_H
 
+#include "DRAMPower/Types.h"
 #include "DRAMPower/dram/Rank.h"
 #include "DRAMPower/standards/lpddr6/LPDDR6Command.h"
 #include "DRAMPower/util/ImplicitCommandHandler.h"
@@ -9,6 +10,7 @@
 
 #include "DRAMPower/memspec/MemSpecLPDDR6.h"
 
+#include <optional>
 #include <vector>
 
 namespace DRAMPower {
@@ -63,6 +65,7 @@ public:
 // Member functions
     void doCommand(const LPDDR6Command& cmd);
     timestamp_t getLastCommandTime() const;
+    std::optional<timestamp_t> getLastImplicitCommandTime() const;
     bool isSerializable() const;
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
 // Overrides

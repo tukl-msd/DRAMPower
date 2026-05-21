@@ -5,6 +5,7 @@
 
 #include <deque>
 #include <functional>
+#include <optional>
 #include <type_traits>
 #include <utility>
 #include <algorithm>
@@ -48,6 +49,11 @@ public:
         details::addImplicitCommand(m_implicitCommandList, timestamp, std::forward<Func>(func));
     }
 
+    std::optional<timestamp_t> getLastTime() const {
+        return m_implicitCommandList.empty() ? std::nullopt :
+            std::make_optional(m_implicitCommandList.back().first);
+    }
+
     void processImplicitCommandQueue(CommandContext_t context, timestamp_t timestamp, timestamp_t &last_command_time) {
         while (!m_implicitCommandList.empty() && m_implicitCommandList.front().first <= timestamp) {
             // Execute implicit command functor
@@ -81,6 +87,11 @@ public:
     void addImplicitCommand(timestamp_t timestamp, Func&& func)
     {
         details::addImplicitCommand(m_implicitCommandList, timestamp, std::forward<Func>(func));
+    }
+
+    std::optional<timestamp_t> getLastTime() const {
+        return m_implicitCommandList.empty() ? std::nullopt :
+            std::make_optional(m_implicitCommandList.back().first);
     }
 
     void processImplicitCommandQueue(timestamp_t timestamp, timestamp_t &last_command_time) {
