@@ -34,8 +34,7 @@ void DBI::deserialize(std::istream& stream) {
 void MetaData::setMetaData(uint16_t metaData1, uint16_t metaData2) {
     if (m_set_callback) {
         (m_set_callback)(metaData1, metaData2);
-        m_metadata1 = metaData1;
-        m_metadata2 = metaData2;
+        m_metadata = std::make_tuple(metaData1, metaData2);
     }
 }
 
@@ -43,16 +42,20 @@ std::tuple<uint16_t, uint16_t> MetaData::getMetaData() const {
     if (m_get_callback) {
         return (m_get_callback)();
     }
-    return std::make_tuple(m_metadata1, m_metadata2);
+    return m_metadata;
 }
 
 void MetaData::serialize(std::ostream& stream) const {
-    stream.write(reinterpret_cast<const char*>(&m_metadata1), sizeof(m_metadata1));
-    stream.write(reinterpret_cast<const char*>(&m_metadata2), sizeof(m_metadata2));
+    auto[m1, m2] = m_metadata;
+    stream.write(reinterpret_cast<const char*>(&m1), sizeof(m1));
+    stream.write(reinterpret_cast<const char*>(&m2), sizeof(m2));
 }
 void MetaData::deserialize(std::istream& stream) {
-    stream.read(reinterpret_cast<char*>(&m_metadata1), sizeof(m_metadata1));
-    stream.read(reinterpret_cast<char*>(&m_metadata2), sizeof(m_metadata2));
+    uint16_t m1 = 0;
+    uint16_t m2 = 0;
+    stream.read(reinterpret_cast<char*>(&m1), sizeof(m1));
+    stream.read(reinterpret_cast<char*>(&m2), sizeof(m2));
+    m_metadata = std::make_tuple(m1, m2);
 }
 
 } // namespace DRAMPower::extensions

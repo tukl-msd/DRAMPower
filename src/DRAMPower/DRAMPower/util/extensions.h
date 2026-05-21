@@ -71,9 +71,8 @@ public:
 // Constructors
 public:
     template<typename FuncSet, typename FuncGet>
-    explicit MetaData(FuncSet&& setcallback, FuncGet&& getcallback, uint16_t initstate)
-    : m_metadata1(initstate)
-    , m_metadata2(initstate)
+    explicit MetaData(FuncSet&& setcallback, FuncGet&& getcallback, std::tuple<uint16_t, uint16_t> initstate)
+    : m_metadata(initstate)
     , m_set_callback(std::forward<FuncSet>(setcallback))
     , m_get_callback(std::forward<FuncGet>(getcallback))
     {}
@@ -90,8 +89,7 @@ public:
 
 // Private member variables
 private:
-    uint16_t m_metadata1 = 0;
-    uint16_t m_metadata2 = 0;
+    std::tuple<uint16_t, uint16_t> m_metadata;
     set_callback_t m_set_callback;
     get_callback_t m_get_callback;
 };
