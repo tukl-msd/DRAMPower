@@ -2,11 +2,13 @@
 #include "DRAMPower/data/stats.h"
 #include "DRAMPower/standards/lpddr6/LPDDR6Command.h"
 #include "DRAMPower/util/RegisterHelper.h"
+#include <algorithm>
 
 namespace DRAMPower {
 
 void LPDDR6Core::doCommand(const LPDDR6Command& cmd) {
     m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp, m_last_command_time);
+    m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
     switch(cmd.type) {
         case CmdType::ACT:
             util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleAct);
