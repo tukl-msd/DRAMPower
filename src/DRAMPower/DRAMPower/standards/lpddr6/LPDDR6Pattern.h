@@ -28,6 +28,8 @@ namespace pattern_descriptor_LPDDR6 {
 } // namespace pattern_descriptor
 
 struct LPDDR6PatternExtraData {
+    std::size_t perTwoBankOffset;
+    std::size_t numberOfBanks;
     std::size_t currentBurstLength = 0;
     bool parity_check_mode = false;
 

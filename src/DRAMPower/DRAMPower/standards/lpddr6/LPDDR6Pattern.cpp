@@ -15,7 +15,9 @@ uint64_t LPDDR6Encoder::encode(const LPDDR6TargetCoordinate& targetCoordinate, c
         std::bitset<17> row_bits(targetCoordinate.row & 0x1FFFF);
         std::bitset<6> column_bits(targetCoordinate.column & 0x3F);
         std::bitset<2> bank_group_bits(targetCoordinate.bankGroup & 0x2);
-        std::bitset<2> dbank_group_bits(targetCoordinate.dbankGroup & 0x2);
+        auto dbank = targetCoordinate.dbank.value_or((targetCoordinate.bank + extraData.perTwoBankOffset) % extraData.numberOfBanks);
+        auto dbankGroup = dbank / 4; // TODO enforce
+        std::bitset<2> dbank_group_bits(dbankGroup & 0x2);
         bool sc_bit = (1 == targetCoordinate.subChannel);
 
         std::size_t n = pattern.size() - 1;
