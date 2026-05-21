@@ -29,12 +29,11 @@ namespace DRAMPower {
             return true;
         }, false);
         getExtensionManager().registerExtension<extensions::MetaData>([this](uint16_t metaData1, uint16_t metaData2) -> void {
-            m_interface.setMetaDataB1(metaData1);
-            m_interface.setMetaDataB2(metaData2);
+            m_interface.setMetaData(metaData1, metaData2);
         },
         [this]() -> std::tuple<uint16_t, uint16_t> {
-            return std::make_tuple(m_interface.getMetaDataB1(), m_interface.getMetaDataB2());
-        }, m_interface.getMetaDataB1());
+            return m_interface.getMetaData();
+        }, m_interface.getMetaData());
     }
 
 // Getters for CLI
