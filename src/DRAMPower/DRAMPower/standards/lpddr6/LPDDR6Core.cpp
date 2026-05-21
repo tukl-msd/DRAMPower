@@ -32,15 +32,15 @@ void LPDDR6Core::doCommand(const LPDDR6Command& cmd) {
             util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleWriteAuto);
             break;
         case CmdType::REFDB: {
-            assert(m_ranks.size()>cmd.targetCoordinate.rank);
+            assert(m_ranks.size() > cmd.targetCoordinate.rank);
             auto& rank = m_ranks.at(cmd.targetCoordinate.rank);
-            assert(rank.banks.size()>cmd.targetCoordinate.bank);
-            assert(rank.banks.size()>cmd.targetCoordinate.dbank);
+            assert(rank.banks.size() > cmd.targetCoordinate.bank);
+            assert(!cmd.targetCoordinate.dbank.has_value() || rank.banks.size() > cmd.targetCoordinate.dbank.value());
             if (cmd.targetCoordinate.bank >= rank.banks.size() || cmd.targetCoordinate.dbank >= rank.banks.size()) {
                 throw std::invalid_argument("Invalid bank targetcoordinate");
             }
             auto bank_id1 = cmd.targetCoordinate.bank;
-            auto bank_id2 = cmd.targetCoordinate.dbank;
+            auto bank_id2 = cmd.targetCoordinate.dbank.value_or((bank_id1 + m_memSpec.perTwoBankOffset) % m_memSpec.numberOfBanks);
             rank.commandCounter.inc(cmd.type);
             handleRefDualBanks(cmd.targetCoordinate.rank, bank_id1, bank_id2, cmd.timestamp);
             break;
