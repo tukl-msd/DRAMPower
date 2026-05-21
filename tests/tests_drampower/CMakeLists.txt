@@ -96,6 +96,27 @@ add_executable(tests_drampower
 	core/LPDDR5/lpddr5_test_pattern_20.cpp
 	core/LPDDR5/lpddr5_test_pattern_21.cpp
 
+	core/LPDDR6/lpddr6_multidevice_tests.cpp
+	core/LPDDR6/lpddr6_multirank_tests.cpp
+	core/LPDDR6/lpddr6_test_pattern_0.cpp
+	core/LPDDR6/lpddr6_test_pattern_1.cpp
+	core/LPDDR6/lpddr6_test_pattern_2.cpp
+	core/LPDDR6/lpddr6_test_pattern_3.cpp
+	core/LPDDR6/lpddr6_test_pattern_4.cpp
+	core/LPDDR6/lpddr6_test_pattern_5.cpp
+	core/LPDDR6/lpddr6_test_pattern_6.cpp
+	core/LPDDR6/lpddr6_test_pattern_7.cpp
+	core/LPDDR6/lpddr6_test_pattern_9.cpp
+	core/LPDDR6/lpddr6_test_pattern_11.cpp
+	core/LPDDR6/lpddr6_test_pattern_12.cpp
+	core/LPDDR6/lpddr6_test_pattern_13.cpp
+	core/LPDDR6/lpddr6_test_pattern_14.cpp
+	core/LPDDR6/lpddr6_test_pattern_15.cpp
+	core/LPDDR6/lpddr6_test_pattern_16.cpp
+	core/LPDDR6/lpddr6_test_pattern_17.cpp
+	core/LPDDR6/lpddr6_test_pattern_18.cpp
+	core/LPDDR6/lpddr6_test_pattern_19.cpp
+
 	interface/test_interface_ddr4.cpp
 	interface/test_interface_ddr5.cpp
 	interface/test_interface_lpddr4.cpp
@@ -109,6 +130,7 @@ add_executable(tests_drampower
 	interface/test_dbi_ddr4.cpp
 	interface/test_dbi_lpddr4.cpp
 	interface/test_dbi_lpddr5.cpp
+	interface/test_dbi_lpddr6.cpp
 )
 
 set_target_properties(tests_drampower PROPERTIES FOLDER tests/drampower)
