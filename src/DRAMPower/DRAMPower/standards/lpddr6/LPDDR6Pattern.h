@@ -34,10 +34,14 @@ struct LPDDR6PatternExtraData {
     bool parity_check_mode = false;
 
     void serialize(std::ostream& stream) const {
+        stream.write(reinterpret_cast<const char*>(&perTwoBankOffset), sizeof(perTwoBankOffset));
+        stream.write(reinterpret_cast<const char*>(&numberOfBanks), sizeof(numberOfBanks));
         stream.write(reinterpret_cast<const char*>(&currentBurstLength), sizeof(currentBurstLength));
         stream.write(reinterpret_cast<const char*>(&parity_check_mode), sizeof(parity_check_mode));
     }
     void deserialize(std::istream& stream) {
+        stream.read(reinterpret_cast<char*>(&perTwoBankOffset), sizeof(perTwoBankOffset));
+        stream.read(reinterpret_cast<char*>(&numberOfBanks), sizeof(numberOfBanks));
         stream.read(reinterpret_cast<char*>(&currentBurstLength), sizeof(currentBurstLength));
         stream.read(reinterpret_cast<char*>(&parity_check_mode), sizeof(parity_check_mode));
     }
