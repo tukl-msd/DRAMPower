@@ -79,7 +79,6 @@ private:
     void handleReadAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
     void handleWriteAuto(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
     void handleRefAll(std::size_t rank_idx, timestamp_t timestamp);
-    void handleRefPerBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp);
     void handleRefDualBanks(std::size_t rank_idx, std::size_t bank_idx1, std::size_t bank_idx2, timestamp_t timestamp);
     void handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp, uint64_t timing,
                              uint64_t& counter);

@@ -114,17 +114,14 @@ void LPDDR6Core::handlePreAll(Rank &rank, timestamp_t timestamp) {
     }
 }
 
-void LPDDR6Core::handleRefPerBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp) {
-    auto& counter = m_ranks[rank_idx].banks[bank_idx].counter.refPerBank;
-    handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFCPB, counter);
-}
-
 void LPDDR6Core::handleRefDualBanks(std::size_t rank_idx, std::size_t bank_idx1, std::size_t bank_idx2, timestamp_t timestamp) {
     auto& rank = m_ranks[rank_idx];
     auto& counter1 = rank.banks[bank_idx1].counter.refPerTwoBanks;
     auto& counter2 = rank.banks[bank_idx2].counter.refPerTwoBanks;
-    handleRefreshOnBank(rank_idx, bank_idx1, timestamp, m_memSpec.tRFCPB, counter1);
-    handleRefreshOnBank(rank_idx, bank_idx2, timestamp, m_memSpec.tRFCPB, counter2);
+    // TODO timing
+    handleRefreshOnBank(rank_idx, bank_idx1, timestamp, m_memSpec.tRFCDB, counter1);
+    handleRefreshOnBank(rank_idx, bank_idx2, timestamp, m_memSpec.tRFCDB, counter2);
+    // TODO rank.endRefreshTime?
 }
 
 void LPDDR6Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
