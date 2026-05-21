@@ -3,6 +3,8 @@
 #include "DRAMPower/standards/lpddr6/LPDDR6Command.h"
 #include "DRAMPower/standards/lpddr6/LPDDR6Pattern.h"
 #include "DRAMPower/util/databus_types.h"
+#include <algorithm>
+#include <functional>
 #include <tuple>
 
 namespace DRAMPower {
@@ -41,7 +43,8 @@ LPDDR6Interface::LPDDR6Interface(const MemSpecLPDDR6& memSpec, const config::Sim
     , m_enabled(enabled)
 {
     registerPatterns();
-    m_formatResult.resize(12 * 24 * 2 / 8); // 576 bits bursts // 72 bytes
+    m_patternHandler.getEncoder().getExtraData().numberOfBanks = memSpec.numberOfBanks;
+    m_patternHandler.getEncoder().getExtraData().perTwoBankOffset = memSpec.perTwoBankOffset;
 }
 
 void LPDDR6Interface::registerPatterns() {
@@ -225,8 +228,8 @@ void LPDDR6Interface::doCommand(const LPDDR6Command& cmd) {
         case CmdType::SREFEX:
         case CmdType::PRE:
         case CmdType::PREA:
-        case CmdType::REFB:
         case CmdType::REFDB:
+        case CmdType::REFA:
         case CmdType::ACT:
             handleCommandBus(cmd);
             break;
@@ -288,18 +291,13 @@ bool LPDDR6Interface::isEnabled() const {
     return m_enabled;
 }
 
-void LPDDR6Interface::setMetaDataB1(uint16_t metaData) {
-    m_metaData[0] = metaData;
-}
-void LPDDR6Interface::setMetaDataB2(uint16_t metaData) {
-    m_metaData[1] = metaData;
+void LPDDR6Interface::setMetaData(uint16_t metaDataB1, uint16_t metaDataB2) {
+    m_formatter.m_metaData[0] = metaDataB1;
+    m_formatter.m_metaData[1] = metaDataB2;
 }
 
-uint16_t LPDDR6Interface::getMetaDataB1() const {
-    return m_metaData[0];
-}
-uint16_t LPDDR6Interface::getMetaDataB2() const {
-    return m_metaData[1];
+std::tuple<uint16_t, uint16_t> LPDDR6Interface::getMetaData() const {
+    return std::make_tuple(m_formatter.m_metaData[0], m_formatter.m_metaData[1]);
 }
 
 void LPDDR6Interface::setParityCheckMode(bool state) {
@@ -309,63 +307,6 @@ void LPDDR6Interface::setParityCheckMode(bool state) {
 }
 bool LPDDR6Interface::getParityCheckMode() const {
     return m_patternHandler.getEncoder().getExtraData().parity_check_mode;
-}
-
-std::tuple<const uint8_t*, std::size_t> LPDDR6Interface::formatData(const uint8_t* data, std::size_t n_bits, bool read) {
-    if (nullptr == data) return std::make_tuple(nullptr, n_bits);
-    assert((256 == n_bits || 512 == n_bits) && "Invalid burst");
-    std::size_t n_nbursts = (512 == n_bits) ? 2 : 1;
-    static constexpr std::size_t burst_offset = 256 + 4 * 8;
-
-    uint16_t dbival = 0;
-    if (m_dbi.isEnabled()) {
-        auto& dbivec = read ? m_dbi.getInversionStateRead() : m_dbi.getInversionStateWrite();
-        std::size_t n = std::min(dbivec.size(), static_cast<std::size_t>(16));
-        for (std::size_t i = 0; i < n; ++i) {
-            dbival |= (static_cast<uint16_t>(dbivec[i]) << i);
-        }
-    }
-
-    // TODO necessary?
-    std::fill(m_formatResult.begin(), m_formatResult.end(), 0);
-
-    std::size_t dataBitIdx;
-    std::size_t burst;
-    std::size_t dq;
-
-    for (std::size_t burst24 = 0; burst24 < n_nbursts; ++burst24) {
-        dataBitIdx = 0;
-        burst = 0;
-        dq = 0;
-        for (int i = 0; i < 288; ++i) {
-            bool isSpecial = (dq == 4 || dq == 5 || dq == 10 || dq == 11);
-            bool isMeta    = (burst >= 8  && burst < 12) && isSpecial;
-            bool isDbi     = (burst >= 20 && burst < 24) && isSpecial;
-            bool isData    = !(isMeta || isDbi);
-
-
-            int group = (((dq >> 2) & 2) | (dq & 1)) * isSpecial; // 4: 0, 5: 1, 10: 2, 11: 3
-            int bitOffsetSub = (isMeta * 8) + (isDbi * 20);
-            int bitOffset   = (group * 4) + (burst - bitOffsetSub);
-
-
-            bool metaBit = (m_metaData[burst24] >> bitOffset) & 1;
-            bool dbiBit = (dbival >> bitOffset) & 1;
-            bool dataBit = (data[(burst24 * burst_offset) + (dataBitIdx >> 3)] >> (dataBitIdx & 7)) & 1;
-
-            bool bitValue = (isMeta * metaBit) | (isDbi * dbiBit) | (isData * dataBit);
-
-            m_formatResult[(burst24 * burst_offset) + (i >> 3)] |= (static_cast<uint8_t>(bitValue) << (i & 7));
-
-            dataBitIdx += isData;
-
-            if (12 == ++dq) {
-                dq = 0;
-                ++burst;
-            }
-        }
-    }
-    return std::make_tuple(m_formatResult.data(), n_nbursts * 288);
 }
 
 void LPDDR6Interface::handleData(const LPDDR6Command& cmd, bool read) {
@@ -383,7 +324,11 @@ void LPDDR6Interface::handleData(const LPDDR6Command& cmd, bool read) {
         if (m_dataBus.isBus() && m_dbi.isEnabled()) {
             dbi_data = handleDBIInterface(cmd.timestamp, cmd.sz_bits, cmd.data, read);
         }
-        auto[data_ptr, data_ptr_sz_bits] = formatData(dbi_data.value_or(cmd.data), cmd.sz_bits, read);
+        auto[data_ptr, data_ptr_sz_bits] = m_formatter.formatData(
+            dbi_data.value_or(cmd.data), cmd.sz_bits,
+            m_dbi.isEnabled() ?
+                read ? std::make_optional(m_dbi.getInversionStateRead()) : std::make_optional(m_dbi.getInversionStateWrite())
+                : std::nullopt);
         (m_dataBus.*loadfunc)(cmd.timestamp, data_ptr_sz_bits, data_ptr);
         length = data_ptr_sz_bits / m_dataBus.getWidth();
     }
@@ -445,6 +390,74 @@ void LPDDR6Interface::deserialize(std::istream& stream) {
     m_readDQS.deserialize(stream);
     m_wck.deserialize(stream);
     m_clock.deserialize(stream);
+}
+
+std::tuple<const uint8_t*, std::size_t> LPDDR6Interface::DBIFormatter::formatData(
+    const uint8_t* inputData, std::size_t n_bits,
+    std::optional<std::reference_wrapper<const std::vector<bool>>> InversionState
+) {
+    assert(((dataBitsPerBurst - additionalDataPerBurst) == n_bits
+            || (2 * (dataBitsPerBurst - additionalDataPerBurst)) == n_bits)
+            && "Invalid burst");
+    std::size_t nbursts = (2 * (dataBitsPerBurst - additionalDataPerBurst) == n_bits) ? 2 : 1;
+    
+    // Toggling rate
+    if (nullptr == inputData) {
+        return std::make_tuple(nullptr, n_bits + nbursts * additionalDataPerBurst);
+    }
+
+    // Reserve
+    m_formatResult.reserve(nbursts * dataBytesPerBurst);
+    std::fill(m_formatResult.begin(), m_formatResult.begin() + nbursts * dataBytesPerBurst, 0);
+
+    uint32_t dbival = 0;
+    if (InversionState.has_value()) {
+        std::size_t n = std::min(InversionState->get().size(), static_cast<std::size_t>(32));
+        for (std::size_t i = 0; i < n; ++i) {
+            dbival |= (static_cast<uint16_t>(InversionState->get()[i]) << i);
+        }
+    }
+
+    std::size_t dataBitIdx;
+    std::size_t burst;
+    std::size_t dq;
+
+    for (std::size_t burst24 = 0; burst24 < nbursts; ++burst24) {
+        dataBitIdx = 0;
+        burst = 0;
+        dq = 0;
+        for (int i = 0; i < 288; ++i) {
+            bool isSpecialRow = (dq == 4 || dq == 5 || dq == 10 || dq == 11);
+            bool isMetaColumn = (burst >= 8  && burst < 12);
+            bool isMeta       = isMetaColumn && isSpecialRow;
+            bool isDbiColumn  = (burst >= 20 && burst < 24);
+            bool isDbi        = isDbiColumn && isSpecialRow;
+            bool isData       = !(isMeta || isDbi);
+
+
+            int group = (((dq >> 2) & 2) | (dq & 1)) * isSpecialRow; // 4: 0, 5: 1, 10: 2, 11: 3
+            int bitOffsetSub = (isMeta * 8) + (isDbi * 20);
+            int bitOffset   = (group * 4) + (burst - bitOffsetSub);
+
+            int mapping = dataBitsPerBurstNoMetaNoDBI * burst24 + dataBitMapping[dataBitIdx]; 
+            bool dataBit = (inputData[mapping >> 3] >> (mapping & 7)) & 1;
+            bool metaBit = (m_metaData[burst24] >> bitOffset) & 1;
+            bool dbiBit = (dbival >> ((16 * burst24) + bitOffset)) & 1;
+
+            bool bitValue = (dbiBit && isDbi) || (metaBit && isMeta) || (dataBit && isData);
+
+            size_t outputindex = nbursts * dataBitsPerBurst - 1 - (burst24 * dataBitsPerBurst + i);
+            m_formatResult[outputindex >> 3] |= (static_cast<uint8_t>(bitValue) << (outputindex & 7));
+
+            dataBitIdx += isData;
+
+            if (12 == ++dq) {
+                dq = 0;
+                ++burst;
+            }
+        }
+    }
+    return std::make_tuple(m_formatResult.data(), nbursts * 288);
 }
 
 } // namespace DRAMPower
