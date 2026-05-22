@@ -284,9 +284,17 @@ namespace DRAMPower
 		}
 
 		SimulationStats& operator+=(const SimulationStats& rhs) {
-			assert(bank.size() == rhs.bank.size() && "Invalid bank dimension");
-			assert(rank_total.size() == rhs.rank_total.size() && "Invalid rank_total dimension");
+			// Resize
+			if (bank.size() < rhs.bank.size()) 
+			{
+				bank.resize(rhs.bank.size());
+			}
+			if (rank_total.size() < rhs.rank_total.size()) 
+			{
+				rank_total.resize(rhs.rank_total.size());
+			}
 
+			// Upper bound set by minimal size
 			for (std::size_t i = 0; i < std::min(rhs.bank.size(), bank.size()); ++i)
 			{
 				bank[i] += rhs.bank[i];
