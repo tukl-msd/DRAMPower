@@ -73,6 +73,14 @@ std::optional<timestamp_t> DDR5Core::getLastImplicitCommandTime() const {
     return m_implicitCommandHandler.getLastTime();
 }
 
+void DDR5Core::drain() {
+    std::optional<timestamp_t> lastTime = m_implicitCommandHandler.getLastTime();
+    while(lastTime) {
+        m_implicitCommandHandler.processImplicitCommandQueue(*this, *lastTime, m_last_command_time);
+        lastTime = m_implicitCommandHandler.getLastTime();
+    }
+}
+
 bool DDR5Core::isSerializable() const {
     return 0 == m_implicitCommandHandler.implicitCommandCount();
 }

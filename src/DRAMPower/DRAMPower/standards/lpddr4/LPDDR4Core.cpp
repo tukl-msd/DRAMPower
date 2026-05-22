@@ -65,6 +65,14 @@ timestamp_t LPDDR4Core::getLastCommandTime() const {
     return m_last_command_time;
 }
 
+void LPDDR4Core::drain() {
+    std::optional<timestamp_t> lastTime = m_implicitCommandHandler.getLastTime();
+    while(lastTime) {
+        m_implicitCommandHandler.processImplicitCommandQueue(*this, *lastTime, m_last_command_time);
+        lastTime = m_implicitCommandHandler.getLastTime();
+    }
+}
+
 std::optional<timestamp_t> LPDDR4Core::getLastImplicitCommandTime() const {
     return m_implicitCommandHandler.getLastTime();
 }

@@ -62,6 +62,7 @@ public:
     void doCommand(const Command& cmd);
     timestamp_t getLastCommandTime() const;
     std::optional<timestamp_t> getLastImplicitCommandTime() const;
+    void drain();
     bool isSerializable() const;
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
 // Overrides
