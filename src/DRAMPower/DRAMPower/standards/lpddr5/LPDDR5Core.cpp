@@ -1,6 +1,7 @@
 #include "LPDDR5Core.h"
 #include "DRAMPower/Exceptions.h"
 #include "DRAMPower/util/RegisterHelper.h"
+#include <optional>
 
 namespace DRAMPower {
 
@@ -75,6 +76,10 @@ void LPDDR5Core::doCommand(const Command& cmd) {
 
 timestamp_t LPDDR5Core::getLastCommandTime() const {
     return m_last_command_time;
+}
+
+std::optional<timestamp_t> LPDDR5Core::getLastImplicitCommandTime() const {
+    return m_implicitCommandHandler.getLastTime();
 }
 
 bool LPDDR5Core::isSerializable() const {

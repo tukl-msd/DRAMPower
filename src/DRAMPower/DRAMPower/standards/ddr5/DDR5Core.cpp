@@ -1,5 +1,6 @@
 #include "DDR5Core.h"
 #include "DRAMPower/util/RegisterHelper.h"
+#include <optional>
 
 namespace DRAMPower {
 
@@ -66,6 +67,10 @@ void DDR5Core::doCommand(const Command& cmd) {
 
 timestamp_t DDR5Core::getLastCommandTime() const {
     return m_last_command_time;
+}
+
+std::optional<timestamp_t> DDR5Core::getLastImplicitCommandTime() const {
+    return m_implicitCommandHandler.getLastTime();
 }
 
 bool DDR5Core::isSerializable() const {

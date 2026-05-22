@@ -2,6 +2,7 @@
 #include "DRAMPower/Types.h"
 #include "DRAMPower/util/RegisterHelper.h"
 #include <cstddef>
+#include <optional>
 
 namespace DRAMPower {
 
@@ -61,6 +62,10 @@ void DDR4Core::doCommand(const Command& cmd) {
 
 timestamp_t DDR4Core::getLastCommandTime() const {
     return m_last_command_time;
+}
+
+std::optional<timestamp_t> DDR4Core::getLastImplicitCommandTime() const {
+    return m_implicitCommandHandler.getLastTime();
 }
 
 bool DDR4Core::isSerializable() const {

@@ -12,6 +12,7 @@
 
 #include <DRAMPower/memspec/MemSpecDDR4.h>
 
+#include <optional>
 #include <vector>
 
 namespace DRAMPower {
@@ -60,6 +61,7 @@ public:
 // Member functions
     void doCommand(const Command& cmd);
     timestamp_t getLastCommandTime() const;
+    std::optional<timestamp_t> getLastImplicitCommandTime() const;
     bool isSerializable() const;
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
 // Overrides

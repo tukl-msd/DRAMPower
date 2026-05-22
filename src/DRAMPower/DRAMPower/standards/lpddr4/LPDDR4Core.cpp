@@ -1,5 +1,6 @@
 #include "LPDDR4Core.h"
 #include "DRAMPower/util/RegisterHelper.h"
+#include <optional>
 
 namespace DRAMPower {
 
@@ -62,6 +63,10 @@ void LPDDR4Core::doCommand(const Command& cmd) {
 
 timestamp_t LPDDR4Core::getLastCommandTime() const {
     return m_last_command_time;
+}
+
+std::optional<timestamp_t> LPDDR4Core::getLastImplicitCommandTime() const {
+    return m_implicitCommandHandler.getLastTime();
 }
 
 bool LPDDR4Core::isSerializable() const {
