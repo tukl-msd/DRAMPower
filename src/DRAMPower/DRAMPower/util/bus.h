@@ -11,7 +11,7 @@
 
 #include <DRAMUtils/util/types.h>
 
-#include <optional>
+#include <algorithm>
 
 #include <cmath>
 #include <cstdint>
@@ -26,15 +26,6 @@ namespace DRAMPower::util
 
 template <std::size_t max_bitset_size = 0>
 class Bus : public Serialize, public Deserialize {
-
-private:
-	enum class BusInitPatternSpec_
-	{
-		L = 0,
-		H = 1,
-		Z = 2,
-		CUSTOM = 3
-	};
 
 public:
 	
@@ -52,97 +43,81 @@ private:
 	timestamp_t virtual_disable_timestamp = 0;
 	std::size_t width = 0;
 	uint64_t datarate = 1;
-	bool init_load = false;
 	
 	PendingStats<stats_t> pending_stats;
 	
-	std::optional<burst_t> last_pattern;
+	burst_t last_pattern;
 
-	burst_t zero_pattern;
-	burst_t one_pattern;
+	stats_t idle_stats;
+	burst_t idle_pattern_burst;
 	
 	BusIdlePatternSpec idle_pattern;
-	BusInitPatternSpec_ init_pattern;
-	std::optional<burst_t> custom_init_pattern;
-
-private:
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec_ init_pattern,
-		std::optional<burst_t> custom_init_pattern = std::nullopt, bool enableflag = true
+public:
+	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern,
+		bool enableflag = true
 	) 
 		: burst_storage(width)
 		, enableflag(enableflag)
 		, width(width)
 		, datarate(datarate)
 		, idle_pattern(idle_pattern)
-		, init_pattern(init_pattern)
-		, custom_init_pattern (custom_init_pattern)
 	{
 		
-		// Initialize zero and one patterns
-		this->zero_pattern = burst_t();
-		this->one_pattern = burst_t();
-		this->zero_pattern.reset();
-		for (std::size_t i = 0; i < width; i++)
+		// Initialize idle pattern
+		switch(idle_pattern)
 		{
-			this->one_pattern.set(i, true);
-		}
-
-		// Initialize last pattern and init stats
-		switch(init_pattern)
-		{
-			case BusInitPatternSpec_::L:
-				this->last_pattern = zero_pattern;
+			case BusIdlePatternSpec::L:
+				this->idle_pattern_burst = burst_t();
+				this->idle_pattern_burst.reset();
 				break;
-			case BusInitPatternSpec_::H:
-				this->last_pattern = one_pattern;
-				break;
-			case BusInitPatternSpec_::Z:
-				this->last_pattern = std::nullopt;
-				break;
-			case BusInitPatternSpec_::CUSTOM:
-				// Custom init pattern with no value is equivalent to Z
-				this->last_pattern = custom_init_pattern;
-				if(custom_init_pattern.has_value())
+			case BusIdlePatternSpec::H:
+				this->idle_pattern_burst = burst_t();
+				this->idle_pattern_burst.reset();
+				for (std::size_t i = 0; i < width; i++)
 				{
-					assert(custom_init_pattern.value().size() == width);
-				}
-				else
-				{
-					this->init_pattern = BusInitPatternSpec_::Z;
+					this->idle_pattern_burst.set(i, true);
 				}
 				break;
-			default:
-				assert(false);
-				this->last_pattern = std::nullopt;
 		}
+		this->idle_stats = diff(idle_pattern_burst, idle_pattern_burst);
+		// Init stats
+		if (enableflag) {
+			this->pending_stats.setPendingStats(0, this->idle_stats);
+		}
+		this->last_pattern = this->idle_pattern_burst;
 	};
 
-	static BusInitPatternSpec_ convertInitPattern(BusInitPatternSpec pattern) {
-		switch(pattern) {
-			case BusInitPatternSpec::L: return BusInitPatternSpec_::L;
-			case BusInitPatternSpec::H: return BusInitPatternSpec_::H;
-			case BusInitPatternSpec::Z: return BusInitPatternSpec_::Z;
-			default: 
-				assert(false); // Invalid init pattern
-				return BusInitPatternSpec_::Z;
+private:
+
+	void advance_stats(timestamp_t virtual_timestamp, stats_t& stats) const {
+		// Advance counters to new timestamp
+		timestamp_t burstStorageEndTime = this->burst_storage.endTime();
+		// Burst storage
+		timestamp_t lastburstEnd = std::min(burstStorageEndTime, virtual_timestamp);
+		for (timestamp_t t = this->last_load; 0 != lastburstEnd && t < lastburstEnd - 1; ++t) {
+			stats += diff(this->at(t), this->at(t + 1)); // Last: (virtual_timestamp - 2, virtual_timestamp - 1)
+		}
+		// Burst to idle
+		if (virtual_timestamp > burstStorageEndTime && burstStorageEndTime > 0) {
+			// Burst to idle
+			stats += diff(this->at(burstStorageEndTime - 1), this->at(burstStorageEndTime));
+		}
+		// Idle
+		if (virtual_timestamp > burstStorageEndTime) {
+			stats += (virtual_timestamp - burstStorageEndTime - 1) * idle_stats;
 		}
 	}
 
 	void add_previous_stats(timestamp_t virtual_timestamp)
 	{
-		// Add pending stats from last load
 		assert(this->pending_stats.getTimestamp() <= virtual_timestamp); // No interleaved commands
+		// Add pending stats from last load
 		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < virtual_timestamp)
 		{
 			this->stats += this->pending_stats.getStats();
 			this->pending_stats.clear();
 		}
-
-		// Advance counters to new timestamp
-		for (auto n = this->last_load; virtual_timestamp != 0 && n < virtual_timestamp - 1; n++) {
-			this->stats += diff(this->at(n), this->at(n + 1)); // Last: (virtual_timestamp - 2, virtual_timestamp - 1)
-		};
-
+		advance_stats(virtual_timestamp, stats);
 		// Pattern for pending stats (virtual_timestamp - 1, virtual_timestamp)
 		if(virtual_timestamp > 0)
 		{
@@ -167,18 +142,7 @@ private:
 		}
 	}
 
-public: // Ensure type safety for init_pattern with 2 seperate constructors
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, BusInitPatternSpec init_pattern, bool enable = true)
-		: Bus(width, datarate, idle_pattern, convertInitPattern(init_pattern), std::nullopt, enable) {}
-	
-	Bus(std::size_t width, uint64_t datarate, BusIdlePatternSpec idle_pattern, burst_t custom_init_pattern, bool enable)
-		: Bus(width, datarate, idle_pattern, BusInitPatternSpec_::CUSTOM, custom_init_pattern, enable) {}
-
-	void set_idle_pattern(BusIdlePatternSpec idle_pattern)
-	{
-		this->idle_pattern = idle_pattern;
-	}
-
+public:
 	void load(timestamp_t timestamp, const uint8_t * data, std::size_t n_bits) {
 		if (!this->enableflag) {
 			return;
@@ -186,24 +150,10 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		
 		// check timestamp * this->datarate no overflow
 		assert(timestamp <= std::numeric_limits<timestamp_t>::max() / this->datarate);
-		if(timestamp > std::numeric_limits<timestamp_t>::max() / this->datarate)
-		{
-			std::cout << "[Error] timestamp * datarate overflows" << std::endl;
-		}
 		timestamp_t virtual_timestamp = timestamp * this->datarate;
 
 		assert(this->last_load + burst_storage.size() <= virtual_timestamp); // No interleaved commands
 		
-		// Init stats
-		if(!this->init_load && virtual_timestamp == 0) {
-			// stats added as pending_stats
-			this->init_load = true;
-		} else if(!this->init_load) {
-			// virtual_timestamp > 0
-			this->init_load = true;
-			this->stats += diff(this->last_pattern, this->at(0));
-		}
-
 		add_previous_stats(virtual_timestamp);
 		this->last_load = virtual_timestamp;
 
@@ -229,56 +179,15 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		this->load(timestamp, bytes.data(), n_bits);
 	};
 
-	// Returns optional burst (std::nullopt if idle pattern is Z)
-	std::optional<burst_t> at(timestamp_t n) const
+	burst_t at(timestamp_t n) const
 	{
 		// Assert timestamp does not lie in past
 		assert(n >= last_load);
-
 		if (n - this->last_load >= burst_storage.size()) {
-			switch(this->idle_pattern)
-			{
-				case BusIdlePatternSpec::L:
-					return std::make_optional(this->zero_pattern);
-				case BusIdlePatternSpec::H:
-					return std::make_optional(this->one_pattern);
-				case BusIdlePatternSpec::Z:
-					return std::nullopt;
-				case BusIdlePatternSpec::LAST_PATTERN:
-					return this->last_pattern;
-				default:
-					assert(false);
-					return std::nullopt;
-			}
+			return this->idle_pattern_burst;
 		}
-
-		auto burst = this->burst_storage.get_burst(std::size_t(n - this->last_load));
-
-		return std::make_optional(burst);
+		return this->burst_storage.get_burst(std::size_t(n - this->last_load));
 	};
-
-	// Returns timestamp of last burst not including burst to idle_pattern transition
-	timestamp_t get_lastburst_timestamp(bool relative_to_clock = true) const
-	{
-		timestamp_t lastburst = this->last_load;
-		// an init load with burst can be checked with the burst_storage size
-		// if there is no init_load the toggles are computed in get_stats
-		if (this->burst_storage.size() != 0) {
-			// for each load there is at least one burst
-			// get last burst timestamp
-			lastburst += this->burst_storage.size();
-		}
-
-		// no burst or pending_stats present -> no load of the bus (last_load == 0)
-		if (relative_to_clock) {
-			auto remainder = lastburst % this->datarate;
-			if (remainder != 0) {
-				lastburst += this->datarate - remainder;
-			}
-			return lastburst / this->datarate;
-		}
-		return lastburst;
-	}
 
 	// Returns the timestamp when the bus is disabled
 	timestamp_t disable(timestamp_t timestamp) {
@@ -289,16 +198,6 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		}
 		this->virtual_disable_timestamp = timestamp * this->datarate;
 		assert(this->virtual_disable_timestamp  >= this->last_load);
-
-		// Init stats
-		if(!this->init_load && this->virtual_disable_timestamp == 0) {
-			// tranition from init_pattern cannot be computed
-			this->init_load = true;
-		} else if(!this->init_load) {
-			// virtual_disable_timestamp > 0
-			this->init_load = true;
-			this->stats += diff(this->last_pattern, this->at(0));
-		}
 
 		add_previous_stats(this->virtual_disable_timestamp);
 		// Clear pending stats
@@ -317,7 +216,7 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		// Shift the counters to the enabled timestamp
 		this->last_load = timestamp * this->datarate;
 		// Add pending stats at enable timestamp
-		this->pending_stats.setPendingStats(this->last_load, this->diff(std::nullopt, this->at(this->last_load)));
+		this->pending_stats.setPendingStats(this->last_load, idle_stats);
 		this->enableflag = true;
 	}
 
@@ -330,57 +229,32 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		timestamp_t t_virtual = timestamp * this->datarate;
 		assert(t_virtual >= this->last_load);
 		// Return empty stats for t_virtual = 0
-		if(t_virtual == 0)
+		if(0 == t_virtual)
 		{
 			return this->stats;
 		}
 
 		auto stats = this->stats;
 
-		if(!this->init_load && this->enableflag)
-		{
-			// t > 0 and no load on bus
-			// only add init_transition if the bus was enabled at t=0
-			// Add transition from init pattern to idle pattern
-			stats += diff(this->last_pattern, this->at(0));
-		}
-		
 		// Add pending stats from last load
 		if(this->pending_stats.isPending() && this->pending_stats.getTimestamp() < t_virtual)
 		{
 			stats += this->pending_stats.getStats();
 		}
-
-		// Advance stats to new timestamp if enabled
 		if (this->enableflag) {
-			// stats += burst_storage.count(this->last_load, t_virtual - 1);
-			for (auto n = this->last_load; n < t_virtual - 1; n++) {
-				stats += diff(this->at(n), this->at(n + 1)); // Last: (timestamp - 2, timestamp - 1)
-			}
+			advance_stats(t_virtual, stats);
 		}
-
 		return stats;
 	};
 
-	stats_t diff(std::optional<burst_t> high, std::optional<burst_t> low) const {
+	stats_t diff(burst_t high, burst_t low) const {
 		stats_t stats;
-		if(low.has_value())
-		{
-			stats.ones += util::BinaryOps::popcount(low.value());
-			stats.zeroes += width - stats.ones;
-		}
-
-		if(high.has_value() && low.has_value())
-		{
-			stats.bit_changes += util::BinaryOps::bit_changes(high.value(), low.value());
-			stats.ones_to_zeroes += util::BinaryOps::one_to_zeroes(high.value(), low.value());
-			stats.zeroes_to_ones += util::BinaryOps::zero_to_ones(high.value(), low.value());
-		}
+		stats.ones += util::BinaryOps::popcount(low);
+		stats.zeroes += width - stats.ones;
+		stats.bit_changes += util::BinaryOps::bit_changes(high, low);
+		stats.ones_to_zeroes += util::BinaryOps::one_to_zeroes(high, low);
+		stats.zeroes_to_ones += util::BinaryOps::zero_to_ones(high, low);
 		return stats;
-	};
-
-	stats_t diff(std::optional<burst_t> high, burst_t low) const {
-		return diff(high, std::make_optional(low));
 	};
 
 	void serialize(std::ostream& stream) const override {
@@ -389,10 +263,8 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		stream.write(reinterpret_cast<const char*>(&this->last_load), sizeof(this->last_load));
 		stream.write(reinterpret_cast<const char*>(&this->enableflag), sizeof(this->enableflag));
 		stream.write(reinterpret_cast<const char*>(&this->virtual_disable_timestamp), sizeof(this->virtual_disable_timestamp));
-		stream.write(reinterpret_cast<const char*>(&this->init_load), sizeof(this->init_load));
+		stream.write(reinterpret_cast<const char*>(&this->last_pattern), sizeof(this->last_pattern));
 		this->pending_stats.serialize(stream);
-		stream.write(reinterpret_cast<const char*>(&this->idle_pattern), sizeof(this->idle_pattern));
-		stream.write(reinterpret_cast<const char*>(&this->init_pattern), sizeof(this->init_pattern));
 	};
 
 	void deserialize(std::istream& stream) override {
@@ -401,10 +273,8 @@ public: // Ensure type safety for init_pattern with 2 seperate constructors
 		stream.read(reinterpret_cast<char*>(&this->last_load), sizeof(this->last_load));
 		stream.read(reinterpret_cast<char*>(&this->enableflag), sizeof(this->enableflag));
 		stream.read(reinterpret_cast<char*>(&this->virtual_disable_timestamp), sizeof(this->virtual_disable_timestamp));
-		stream.read(reinterpret_cast<char*>(&this->init_load), sizeof(this->init_load));
+		stream.read(reinterpret_cast<char*>(&this->last_pattern), sizeof(this->last_pattern));
 		this->pending_stats.deserialize(stream);
-		stream.read(reinterpret_cast<char*>(&this->idle_pattern), sizeof(this->idle_pattern));
-		stream.read(reinterpret_cast<char*>(&this->init_pattern), sizeof(this->init_pattern));
 	};
 };
 

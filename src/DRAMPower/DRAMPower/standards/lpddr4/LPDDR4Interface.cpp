@@ -16,7 +16,7 @@ static constexpr DRAMUtils::Config::ToggleRateDefinition busConfig {
 
 LPDDR4Interface::LPDDR4Interface(const MemSpecLPDDR4& memSpec, const config::SimConfig& simConfig)
     : m_memSpec(memSpec)
-    , m_commandBus{6, 1, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
+    , m_commandBus{6, 1, util::BusIdlePatternSpec::L}
     , m_dataBus{
         util::databus_presets::getDataBusPreset(
             util::DataBusConfig {
@@ -26,8 +26,7 @@ LPDDR4Interface::LPDDR4Interface(const MemSpecLPDDR4& memSpec, const config::Sim
             },
             simConfig.toggleRateDefinition.has_value()
                 ? util::DataBusMode::TogglingRate
-                : util::DataBusMode::Bus,
-            false
+                : util::DataBusMode::Bus
         )
     }
     , m_readDQS(memSpec.dataRate, true)

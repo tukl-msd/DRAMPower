@@ -11,7 +11,6 @@
 #include <DRAMUtils/config/toggling_rate.h>
 
 #include <stdint.h>
-#include <optional>
 
 
 namespace DRAMPower {
@@ -41,10 +40,9 @@ private:
     uint64_t count = 0;
     timestamp_t disable_timestamp = 0;
     timestamp_t disable_time = 0;
-    DRAMUtils::Config::TogglingRateIdlePattern idlepattern = DRAMUtils::Config::TogglingRateIdlePattern::Z;
+    DRAMUtils::Config::TogglingRateIdlePattern idlepattern;
 
 public:
-TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, const bool enabled = true);
 TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, DRAMUtils::Config::TogglingRateIdlePattern idlepattern, const bool enabled = true);
 
     TogglingHandle() = default;

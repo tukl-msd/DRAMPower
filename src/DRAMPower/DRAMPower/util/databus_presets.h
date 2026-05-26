@@ -25,20 +25,19 @@ namespace DRAMPower::util::databus_presets {
 
     inline databus_preset_t getDataBusPreset(
         DataBusConfig&& busConfig,
-        util::DataBusMode mode,
-        bool IdleLastPatternOverride
+        util::DataBusMode mode
     ) {
         if (busConfig.width <= 64) {
-            return databus_64_t(std::move(busConfig), mode, IdleLastPatternOverride);
+            return databus_64_t(std::move(busConfig), mode);
         } else if (busConfig.width <= 256) {
-            return databus_256_t(std::move(busConfig), mode, IdleLastPatternOverride);
+            return databus_256_t(std::move(busConfig), mode);
         } else if (busConfig.width <= 1024) {
-            return databus_1024_t(std::move(busConfig), mode, IdleLastPatternOverride);
+            return databus_1024_t(std::move(busConfig), mode);
         } else if (busConfig.width > 4096) {
             assert(false);
             throw std::runtime_error("Data bus width exceeds maximum.");
         }
-        return databus_4096_t(std::move(busConfig), mode, IdleLastPatternOverride);
+        return databus_4096_t(std::move(busConfig), mode);
     }
 
 } // namespace DRAMPower::util::databus_presets

@@ -15,7 +15,7 @@ namespace DRAMPower {
     DDR4Interface::DDR4Interface(const MemSpecDDR4& memSpec, const config::SimConfig &simConfig)
         : m_memSpec(memSpec)
         , m_commandBus{cmdBusWidth, 1,
-            util::BusIdlePatternSpec::H, util::BusInitPatternSpec::H}
+            util::BusIdlePatternSpec::H}
         , m_dataBus{
             util::databus_presets::getDataBusPreset(
                 util::DataBusConfig{
@@ -25,8 +25,7 @@ namespace DRAMPower {
                 },
                 simConfig.toggleRateDefinition.has_value()
                     ? util::DataBusMode::TogglingRate
-                    : util::DataBusMode::Bus,
-                false
+                    : util::DataBusMode::Bus
             )
         }
         , m_readDQS(memSpec.dataRate, true)

@@ -71,7 +71,7 @@ class LPDDR6_DBI_Tests : public ::testing::Test {
 };
 
 TEST_F(LPDDR6_DBI_Tests, FormatData_0) {
-    util::Bus<12> bus(12, 1, util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L, true);
+    util::Bus<12> bus(12, 1, util::BusIdlePatternSpec::L, true);
     LPDDR6Interface::DBIFormatter formatter{};
     std::vector<uint8_t> expectedOutput {
         0xBD, 0xDF, 0xFB, 0xBD, 0xDF, 0xFB,

@@ -15,7 +15,7 @@ static constexpr DRAMUtils::Config::ToggleRateDefinition busConfig {
 LPDDR5Interface::LPDDR5Interface(const MemSpecLPDDR5& memSpec, const config::SimConfig& simConfig)
     : m_memSpec(memSpec)
     , m_commandBus{cmdBusWidth, 2, // modelled with datarate 2
-        util::BusIdlePatternSpec::L, util::BusInitPatternSpec::L}
+        util::BusIdlePatternSpec::L}
     , m_dataBus{
         util::databus_presets::getDataBusPreset(
             util::DataBusConfig {
@@ -25,8 +25,7 @@ LPDDR5Interface::LPDDR5Interface(const MemSpecLPDDR5& memSpec, const config::Sim
             },
             simConfig.toggleRateDefinition.has_value()
                 ? util::DataBusMode::TogglingRate
-                : util::DataBusMode::Bus,
-            false
+                : util::DataBusMode::Bus
         )
     }
     , m_readDQS(memSpec.dataRate, true)

@@ -1,4 +1,5 @@
 #include "Interface.h"
+#include "DRAMPower/Exceptions.h"
 
 namespace DRAMPower {
 
@@ -15,19 +16,6 @@ void TogglingHandle::TogglingHandleLastBurst::deserialize(std::istream &stream) 
     stream.read(reinterpret_cast<char*>(&last_length), sizeof(last_length));
     stream.read(reinterpret_cast<char*>(&last_load), sizeof(last_load));
     stream.read(reinterpret_cast<char*>(&handled), sizeof(handled));
-}
-
-TogglingHandle::TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, const bool enabled)
-    : width(width)
-    , datarate(datarate)
-    , toggling_rate(toggling_rate)
-    , duty_cycle(duty_cycle)
-    , enableflag(enabled)
-{
-    assert(width > 0); // Check bounds
-    assert(datarate > 0); // Check bounds
-    assert(duty_cycle >= 0 && duty_cycle <= 1); // Check bounds
-    assert(toggling_rate >= 0 && toggling_rate <= 1); // Check bounds
 }
 
 TogglingHandle::TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, DRAMUtils::Config::TogglingRateIdlePattern idlepattern, const bool enabled)
@@ -197,10 +185,7 @@ util::bus_stats_t TogglingHandle::get_stats(timestamp_t timestamp) const
             stats.ones += virtual_timestamp - disable_time - count;
             break;
         case TogglingRateIdlePattern::Invalid:
-            assert(false); // Fallback to Z
-        case TogglingRateIdlePattern::Z:
-            // Nothing to do in high impedance mode
-            break;
+            throw Exception("Invalid TogglingRateIdlePattern");
     }
     // Scale by bus width
     stats.ones *= this->width;

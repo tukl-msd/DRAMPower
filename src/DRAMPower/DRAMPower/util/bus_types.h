@@ -14,15 +14,6 @@ enum class BusIdlePatternSpec
 {
     L = 0,
     H = 1,
-    Z = 2,
-    LAST_PATTERN
-};
-
-enum class BusInitPatternSpec
-{
-    L = 0,
-    H = 1,
-    Z = 2,
 };
 
 struct bus_stats_t :public Serialize, public Deserialize {
