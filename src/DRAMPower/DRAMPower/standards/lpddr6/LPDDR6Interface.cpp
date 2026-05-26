@@ -406,8 +406,11 @@ std::tuple<const uint8_t*, std::size_t> LPDDR6Interface::DBIFormatter::formatDat
     }
 
     // Reserve
-    m_formatResult.reserve(nbursts * dataBytesPerBurst);
-    std::fill(m_formatResult.begin(), m_formatResult.begin() + nbursts * dataBytesPerBurst, 0);
+    std::size_t requiredBytes = nbursts * dataBytesPerBurst;
+    if (m_formatResult.size() < requiredBytes) {
+        m_formatResult.resize(requiredBytes, 0);
+    }
+    std::memset(m_formatResult.data(), 0, requiredBytes);
 
     uint32_t dbival = 0;
     if (InversionState.has_value()) {
