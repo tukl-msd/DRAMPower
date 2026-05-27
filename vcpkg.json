@@ -1,0 +1,21 @@
+{
+    "name": "drampower",
+    "version": "6.0.0",
+    "description": "Fast and accurate DRAM power and energy estimation tool",
+    "homepage": "https://github.com/tukl-msd/DRAMPower",
+    "dependencies": [
+        "dramutils",
+        "spdlog",
+        "cli11"
+    ],
+    "features": {
+        "dev": {
+            "description": "Development dependencies",
+            "dependencies": [
+                "benchmark",
+                "gtest"
+            ]
+        }
+      },
+    "builtin-baseline": "56bb2411609227288b70117ead2c47585ba07713"
+}

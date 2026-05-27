@@ -17,13 +17,20 @@
 			}
 		},
 		{
+			"name": "vcpkg",
+			"hidden": true,
+			"toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+			"cacheVariables": {
+				"VCPKG_INSTALL_OPTIONS": "--no-print-usage"
+			}
+		},
+		{
 			"name": "dev-mode",
 			"hidden": true,
 			"binaryDir": "${sourceDir}/build",
 			"inherits": "cmake-pedantic",
 			"cacheVariables": {
 				"DRAMPOWER_BUILD_TESTS": "ON",
-				"CMAKE_BUILD_PARALLEL_LEVEL": "",
 				"DRAMPOWER_BUILD_CLI": "ON",
 				"DRAMPOWER_BUILD_BENCHMARKS": "ON"
 			}
@@ -64,6 +71,17 @@
 			"cacheVariables": {
 				"CMAKE_BUILD_TYPE": "Debug",
 				"CMAKE_CXX_FLAGS": "-Wall -Wextra -Wpedantic"
+			}
+		},
+		{
+			"name": "dev-vcpkg",
+			"inherits": [
+				"dev-mode",
+				"vcpkg"
+			],
+			"cacheVariables": {
+				"VCPKG_MANIFEST_FEATURES": "dev",
+				"DRAMPOWER_USE_FETCH_CONTENT": "OFF"
 			}
 		},
 		{
