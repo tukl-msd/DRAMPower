@@ -3,7 +3,7 @@
 ###############################
 
 find_package(spdlog REQUIRED)
-find_package(cli11 REQUIRED)
+find_package(CLI11 REQUIRED)
 
 add_executable(cli 
     main.cpp
