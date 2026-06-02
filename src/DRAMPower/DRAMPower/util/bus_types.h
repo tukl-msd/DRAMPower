@@ -6,6 +6,8 @@
 #include <DRAMPower/util/Serialize.h>
 #include <DRAMPower/util/Deserialize.h>
 
+#include "DRAMUtils/util/json_utils.h"
+
 namespace DRAMPower::util {
 
 enum class BusIdlePatternSpec
@@ -85,6 +87,7 @@ struct bus_stats_t :public Serialize, public Deserialize {
 	}
 	
 };
+NLOHMANN_JSONIFY_ALL_THINGS(bus_stats_t, ones, zeroes, bit_changes, ones_to_zeroes, zeroes_to_ones);
 
 } // namespace DRAMPower::util
 

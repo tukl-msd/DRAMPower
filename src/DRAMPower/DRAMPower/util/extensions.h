@@ -8,8 +8,10 @@
 #include <DRAMPower/util/Serialize.h>
 #include <DRAMPower/util/Deserialize.h>
 
+#include <cstdint>
 #include <functional>
 #include <optional>
+#include <tuple>
 
 namespace DRAMPower::extensions {
 
@@ -56,6 +58,40 @@ public:
 private:
     bool m_enabled = false;
     std::optional<enable_callback_t> m_callback;
+};
+
+class MetaData : public Base {
+
+// Public type definitions
+public:
+    using set_callback_t = std::function<void(uint16_t metaData1, uint16_t metaData2)>;
+    using get_callback_t = std::function<std::tuple<uint16_t, uint16_t>(void)>;
+    using timestamp_t = DRAMPower::timestamp_t;
+
+// Constructors
+public:
+    template<typename FuncSet, typename FuncGet>
+    explicit MetaData(FuncSet&& setcallback, FuncGet&& getcallback, std::tuple<uint16_t, uint16_t> initstate)
+    : m_metadata(initstate)
+    , m_set_callback(std::forward<FuncSet>(setcallback))
+    , m_get_callback(std::forward<FuncGet>(getcallback))
+    {}
+
+// Public member functions
+public:
+    void setMetaData(uint16_t metaData1, uint16_t metaData2);
+    std::tuple<uint16_t, uint16_t> getMetaData() const;
+
+// Overrides
+public:
+    void serialize(std::ostream& stream) const override;
+    void deserialize(std::istream& stream) override;
+
+// Private member variables
+private:
+    std::tuple<uint16_t, uint16_t> m_metadata;
+    set_callback_t m_set_callback;
+    get_callback_t m_get_callback;
 };
 
 } // namespace DRAMPower::extensions

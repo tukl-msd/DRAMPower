@@ -1,8 +1,8 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR5_CALCULATION_LPDDR5_H
 #define DRAMPOWER_STANDARDS_LPDDR5_CALCULATION_LPDDR5_H
+#pragma once
 
 #include "DRAMPower/data/stats.h"
-#pragma once
 
 #include "DRAMPower/memspec/MemSpecLPDDR5.h"
 #include <DRAMPower/data/energy.h>
