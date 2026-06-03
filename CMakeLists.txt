@@ -37,7 +37,6 @@
 #########################################
 cmake_minimum_required(VERSION 3.22.0)
 
-# TODO change for release
 set(DRAMPOWER_VERSION_MAJOR 6)
 set(DRAMPOWER_VERSION_MINOR 0)
 set(DRAMPOWER_VERSION_PATCH 1)
@@ -79,6 +78,7 @@ message(STATUS "" )
 option(DRAMPOWER_BUILD_CLI "Build DRAMPower Command Line Tool" ${PROJECT_IS_TOP_LEVEL})
 option(DRAMPOWER_BUILD_BENCHMARKS "Build DRAMPower Command Line Tool" OFF)
 option(DRAMPOWER_BUILD_TESTS "Build DRAMPower unit tests" OFF)
+option(DRAMPOWER_INSTALL "Install DRAMPower" OFF)
 
 ### Compiler optimization settings ###
 if(PROJECT_IS_TOP_LEVEL)
@@ -136,7 +136,7 @@ if (DRAMPOWER_USE_FETCH_CONTENT)
     if (DRAMPOWER_USE_FETCH_CONTENT_INTERNAL)
         FetchContent_Declare(
             DRAMUtils
-            URL "https://github.com/tukl-msd/DRAMUtils/archive/refs/tags/v1.12.1.tar.gz"
+            URL "https://github.com/tukl-msd/DRAMUtils/archive/refs/tags/v1.13.4.tar.gz"
             OVERRIDE_FIND_PACKAGE
         )
 
@@ -153,6 +153,8 @@ if (DRAMPOWER_USE_FETCH_CONTENT)
         add_subdirectory(${DRAMPOWER_LIBRARY_DIR}/spdlog)
     endif()
 endif()
+
+find_package(DRAMUtils)
 
 ###############################################
 ###           Source Directory              ###

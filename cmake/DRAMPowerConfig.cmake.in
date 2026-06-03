@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(DRAMUtils REQUIRED)
+
+include(${CMAKE_CURRENT_LIST_DIR}/DRAMPowerTargets.cmake)
+
+check_required_components(DRAMPower)

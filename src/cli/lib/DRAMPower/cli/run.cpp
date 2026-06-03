@@ -97,7 +97,6 @@ bool parse_command_list(std::string_view csv_file, std::vector<std::pair<Command
 	csv::CSVReader reader{ csv_file, format };
 	
 	// loop variables
-	uint64_t rowcounter = 0;
 	std::size_t rowidx, size, rank_id, bank_group_id, bank_id, row_id, column_id = 0;
 
 	timestamp_t timestamp = 0;
@@ -149,8 +148,6 @@ bool parse_command_list(std::string_view csv_file, std::vector<std::pair<Command
 		else {
 			commandList.emplace_back(Command{ timestamp, cmd, { bank_id, bank_group_id, rank_id, row_id, column_id} }, nullptr);
 		}
-		// Increment row counter
-		++rowcounter;
 	}
 
 	return true;
