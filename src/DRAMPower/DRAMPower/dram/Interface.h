@@ -1,8 +1,6 @@
 #ifndef DRAMPOWER_DDR_INTERFACE_H
 #define DRAMPOWER_DDR_INTERFACE_H
 
-#pragma once 
-
 #include <DRAMPower/Types.h>
 #include <DRAMPower/util/bus.h>
 #include <DRAMPower/util/Serialize.h>

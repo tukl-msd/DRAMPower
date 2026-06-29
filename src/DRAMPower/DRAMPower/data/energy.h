@@ -1,8 +1,6 @@
 #ifndef DRAMPOWER_CALCULATION_ENERGY_H
 #define DRAMPOWER_CALCULATION_ENERGY_H
 
-#pragma once
-
 #include <vector>
 
 #include <DRAMUtils/util/json_utils.h>

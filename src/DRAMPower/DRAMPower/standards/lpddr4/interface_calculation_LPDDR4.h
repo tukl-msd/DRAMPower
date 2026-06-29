@@ -1,8 +1,6 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR4_INTERFACE_CALCULATION_LPDDR4_H
 #define DRAMPOWER_STANDARDS_LPDDR4_INTERFACE_CALCULATION_LPDDR4_H
 
-#pragma once
-
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/data/stats.h>
 

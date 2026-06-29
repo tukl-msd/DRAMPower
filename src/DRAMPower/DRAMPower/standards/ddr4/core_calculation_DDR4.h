@@ -1,8 +1,6 @@
 #ifndef DRAMPOWER_STANDARDS_DDR4_CALCULATION_DDR4_H
 #define DRAMPOWER_STANDARDS_DDR4_CALCULATION_DDR4_H
 
-#pragma once
-
 #include <DRAMPower/data/energy.h>
 
 #include <DRAMPower/Types.h>
