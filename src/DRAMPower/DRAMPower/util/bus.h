@@ -67,7 +67,6 @@ public:
 		switch(idle_pattern)
 		{
 			case BusIdlePatternSpec::L:
-				this->idle_pattern_burst = burst_t();
 				this->idle_pattern_burst.reset();
 				break;
 			case BusIdlePatternSpec::H:
@@ -218,6 +217,15 @@ public:
 		// Add pending stats at enable timestamp
 		this->pending_stats.setPendingStats(this->last_load, idle_stats);
 		this->enableflag = true;
+	}
+
+	void reset() {
+		stats.reset();
+		burst_storage.reset();
+		last_load = 0;
+		virtual_disable_timestamp = 0;
+		pending_stats.reset();
+		this->last_pattern = this->idle_pattern_burst;
 	}
 
 	size_t get_width() const { return width; };

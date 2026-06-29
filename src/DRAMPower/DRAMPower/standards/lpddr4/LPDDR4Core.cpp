@@ -4,53 +4,54 @@
 namespace DRAMPower {
 
 void LPDDR4Core::doCommand(const Command& cmd) {
-    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp, m_last_command_time);
-    m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
+    assert(cmd.timestamp >= m_offset);
+    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp - m_offset, m_last_command_time);
+    m_last_command_time = std::max(cmd.timestamp - m_offset, m_last_command_time);
     switch(cmd.type) {
         case CmdType::ACT:
-            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handleAct, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handleAct, this);
             break;
         case CmdType::PRE:
-            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handlePre, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handlePre, this);
             break;
         case CmdType::PREA:
-            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handlePreAll, this);
+            util::coreHelpers::groupHandler(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handlePreAll, this);
             break;
         case CmdType::REFB:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handleRefPerBank, this);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handleRefPerBank, this);
             break;
         case CmdType::RD:
-            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handleRead, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handleRead, this);
             break;
         case CmdType::RDA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handleReadAuto, this);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handleReadAuto, this);
             break;
         case CmdType::WR:
-            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handleWrite, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handleWrite, this);
             break;
         case CmdType::WRA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handleWriteAuto, this);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handleWriteAuto, this);
             break;
         case CmdType::REFA:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handleRefAll, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handleRefAll, this);
             break;
         case CmdType::PDEA:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handlePowerDownActEntry, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handlePowerDownActEntry, this);
             break;
         case CmdType::PDXA:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handlePowerDownActExit, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handlePowerDownActExit, this);
             break;
         case CmdType::PDEP:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handlePowerDownPreEntry, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handlePowerDownPreEntry, this);
             break;
         case CmdType::PDXP:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handlePowerDownPreExit, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handlePowerDownPreExit, this);
             break;
         case CmdType::SREFEN:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handleSelfRefreshEntry, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handleSelfRefreshEntry, this);
             break;
         case CmdType::SREFEX:
-            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &LPDDR4Core::handleSelfRefreshExit, this);
+            util::coreHelpers::groupHandler(cmd, m_offset, m_ranks, m_helperMapping, &LPDDR4Core::handleSelfRefreshExit, this);
             break;
         case CmdType::END_OF_SIMULATION:
             break;
@@ -60,8 +61,20 @@ void LPDDR4Core::doCommand(const Command& cmd) {
     }
 }
 
+void LPDDR4Core::setSimulationTime(timestamp_t timestamp) {
+    m_offset = timestamp;
+}
+
+void LPDDR4Core::reset() {
+    for (auto& entry : m_ranks) {
+        entry.reset();
+    }
+    m_implicitCommandHandler.reset();
+    m_last_command_time = 0;
+}
+
 timestamp_t LPDDR4Core::getLastCommandTime() const {
-    return m_last_command_time;
+    return m_last_command_time + m_offset;
 }
 
 bool LPDDR4Core::isSerializable() const {
@@ -285,6 +298,8 @@ timestamp_t LPDDR4Core::earliestPossiblePowerDownEntryTime(Rank & rank) const {
 };
 
 void LPDDR4Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
+    assert(timestamp >= m_offset);
+    timestamp = timestamp - m_offset;
     m_implicitCommandHandler.processImplicitCommandQueue(*this, timestamp, m_last_command_time);
     stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks);
     stats.rank_total.resize(m_memSpec.numberOfRanks);
@@ -331,6 +346,7 @@ void LPDDR4Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
 
 void LPDDR4Core::serialize(std::ostream& stream) const {
     stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.write(reinterpret_cast<const char*>(&m_offset), sizeof(m_offset));
     for (const auto& rank : m_ranks) {
         rank.serialize(stream);
     }
@@ -338,6 +354,7 @@ void LPDDR4Core::serialize(std::ostream& stream) const {
 
 void LPDDR4Core::deserialize(std::istream& stream) {
     stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.read(reinterpret_cast<char*>(&m_offset), sizeof(m_offset));
     for (auto& rank : m_ranks) {
         rank.deserialize(stream);
     }

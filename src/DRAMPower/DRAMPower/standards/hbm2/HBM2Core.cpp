@@ -14,24 +14,25 @@ HBM2Core::HBM2Core(const MemSpecHBM2& memSpec)
 {}
 
 void HBM2Core::doCommand(const HBM2Command& cmd) {
-    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp, m_last_command_time);
-    m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
+    assert(cmd.timestamp >= m_offset);
+    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp - m_offset, m_last_command_time);
+    m_last_command_time = std::max(cmd.timestamp - m_offset, m_last_command_time);
     switch(cmd.type) {
         // Row commands
         case CmdType::ACT:
-            util::coreHelpers::bankHandler(cmd, m_pseudoChannels, m_helperMapping, &HBM2Core::handleAct, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_pseudoChannels, m_helperMapping, &HBM2Core::handleAct, this);
             break;
         case CmdType::PRE:
-            util::coreHelpers::bankHandler(cmd, m_pseudoChannels, m_helperMapping, &HBM2Core::handlePre, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_pseudoChannels, m_helperMapping, &HBM2Core::handlePre, this);
             break;
         case CmdType::PREA:
-            util::coreHelpers::groupHandler(cmd, m_pseudoChannels, m_helperMapping, &HBM2Core::handlePreAll, this);
+            util::coreHelpers::groupHandler(cmd, m_offset, m_pseudoChannels, m_helperMapping, &HBM2Core::handlePreAll, this);
             break;
         case CmdType::REFB:
-            util::coreHelpers::bankHandlerIdx(cmd, m_pseudoChannels, m_helperMapping, &HBM2Core::handleRefSingleBank, this);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_pseudoChannels, m_helperMapping, &HBM2Core::handleRefSingleBank, this);
             break;
         case CmdType::REFA:
-            util::coreHelpers::groupHandlerIdx(cmd, m_pseudoChannels, m_helperMapping, &HBM2Core::handleRefAll, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_pseudoChannels, m_helperMapping, &HBM2Core::handleRefAll, this);
             break;
         case CmdType::PDEA:
             handlePowerDownActEntry(cmd.timestamp);
@@ -53,16 +54,16 @@ void HBM2Core::doCommand(const HBM2Command& cmd) {
             break;
         // Column commands
         case CmdType::RD:
-            util::coreHelpers::bankHandler(cmd, m_pseudoChannels, m_helperMapping, &HBM2Core::handleRead, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_pseudoChannels, m_helperMapping, &HBM2Core::handleRead, this);
             break;
         case CmdType::RDA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_pseudoChannels, m_helperMapping, &HBM2Core::handleReadAuto, this);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_pseudoChannels, m_helperMapping, &HBM2Core::handleReadAuto, this);
             break;
         case CmdType::WR:
-            util::coreHelpers::bankHandler(cmd, m_pseudoChannels, m_helperMapping, &HBM2Core::handleWrite, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_pseudoChannels, m_helperMapping, &HBM2Core::handleWrite, this);
             break;
         case CmdType::WRA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_pseudoChannels, m_helperMapping, &HBM2Core::handleWriteAuto, this);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_pseudoChannels, m_helperMapping, &HBM2Core::handleWriteAuto, this);
             break;
         case CmdType::END_OF_SIMULATION:
             break;
@@ -72,8 +73,20 @@ void HBM2Core::doCommand(const HBM2Command& cmd) {
     }
 }
 
+void HBM2Core::setSimulationTime(timestamp_t timestamp) {
+    m_offset = timestamp;
+}
+
+void HBM2Core::reset() {
+    for (auto& entry : m_pseudoChannels) {
+        entry.reset();
+    }
+    m_implicitCommandHandler.reset();
+    m_last_command_time = 0;
+}
+
 timestamp_t HBM2Core::getLastCommandTime() const {
-    return m_last_command_time;
+    return m_last_command_time + m_offset;
 }
 
 bool HBM2Core::isSerializable() const {
@@ -310,6 +323,8 @@ timestamp_t HBM2Core::earliestPossiblePowerDownEntryTime() const {
 }
 
 void HBM2Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
+    assert(timestamp >= m_offset);
+    timestamp = timestamp - m_offset;
     m_implicitCommandHandler.processImplicitCommandQueue(*this, timestamp, m_last_command_time);
     // resize banks and stacks
     stats.bank.resize(m_memSpec.numberOfPseudoChannels * m_memSpec.numberOfBanks * m_memSpec.numberOfStacks);
@@ -351,6 +366,7 @@ void HBM2Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
 
 void HBM2Core::serialize(std::ostream& stream) const {
     stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.write(reinterpret_cast<const char*>(&m_offset), sizeof(m_offset));
     for (const auto &pseudoChannel : m_pseudoChannels) {
         pseudoChannel.serialize(stream);
     }
@@ -358,6 +374,7 @@ void HBM2Core::serialize(std::ostream& stream) const {
 
 void HBM2Core::deserialize(std::istream& stream) {
     stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.read(reinterpret_cast<char*>(&m_offset), sizeof(m_offset));
     for (auto &pseudoChannel : m_pseudoChannels) {
         pseudoChannel.deserialize(stream);
     }

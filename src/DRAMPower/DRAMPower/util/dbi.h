@@ -88,6 +88,16 @@ private:
             return m_inversions;
         }
 
+        void reset() {
+            m_lastbeat.clear();
+            m_init = false;
+            m_start = 0;
+            m_end = 0;
+            m_n_chunks = 0;
+            m_n_bits = 0;
+            m_inversions.clear();
+        }
+
         void update(timestamp_t timestamp, const std::optional<std::size_t>& m_width, std::size_t m_burstLength, std::size_t n_bits) {
             m_start = timestamp;
             if (m_width.has_value()) {
@@ -205,6 +215,13 @@ public:
     }
     bool isEnabled() const {
         return m_enable;
+    }
+
+    void reset() {
+        m_lastBurst_read.reset();
+        m_lastBurst_write.reset();
+        m_invertedData.clear();
+        m_algorithm.reset();
     }
 
     const std::vector<bool>& getInversionStateRead() const {

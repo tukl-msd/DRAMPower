@@ -33,6 +33,8 @@ public:
 // Constructors
 	PseudoChannel(std::size_t numBanks);
 
+	void reset();
+
 // Functions
 public:
 	bool isActive();

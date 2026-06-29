@@ -8,6 +8,8 @@
 
 namespace DRAMPower {
 
+void HBM2PatternExtraData::reset() {}
+
 uint64_t HBM2Encoder::encode(const HBM2TargetCoordinate& targetCoordinate, const std::vector<pattern_descriptor_HBM2::t>& pattern, const BasePatternEncoderOverrides<pattern_descriptor_HBM2::t>&, const uint64_t, [[maybe_unused]] const HBM2PatternExtraData& extraData) {
     using namespace pattern_descriptor_HBM2;
 

@@ -142,6 +142,10 @@ struct burst_storage_impl <BitsetContainer<bitset_size>>{
         data.load_time = 0;
     }
 
+    static inline void reset(data_t& data) {
+        clear(data);
+    }
+
     static inline std::size_t getCount(const data_t& data) {
         return data.count;
     }
@@ -263,8 +267,13 @@ struct burst_storage_impl <BusContainer<bitset_size>> {
     }
 
     static inline void clear(data_t& data) {
+        data.bursts.clear();
         data.count = 0;
         data.load_time = 0;
+    }
+
+    static inline void reset(data_t& data) {
+        clear(data);
     }
 
     static inline std::size_t getCount(const data_t& data) {
@@ -374,6 +383,10 @@ public:
     void clear() {
         impl_t::clear(m_bursts);
 	}
+
+    void reset() {
+        impl_t::reset(m_bursts);
+    }
 
     void setLoadTime(timestamp_t timestamp) {
         impl_t::setLoadTime(m_bursts, timestamp);

@@ -4,56 +4,57 @@
 namespace DRAMPower {
 
 void DDR5Core::doCommand(const Command& cmd) {
-    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp, m_last_command_time);
-    m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
+    assert(cmd.timestamp >= m_offset);
+    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp - m_offset, m_last_command_time);
+    m_last_command_time = std::max(cmd.timestamp - m_offset, m_last_command_time);
     switch(cmd.type) {
         case CmdType::ACT:
-            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &DDR5Core::handleAct, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handleAct, this);
             break;
         case CmdType::PRE:
-            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &DDR5Core::handlePre, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handlePre, this);
             break;
         case CmdType::RD:
-            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &DDR5Core::handleRead, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handleRead, this);
             break;
         case CmdType::RDA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR5Core::handleReadAuto, this);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handleReadAuto, this);
             break;
         case CmdType::WR:
-            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &DDR5Core::handleWrite, this);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handleWrite, this);
             break;
         case CmdType::WRA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR5Core::handleWriteAuto, this);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handleWriteAuto, this);
             break;
         case CmdType::PRESB:
-            util::coreHelpers::bankGroupHandler(cmd, m_ranks, m_helperMapping, &DDR5Core::handlePreSameBank, this);
+            util::coreHelpers::bankGroupHandler(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handlePreSameBank, this);
             break;
         case CmdType::REFSB:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR5Core::handleRefSameBank, this);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handleRefSameBank, this);
             break;
         case CmdType::REFA:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR5Core::handleRefAll, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handleRefAll, this);
             break;
         case CmdType::PREA:
-            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &DDR5Core::handlePreAll, this);
+            util::coreHelpers::groupHandler(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handlePreAll, this);
             break;
         case CmdType::SREFEN:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR5Core::handleSelfRefreshEntry, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handleSelfRefreshEntry, this);
             break;
         case CmdType::SREFEX:
-            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &DDR5Core::handleSelfRefreshExit, this);
+            util::coreHelpers::groupHandler(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handleSelfRefreshExit, this);
             break;
         case CmdType::PDEA:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR5Core::handlePowerDownActEntry, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handlePowerDownActEntry, this);
             break;
         case CmdType::PDEP:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR5Core::handlePowerDownPreEntry, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handlePowerDownPreEntry, this);
             break;
         case CmdType::PDXA:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR5Core::handlePowerDownActExit, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handlePowerDownActExit, this);
             break;
         case CmdType::PDXP:
-            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR5Core::handlePowerDownPreExit, this);
+            util::coreHelpers::groupHandlerIdx(cmd, m_offset, m_ranks, m_helperMapping, &DDR5Core::handlePowerDownPreExit, this);
             break;
         case CmdType::NOP:
         case CmdType::END_OF_SIMULATION:
@@ -64,8 +65,20 @@ void DDR5Core::doCommand(const Command& cmd) {
     }
 }
 
+void DDR5Core::setSimulationTime(timestamp_t timestamp) {
+    m_offset = timestamp;
+}
+
+void DDR5Core::reset() {
+    for (auto& entry : m_ranks) {
+        entry.reset();
+    }
+    m_implicitCommandHandler.reset();
+    m_last_command_time = 0;
+}
+
 timestamp_t DDR5Core::getLastCommandTime() const {
-    return m_last_command_time;
+    return m_last_command_time + m_offset;
 }
 
 bool DDR5Core::isSerializable() const {
@@ -309,6 +322,8 @@ timestamp_t DDR5Core::earliestPossiblePowerDownEntryTime(Rank &rank) {
 }
 
 void DDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
+    assert(timestamp >= m_offset);
+    timestamp = timestamp - m_offset;
     m_implicitCommandHandler.processImplicitCommandQueue(*this, timestamp, m_last_command_time);
     stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks);
     stats.rank_total.resize(m_memSpec.numberOfRanks);
@@ -353,6 +368,7 @@ void DDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
 
 void DDR5Core::serialize(std::ostream& stream) const {
     stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.write(reinterpret_cast<const char*>(&m_offset), sizeof(m_offset));
     for (const auto& rank : m_ranks) {
         rank.serialize(stream);
     }
@@ -360,6 +376,7 @@ void DDR5Core::serialize(std::ostream& stream) const {
 
 void DDR5Core::deserialize(std::istream& stream) {
     stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.read(reinterpret_cast<char*>(&m_offset), sizeof(m_offset));
     for (auto& rank : m_ranks) {
         rank.deserialize(stream);
     }

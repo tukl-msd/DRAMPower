@@ -62,6 +62,10 @@ public:
         return m_implicitCommandList.size();
     }
 
+    void reset() {
+        m_implicitCommandList.clear();
+    }
+
 // Private member variables
 private:
     implicitCommandList_t m_implicitCommandList;
@@ -95,6 +99,10 @@ public:
 
     std::size_t implicitCommandCount() const {
         return m_implicitCommandList.size();
+    }
+
+    void reset() {
+        m_implicitCommandList.clear();
     }
 
 // Private member variables
