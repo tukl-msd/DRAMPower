@@ -17,6 +17,7 @@ public:
     using clock_stats_t = bus_stats_t;
 
 private:
+    bool init_stopped;
     std::optional<timestamp_t> last_start;
     clock_stats_t stats;
     std::size_t dataRate;
@@ -38,13 +39,10 @@ private:
 
 public:
     Clock(std::size_t _dataRate = 2, bool stopped = false)
-        : dataRate(_dataRate)
-    {
-        if (stopped)
-            last_start = std::nullopt;
-        else
-            last_start = 0;
-    };
+        : init_stopped(stopped)
+        , last_start(stopped ? std::nullopt : std::make_optional(0))
+        , dataRate(_dataRate)
+    {}
 
 public:
     void stop(timestamp_t t)
@@ -73,10 +71,16 @@ public:
         return stats;
     };
 
+    void reset() {
+        last_start = init_stopped ? std::nullopt : std::make_optional(0);
+        stats.reset();
+    }
+
     void serialize(std::ostream& stream) const override
     {
         bool hasLastStart = last_start.has_value();
         stream.write(reinterpret_cast<const char*>(&hasLastStart), sizeof(hasLastStart));
+        stream.write(reinterpret_cast<const char*>(&init_stopped), sizeof(init_stopped));
         if (hasLastStart) {
             stream.write(reinterpret_cast<const char*>(&last_start), sizeof(last_start));
         }
@@ -87,6 +91,7 @@ public:
     {
         bool hasLastStart = false;
         stream.read(reinterpret_cast<char*>(&hasLastStart), sizeof(hasLastStart));
+        stream.read(reinterpret_cast<char*>(&init_stopped), sizeof(init_stopped));
         if (hasLastStart) {
             last_start = timestamp_t();
             stream.read(reinterpret_cast<char*>(&last_start), sizeof(last_start));

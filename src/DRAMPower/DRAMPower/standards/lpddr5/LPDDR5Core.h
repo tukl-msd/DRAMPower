@@ -67,6 +67,8 @@ public:
     timestamp_t getLastCommandTime() const;
     bool isSerializable() const;
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
+    void setSimulationTime(timestamp_t timestamp);
+    void reset();
 // Overrides
     void serialize(std::ostream& stream) const override;
     void deserialize(std::istream& stream) override;
@@ -102,6 +104,7 @@ private:
     std::vector<Rank> m_ranks;
     ImplicitCommandHandler<LPDDR5Core> m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;
+    timestamp_t m_offset = 0;
 };
 
 } // namespace DRAMPower

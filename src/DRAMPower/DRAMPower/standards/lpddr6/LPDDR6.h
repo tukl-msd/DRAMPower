@@ -51,6 +51,8 @@ public:
     bool isSerializable() const override {
         return m_core.isSerializable();
     }
+    void setSimulationTime(timestamp_t timestamp) override;
+    void reset() override;
 
 // Private member functions
 private:

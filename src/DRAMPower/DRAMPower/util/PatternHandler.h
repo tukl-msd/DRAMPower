@@ -44,14 +44,16 @@ public:
     // Constructor with encoder overrides and initial patterns
     template<typename... ExtraDataArgs>
     explicit PatternHandler(BasePatternEncoderOverrides<pattern_t> encoderoverrides, uint64_t initPattern = 0, ExtraDataArgs&&... extraDataArgs)
-        : m_encoder(encoderoverrides, std::forward<ExtraDataArgs>(extraDataArgs)...)
+        : m_initPattern(initPattern)
+        , m_encoder(encoderoverrides, std::forward<ExtraDataArgs>(extraDataArgs)...)
         , m_commandPatternMap(static_cast<std::size_t>(commandEnum_t::COUNT), commandPattern_t {})
         , m_lastPattern(initPattern)
     {}
     // Constructor with no encoder overrides and initial patterns
     explicit PatternHandler(uint64_t initPattern = 0)
-        : m_lastPattern(initPattern)
+        : m_initPattern(initPattern)
         , m_commandPatternMap(static_cast<std::size_t>(commandEnum_t::COUNT), commandPattern_t {})
+        , m_lastPattern(initPattern)
     {}
 
 // Public member functions
@@ -98,17 +100,25 @@ public:
         return m_lastPattern;
     }
 
+    void reset() {
+        m_lastPattern = m_initPattern;
+        m_encoder.reset();
+    }
+
 // Overrides
 public:
     void serialize(std::ostream& stream) const override {
+        stream.write(reinterpret_cast<const char *>(&m_initPattern), sizeof(m_initPattern));
         m_encoder.serialize(stream);
     }
     void deserialize(std::istream& stream) override {
+        stream.read(reinterpret_cast<char *>(&m_initPattern), sizeof(m_initPattern));
         m_encoder.deserialize(stream);
     }
 
 // Private member variables
 private:
+    uint64_t m_initPattern;
     PatternEncoder_t m_encoder;
     commandPatternMap_t m_commandPatternMap;
     uint64_t m_lastPattern;

@@ -1,6 +1,7 @@
 #ifndef DRAMPOWER_DRAM_DRAM_BASE_H
 #define DRAMPOWER_DRAM_DRAM_BASE_H
 
+#include "DRAMPower/Types.h"
 #include <DRAMPower/command/Command.h>
 
 #include <DRAMPower/data/energy.h>
@@ -108,6 +109,8 @@ public:
     virtual SimulationStats getWindowStats(timestamp_t timestamp) = 0;
     virtual util::CLIArchitectureConfig getCLIArchitectureConfig() = 0;
     virtual bool isSerializable() const = 0;
+    virtual void setSimulationTime(timestamp_t timestamp) = 0;
+    virtual void reset() = 0;
 
 // Private virtual methods
 private:

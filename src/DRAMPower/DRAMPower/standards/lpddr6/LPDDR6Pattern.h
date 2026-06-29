@@ -32,6 +32,8 @@ struct LPDDR6PatternExtraData {
     uint64_t numberOfBankGroups = 4;
     bool parity_check_mode = false;
 
+    void reset();
+
     void serialize(std::ostream& stream) const {
         stream.write(reinterpret_cast<const char*>(&currentBurstLength), sizeof(currentBurstLength));
         stream.write(reinterpret_cast<const char*>(&parity_check_mode), sizeof(parity_check_mode));

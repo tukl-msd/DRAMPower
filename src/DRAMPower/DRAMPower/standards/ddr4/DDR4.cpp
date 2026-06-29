@@ -22,6 +22,16 @@ namespace DRAMPower {
         this->registerExtensions();
     }
 
+    void DDR4::setSimulationTime(timestamp_t timestamp) {
+        m_interface.setSimulationTime(timestamp);
+        m_core.setSimulationTime(timestamp);
+    }
+
+    void DDR4::reset() {
+        m_interface.reset();
+        m_core.reset();
+    }
+
 // Extensions
     void DDR4::registerExtensions() {
         getExtensionManager().registerExtension<extensions::DBI>([this](const timestamp_t, const bool enable) {

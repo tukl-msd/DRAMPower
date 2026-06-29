@@ -30,6 +30,14 @@ public:
     timestamp_t latestPre = 0;
     timestamp_t refreshEndTime = 0;
 
+    void reset() {
+        counter = {};
+        cycles = {};
+        bankState = BankState::BANK_PRECHARGED;
+        latestPre = 0;
+        refreshEndTime = 0;
+    }
+
     void serialize(std::ostream& stream) const override {
         stream.write(reinterpret_cast<const char *>(&bankState), sizeof(bankState));
         stream.write(reinterpret_cast<const char *>(&latestPre), sizeof(latestPre));

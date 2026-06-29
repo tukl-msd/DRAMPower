@@ -99,6 +99,7 @@ public:
             const uint8_t* inputData, std::size_t n_bits,
             std::optional<std::reference_wrapper<const std::vector<bool>>> InversionState
         );
+        void reset();
         std::vector<uint8_t> m_formatResult{};
         std::array<uint16_t, 2> m_metaData = {0, 0};
     };
@@ -118,6 +119,8 @@ public:
     timestamp_t getLastCommandTime() const;
     void doCommand(const LPDDR6Command& cmd);
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+    void setSimulationTime(timestamp_t timestamp);
+    void reset();
 // Overrides
     void serialize(std::ostream& stream) const override;
     void deserialize(std::istream& stream) override;
@@ -137,9 +140,8 @@ public:
 private:
     void registerPatterns();
     std::optional<const uint8_t *> handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
-    void handleDQs(const LPDDR6Command& cmd, util::Clock &dqs, size_t length);
-    void handleCommandBus(const LPDDR6Command& cmd);
-    void handleData(const LPDDR6Command& cmd, bool read);
+    void handleCommandBus(timestamp_t timestamp, CmdType type, const LPDDR6TargetCoordinate& target);
+    void handleData(timestamp_t timestamp, CmdType type, const uint8_t* data, std::size_t sz_bits, const LPDDR6TargetCoordinate& target, bool read);
     void endOfSimulation(timestamp_t timestamp);
 
 // Private members
@@ -153,7 +155,8 @@ private:
     DataFormatter m_formatter;
     patternHandler_t m_patternHandler;
     timestamp_t m_last_command_time = 0;
-    bool m_enabled;
+    timestamp_t m_offset = 0;
+    bool m_enabled = true;
 };
 
 } // namespace DRAMPower
