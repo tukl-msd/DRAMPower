@@ -42,6 +42,7 @@ public:
 // Constructors
 	Rank(std::size_t numBanks);
 
+	void reset();
 // Functions
 public:
 	static std::size_t countActiveBanks_impl(const std::vector<Bank>& banks);
@@ -59,6 +60,17 @@ struct RankInterface {
 	timestamp_t	mergedPrePostambleTime_write		= 0;
 	timestamp_t lastReadEnd = 0;
 	timestamp_t lastWriteEnd = 0;
+
+	void reset() {
+		seamlessPrePostambleCounter_read	= 0;
+		seamlessPrePostambleCounter_write	= 0;
+		mergedPrePostambleCounter_read		= 0;
+		mergedPrePostambleCounter_write		= 0;
+		mergedPrePostambleTime_read			= 0;
+		mergedPrePostambleTime_write		= 0;
+		lastReadEnd = 0;
+		lastWriteEnd = 0;
+	}
 };
 
 } // namespace DRAMPower

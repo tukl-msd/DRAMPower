@@ -18,6 +18,8 @@ struct PinPendingStats {
 
     PinPendingStats() = default;
     PinPendingStats(PinState from, PinState to) : fromstate(from), newstate(to) {}
+
+    void reset() {}
 };
 
 struct PinTempChange {
@@ -181,6 +183,15 @@ public:
         addPendingStats(virtual_time, m_pending_stats, stats);
         count(virtual_time, m_last_set, m_idle_state, stats);
         return stats;
+    }
+
+    void reset() {
+        m_pending_stats.reset();
+        m_stats.reset();
+        m_last_state = PinState::Z;
+        m_init_load = true;
+        m_last_set = 0;
+        m_burst_storage.reset();
     }
 
 // Private member variables

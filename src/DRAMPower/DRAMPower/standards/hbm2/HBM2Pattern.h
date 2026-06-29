@@ -24,6 +24,7 @@ namespace pattern_descriptor_HBM2 {
 } // namespace pattern_descriptor
 
 struct HBM2PatternExtraData {
+    void reset();
     void serialize([[maybe_unused]] std::ostream& stream) const {}
     void deserialize([[maybe_unused]] std::istream& stream) {}
 };

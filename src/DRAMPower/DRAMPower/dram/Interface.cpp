@@ -5,6 +5,12 @@ namespace DRAMPower {
 
 using namespace DRAMUtils::Config;
 
+void TogglingHandle::TogglingHandleLastBurst::reset() {
+    last_length = 0;
+    last_load = 0;
+    handled = true;
+}
+
 TogglingHandle::TogglingHandle(const uint64_t width, const uint64_t datarate, const double toggling_rate, const double duty_cycle, DRAMUtils::Config::TogglingRateIdlePattern idlepattern, const bool enabled)
     : width(width)
     , datarate(datarate)
@@ -87,6 +93,13 @@ void TogglingHandle::setTogglingRateAndDutyCycle(const double toggling_rate, con
 uint64_t TogglingHandle::getCount() const
 {
     return this->count;
+}
+
+void TogglingHandle::reset() {
+    last_burst.reset();
+    count = 0;
+    disable_timestamp = 0;
+    disable_time = 0;
 }
 
 // Returns timestamp of last burst

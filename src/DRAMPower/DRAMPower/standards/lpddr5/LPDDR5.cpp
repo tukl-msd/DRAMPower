@@ -21,6 +21,16 @@ namespace DRAMPower {
         registerExtensions();
     }
 
+    void LPDDR5::setSimulationTime(timestamp_t timestamp) {
+        m_interface.setSimulationTime(timestamp);
+        m_core.setSimulationTime(timestamp);
+    }
+
+    void LPDDR5::reset() {
+        m_interface.reset();
+        m_core.reset();
+    }
+
 // Extensions
     void LPDDR5::registerExtensions() {
         getExtensionManager().registerExtension<extensions::DBI>([this](const timestamp_t, const bool enable){
