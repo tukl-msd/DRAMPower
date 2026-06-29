@@ -2,8 +2,6 @@
 #define DRAMPOWER_STANDARDS_LPDDR4_CALCULATION_LPDDR4_H
 
 #include "DRAMPower/data/stats.h"
-#pragma once
-
 #include <DRAMPower/data/energy.h>
 #include <DRAMPower/memspec/MemSpecLPDDR4.h>
 
