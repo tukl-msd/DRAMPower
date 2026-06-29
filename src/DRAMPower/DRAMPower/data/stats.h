@@ -15,7 +15,6 @@ namespace DRAMPower
 	struct command_stats_t : public util::Serialize, public util::Deserialize {
 		uint64_t act = 0;
 		uint64_t pre = 0;
-		uint64_t preSameBank = 0;
 		uint64_t reads = 0;
 		uint64_t writes = 0;
 		uint64_t refAllBank = 0;
@@ -28,7 +27,6 @@ namespace DRAMPower
 		void serialize(std::ostream& stream) const override {
 			stream.write(reinterpret_cast<const char *>(&act), sizeof(act));
 			stream.write(reinterpret_cast<const char *>(&pre), sizeof(pre));
-			stream.write(reinterpret_cast<const char *>(&preSameBank), sizeof(preSameBank));
 			stream.write(reinterpret_cast<const char *>(&reads), sizeof(reads));
 			stream.write(reinterpret_cast<const char *>(&writes), sizeof(writes));
 			stream.write(reinterpret_cast<const char *>(&refAllBank), sizeof(refAllBank));
@@ -41,7 +39,6 @@ namespace DRAMPower
 		void deserialize(std::istream& stream) override {
 			stream.read(reinterpret_cast<char *>(&act), sizeof(act));
 			stream.read(reinterpret_cast<char *>(&pre), sizeof(pre));
-			stream.read(reinterpret_cast<char *>(&preSameBank), sizeof(preSameBank));
 			stream.read(reinterpret_cast<char *>(&reads), sizeof(reads));
 			stream.read(reinterpret_cast<char *>(&writes), sizeof(writes));
 			stream.read(reinterpret_cast<char *>(&refAllBank), sizeof(refAllBank));
@@ -56,7 +53,6 @@ namespace DRAMPower
 		bool operator==(const command_stats_t& rhs) const {
 			return act == rhs.act &&
 				pre == rhs.pre &&
-				preSameBank == rhs.preSameBank &&
 				reads == rhs.reads &&
 				writes == rhs.writes &&
 				refAllBank == rhs.refAllBank &&
@@ -71,7 +67,6 @@ namespace DRAMPower
 		command_stats_t& operator+=(const command_stats_t& rhs) {
 			act += rhs.act;
 			pre += rhs.pre;
-			preSameBank += rhs.preSameBank;
 			reads += rhs.reads;
 			writes += rhs.writes;
 			refAllBank += rhs.refAllBank;
@@ -83,7 +78,7 @@ namespace DRAMPower
 			return *this;
 		}
 	};
-	NLOHMANN_JSONIFY_ALL_THINGS(command_stats_t, act, pre, preSameBank, reads, writes, refAllBank, refPerBank, refPerTwoBanks, refSameBank, readAuto, writeAuto);
+	NLOHMANN_JSONIFY_ALL_THINGS(command_stats_t, act, pre, reads, writes, refAllBank, refPerBank, refPerTwoBanks, refSameBank, readAuto, writeAuto);
 
 	struct cycles_t : public util::Serialize, public util::Deserialize {
 		uint64_t act = 0;
