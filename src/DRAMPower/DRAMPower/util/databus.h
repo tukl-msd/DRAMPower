@@ -27,56 +27,33 @@ class DataBus : public Serialize, public Deserialize {
 public:
     using Bus_t = util::Bus<max_bitset_size>;
     using IdlePattern_t = util::BusIdlePatternSpec;
-    using InitPattern_t = util::BusInitPatternSpec;
 
-static constexpr BusIdlePatternSpec convertIdlePattern(const DRAMUtils::Config::TogglingRateIdlePattern idlePattern, bool lastPattern) {
+static constexpr BusIdlePatternSpec convertIdlePattern(const DRAMUtils::Config::TogglingRateIdlePattern idlePattern) {
     using namespace DRAMUtils::Config;
-    if (lastPattern) {
-        return BusIdlePatternSpec::LAST_PATTERN;
-    }
     switch(idlePattern) {
         case TogglingRateIdlePattern::L:
             return BusIdlePatternSpec::L;
         case TogglingRateIdlePattern::H:
             return BusIdlePatternSpec::H;
-        case TogglingRateIdlePattern::Z:
-            return BusIdlePatternSpec::Z;
         case TogglingRateIdlePattern::Invalid:
             throw Exception("Invalid TogglingRateIdlePattern");
     }
-    return BusIdlePatternSpec::Z; // Unreachable
-}
-
-static constexpr BusInitPatternSpec convertInitPattern(const DRAMUtils::Config::TogglingRateIdlePattern initPattern) {
-    using namespace DRAMUtils::Config;
-    switch(initPattern) {
-        case TogglingRateIdlePattern::L:
-            return BusInitPatternSpec::L;
-        case TogglingRateIdlePattern::H:
-            return BusInitPatternSpec::H;
-        case TogglingRateIdlePattern::Z:
-            return BusInitPatternSpec::Z;
-        case TogglingRateIdlePattern::Invalid:
-            throw Exception("Invalid TogglingRateIdlePattern");
-    }
-    return BusInitPatternSpec::Z; // Unreachable
+    return BusIdlePatternSpec::L; // Unreachable
 }
 
 // BusInitPatternSpec
 public:
-    DataBus(DataBusConfig&& config, DataBusMode mode, bool IdlelastPatternOverride)
+    DataBus(DataBusConfig&& config, DataBusMode mode)
         : busRead(
             config.width,
             config.dataRate,
-            convertIdlePattern(config.toggleRateConf.idlePatternRead, IdlelastPatternOverride),
-            convertInitPattern(config.toggleRateConf.idlePatternRead),
+            convertIdlePattern(config.toggleRateConf.idlePatternRead),
             DataBusMode::Bus == mode
         )
         , busWrite(
             config.width,
             config.dataRate,
-            convertIdlePattern(config.toggleRateConf.idlePatternWrite, IdlelastPatternOverride),
-            convertInitPattern(config.toggleRateConf.idlePatternWrite),
+            convertIdlePattern(config.toggleRateConf.idlePatternWrite),
             DataBusMode::Bus == mode
         )
         , togglingHandleRead(
