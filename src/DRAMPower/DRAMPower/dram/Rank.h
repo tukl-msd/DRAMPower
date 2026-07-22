@@ -1,7 +1,6 @@
 #ifndef DRAMPOWER_DDR_RANK_H
 #define DRAMPOWER_DDR_RANK_H
 
-#include <DRAMPower/util/command_counter.h>
 #include <DRAMPower/command/CmdType.h>
 #include <DRAMPower/dram/Bank.h>
 #include <DRAMPower/Types.h>
@@ -24,14 +23,9 @@ enum class MemState {
 
 
 struct Rank : public util::Serialize, public util::Deserialize {
-
-// Type aliases
-	using commandCounter_t = util::CommandCounter<CmdType>;
-
 public:
 // Variables
 	MemState memState = MemState::NOT_IN_PD;
-	commandCounter_t commandCounter;
 	struct {
 		interval_t pre; // useful ???
 		interval_t act;

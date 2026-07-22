@@ -93,10 +93,6 @@ TEST_F(DramPowerTest_LPDDR4_12, Pattern_2)
 	// Inspect first rank
 	const Rank & rank_1 = internal::LPDDR4TestAccessor.getRanks(ddr->getCore()).at(0);
 
-	// Check global command count
-	ASSERT_EQ(rank_1.commandCounter.get(CmdType::RD), 13);
-	ASSERT_EQ(rank_1.commandCounter.get(CmdType::WR), 9);
-
 	// Check bank RD command count
 	ASSERT_EQ(rank_1.banks[0].counter.reads, 4);
 	ASSERT_EQ(rank_1.banks[1].counter.reads, 1);
