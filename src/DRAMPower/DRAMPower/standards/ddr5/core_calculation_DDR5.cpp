@@ -17,8 +17,8 @@ namespace DRAMPower {
     }
 
     double
-    Calculation_DDR5::E_BG_act_star(std::size_t B, double VDD, double IDD3_N, double I_rho, double T_BG_act_star) const {
-        return VDD * (1.0 / B) * (IDD3_N - I_rho) * T_BG_act_star;
+    Calculation_DDR5::E_BG_act_star(double VDD, double I_1, double I_rho, double T_BG_act_star) const {
+        return VDD * (I_1 - I_rho) * T_BG_act_star;
     }
 
     double Calculation_DDR5::E_pre(double VDD, double IBeta, double IDD2_N, double t_RP, uint64_t N_pre) const {
@@ -29,19 +29,19 @@ namespace DRAMPower {
         return VDD * (I_theta - I_1) * t_RAS * N_act;
     }
 
-    double Calculation_DDR5::E_RD(double VDD, double IDD4_R, double IDD3_N, double t_CK, std::size_t BL, std::size_t DR,
+    double Calculation_DDR5::E_RD(double VDD, double IDD4_R, double I_B, double t_CK, std::size_t BL, std::size_t DR,
                                   uint64_t N_RD) const {
-        return VDD * (IDD4_R - IDD3_N) * (double(BL) / DR) * t_CK * N_RD;
+        return VDD * (IDD4_R - I_B) * (double(BL) / DR) * t_CK * N_RD;
     }
 
-    double Calculation_DDR5::E_WR(double VDD, double IDD4_W, double IDD3_N, double t_CK, std::size_t BL, std::size_t DR,
+    double Calculation_DDR5::E_WR(double VDD, double IDD4_W, double I_B, double t_CK, std::size_t BL, std::size_t DR,
                                   uint64_t N_WR) const {
-        return VDD * (IDD4_W - IDD3_N) * (BL / DR) * t_CK * N_WR;
+        return VDD * (IDD4_W - I_B) * (BL / DR) * t_CK * N_WR;
     }
 
     double
-    Calculation_DDR5::E_ref_ab(std::size_t B, double VDD, double IDD5B, double IDD3_N, double tRFC, uint64_t N_REF) const {
-        return (1.0 / B) * VDD * (IDD5B - IDD3_N) * tRFC * N_REF;
+    Calculation_DDR5::E_ref_ab(std::size_t B, double VDD, double IDD5B, double I_B, double tRFC, uint64_t N_REF) const {
+        return (1.0 / B) * VDD * (IDD5B - I_B) * tRFC * N_REF;
     }
 
     double Calculation_DDR5::E_ref_sb(double VDD, double IDD5C, double I_BG, double tRFCsb, std::size_t BG,
@@ -68,7 +68,7 @@ namespace DRAMPower {
             auto VXX = m_memSpec.memPowerSpec[vd].vXX;
             auto IXX_0 = m_memSpec.memPowerSpec[vd].iXX0;
             auto IXX2N = m_memSpec.memPowerSpec[vd].iXX2N;
-            auto IXX3N = m_memSpec.memPowerSpec[vd].iXX3N;
+            auto I_B = m_memSpec.memPowerSpec[vd].iXX3N;
             auto IXX2P = m_memSpec.memPowerSpec[vd].iXX2P;
             auto IXX3P = m_memSpec.memPowerSpec[vd].iXX3P;
             auto IXX4R = m_memSpec.memPowerSpec[vd].iXX4R;
@@ -78,9 +78,9 @@ namespace DRAMPower {
             auto IXX6N = m_memSpec.memPowerSpec[vd].iXX6N;
             auto IBeta = m_memSpec.memPowerSpec[vd].iBeta;
 
-            auto I_rho = rho * (IXX3N - IXX2N) + IXX2N;
+            auto I_rho = rho * (I_B - IXX2N) + IXX2N;
             auto I_theta = (IXX_0 * (t_RP + t_RAS) - IBeta * t_RP) * (1 / t_RAS);
-            auto I_1 = (1.0 / B) * (IXX3N + (B - 1) * (rho * (IXX3N - IXX2N) + IXX2N));
+            auto I_1 = (1.0 / B) * (I_B + (B - 1) * I_rho);
             auto I_BG = I_rho + (I_1 - I_rho) * BG;
 
             size_t energy_offset = 0;
@@ -99,24 +99,24 @@ namespace DRAMPower {
                         energy.bank_energy[energy_offset + b].E_pre +=
                             E_pre(VXX, IBeta, IXX2N, t_RP, bank.counter.pre);
                         energy.bank_energy[energy_offset + b].E_bg_act +=
-                            E_BG_act_star(B, VXX, IXX3N, I_rho,
+                            E_BG_act_star(VXX, I_1, I_rho,
                                         stats.bank[bank_offset + b].cycles.activeTime() * t_CK);
                         energy.bank_energy[energy_offset + b].E_bg_pre +=
                             E_BG_pre(B, VXX, IXX2N, stats.rank_total[i].cycles.pre * t_CK);
                         energy.bank_energy[energy_offset + b].E_RD +=
-                            E_RD(VXX, IXX4R, IXX3N, t_CK, BL, DR, bank.counter.reads);
+                            E_RD(VXX, IXX4R, I_B, t_CK, BL, DR, bank.counter.reads);
                         energy.bank_energy[energy_offset + b].E_WR +=
-                            E_WR(VXX, IXX4W, IXX3N, t_CK, BL, DR, bank.counter.writes);
+                            E_WR(VXX, IXX4W, I_B, t_CK, BL, DR, bank.counter.writes);
                         energy.bank_energy[energy_offset + b].E_RDA +=
-                            E_RD(VXX, IXX4R, IXX3N, t_CK, BL, DR, bank.counter.readAuto);
+                            E_RD(VXX, IXX4R, I_B, t_CK, BL, DR, bank.counter.readAuto);
                         energy.bank_energy[energy_offset + b].E_WRA +=
-                            E_WR(VXX, IXX4W, IXX3N, t_CK, BL, DR, bank.counter.writeAuto);
+                            E_WR(VXX, IXX4W, I_B, t_CK, BL, DR, bank.counter.writeAuto);
                         energy.bank_energy[energy_offset + b].E_pre_RDA +=
                             E_pre(VXX, IBeta, IXX2N, t_RP, bank.counter.readAuto);
                         energy.bank_energy[energy_offset + b].E_pre_WRA +=
                             E_pre(VXX, IBeta, IXX2N, t_RP, bank.counter.writeAuto);
                         energy.bank_energy[energy_offset + b].E_ref_AB +=
-                            E_ref_ab(B, VXX, IXX5X, IXX3N, t_RFC, bank.counter.refAllBank);
+                            E_ref_ab(B, VXX, IXX5X, I_B, t_RFC, bank.counter.refAllBank);
                         energy.bank_energy[energy_offset + b].E_ref_SB +=
                             E_ref_sb(VXX, IXX5C, I_BG, t_RFCsb, BG, bank.counter.refSameBank);
                     }

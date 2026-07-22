@@ -142,11 +142,11 @@ TEST_F(DramPowerTest_LPDDR5_16, CalcEnergy)
 	auto energy = ddr->calcCoreEnergy(125);
 	auto total_energy = energy.aggregated_bank_energy();
 
-    ASSERT_EQ(std::round(total_energy.E_bg_act*1e12), 4800);
-    ASSERT_EQ(std::round(energy.E_bg_act_shared*1e12), 1600);
-    ASSERT_EQ(std::round(energy.bank_energy[0].E_bg_act*1e12), 1040);
-    ASSERT_EQ(std::round(energy.bank_energy[1].E_bg_act*1e12), 1120);
-    ASSERT_EQ(std::round(energy.bank_energy[2].E_bg_act*1e12), 1040);
+    ASSERT_EQ(std::round(total_energy.E_bg_act*1e12), 3680);
+    ASSERT_EQ(std::round(energy.E_bg_act_shared*1e12), 2720); // TODO validate
+    ASSERT_EQ(std::round(energy.bank_energy[0].E_bg_act*1e12), 312);
+    ASSERT_EQ(std::round(energy.bank_energy[1].E_bg_act*1e12), 336);
+    ASSERT_EQ(std::round(energy.bank_energy[2].E_bg_act*1e12), 312);
     ASSERT_EQ(std::round(energy.bank_energy[3].E_bg_act*1e12), 0);
     ASSERT_EQ(std::round(energy.bank_energy[4].E_bg_act*1e12), 0);
     ASSERT_EQ(std::round(energy.bank_energy[5].E_bg_act*1e12), 0);

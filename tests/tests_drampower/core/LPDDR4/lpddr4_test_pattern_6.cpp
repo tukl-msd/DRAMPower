@@ -133,5 +133,5 @@ TEST_F(DramPowerTest_LPDDR4_6, Energy) {
     ASSERT_EQ(std::round(total_energy.E_bg_act*1e12), 2642);
     ASSERT_EQ(std::round(energy.E_bg_act_shared*1e12), 2380);
     ASSERT_EQ(std::round(total_energy.E_bg_pre*1e12), 779);
-    ASSERT_EQ(std::round(total_energy.total()*1e12), 6833);
+    ASSERT_EQ(std::round(total_energy.total()*1e12), 6832);
 }

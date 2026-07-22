@@ -79,7 +79,7 @@
       "RTRS": 0
     },
     "bankwisespec":{
-      "factRho":0.5,
+      "factRho":0.058823529412,
       "factSigma": 1.0,
       "pasrMode": 0,
       "hasPASR": false
