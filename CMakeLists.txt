@@ -38,8 +38,8 @@
 cmake_minimum_required(VERSION 3.22.0)
 
 set(DRAMPOWER_VERSION_MAJOR 6)
-set(DRAMPOWER_VERSION_MINOR 0)
-set(DRAMPOWER_VERSION_PATCH 2)
+set(DRAMPOWER_VERSION_MINOR 1)
+set(DRAMPOWER_VERSION_PATCH 0)
 set(DRAMPOWER_VERSION_STRING "${DRAMPOWER_VERSION_MAJOR}.${DRAMPOWER_VERSION_MINOR}.${DRAMPOWER_VERSION_PATCH}")
 add_compile_definitions(DRAMPOWER_VERSION_STRING="${DRAMPOWER_VERSION_STRING}")
 
@@ -136,7 +136,7 @@ if (DRAMPOWER_USE_FETCH_CONTENT)
     if (DRAMPOWER_USE_FETCH_CONTENT_INTERNAL)
         FetchContent_Declare(
             DRAMUtils
-            URL "https://github.com/tukl-msd/DRAMUtils/archive/refs/tags/v1.13.4.tar.gz"
+            URL "https://github.com/tukl-msd/DRAMUtils/archive/refs/tags/v1.13.6.tar.gz"
             OVERRIDE_FIND_PACKAGE
         )
 
