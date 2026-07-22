@@ -101,7 +101,7 @@
       "pbR2pbR": 0
     },
     "bankwisespec":{
-      "factRho":0.5
+      "factRho":0.058823529412
     },
     "memimpedancespec": {
       "ck_termination": true,

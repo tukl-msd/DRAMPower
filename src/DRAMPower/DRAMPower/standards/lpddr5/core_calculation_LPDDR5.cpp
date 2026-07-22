@@ -21,12 +21,12 @@ namespace DRAMPower {
         return (1.0 / B) * VDD * IDD2_N * T_BG_pre;
     }
 
-    double Calculation_LPDDR5::E_BG_act_star(std::size_t B, double VDD, double IDD3_N, double I_p, double T_BG_act_star) const {
-        return VDD * (1.0 / B) * (IDD3_N - I_p) * T_BG_act_star;
+    double Calculation_LPDDR5::E_BG_act_star(double VDD, double I_1, double I_rho, double T_BG_act_star) const {
+        return VDD * (I_1 - I_rho) * T_BG_act_star;
     }
 
-    double Calculation_LPDDR5::E_BG_act_shared(double VDD, double I_p, double T_bg_act) const {
-        return VDD * I_p * T_bg_act;
+    double Calculation_LPDDR5::E_BG_act_shared(double VDD, double I_rho, double T_bg_act) const {
+        return VDD * I_rho * T_bg_act;
     }
 
     double Calculation_LPDDR5::E_RD(double VDD, double IDD4_R, double I_i, std::size_t BL, std::size_t DR, double t_WCK, uint64_t N_RD) const {
@@ -69,7 +69,7 @@ namespace DRAMPower {
             auto VDD = m_memSpec.memPowerSpec[vd].vDDX;
             auto IDD_0 = m_memSpec.memPowerSpec[vd].iDD0X;
             auto IDD2N = m_memSpec.memPowerSpec[vd].iDD2NX;
-            auto IDD3N = m_memSpec.memPowerSpec[vd].iDD3NX;
+            auto I_1 = m_memSpec.memPowerSpec[vd].iDD3NX;
             auto IDD2P = m_memSpec.memPowerSpec[vd].iDD2PX;
             auto IDD3P = m_memSpec.memPowerSpec[vd].iDD3PX;
             auto IDD4R = m_memSpec.memPowerSpec[vd].iDD4RX;
@@ -80,12 +80,14 @@ namespace DRAMPower {
             auto IDD6DS = m_memSpec.memPowerSpec[vd].iDD6DSX;
             auto IBeta = m_memSpec.memPowerSpec[vd].iBeta;
 
-            auto I_rho = rho * (IDD3N - IDD2N) + IDD2N;
-            auto I_2 = IDD3N + (IDD3N - I_rho);
+            auto t1 = B * rho;
+            auto t2 = 1 - rho;
+            auto I_rho = (t1 * I_1 + t2 * IDD2N) / (t1 + t2);
+            auto I_B = I_rho + B * (I_1 - I_rho);
+            auto I_2 = I_1 + (I_1 - I_rho);
             auto I_theta = (IDD_0 * (t_RP + t_RAS) - IBeta * t_RP) * (1 / t_RAS);
             auto IDD5PB_B =
                 (IDD5PB * (t_REFI / 8) - IDD2N * ((t_REFI / 8) - t_RFCPB)) * (1.0 / t_RFCPB);
-            auto approx_IDD3N = I_rho + B * (IDD3N - I_rho);
 
             size_t energy_offset = 0;
             size_t bank_offset = 0;
@@ -98,11 +100,11 @@ namespace DRAMPower {
                         const auto &bank = stats.bank[bank_offset + b];
 
                         energy.bank_energy[energy_offset + b].E_act +=
-                            E_act(VDD, I_theta, IDD3N, t_RAS, bank.counter.act);
+                            E_act(VDD, I_theta, I_1, t_RAS, bank.counter.act);
                         energy.bank_energy[energy_offset + b].E_pre +=
                             E_pre(VDD, IBeta, IDD2N, t_RP, bank.counter.pre);
                         energy.bank_energy[energy_offset + b].E_bg_act +=
-                            E_BG_act_star(B, VDD, approx_IDD3N, I_rho,
+                            E_BG_act_star(VDD, I_1, I_rho,
                                         stats.bank[bank_offset + b].cycles.activeTime() * t_CK);
                         energy.bank_energy[energy_offset + b].E_bg_pre +=
                             E_BG_pre(B, VDD, IDD2N, stats.rank_total[i].cycles.pre * t_CK);
@@ -117,22 +119,22 @@ namespace DRAMPower {
                                 E_WR(VDD, IDD4W, I_2, BL, DR, t_WCK, bank.counter.writeAuto);
                         } else {
                             energy.bank_energy[energy_offset + b].E_RD +=
-                                E_RD(VDD, IDD4R, IDD3N, BL, DR, t_WCK, bank.counter.reads);
+                                E_RD(VDD, IDD4R, I_1, BL, DR, t_WCK, bank.counter.reads);
                             energy.bank_energy[energy_offset + b].E_WR +=
-                                E_WR(VDD, IDD4W, IDD3N, BL, DR, t_WCK, bank.counter.writes);
+                                E_WR(VDD, IDD4W, I_1, BL, DR, t_WCK, bank.counter.writes);
                             energy.bank_energy[energy_offset + b].E_RDA +=
-                                E_RD(VDD, IDD4R, IDD3N, BL, DR, t_WCK, bank.counter.readAuto);
+                                E_RD(VDD, IDD4R, I_1, BL, DR, t_WCK, bank.counter.readAuto);
                             energy.bank_energy[energy_offset + b].E_WRA +=
-                                E_WR(VDD, IDD4W, IDD3N, BL, DR, t_WCK, bank.counter.writeAuto);
+                                E_WR(VDD, IDD4W, I_1, BL, DR, t_WCK, bank.counter.writeAuto);
                         }
                         energy.bank_energy[energy_offset + b].E_pre_RDA +=
                             E_pre(VDD, IBeta, IDD2N, t_RP, bank.counter.readAuto);
                         energy.bank_energy[energy_offset + b].E_pre_WRA +=
                             E_pre(VDD, IBeta, IDD2N, t_RP, bank.counter.writeAuto);
                         energy.bank_energy[energy_offset + b].E_ref_AB +=
-                            E_ref_ab(B, VDD, IDD5, approx_IDD3N, t_RFC, bank.counter.refAllBank);
+                            E_ref_ab(B, VDD, IDD5, I_B, t_RFC, bank.counter.refAllBank);
                         energy.bank_energy[energy_offset + b].E_ref_PB +=
-                            E_ref_pb(VDD, IDD5PB_B, IDD3N, t_RFCPB, bank.counter.refPerBank);
+                            E_ref_pb(VDD, IDD5PB_B, I_1, t_RFCPB, bank.counter.refPerBank);
                         energy.bank_energy[energy_offset + b].E_ref_2B +=
                             E_ref_p2b(VDD, IDD5PB_B, I_2, t_RFCPB, bank.counter.refPerTwoBanks);
                     }

@@ -234,16 +234,16 @@ TEST_F(DramPowerTest_LPDDR4_18, CalcEnergy)
 	auto energy = ddr->calcCoreEnergy(125);
 	auto total_energy = energy.aggregated_bank_energy();
 
-	ASSERT_EQ(std::round(total_energy.E_bg_act*1e12), 6400);
-	ASSERT_EQ(std::round(energy.E_bg_act_shared*1e12), 1680);
-	ASSERT_EQ(std::round(energy.bank_energy[0].E_bg_act*1e12), 800);
-	ASSERT_EQ(std::round(energy.bank_energy[1].E_bg_act*1e12), 1520);
-	ASSERT_EQ(std::round(energy.bank_energy[2].E_bg_act*1e12), 400);
-	ASSERT_EQ(std::round(energy.bank_energy[3].E_bg_act*1e12), 400);
-	ASSERT_EQ(std::round(energy.bank_energy[4].E_bg_act*1e12), 400);
-	ASSERT_EQ(std::round(energy.bank_energy[5].E_bg_act*1e12), 400);
-	ASSERT_EQ(std::round(energy.bank_energy[6].E_bg_act*1e12), 400);
-	ASSERT_EQ(std::round(energy.bank_energy[7].E_bg_act*1e12), 400);
+	ASSERT_EQ(std::round(total_energy.E_bg_act*1e12), 4272);
+	ASSERT_EQ(std::round(energy.E_bg_act_shared*1e12), 2856); // TODO validate
+	ASSERT_EQ(std::round(energy.bank_energy[0].E_bg_act*1e12), 240);
+	ASSERT_EQ(std::round(energy.bank_energy[1].E_bg_act*1e12), 456);
+	ASSERT_EQ(std::round(energy.bank_energy[2].E_bg_act*1e12), 120);
+	ASSERT_EQ(std::round(energy.bank_energy[3].E_bg_act*1e12), 120);
+	ASSERT_EQ(std::round(energy.bank_energy[4].E_bg_act*1e12), 120);
+	ASSERT_EQ(std::round(energy.bank_energy[5].E_bg_act*1e12), 120);
+	ASSERT_EQ(std::round(energy.bank_energy[6].E_bg_act*1e12), 120);
+	ASSERT_EQ(std::round(energy.bank_energy[7].E_bg_act*1e12), 120);
 
 	ASSERT_EQ(std::round(total_energy.E_bg_pre*1e12), 40);
 	ASSERT_EQ(std::round(energy.bank_energy[0].E_bg_pre*1e12), 5);
