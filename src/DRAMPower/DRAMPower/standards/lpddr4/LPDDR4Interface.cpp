@@ -1,4 +1,5 @@
 #include "LPDDR4Interface.h"
+#include "DRAMPower/Types.h"
 #include "DRAMPower/command/CmdType.h"
 #include "DRAMPower/data/stats.h"
 #include "DRAMPower/util/pin.h"
@@ -43,6 +44,27 @@ LPDDR4Interface::LPDDR4Interface(const MemSpecLPDDR4& memSpec, const config::Sim
     })
 {
     registerPatterns();
+}
+
+void LPDDR4Interface::setSimulationTime(timestamp_t timestamp) {
+    m_offset = timestamp;
+}
+
+void LPDDR4Interface::reset() {
+    m_commandBus.reset();
+    m_dataBus.reset();
+    m_readDQS.reset();
+    m_writeDQS.reset();
+    m_clock.reset();
+    m_dbi.reset();
+    for (auto& entry : m_dbiread) {
+        entry.reset();
+    }
+    for (auto& entry : m_dbiwrite) {
+        entry.reset();
+    }
+    m_patternHandler.reset();
+    m_last_command_time = 0;
 }
 
 void LPDDR4Interface::registerPatterns() {
@@ -115,10 +137,12 @@ void LPDDR4Interface::registerPatterns() {
 }
 
     timestamp_t LPDDR4Interface::getLastCommandTime() const {
-        return m_last_command_time;
+        return m_last_command_time + m_offset;
     }
 
     void LPDDR4Interface::doCommand(const Command& cmd) {
+        assert(cmd.timestamp >= m_offset);
+        timestamp_t timestamp = cmd.timestamp - m_offset;
         switch(cmd.type) {
             case CmdType::ACT:
             case CmdType::PRE:
@@ -127,18 +151,18 @@ void LPDDR4Interface::registerPatterns() {
             case CmdType::REFA:
             case CmdType::SREFEN:
             case CmdType::SREFEX:
-                handleCommandBus(cmd);
+                handleCommandBus(timestamp, cmd.type, cmd.targetCoordinate);
                 break;
             case CmdType::RD:
             case CmdType::RDA:
-                handleData(cmd, true);
+                handleData(timestamp, cmd.type, cmd.data, cmd.sz_bits, cmd.targetCoordinate, true);
                 break;
             case CmdType::WR:
             case CmdType::WRA:
-                handleData(cmd, false);
+                handleData(timestamp, cmd.type, cmd.data, cmd.sz_bits, cmd.targetCoordinate, false);
                 break;
             case CmdType::END_OF_SIMULATION:
-                endOfSimulation(cmd.timestamp);
+                endOfSimulation(timestamp);
                 break;
             case CmdType::PDEA:
             case CmdType::PDXA:
@@ -149,7 +173,7 @@ void LPDDR4Interface::registerPatterns() {
                 assert(false && "Invalid command");
                 break;
         }
-        m_last_command_time = cmd.timestamp;
+        m_last_command_time = timestamp;
     }
 
 void LPDDR4Interface::handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read) {
@@ -198,41 +222,41 @@ void LPDDR4Interface::handleOverrides(size_t length, bool /*read*/)
     }
 }
 
-void LPDDR4Interface::handleCommandBus(const Command &cmd) {
-    auto pattern = m_patternHandler.getCommandPattern(cmd.type, cmd.targetCoordinate);
-    auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_commandBus.get_width();
-    m_commandBus.load(cmd.timestamp, pattern, ca_length);
+void LPDDR4Interface::handleCommandBus(timestamp_t timestamp, CmdType type, const TargetCoordinate& target) {
+    auto pattern = m_patternHandler.getCommandPattern(type, target);
+    auto ca_length = m_patternHandler.getPattern(type).size() / m_commandBus.get_width();
+    m_commandBus.load(timestamp, pattern, ca_length);
 }
 
-void LPDDR4Interface::handleDQs(const Command& cmd, util::Clock &dqs, size_t length) {
-    dqs.start(cmd.timestamp);
-    dqs.stop(cmd.timestamp + length / m_memSpec.dataRate);
+void LPDDR4Interface::handleDQs(timestamp_t timestamp, util::Clock &dqs, size_t length) {
+    dqs.start(timestamp);
+    dqs.stop(timestamp + length / m_memSpec.dataRate);
 }
 
-void LPDDR4Interface::handleData(const Command &cmd, bool read) {
+void LPDDR4Interface::handleData(timestamp_t timestamp, CmdType type, const uint8_t* data, std::size_t sz_bits, const TargetCoordinate& target, bool read) {
     auto loadfunc = read ? &databus_t::loadRead : &databus_t::loadWrite;
     util::Clock &dqs = read ? m_readDQS : m_writeDQS;
     size_t length = 0;
-    if (0 == cmd.sz_bits) {
+    if (0 == sz_bits) {
         // No data provided by command
         // Use default burst length
         if (m_dataBus.isTogglingRate()) {
             length = m_memSpec.burstLength;
-            (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
+            (m_dataBus.*loadfunc)(timestamp, length * m_dataBus.getWidth(), nullptr);
         }
     } else {
         std::optional<const uint8_t *> dbi_data = std::nullopt;
         // Data provided by command
         if (m_dataBus.isBus() && m_dbi.isEnabled()) {
             // Only compute dbi for bus mode
-            dbi_data = handleDBIInterface(cmd.timestamp, cmd.sz_bits, cmd.data, read);
+            dbi_data = handleDBIInterface(timestamp, sz_bits, data, read);
         }
-        length = cmd.sz_bits / (m_dataBus.getWidth());
-        (m_dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, dbi_data.value_or(cmd.data));
+        length = sz_bits / (m_dataBus.getWidth());
+        (m_dataBus.*loadfunc)(timestamp, sz_bits, dbi_data.value_or(data));
     }
-    handleDQs(cmd, dqs, length);
+    handleDQs(timestamp, dqs, length);
     handleOverrides(length, read);
-    handleCommandBus(cmd);
+    handleCommandBus(timestamp, type, target);
 }
 
 void LPDDR4Interface::endOfSimulation(timestamp_t timestamp) {
@@ -240,6 +264,8 @@ void LPDDR4Interface::endOfSimulation(timestamp_t timestamp) {
 }
 
 void LPDDR4Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
+    assert(timestamp >= m_offset);
+    timestamp = timestamp - m_offset;
     stats.commandBus = m_commandBus.get_stats(timestamp);
     
     m_dataBus.get_stats(timestamp,
@@ -268,6 +294,7 @@ void LPDDR4Interface::getWindowStats(timestamp_t timestamp, SimulationStats &sta
 
 void LPDDR4Interface::serialize(std::ostream& stream) const {
     stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.write(reinterpret_cast<const char*>(&m_offset), sizeof(m_offset));
     m_patternHandler.serialize(stream);
     m_commandBus.serialize(stream);
     m_dataBus.serialize(stream);
@@ -277,6 +304,7 @@ void LPDDR4Interface::serialize(std::ostream& stream) const {
 }
 void LPDDR4Interface::deserialize(std::istream& stream) {
     stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.read(reinterpret_cast<char*>(&m_offset), sizeof(m_offset));
     m_patternHandler.deserialize(stream);
     m_commandBus.deserialize(stream);
     m_dataBus.deserialize(stream);

@@ -23,6 +23,7 @@ struct TogglingHandleLastBurst  : public util::Serialize, public util::Deseriali
     TogglingHandleLastBurst() = default;
     TogglingHandleLastBurst(uint64_t last_length, timestamp_t last_load, bool handled)
         : last_length(last_length), last_load(last_load), handled(handled) {}
+    void reset();
     operator bool() const { return !this->handled; }
     void serialize(std::ostream &stream) const override;
     void deserialize(std::istream &stream) override;
@@ -59,6 +60,7 @@ public:
     void setWidth(const uint64_t width);
     void setDataRate(const uint64_t datarate);
     uint64_t getCount() const;
+    void reset();
 public:
     void incCountBurstLength(timestamp_t timestamp, uint64_t burstlength);
     void incCountBitLength(timestamp_t timestamp, uint64_t bitlength);

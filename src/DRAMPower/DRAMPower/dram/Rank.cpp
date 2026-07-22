@@ -8,6 +8,16 @@ Rank::Rank(std::size_t numBanks)
     : banks(numBanks)
 {};
 
+void Rank::reset() {
+    memState = MemState::NOT_IN_PD;
+    cycles = {};
+    counter = {};
+    endRefreshTime = 0;
+    for(auto& entry : banks) {
+        entry.reset();
+    }
+}
+
 bool Rank::isActive(timestamp_t timestamp) {
     if ( timestamp < this->endRefreshTime ) {
         std::cout << "[WARN] Rank::isActive() -> timestamp (" << timestamp <<") < "  << "endRefreshTime (" << this->endRefreshTime << ")"  << std::endl;

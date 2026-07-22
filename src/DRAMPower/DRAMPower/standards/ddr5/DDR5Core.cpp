@@ -4,56 +4,57 @@
 namespace DRAMPower {
 
 void DDR5Core::doCommand(const Command& cmd) {
-    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp, m_last_command_time);
-    m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
+    assert(cmd.timestamp >= m_offset);
+    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp - m_offset, m_last_command_time);
+    m_last_command_time = std::max(cmd.timestamp - m_offset, m_last_command_time);
     switch(cmd.type) {
         case CmdType::ACT:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR5Core::handleAct);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, this, &DDR5Core::handleAct);
             break;
         case CmdType::PRE:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR5Core::handlePre);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, this, &DDR5Core::handlePre);
             break;
         case CmdType::RD:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR5Core::handleRead);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, this, &DDR5Core::handleRead);
             break;
         case CmdType::RDA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handleReadAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_ranks, this, &DDR5Core::handleReadAuto);
             break;
         case CmdType::WR:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR5Core::handleWrite);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, this, &DDR5Core::handleWrite);
             break;
         case CmdType::WRA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handleWriteAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_ranks, this, &DDR5Core::handleWriteAuto);
             break;
         case CmdType::PRESB:
-            util::coreHelpers::bankGroupHandler(cmd, m_ranks, this, &DDR5Core::handlePreSameBank);
+            util::coreHelpers::bankGroupHandler(cmd, m_offset, m_ranks, this, &DDR5Core::handlePreSameBank);
             break;
         case CmdType::REFSB:
-            util::coreHelpers::bankGroupHandlerIdx(cmd, m_ranks, this, &DDR5Core::handleRefSameBank);
+            util::coreHelpers::bankGroupHandlerIdx(cmd, m_offset, m_ranks, this, &DDR5Core::handleRefSameBank);
             break;
         case CmdType::REFA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handleRefAll);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &DDR5Core::handleRefAll);
             break;
         case CmdType::PREA:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR5Core::handlePreAll);
+            util::coreHelpers::rankHandler(cmd, m_offset, m_ranks, this, &DDR5Core::handlePreAll);
             break;
         case CmdType::SREFEN:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handleSelfRefreshEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &DDR5Core::handleSelfRefreshEntry);
             break;
         case CmdType::SREFEX:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR5Core::handleSelfRefreshExit);
+            util::coreHelpers::rankHandler(cmd, m_offset, m_ranks, this, &DDR5Core::handleSelfRefreshExit);
             break;
         case CmdType::PDEA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handlePowerDownActEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &DDR5Core::handlePowerDownActEntry);
             break;
         case CmdType::PDEP:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handlePowerDownPreEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &DDR5Core::handlePowerDownPreEntry);
             break;
         case CmdType::PDXA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handlePowerDownActExit);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &DDR5Core::handlePowerDownActExit);
             break;
         case CmdType::PDXP:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR5Core::handlePowerDownPreExit);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &DDR5Core::handlePowerDownPreExit);
             break;
         case CmdType::NOP:
         case CmdType::END_OF_SIMULATION:
@@ -64,8 +65,20 @@ void DDR5Core::doCommand(const Command& cmd) {
     }
 }
 
+void DDR5Core::setSimulationTime(timestamp_t timestamp) {
+    m_offset = timestamp;
+}
+
+void DDR5Core::reset() {
+    for (auto& entry : m_ranks) {
+        entry.reset();
+    }
+    m_implicitCommandHandler.reset();
+    m_last_command_time = 0;
+}
+
 timestamp_t DDR5Core::getLastCommandTime() const {
-    return m_last_command_time;
+    return m_last_command_time + m_offset;
 }
 
 bool DDR5Core::isSerializable() const {
@@ -310,6 +323,8 @@ timestamp_t DDR5Core::earliestPossiblePowerDownEntryTime(Rank &rank) {
 }
 
 void DDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
+    assert(timestamp >= m_offset);
+    timestamp = timestamp - m_offset;
     m_implicitCommandHandler.processImplicitCommandQueue(*this, timestamp, m_last_command_time);
     stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks);
     stats.rank_total.resize(m_memSpec.numberOfRanks);
@@ -354,6 +369,7 @@ void DDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
 
 void DDR5Core::serialize(std::ostream& stream) const {
     stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.write(reinterpret_cast<const char*>(&m_offset), sizeof(m_offset));
     for (const auto& rank : m_ranks) {
         rank.serialize(stream);
     }
@@ -361,6 +377,7 @@ void DDR5Core::serialize(std::ostream& stream) const {
 
 void DDR5Core::deserialize(std::istream& stream) {
     stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.read(reinterpret_cast<char*>(&m_offset), sizeof(m_offset));
     for (auto& rank : m_ranks) {
         rank.deserialize(stream);
     }

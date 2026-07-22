@@ -1,5 +1,8 @@
 #include "DDR4Interface.h"
+#include "DRAMPower/Types.h"
+#include "DRAMPower/command/Command.h"
 #include "DRAMPower/util/databus_types.h"
+#include <cstddef>
 
 namespace DRAMPower {
 
@@ -46,6 +49,30 @@ namespace DRAMPower {
         }, cmdBusInitPattern)
     {
         registerPatterns();
+    }
+
+    void DDR4Interface::setSimulationTime(timestamp_t timestamp) {
+        m_offset = timestamp;
+    }
+
+    void DDR4Interface::reset() {
+        m_commandBus.reset();
+        m_dataBus.reset();
+        m_readDQS.reset();
+        m_writeDQS.reset();
+        m_clock.reset();
+        m_dbi.reset();
+        for (auto& entry : m_dbiread) {
+            entry.reset();
+        }
+        for (auto& entry : m_dbiwrite) {
+            entry.reset();
+        }
+        for (auto& entry : m_ranks) {
+            entry.reset();
+        }
+        m_patternHandler.reset();
+        m_last_command_time = 0;
     }
 
     void DDR4Interface::registerPatterns() {
@@ -141,10 +168,12 @@ namespace DRAMPower {
     }
 
     timestamp_t DDR4Interface::getLastCommandTime() const {
-        return m_last_command_time;
+        return m_last_command_time + m_offset;
     }
 
     void DDR4Interface::doCommand(const Command& cmd) {
+        assert(cmd.timestamp >= m_offset);
+        timestamp_t timestamp = cmd.timestamp - m_offset;
         switch(cmd.type) {
             case CmdType::ACT:
             case CmdType::PRE:
@@ -156,24 +185,24 @@ namespace DRAMPower {
             case CmdType::PDEP:
             case CmdType::PDXA:
             case CmdType::PDXP:
-                handleCommandBus(cmd);
+                handleCommandBus(timestamp, cmd.type, cmd.targetCoordinate);
                 break;
             case CmdType::RD:
             case CmdType::RDA:
-                handleData(cmd, true);
+                handleData(timestamp, cmd.type, cmd.data, cmd.sz_bits, cmd.targetCoordinate, true);
                 break;
             case CmdType::WR:
             case CmdType::WRA:
-                handleData(cmd, false);
+                handleData(timestamp, cmd.type, cmd.data, cmd.sz_bits, cmd.targetCoordinate, false);
                 break;
             case CmdType::END_OF_SIMULATION:
-                endOfSimulation(cmd.timestamp);
+                endOfSimulation(timestamp);
                 break;
             default:
                 assert(false && "Invalid command");
                 break;
         }
-        m_last_command_time = cmd.timestamp;
+        m_last_command_time = timestamp;
     }
 
     void DDR4Interface::handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read) {
@@ -285,45 +314,45 @@ namespace DRAMPower {
         }
     }
 
-    void DDR4Interface::handleCommandBus(const Command &cmd) {
-        auto pattern = m_patternHandler.getCommandPattern(cmd.type, cmd.targetCoordinate);
-        auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_commandBus.get_width();
-        this->m_commandBus.load(cmd.timestamp, pattern, ca_length);
+    void DDR4Interface::handleCommandBus(timestamp_t timestamp, CmdType type, const TargetCoordinate& target) {
+        auto pattern = m_patternHandler.getCommandPattern(type, target);
+        auto ca_length = m_patternHandler.getPattern(type).size() / m_commandBus.get_width();
+        this->m_commandBus.load(timestamp, pattern, ca_length);
     }
 
-    void DDR4Interface::handleDQs(const Command &cmd, util::Clock &dqs, const size_t length) {
-        dqs.start(cmd.timestamp);
-        dqs.stop(cmd.timestamp + length / m_memSpec.dataRate);
+    void DDR4Interface::handleDQs(timestamp_t timestamp, util::Clock &dqs, const size_t length) {
+        dqs.start(timestamp);
+        dqs.stop(timestamp + length / m_memSpec.dataRate);
     }
 
-    void DDR4Interface::handleData(const Command &cmd, bool read) {
+    void DDR4Interface::handleData(timestamp_t timestamp, CmdType type, const uint8_t* data, std::size_t sz_bits, const TargetCoordinate& target, bool read) {
         auto loadfunc = read ? &databus_t::loadRead : &databus_t::loadWrite;
         util::Clock &dqs = read ? m_readDQS : m_writeDQS;
         size_t length = 0;
-        if (0 == cmd.sz_bits) {
+        if (0 == sz_bits) {
             // No data provided by command
             // Use default burst length
             if (m_dataBus.isTogglingRate()) {
                 // If bus is enabled skip loading data
                 length = m_memSpec.burstLength;
-                (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
+                (m_dataBus.*loadfunc)(timestamp, length * m_dataBus.getWidth(), nullptr);
             }
         } else {
             std::optional<const uint8_t *> dbi_data = std::nullopt;
             // Data provided by command
             if (m_dataBus.isBus() && m_dbi.isEnabled()) {
                 // Only compute dbi for bus mode
-                dbi_data = handleDBIInterface(cmd.timestamp, cmd.sz_bits, cmd.data, read);
+                dbi_data = handleDBIInterface(timestamp, sz_bits, data, read);
             }
-            length = cmd.sz_bits / (m_dataBus.getWidth());
-            (m_dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, dbi_data.value_or(cmd.data));
+            length = sz_bits / (m_dataBus.getWidth());
+            (m_dataBus.*loadfunc)(timestamp, sz_bits, dbi_data.value_or(data));
         }
         handleOverrides(length, read);
-        handleDQs(cmd, dqs, length);
-        handleCommandBus(cmd);
-        assert(m_ranks.size()>cmd.targetCoordinate.rank);
-        auto & rank = m_ranks[cmd.targetCoordinate.rank];
-        handlePrePostamble(cmd.timestamp, length / m_memSpec.dataRate, rank, read);
+        handleDQs(timestamp, dqs, length);
+        handleCommandBus(timestamp, type, target);
+        assert(m_ranks.size()>target.rank);
+        auto & rank = m_ranks[target.rank];
+        handlePrePostamble(timestamp, length / m_memSpec.dataRate, rank, read);
     }
 
     void DDR4Interface::endOfSimulation(timestamp_t timestamp) {
@@ -331,6 +360,8 @@ namespace DRAMPower {
     }
 
     void DDR4Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
+        assert(timestamp >= m_offset);
+        timestamp = timestamp - m_offset;
         // DDR4 x16 have 2 DQs differential pairs
         uint_fast8_t NumDQsPairs = 1;
         if(m_memSpec.bitWidth == 16) {
@@ -373,6 +404,7 @@ namespace DRAMPower {
 
     void DDR4Interface::serialize(std::ostream& stream) const {
         stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
+        stream.write(reinterpret_cast<const char*>(&m_offset), sizeof(m_offset));
         m_patternHandler.serialize(stream);
         m_commandBus.serialize(stream);
         m_dataBus.serialize(stream);
@@ -393,6 +425,7 @@ namespace DRAMPower {
 
     void DDR4Interface::deserialize(std::istream& stream) {
         stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
+        stream.read(reinterpret_cast<char*>(&m_offset), sizeof(m_offset));
         m_patternHandler.deserialize(stream);
         m_commandBus.deserialize(stream);
         m_dataBus.deserialize(stream);

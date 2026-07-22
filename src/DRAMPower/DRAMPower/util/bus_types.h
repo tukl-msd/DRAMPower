@@ -23,6 +23,14 @@ struct bus_stats_t :public Serialize, public Deserialize {
 	uint64_t ones_to_zeroes = 0;
 	uint64_t zeroes_to_ones = 0;
 
+	void reset() {
+		ones = 0;
+		zeroes = 0;
+		bit_changes = 0;
+		ones_to_zeroes = 0;
+		zeroes_to_ones = 0;
+	}
+
 	bus_stats_t& operator+=(const bus_stats_t& rhs) {
 		this->bit_changes += rhs.bit_changes;
 		this->ones += rhs.ones;

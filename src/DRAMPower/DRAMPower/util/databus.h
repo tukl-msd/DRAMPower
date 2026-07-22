@@ -150,6 +150,13 @@ public:
         return dataRate;
     }
 
+    void reset() {
+        busRead.reset();
+        busWrite.reset();
+        togglingHandleRead.reset();
+        togglingHandleWrite.reset();
+    }
+
     void get_stats(timestamp_t timestamp,
         util::bus_stats_t &busReadStats,
         util::bus_stats_t &busWriteStats,
@@ -322,6 +329,12 @@ public:
 
     std::size_t getWidth() const {
         return m_dataBusContainer.getWidth();
+    }
+
+    void reset() {
+        std::visit([](auto && arg) {
+            arg.reset();
+        }, m_dataBusContainer.getVariant());
     }
 
     void get_stats(timestamp_t timestamp, util::bus_stats_t &busReadStats, util::bus_stats_t &busWriteStats, util::bus_stats_t &togglingReadState, util::bus_stats_t &togglingWriteState) const {

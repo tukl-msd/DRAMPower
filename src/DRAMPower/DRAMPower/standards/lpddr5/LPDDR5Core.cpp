@@ -5,65 +5,66 @@
 namespace DRAMPower {
 
 void LPDDR5Core::doCommand(const Command& cmd) {
-    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp, m_last_command_time);
-    m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
+    assert(cmd.timestamp >= m_offset);
+    m_implicitCommandHandler.processImplicitCommandQueue(*this, cmd.timestamp - m_offset, m_last_command_time);
+    m_last_command_time = std::max(cmd.timestamp - m_offset, m_last_command_time);
     switch(cmd.type) {
         case CmdType::ACT:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR5Core::handleAct);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleAct);
             break;
         case CmdType::PRE:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR5Core::handlePre);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, this, &LPDDR5Core::handlePre);
             break;
         case CmdType::PREA:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR5Core::handlePreAll);
+            util::coreHelpers::rankHandler(cmd, m_offset, m_ranks, this, &LPDDR5Core::handlePreAll);
             break;
         case CmdType::REFB:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleRefPerBank);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleRefPerBank);
             break;
         case CmdType::RD:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR5Core::handleRead);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleRead);
             break;
         case CmdType::RDA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleReadAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleReadAuto);
             break;
         case CmdType::WR:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR5Core::handleWrite);
+            util::coreHelpers::bankHandler(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleWrite);
             break;
         case CmdType::WRA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleWriteAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleWriteAuto);
             break;
         case CmdType::REFP2B:
             if (m_memSpec.bank_arch != MemSpecLPDDR5::MBG && m_memSpec.bank_arch != MemSpecLPDDR5::M16B) {
                 throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
             }
-            util::coreHelpers::bankGroupHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleRefPerTwoBanks);
+            util::coreHelpers::bankGroupHandlerIdx(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleRefPerTwoBanks);
             break;
         case CmdType::REFA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleRefAll);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleRefAll);
             break;
         case CmdType::SREFEN:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleSelfRefreshEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleSelfRefreshEntry);
             break;
         case CmdType::SREFEX:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR5Core::handleSelfRefreshExit);
+            util::coreHelpers::rankHandler(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleSelfRefreshExit);
             break;
         case CmdType::PDEA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handlePowerDownActEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &LPDDR5Core::handlePowerDownActEntry);
             break;
         case CmdType::PDEP:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handlePowerDownPreEntry);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &LPDDR5Core::handlePowerDownPreEntry);
             break;
         case CmdType::PDXA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handlePowerDownActExit);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &LPDDR5Core::handlePowerDownActExit);
             break;
         case CmdType::PDXP:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handlePowerDownPreExit);
+            util::coreHelpers::rankHandlerIdx(cmd, m_offset, m_ranks, this, &LPDDR5Core::handlePowerDownPreExit);
             break;
         case CmdType::DSMEN:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR5Core::handleDSMEntry);
+            util::coreHelpers::rankHandler(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleDSMEntry);
             break;
         case CmdType::DSMEX:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR5Core::handleDSMExit);
+            util::coreHelpers::rankHandler(cmd, m_offset, m_ranks, this, &LPDDR5Core::handleDSMExit);
             break;
         case CmdType::END_OF_SIMULATION:
             break;
@@ -73,8 +74,20 @@ void LPDDR5Core::doCommand(const Command& cmd) {
     }
 }
 
+void LPDDR5Core::setSimulationTime(timestamp_t timestamp) {
+    m_offset = timestamp;
+}
+
+void LPDDR5Core::reset() {
+    for (auto& entry : m_ranks) {
+        entry.reset();
+    }
+    m_implicitCommandHandler.reset();
+    m_last_command_time = 0;
+}
+
 timestamp_t LPDDR5Core::getLastCommandTime() const {
-    return m_last_command_time;
+    return m_last_command_time + m_offset;
 }
 
 bool LPDDR5Core::isSerializable() const {
@@ -319,6 +332,8 @@ timestamp_t LPDDR5Core::earliestPossiblePowerDownEntryTime(Rank & rank) const {
 }
 
 void LPDDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
+    assert(timestamp >= m_offset);
+    timestamp = timestamp - m_offset;
     m_implicitCommandHandler.processImplicitCommandQueue(*this, timestamp, m_last_command_time);
     stats.bank.resize(m_memSpec.numberOfBanks * m_memSpec.numberOfRanks);
     stats.rank_total.resize(m_memSpec.numberOfRanks);
@@ -369,12 +384,14 @@ void LPDDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
 
 void LPDDR5Core::serialize(std::ostream& stream) const {
     stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.write(reinterpret_cast<const char*>(&m_offset), sizeof(m_offset));
     for (const auto& rank : m_ranks) {
         rank.serialize(stream);
     }
 }
 void LPDDR5Core::deserialize(std::istream& stream) {
     stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.read(reinterpret_cast<char*>(&m_offset), sizeof(m_offset));
     for (auto& rank : m_ranks) {
         rank.deserialize(stream);
     }
