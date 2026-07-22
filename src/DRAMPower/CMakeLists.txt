@@ -110,7 +110,6 @@ FILES
     DRAMPower/util/bus_types.h
     DRAMPower/util/cli_architecture_config.h
     DRAMPower/util/clock.h
-    DRAMPower/util/command_counter.h
     DRAMPower/util/cycle_stats.h
     DRAMPower/util/databus.h
     DRAMPower/util/databus_presets.h

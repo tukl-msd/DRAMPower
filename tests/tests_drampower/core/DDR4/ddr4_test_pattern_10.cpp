@@ -82,8 +82,6 @@ TEST_F(DramPowerTest_DDR4_10, Pattern1)
         ddr->doCoreCommand(command);
     };
 
-	// Inspect first rank
-	const auto & rank_1 = internal::DDR4TestAccessor.getRanks(ddr->getCore()).at(0);
 	auto stats = ddr->getStats();
 
 	// Check global count
@@ -115,10 +113,6 @@ TEST_F(DramPowerTest_DDR4_10, Pattern1)
 
 	ASSERT_EQ(stats.bank[4].cycles.pre, 125);
 	ASSERT_EQ(stats.bank[5].cycles.pre, 125);
-
-	// Check global command count
-	ASSERT_EQ(rank_1.commandCounter.get(CmdType::ACT), 7);
-	ASSERT_EQ(rank_1.commandCounter.get(CmdType::PRE), 7);
 
 	// per-bank ACT command count
 	ASSERT_EQ(stats.bank[0].counter.act, 2);
