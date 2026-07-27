@@ -77,7 +77,7 @@ void DDR5Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
 
     bank.cycles.act.start_interval(timestamp);
 
-    if ( !rank.isActive(timestamp) ) {
+    if ( !rank.isActive() ) {
         rank.cycles.act.start_interval(timestamp);
     };
 
@@ -93,7 +93,7 @@ void DDR5Core::handlePre(Rank &rank, Bank &bank, timestamp_t timestamp) {
     bank.latestPre = timestamp;
     bank.bankState = Bank::BankState::BANK_PRECHARGED;
 
-    if ( !rank.isActive(timestamp) ) {
+    if ( !rank.isActive() ) {
         rank.cycles.act.close_interval(timestamp);
     }
 }
@@ -128,7 +128,6 @@ void DDR5Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
         handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFC, counter);
     }
 
-    rank.endRefreshTime = timestamp + m_memSpec.tRFC;
 }
 
 void DDR5Core::handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp, uint64_t timing, uint64_t & counter){
@@ -136,7 +135,7 @@ void DDR5Core::handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, t
     auto& rank = m_ranks[rank_idx];
     auto& bank = rank.banks[bank_idx];
 
-    if (!rank.isActive(timestamp)) {
+    if (!rank.isActive()) {
         rank.cycles.act.start_interval(timestamp);
     }
 
@@ -156,7 +155,7 @@ void DDR5Core::handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, t
         bank.bankState = Bank::BankState::BANK_PRECHARGED;
         bank.cycles.act.close_interval(timestamp_end);
 
-        if (!rank.isActive(timestamp_end)) {
+        if (!rank.isActive()) {
             rank.cycles.act.close_interval(timestamp_end);
         }
     });
