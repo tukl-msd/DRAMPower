@@ -221,7 +221,7 @@ private:
     pin_stats_t m_stats;
 
     PinState m_last_state = PinState::Z;
-    const PinState m_idle_state = PinState::L;
+    PinState m_idle_state = PinState::L;
 
     bool m_init_load = true;
 
