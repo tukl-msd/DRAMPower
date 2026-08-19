@@ -7,8 +7,6 @@
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
-#include "DRAMPower/util/Serialize.h"
-#include "DRAMPower/util/Deserialize.h"
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/data/stats.h"
@@ -48,7 +46,7 @@ struct HBM2InterfaceMemSpec {
     uint64_t numberOfDevices;
 };
 
-class HBM2Interface : public util::Serialize, public util::Deserialize {
+class HBM2Interface {
 // Public constants
 public:
     const static std::size_t maxColumnCmdBusWidth = 9;
@@ -82,9 +80,6 @@ public:
     timestamp_t getLastCommandTime() const;
     void doCommand(const HBM2Command& cmd);
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
-// Overrides
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
 // Extensions
     void enableDBI(bool enable) {
         m_dbi.enable(enable);

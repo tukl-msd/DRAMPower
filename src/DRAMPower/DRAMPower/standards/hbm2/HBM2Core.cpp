@@ -349,18 +349,4 @@ void HBM2Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
     }
 }
 
-void HBM2Core::serialize(std::ostream& stream) const {
-    stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
-    for (const auto &pseudoChannel : m_pseudoChannels) {
-        pseudoChannel.serialize(stream);
-    }
-}
-
-void HBM2Core::deserialize(std::istream& stream) {
-    stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
-    for (auto &pseudoChannel : m_pseudoChannels) {
-        pseudoChannel.deserialize(stream);
-    }
-}
-
 } // namespace DRAMPower

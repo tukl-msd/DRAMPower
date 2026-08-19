@@ -3,8 +3,6 @@
 
 #include <DRAMPower/Types.h>
 #include <DRAMPower/util/bus.h>
-#include <DRAMPower/util/Serialize.h>
-#include <DRAMPower/util/Deserialize.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
 
@@ -13,10 +11,10 @@
 
 namespace DRAMPower {
 
-class TogglingHandle : public util::Serialize, public util::Deserialize
+class TogglingHandle
 {
 
-struct TogglingHandleLastBurst  : public util::Serialize, public util::Deserialize {
+struct TogglingHandleLastBurst {
     uint64_t last_length = 0;
     timestamp_t last_load = 0;
     bool handled = true;
@@ -24,8 +22,6 @@ struct TogglingHandleLastBurst  : public util::Serialize, public util::Deseriali
     TogglingHandleLastBurst(uint64_t last_length, timestamp_t last_load, bool handled)
         : last_length(last_length), last_load(last_load), handled(handled) {}
     operator bool() const { return !this->handled; }
-    void serialize(std::ostream &stream) const override;
-    void deserialize(std::istream &stream) override;
 };
 
 private:
@@ -63,11 +59,6 @@ public:
     void incCountBurstLength(timestamp_t timestamp, uint64_t burstlength);
     void incCountBitLength(timestamp_t timestamp, uint64_t bitlength);
     util::bus_stats_t get_stats(timestamp_t timestamp) const;
-
-// Overrides
-    void serialize(std::ostream &stream) const override;
-    void deserialize(std::istream &stream) override;
-
 };
 
 struct interface_stats_t 

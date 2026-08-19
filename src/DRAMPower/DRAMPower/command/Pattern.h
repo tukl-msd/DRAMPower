@@ -2,8 +2,6 @@
 #define DRAMPOWER_COMMAND_PATTERN_H
 
 #include <DRAMPower/command/Command.h>
-#include <DRAMPower/util/Serialize.h>
-#include <DRAMPower/util/Deserialize.h>
 
 #include <cassert>
 #include <type_traits>
@@ -123,7 +121,7 @@ template <
     typename Encoder_t = DefaultEncoder,
     typename ExtraData_t = std::monostate
 >
-class BasePatternEncoder : public util::Serialize, public util::Deserialize // Currently LPDDR4
+class BasePatternEncoder
 {
 public:
     BasePatternEncoderOverrides<pattern_t> settings;
@@ -146,37 +144,6 @@ public:
     }
     ExtraData_t& getExtraData() {
         return m_extraData;
-    }
-
-// Overrides
-public:
-    void serialize(std::ostream& stream) const override {
-        if constexpr (!std::is_same_v<std::decay_t<ExtraData_t>, std::monostate>) {
-            m_extraData.serialize(stream);
-        }
-        // settings
-        const std::size_t settingsSize = settings.getSettings().size();
-        stream.write(reinterpret_cast<const char*>(&settingsSize), sizeof(settingsSize));
-        for (const auto& [descriptor, bitSpec] : settings.getSettings()) {
-            stream.write(reinterpret_cast<const char*>(&descriptor), sizeof(descriptor));
-            stream.write(reinterpret_cast<const char*>(&bitSpec), sizeof(bitSpec));
-        }
-    }
-    void deserialize(std::istream& stream) override  {
-        if constexpr (!std::is_same_v<std::decay_t<ExtraData_t>, std::monostate>) {
-            m_extraData.deserialize(stream);
-        }
-        // settings
-        std::size_t settingsSize = 0;
-        stream.read(reinterpret_cast<char*>(&settingsSize), sizeof(settingsSize));
-        settings = BasePatternEncoderOverrides<pattern_t>{};
-        for (std::size_t i = 0; i < settingsSize; ++i) {
-            pattern_t descriptor;
-            PatternEncoderBitSpec bitSpec;
-            stream.read(reinterpret_cast<char*>(&descriptor), sizeof(descriptor));
-            stream.read(reinterpret_cast<char*>(&bitSpec), sizeof(bitSpec));
-            settings.updateSettings({PatternEncoderSettingsEntry<pattern_t>{descriptor, bitSpec}});
-        }
     }
 
 public:

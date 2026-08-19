@@ -4,8 +4,6 @@
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
-#include "DRAMPower/util/Serialize.h"
-#include "DRAMPower/util/Deserialize.h"
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/command/Command.h"
@@ -34,7 +32,7 @@ struct DDR5InterfaceMemSpec {
     uint64_t bitWidth;
 };
 
-class DDR5Interface : public util::Serialize, public util::Deserialize {
+class DDR5Interface {
 // Public constants
 public:
     const static std::size_t cmdBusWidth = 14;
@@ -56,9 +54,6 @@ public:
     timestamp_t getLastCommandTime() const;
     void doCommand(const Command& cmd);
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
-// Overrides
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
 
 // Private member functions
 private:

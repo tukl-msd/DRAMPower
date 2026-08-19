@@ -29,8 +29,6 @@ public:
 	test_ddr() = default;
 
 private:
-    void serialize_impl(std::ostream&) const override {}
-    void deserialize_impl(std::istream&) override {}
     void doCoreCommandImpl(const Command& command) override {
         implicitCommandHandler.processImplicitCommandQueue(command.timestamp, last_command_time);
         __doCoreCommand(command);

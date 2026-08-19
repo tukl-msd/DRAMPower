@@ -3,8 +3,6 @@
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/util/pin_types.h"
-#include "DRAMPower/util/Serialize.h"
-#include "DRAMPower/util/Deserialize.h"
 
 #include "DRAMPower/util/dbialgos.h"
 #include "DRAMPower/util/dbitypes.h"
@@ -29,7 +27,7 @@ namespace DRAMPower::util {
 
 // Valid types for DataType_t are -> integral types f.e. uint8_t, uint16_t, uint32_t or bitset<N>
 template<typename DataType_t, std::size_t SUBCHUNKS, PinState IDLEPATTERN, typename Algorithm>
-class DBI : public Serialize, public Deserialize {
+class DBI {
 static_assert(std::is_integral_v<DataType_t> || types::is_bitset_v<DataType_t>, "DataType_t must be an integral type or a std::bitset.");
 // Public type definitions
 public:
@@ -64,7 +62,7 @@ public:
 
 // Private type definitions
 private:
-    class LastBurst_t : public Serialize, public Deserialize {
+    class LastBurst_t {
     public:
         std::size_t beats() const {
             return m_end - m_start;
@@ -97,50 +95,6 @@ private:
             }
             m_n_chunks = n_bits / ChunkSize;
             m_init = true;
-        }
-
-        void serialize(std::ostream &stream) const override {
-            stream.write(reinterpret_cast<const char*>(&m_start), sizeof(m_start));
-            stream.write(reinterpret_cast<const char*>(&m_end), sizeof(m_end));
-            stream.write(reinterpret_cast<const char*>(&m_n_chunks), sizeof(m_n_chunks));
-            stream.write(reinterpret_cast<const char*>(&m_n_bits), sizeof(m_n_bits));
-            stream.write(reinterpret_cast<const char*>(&m_init), sizeof(m_init));
-            std::size_t m_inversionsSize = m_inversions.size();
-            stream.write(reinterpret_cast<const char*>(&m_inversionsSize), sizeof(m_inversionsSize));
-            for (const auto& entry : m_inversions) {
-                stream.write(reinterpret_cast<const char*>(&entry), sizeof(entry));
-            }
-            std::size_t m_lastbeatSize = m_lastbeat.size();
-            stream.write(reinterpret_cast<const char*>(&m_lastbeatSize), sizeof(m_lastbeatSize));
-            for (const auto& entry : m_lastbeat) {
-                stream.write(reinterpret_cast<const char*>(&entry), sizeof(entry));
-            }
-        }
-
-        void deserialize(std::istream& stream) override {
-            stream.read(reinterpret_cast<char*>(&m_start), sizeof(m_start));
-            stream.read(reinterpret_cast<char*>(&m_end), sizeof(m_end));
-            stream.read(reinterpret_cast<char*>(&m_n_chunks), sizeof(m_n_chunks));
-            stream.read(reinterpret_cast<char*>(&m_n_bits), sizeof(m_n_bits));
-            stream.read(reinterpret_cast<char*>(&m_init), sizeof(m_init));
-            std::size_t m_inversionsSize;
-            stream.read(reinterpret_cast<char*>(&m_inversionsSize), sizeof(m_inversionsSize));
-            m_inversions.clear();
-            m_inversions.reserve(m_inversionsSize);
-            for (std::size_t i = 0; i < m_inversionsSize; ++i) {
-                bool entry;
-                stream.read(reinterpret_cast<char*>(&entry), sizeof(entry));
-                m_inversions.push_back(entry);
-            }
-            std::size_t m_lastbeatSize;
-            stream.read(reinterpret_cast<char*>(&m_lastbeatSize), sizeof(m_lastbeatSize));
-            m_lastbeat.clear();
-            m_lastbeat.reserve(m_lastbeatSize);
-            for (std::size_t i = 0; i < m_lastbeatSize; ++i) {
-                bool entry;
-                stream.read(reinterpret_cast<char*>(&entry), sizeof(entry));
-                m_lastbeat.push_back(entry);
-            }
         }
     public:
         DataBuffer_t m_lastbeat{};
@@ -314,39 +268,6 @@ public:
         dispatchResetCallback(timestamp, true);
         dispatchResetCallback(timestamp, false);
     }
-
-
-    void serialize(std::ostream& stream) const override {
-        stream.write(reinterpret_cast<const char*>(&m_enable), sizeof(m_enable));
-        stream.write(reinterpret_cast<const char*>(&lastBurstRead), sizeof(lastBurstRead));
-
-        m_lastBurst_read.serialize(stream);
-        m_lastBurst_write.serialize(stream);
-
-        std::size_t invertedDataSize = m_invertedData.size();
-        stream.write(reinterpret_cast<const char*>(&invertedDataSize), sizeof(invertedDataSize));
-        for (const auto& byte : m_invertedData) {
-            stream.write(reinterpret_cast<const char*>(&byte), sizeof(byte));
-        }
-    }
-    void deserialize(std::istream& stream) override {
-        stream.read(reinterpret_cast<char*>(&m_enable), sizeof(m_enable));
-        stream.read(reinterpret_cast<char*>(&lastBurstRead), sizeof(lastBurstRead));
-
-        m_lastBurst_read.deserialize(stream);
-        m_lastBurst_write.deserialize(stream);
-
-        std::size_t invertedDataSize;
-        stream.read(reinterpret_cast<char*>(&invertedDataSize), sizeof(invertedDataSize));
-        m_invertedData.clear();
-        m_invertedData.reserve(invertedDataSize);
-        for (std::size_t i = 0; i < invertedDataSize; ++i) {
-            uint8_t byte;
-            stream.read(reinterpret_cast<char*>(&byte), sizeof(byte));
-            m_invertedData.push_back(byte);
-        }
-    }
-
 
 // Private member functions
 private:

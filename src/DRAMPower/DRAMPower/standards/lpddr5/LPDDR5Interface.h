@@ -5,8 +5,6 @@
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
-#include "DRAMPower/util/Serialize.h"
-#include "DRAMPower/util/Deserialize.h"
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/command/Command.h"
@@ -41,7 +39,7 @@ struct LPDDR5InterfaceMemSpec {
     bool wckAlwaysOnMode;
 };
 
-class LPDDR5Interface : public util::Serialize, public util::Deserialize {
+class LPDDR5Interface {
 // Public constants
 public:
     const static std::size_t cmdBusWidth = 7;
@@ -64,9 +62,6 @@ public:
     timestamp_t getLastCommandTime() const;
     void doCommand(const Command& cmd);
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
-// Override
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
 // Extensions
     void enableDBI(bool enable) {
         m_dbi.enable(enable);

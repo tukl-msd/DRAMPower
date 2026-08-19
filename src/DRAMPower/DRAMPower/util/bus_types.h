@@ -16,7 +16,7 @@ enum class BusIdlePatternSpec
     H = 1,
 };
 
-struct bus_stats_t :public Serialize, public Deserialize {
+struct bus_stats_t : public Serialize, public Deserialize {
 	uint64_t ones = 0;
 	uint64_t zeroes = 0;
 	uint64_t bit_changes = 0;

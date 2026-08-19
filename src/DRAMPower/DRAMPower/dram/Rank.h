@@ -5,9 +5,6 @@
 #include <DRAMPower/dram/Bank.h>
 #include <DRAMPower/Types.h>
 
-#include <DRAMPower/util/Serialize.h>
-#include <DRAMPower/util/Deserialize.h>
-
 #include <vector>
 
 namespace DRAMPower {
@@ -22,7 +19,7 @@ enum class MemState {
 };
 
 
-struct Rank : public util::Serialize, public util::Deserialize {
+struct Rank {
 public:
 // Variables
 	MemState memState = MemState::NOT_IN_PD;
@@ -51,12 +48,9 @@ public:
 	static bool isActive_impl(const std::vector<Bank>& banks);
 	bool isActive();
 	std::size_t countActiveBanks() const;
-// Overrides
-	void serialize(std::ostream& stream) const override;
-	void deserialize(std::istream& stream) override;
 };
 
-struct RankInterface : public util::Serialize, public util::Deserialize {
+struct RankInterface {
 	uint64_t 	seamlessPrePostambleCounter_read	= 0;
 	uint64_t 	seamlessPrePostambleCounter_write	= 0;
 	uint64_t	mergedPrePostambleCounter_read		= 0;
@@ -65,10 +59,6 @@ struct RankInterface : public util::Serialize, public util::Deserialize {
 	timestamp_t	mergedPrePostambleTime_write		= 0;
 	timestamp_t lastReadEnd = 0;
 	timestamp_t lastWriteEnd = 0;
-
-// Overrides
-	void serialize(std::ostream& stream) const override;
-	void deserialize(std::istream& stream) override;
 };
 
 } // namespace DRAMPower

@@ -5,8 +5,6 @@
 #include <DRAMPower/util/burst_storage.h>
 #include <DRAMPower/util/bus_types.h>
 #include <DRAMPower/util/pending_stats.h>
-#include <DRAMPower/util/Serialize.h>
-#include <DRAMPower/util/Deserialize.h>
 #include <DRAMPower/Types.h>
 
 #include <DRAMUtils/util/types.h>
@@ -25,7 +23,7 @@ namespace DRAMPower::util
 {
 
 template <std::size_t max_bitset_size = 0>
-class Bus : public Serialize, public Deserialize {
+class Bus {
 
 public:
 	
@@ -255,26 +253,6 @@ public:
 		stats.ones_to_zeroes += util::BinaryOps::one_to_zeroes(high, low);
 		stats.zeroes_to_ones += util::BinaryOps::zero_to_ones(high, low);
 		return stats;
-	};
-
-	void serialize(std::ostream& stream) const override {
-		this->stats.serialize(stream);
-		this->burst_storage.serialize(stream);
-		stream.write(reinterpret_cast<const char*>(&this->last_load), sizeof(this->last_load));
-		stream.write(reinterpret_cast<const char*>(&this->enableflag), sizeof(this->enableflag));
-		stream.write(reinterpret_cast<const char*>(&this->virtual_disable_timestamp), sizeof(this->virtual_disable_timestamp));
-		stream.write(reinterpret_cast<const char*>(&this->last_pattern), sizeof(this->last_pattern));
-		this->pending_stats.serialize(stream);
-	};
-
-	void deserialize(std::istream& stream) override {
-		this->stats.deserialize(stream);
-		this->burst_storage.deserialize(stream);
-		stream.read(reinterpret_cast<char*>(&this->last_load), sizeof(this->last_load));
-		stream.read(reinterpret_cast<char*>(&this->enableflag), sizeof(this->enableflag));
-		stream.read(reinterpret_cast<char*>(&this->virtual_disable_timestamp), sizeof(this->virtual_disable_timestamp));
-		stream.read(reinterpret_cast<char*>(&this->last_pattern), sizeof(this->last_pattern));
-		this->pending_stats.deserialize(stream);
 	};
 };
 

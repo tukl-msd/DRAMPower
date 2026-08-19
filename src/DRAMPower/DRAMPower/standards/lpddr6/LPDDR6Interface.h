@@ -5,8 +5,6 @@
 #include "DRAMPower/util/bus.h"
 #include "DRAMPower/util/databus_presets.h"
 #include "DRAMPower/util/clock.h"
-#include "DRAMPower/util/Serialize.h"
-#include "DRAMPower/util/Deserialize.h"
 
 #include "DRAMPower/Types.h"
 #include "DRAMPower/standards/lpddr6/LPDDR6Command.h"
@@ -40,7 +38,7 @@ struct LPDDR6InterfaceMemSpec {
     bool wckAlwaysOnMode;
 };
 
-class LPDDR6Interface : public util::Serialize, public util::Deserialize {
+class LPDDR6Interface {
 // Public constants
 public:
     static constexpr std::array<uint8_t, 288> dataBitMapping = {
@@ -118,9 +116,6 @@ public:
     timestamp_t getLastCommandTime() const;
     void doCommand(const LPDDR6Command& cmd);
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
-// Overrides
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
 // Extensions
     void enable(timestamp_t timestamp);
     void disable(timestamp_t timestamp);

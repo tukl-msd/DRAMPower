@@ -6,29 +6,18 @@
 #include <DRAMPower/util/bus_types.h>
 #include <DRAMPower/util/pin_types.h>
 #include <DRAMPower/util/pending_stats.h>
-#include <DRAMPower/util/Serialize.h>
-#include <DRAMPower/util/Deserialize.h>
 
 #include <cassert>
 #include <cstddef>
 
 namespace DRAMPower::util {
 
-struct PinPendingStats : public Serialize, public Deserialize {
+struct PinPendingStats {
     PinState fromstate;
     PinState newstate;
 
     PinPendingStats() = default;
     PinPendingStats(PinState from, PinState to) : fromstate(from), newstate(to) {}
-
-    void serialize(std::ostream &stream) const override {
-        stream.write(reinterpret_cast<const char *>(&fromstate), sizeof(fromstate));
-        stream.write(reinterpret_cast<const char *>(&newstate), sizeof(newstate));
-    }
-    void deserialize(std::istream &stream) override {
-        stream.read(reinterpret_cast<char *>(&fromstate), sizeof(fromstate));
-        stream.read(reinterpret_cast<char *>(&newstate), sizeof(newstate));
-    }
 };
 
 struct PinTempChange {
@@ -37,7 +26,7 @@ struct PinTempChange {
 };
 
 template<std::size_t max_burst_length>
-class Pin : public Serialize, public Deserialize {
+class Pin {
 // Public type definitions
 public:
     using pin_stats_t = bus_stats_t;
@@ -192,26 +181,6 @@ public:
         addPendingStats(virtual_time, m_pending_stats, stats);
         count(virtual_time, m_last_set, m_idle_state, stats);
         return stats;
-    }
-
-
-// Overrides
-public:
-    void serialize(std::ostream &stream) const override  {
-        stream.write(reinterpret_cast<const char *>(&m_last_state), sizeof(m_last_state));
-        stream.write(reinterpret_cast<const char *>(&m_last_set), sizeof(m_last_set));
-        stream.write(reinterpret_cast<const char *>(&m_init_load), sizeof(m_init_load));
-        m_burst_storage.serialize(stream);
-        m_pending_stats.serialize(stream);
-        m_stats.serialize(stream);
-    }
-    void deserialize(std::istream &stream) override  {
-        stream.read(reinterpret_cast<char *>(&m_last_state), sizeof(m_last_state));
-        stream.read(reinterpret_cast<char *>(&m_last_set), sizeof(m_last_set));
-        stream.read(reinterpret_cast<char *>(&m_init_load), sizeof(m_init_load));
-        m_burst_storage.deserialize(stream);
-        m_pending_stats.deserialize(stream);
-        m_stats.deserialize(stream);
     }
 
 // Private member variables
