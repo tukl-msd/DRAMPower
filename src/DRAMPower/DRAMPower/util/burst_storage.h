@@ -6,8 +6,6 @@
 #include "DRAMPower/Types.h"
 #include "DRAMPower/util/binary_ops.h"
 #include "DRAMPower/util/bus_types.h"
-#include "DRAMPower/util/Serialize.h"
-#include "DRAMPower/util/Deserialize.h"
 
 #include <bitset>
 #include <cstddef>
@@ -157,34 +155,6 @@ struct burst_storage_impl <BitsetContainer<bitset_size>>{
     static inline void setLoadTime(data_t& data, timestamp_t timestamp) {
         data.load_time = timestamp;
     }
-
-
-    static inline void serialize(const data_t& data, std::ostream& stream) {
-		stream.write(reinterpret_cast<const char*>(&data.count), sizeof(data.count));
-		stream.write(reinterpret_cast<const char*>(&data.load_time), sizeof(data.load_time));
-		std::array<uint8_t, (bitset_size + 7) / 8> burst_data;
-		for (std::size_t i = 0; i < burst_data.size(); ++i) {
-			burst_data[i] = 0;
-			for (std::size_t j = 0; j < 8 && (i * 8 + j) < bitset_size; ++j) {
-				if (data.bitset.test(i * 8 + j)) {
-					burst_data[i] |= (1 << j);
-				}
-			}
-		}
-		stream.write(reinterpret_cast<const char*>(burst_data.data()), burst_data.size());
-    }
-
-    static inline void deserialize(data_t& data, std::istream& stream) {
-		stream.read(reinterpret_cast<char*>(&data.count), sizeof(data.count));
-		stream.read(reinterpret_cast<char*>(&data.load_time), sizeof(data.load_time));
-        std::array<uint8_t, (bitset_size +7) / 8> burst_data{};
-		stream.read(reinterpret_cast<char*>(burst_data.data()), burst_data.size());
-		for (std::size_t i = 0; i < burst_data.size(); ++i) {
-			for (std::size_t j = 0; j < 8 && (i * 8 + j) < bitset_size; ++j) {
-				data.bitset.set(i * 8 + j, (burst_data[i] >> j) & 1);
-			}
-		}
-    }
 };
 
 template <std::size_t bitset_size>
@@ -282,54 +252,10 @@ struct burst_storage_impl <BusContainer<bitset_size>> {
     static inline void setLoadTime(data_t& data, timestamp_t timestamp) {
         data.load_time = timestamp;
     }
-
-	static inline void serializeBurst(std::ostream& stream, const burst_t& burst) {
-		std::array<uint8_t, (bitset_size + 7) / 8> burst_data;
-		for (std::size_t i = 0; i < burst_data.size(); ++i) {
-			burst_data[i] = 0;
-			for (std::size_t j = 0; j < 8 && (i * 8 + j) < bitset_size; ++j) {
-				if (burst.test(i * 8 + j)) {
-					burst_data[i] |= (1 << j);
-				}
-			}
-		}
-		stream.write(reinterpret_cast<const char*>(burst_data.data()), burst_data.size());
-	}
-	static inline void deserializeBurst(std::istream& stream, burst_t& burst) {
-		std::array<uint8_t, (bitset_size +7) / 8> burst_data{};
-		stream.read(reinterpret_cast<char*>(burst_data.data()), burst_data.size());
-		for (std::size_t i = 0; i < burst_data.size(); ++i) {
-			for (std::size_t j = 0; j < 8 && (i * 8 + j) < bitset_size; ++j) {
-				burst.set(i * 8 + j, (burst_data[i] >> j) & 1);
-			}
-		}
-	}
-
-    static inline void serialize(const data_t& data, std::ostream& stream) {
-        std::size_t totalBursts = data.bursts.size();
-		stream.write(reinterpret_cast<const char*>(&data.count), sizeof(data.count));
-		stream.write(reinterpret_cast<const char*>(&data.load_time), sizeof(data.load_time));
-        stream.write(reinterpret_cast<const char*>(&totalBursts), sizeof(totalBursts));
-        for (const auto& burst : data.bursts) {
-            serializeBurst(stream, burst);
-        }
-    }
-
-    static inline void deserialize(data_t& data, std::istream& stream) {
-        std::size_t totalBursts = 0;
-		stream.read(reinterpret_cast<char*>(&data.count), sizeof(data.count));
-		stream.read(reinterpret_cast<char*>(&data.load_time), sizeof(data.load_time));
-		stream.read(reinterpret_cast<char*>(&totalBursts), sizeof(totalBursts));
-		data.bursts.clear();
-		data.bursts.resize(totalBursts);
-		for (std::size_t i = 0; i < totalBursts; ++i) {
-			deserializeBurst(stream, data.bursts[i]);
-		}
-    }
 };
 
 template<typename T>
-class burst_storage : public Serialize, public Deserialize
+class burst_storage
 {
 public:
     using impl_data_t = T;
@@ -382,13 +308,6 @@ public:
     timestamp_t endTime() const {
         return impl_t::endTime(m_bursts);
     }
-
-	void serialize(std::ostream& stream) const override {
-        impl_t::serialize(m_bursts, stream);
-	}
-	void deserialize(std::istream& stream) override {
-        impl_t::deserialize(m_bursts, stream);
-	}
 };
 
 

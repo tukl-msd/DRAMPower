@@ -71,8 +71,6 @@ private:
     timestamp_t getLastCommandTime_impl() const override {
         return std::max(m_core.getLastCommandTime(), m_interface.getLastCommandTime());
     }
-    void serialize_impl(std::ostream& stream) const override;
-    void deserialize_impl(std::istream& stream) override;
 
 // Private member variables
 private:

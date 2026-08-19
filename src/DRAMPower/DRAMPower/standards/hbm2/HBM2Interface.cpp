@@ -399,46 +399,4 @@ namespace DRAMPower {
         stats.cke += m_cke.get_stats_at(timestamp);
     }
 
-    void HBM2Interface::serialize(std::ostream& stream) const {
-        stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
-        m_patternHandler.serialize(stream);
-        m_rowCommandBus.serialize(stream);
-        m_columnCommandBus.serialize(stream);
-        for (const auto& bus : m_dataBus) {
-            bus.m_dataBus.serialize(stream);
-            bus.m_readDQS.serialize(stream);
-            bus.m_writeDQS.serialize(stream);
-        }
-        m_clock.serialize(stream);
-        m_dbi.serialize(stream);
-        for (const auto& pin : m_dbiread) {
-            pin.serialize(stream);
-        }
-        for (const auto& pin : m_dbiwrite) {
-            pin.serialize(stream);
-        }
-        m_cke.serialize(stream);
-    }
-
-    void HBM2Interface::deserialize(std::istream& stream) {
-        stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
-        m_patternHandler.deserialize(stream);
-        m_rowCommandBus.deserialize(stream);
-        m_columnCommandBus.deserialize(stream);
-        for (auto& bus : m_dataBus) {
-            bus.m_dataBus.deserialize(stream);
-            bus.m_readDQS.deserialize(stream);
-            bus.m_writeDQS.deserialize(stream);
-        }
-        m_clock.deserialize(stream);
-        m_dbi.deserialize(stream);
-        for (auto &pin : m_dbiread) {
-            pin.deserialize(stream);
-        }
-        for (auto &pin : m_dbiwrite) {
-            pin.deserialize(stream);
-        }
-        m_cke.deserialize(stream);
-    }
-
 } // namespace DRAMPower

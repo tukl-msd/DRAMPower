@@ -50,7 +50,7 @@ struct HBM2CoreMemSpec {
     uint64_t prechargeOffsetWR;
 };
 
-class HBM2Core : public util::Serialize, public util::Deserialize {
+class HBM2Core {
 // Friend classes
 friend class internal::TestAccessor<HBM2Core>;
 
@@ -68,9 +68,6 @@ public:
     timestamp_t getLastCommandTime() const;
     bool isSerializable() const;
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
-// Overrides
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
 
 // Private member functions
 private:

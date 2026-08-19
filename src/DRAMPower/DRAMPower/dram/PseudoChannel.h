@@ -7,14 +7,11 @@
 
 #include <DRAMPower/dram/Rank.h>
 
-#include <DRAMPower/util/Serialize.h>
-#include <DRAMPower/util/Deserialize.h>
-
 #include <vector>
 
 namespace DRAMPower {
 
-struct PseudoChannel : public util::Serialize, public util::Deserialize {
+struct PseudoChannel {
 public:
 // Variables
 	MemState memState = MemState::NOT_IN_PD;
@@ -37,9 +34,6 @@ public:
 public:
 	bool isActive();
 	std::size_t countActiveBanks() const;
-// Overrides
-	void serialize(std::ostream& stream) const override;
-	void deserialize(std::istream& stream) override;
 };
 
 } // namespace DRAMPower

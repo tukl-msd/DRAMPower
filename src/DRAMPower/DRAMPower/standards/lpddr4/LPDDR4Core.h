@@ -1,9 +1,7 @@
 #ifndef DRAMPOWER_STANDARDS_LPDDR4_LPDDR4CORE_H
 #define DRAMPOWER_STANDARDS_LPDDR4_LPDDR4CORE_H
 
-#include "DRAMPower/util/Deserialize.h"
 #include "DRAMPower/util/RegisterMapping.h"
-#include "DRAMPower/util/Serialize.h"
 #include <DRAMPower/Types.h>
 #include "DRAMPower/dram/Rank.h"
 #include "DRAMPower/command/Command.h"
@@ -46,7 +44,7 @@ struct LPDDR4CoreMemSpec {
     uint64_t prechargeOffsetWR;
 };
 
-class LPDDR4Core : public util::Serialize, public util::Deserialize {
+class LPDDR4Core {
 // Friend classes
 friend class internal::TestAccessor<LPDDR4Core>;
 
@@ -65,9 +63,6 @@ public:
     timestamp_t getLastCommandTime() const;
     bool isSerializable() const;
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
-// Overrides
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
 
 // Private member functions
 private:

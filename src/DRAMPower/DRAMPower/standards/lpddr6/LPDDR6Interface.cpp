@@ -370,26 +370,6 @@ void LPDDR6Interface::getWindowStats(timestamp_t timestamp, SimulationStats &sta
 
 }
 
-void LPDDR6Interface::serialize(std::ostream& stream) const {
-    stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
-    m_patternHandler.serialize(stream);
-    m_commandBus.serialize(stream);
-    m_dataBus.serialize(stream);
-    m_readDQS.serialize(stream);
-    m_wck.serialize(stream);
-    m_clock.serialize(stream);
-}
-
-void LPDDR6Interface::deserialize(std::istream& stream) {
-    stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
-    m_patternHandler.deserialize(stream);
-    m_commandBus.deserialize(stream);
-    m_dataBus.deserialize(stream);
-    m_readDQS.deserialize(stream);
-    m_wck.deserialize(stream);
-    m_clock.deserialize(stream);
-}
-
 std::tuple<const uint8_t*, std::size_t> LPDDR6Interface::DataFormatter::formatData(
     const uint8_t* inputData, std::size_t n_bits,
     std::optional<std::reference_wrapper<const std::vector<bool>>> InversionState
