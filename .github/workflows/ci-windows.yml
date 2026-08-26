@@ -1,0 +1,38 @@
+name: CI - Windows Build
+
+on:
+  push:
+    branches: ["master", "main"]
+  pull_request:
+    branches: ["master", "main"]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-msvc:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure (CMake preset)
+        # Uses the ci-msvc preset from CMakePresets.json
+        run: cmake --preset ci-msvc
+
+      - name: Build
+        run: cmake --build ${{ github.workspace }}\\build --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Test
+        run: |
+          pushd ${{ github.workspace }}\\build
+          ctest -C ${{ env.BUILD_TYPE }} --output-on-failure
+          popd
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drampower-windows
+          path: build\\bin
