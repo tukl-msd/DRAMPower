@@ -73,7 +73,7 @@ void LPDDR4Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
 
     bank.cycles.act.start_interval(timestamp);
 
-    if (!rank.isActive(timestamp)) {
+    if (!rank.isActive()) {
         rank.cycles.act.start_interval(timestamp);
     }
 
@@ -89,7 +89,7 @@ void LPDDR4Core::handlePre(Rank &rank, Bank &bank, timestamp_t timestamp) {
     bank.latestPre = timestamp;
     bank.bankState = Bank::BankState::BANK_PRECHARGED;
 
-    if (!rank.isActive(timestamp)) {
+    if (!rank.isActive()) {
         rank.cycles.act.close_interval(timestamp);
     }
 }
@@ -105,7 +105,7 @@ void LPDDR4Core::handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx,
     auto& rank = m_ranks[rank_idx];
     auto& bank = rank.banks[bank_idx];
 
-    if (!rank.isActive(timestamp)) {
+    if (!rank.isActive()) {
         rank.cycles.act.start_interval(timestamp);
     }
 
@@ -122,7 +122,7 @@ void LPDDR4Core::handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx,
         bank.bankState = Bank::BankState::BANK_PRECHARGED;
         bank.cycles.act.close_interval(timestamp_end);
 
-        if (!rank.isActive(timestamp_end)) {
+        if (!rank.isActive()) {
             rank.cycles.act.close_interval(timestamp_end);
         }
     });
@@ -134,7 +134,6 @@ void LPDDR4Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
         auto& counter = rank.banks[bank_idx].counter.refAllBank;
         handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFC, counter);
     }
-    rank.endRefreshTime = timestamp + m_memSpec.tRFC;
 }
 
 void LPDDR4Core::handleRefPerBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp) {

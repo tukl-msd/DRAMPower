@@ -39,7 +39,6 @@ public:
 		uint64_t selfRefresh = 0;
 		uint64_t deepSleepMode = 0;
 	} counter = { 0 };
-	timestamp_t endRefreshTime = 0;
 	std::vector<Bank> banks;
 
 public:
@@ -48,7 +47,7 @@ public:
 
 // Functions
 public:
-	bool isActive(timestamp_t timestamp);
+	bool isActive();
 	std::size_t countActiveBanks() const;
 // Overrides
 	void serialize(std::ostream& stream) const override;

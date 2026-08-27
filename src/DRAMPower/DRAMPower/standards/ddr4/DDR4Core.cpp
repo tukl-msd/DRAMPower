@@ -87,7 +87,7 @@ void DDR4Core::handlePre(Rank &rank, Bank &bank, timestamp_t timestamp) {
     bank.bankState = Bank::BankState::BANK_PRECHARGED;
     bank.cycles.act.close_interval(timestamp);
     bank.latestPre = timestamp;                                                // used for earliest power down calculation
-    if ( !rank.isActive(timestamp) )                                            // stop rank active interval if no more banks active
+    if ( !rank.isActive() )                                            // stop rank active interval if no more banks active
     {
         // active counter increased if at least 1 bank is active, precharge counter increased if all banks are precharged
         rank.cycles.act.close_interval(timestamp);
@@ -103,7 +103,6 @@ void DDR4Core::handlePreAll(Rank &rank, timestamp_t timestamp) {
 void DDR4Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
     auto timestamp_end = timestamp + m_memSpec.tRFC;
     auto& rank = m_ranks[rank_idx];
-    rank.endRefreshTime = timestamp_end;
     rank.cycles.act.start_interval_if_not_running(timestamp);
     //rank.cycles.pre.close_interval(timestamp);
     for (std::size_t bank_idx = 0; bank_idx < rank.banks.size(); ++bank_idx) {
@@ -123,7 +122,7 @@ void DDR4Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
             bank.bankState = Bank::BankState::BANK_PRECHARGED;
             bank.cycles.act.close_interval(timestamp_end);
             // stop rank active interval if no more banks active
-            if (!rank.isActive(timestamp_end))                                  // stop rank active interval if no more banks active
+            if (!rank.isActive())                                  // stop rank active interval if no more banks active
             {
                 rank.cycles.act.close_interval(timestamp_end);
                 //rank.cycles.pre.start_interval(timestamp_end);
@@ -228,7 +227,7 @@ void DDR4Core::handlePowerDownActExit(std::size_t rank_idx, timestamp_t timestam
         }
         // Activate rank if at least one bank is active
         // At least one bank must be active for PDA -> remove if statement?
-        if(rank.isActive(exitTime))
+        if(rank.isActive())
             rank.cycles.act.start_interval(exitTime); 
 
     });

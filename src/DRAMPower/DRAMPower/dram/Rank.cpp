@@ -8,11 +8,8 @@ Rank::Rank(std::size_t numBanks)
     : banks(numBanks)
 {};
 
-bool Rank::isActive(timestamp_t timestamp) {
-    if ( timestamp < this->endRefreshTime ) {
-        std::cout << "[WARN] Rank::isActive() -> timestamp (" << timestamp <<") < "  << "endRefreshTime (" << this->endRefreshTime << ")"  << std::endl;
-    }
-    return countActiveBanks() > 0 || timestamp < this->endRefreshTime;
+bool Rank::isActive() {
+    return countActiveBanks() > 0;
 }
 
 std::size_t Rank::countActiveBanks() const {
@@ -24,11 +21,8 @@ std::size_t Rank::countActiveBanks() const {
 
 void Rank::serialize(std::ostream& stream) const {
     stream.write(reinterpret_cast<const char*>(&memState), sizeof(memState));
-    stream.write(reinterpret_cast<const char *>(&endRefreshTime), sizeof(endRefreshTime));
-
     stream.write(reinterpret_cast<const char* >(&counter.selfRefresh), sizeof(counter.selfRefresh));
     stream.write(reinterpret_cast<const char* >(&counter.deepSleepMode), sizeof(counter.deepSleepMode));
-    stream.write(reinterpret_cast<const char* >(&endRefreshTime), sizeof(endRefreshTime));
     cycles.pre.serialize(stream);
     cycles.act.serialize(stream);
     cycles.ref.serialize(stream);
@@ -44,11 +38,8 @@ void Rank::serialize(std::ostream& stream) const {
 
 void Rank::deserialize(std::istream& stream) {
     stream.read(reinterpret_cast<char *>(&memState), sizeof(memState));
-    stream.read(reinterpret_cast<char *>(&endRefreshTime), sizeof(endRefreshTime));
-
     stream.read(reinterpret_cast<char* >(&counter.selfRefresh), sizeof(counter.selfRefresh));
     stream.read(reinterpret_cast<char* >(&counter.deepSleepMode), sizeof(counter.deepSleepMode));
-    stream.read(reinterpret_cast<char* >(&endRefreshTime), sizeof(endRefreshTime));
     cycles.pre.deserialize(stream);
     cycles.act.deserialize(stream);
     cycles.ref.deserialize(stream);

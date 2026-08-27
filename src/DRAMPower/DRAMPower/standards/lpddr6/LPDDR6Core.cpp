@@ -85,11 +85,7 @@ void LPDDR6Core::handleAct(Rank &rank, Bank &bank, timestamp_t timestamp) {
     bank.counter.act++;
 
     bank.cycles.act.start_interval(timestamp);
-
-    if ( !rank.isActive(timestamp) ) {
-        rank.cycles.act.start_interval(timestamp);
-    }
-
+    rank.cycles.act.start_interval_if_not_running(timestamp);
     bank.bankState = Bank::BankState::BANK_ACTIVE;
 }
 
@@ -102,7 +98,7 @@ void LPDDR6Core::handlePre(Rank &rank, Bank &bank, timestamp_t timestamp) {
     bank.latestPre = timestamp;
     bank.bankState = Bank::BankState::BANK_PRECHARGED;
 
-    if (!rank.isActive(timestamp)) {
+    if (!rank.isActive()) {
         rank.cycles.act.close_interval(timestamp);
     }
 }
@@ -120,7 +116,6 @@ void LPDDR6Core::handleRefDualBanks(std::size_t rank_idx, std::size_t bank_idx1,
     // TODO timing
     handleRefreshOnBank(rank_idx, bank_idx1, timestamp, m_memSpec.tRFCDB, counter1);
     handleRefreshOnBank(rank_idx, bank_idx2, timestamp, m_memSpec.tRFCDB, counter2);
-    // TODO rank.endRefreshTime?
 }
 
 void LPDDR6Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
@@ -131,16 +126,13 @@ void LPDDR6Core::handleRefAll(std::size_t rank_idx, timestamp_t timestamp) {
         handleRefreshOnBank(rank_idx, bank_idx, timestamp, m_memSpec.tRFCAB, counter);
     }
     // TODO timing
-    rank.endRefreshTime = timestamp + m_memSpec.tRFCAB;
 }
 
 void LPDDR6Core::handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx, timestamp_t timestamp, uint64_t timing, uint64_t & counter){
     ++counter;
     auto& rank = m_ranks[rank_idx];
     auto& bank = rank.banks[bank_idx];
-    if (!rank.isActive(timestamp)) {
-        rank.cycles.act.start_interval(timestamp);
-    }
+    rank.cycles.act.start_interval_if_not_running(timestamp);
     bank.bankState = Bank::BankState::BANK_ACTIVE;
     auto timestamp_end = timestamp + timing;
     bank.refreshEndTime = timestamp_end;
@@ -154,7 +146,7 @@ void LPDDR6Core::handleRefreshOnBank(std::size_t rank_idx, std::size_t bank_idx,
         bank.bankState = Bank::BankState::BANK_PRECHARGED;
         bank.cycles.act.close_interval(timestamp_end);
 
-        if (!rank.isActive(timestamp_end)) {
+        if (!rank.isActive()) {
             rank.cycles.act.close_interval(timestamp_end);
         }
     });
