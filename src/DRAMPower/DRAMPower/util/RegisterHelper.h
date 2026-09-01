@@ -5,6 +5,7 @@
 
 #include <DRAMPower/command/Command.h>
 #include <DRAMPower/dram/Rank.h>
+#include <DRAMPower/dram/PseudoChannel.h>
 
 namespace DRAMPower::util {
 
