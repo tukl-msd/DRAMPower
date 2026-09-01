@@ -67,7 +67,7 @@
     "memtimingspec": {
       "tCK": 0.76923076923076923076923076923077e-9,
       "REFI": 20,
-      "REFIpb": 0,
+      "REFIdb": 0,
       "RFCab": 25,
       "RFCpb": 20,
       "RFCdb": 20,
@@ -114,6 +114,8 @@
       "RCD_r": 13,
       "RCD_w": 13,
       "CMDPD": 1,
+      "dbR2dbR_S": 0,
+      "dbR2dbR_L": 0,
       "dbR2dbR": 0,
       "dbR2act": 0,
       "ESPD": 1,
