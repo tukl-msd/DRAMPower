@@ -31,7 +31,7 @@ namespace DRAMPower {
 
     double Calculation_DDR5::E_RD(double VDD, double IDD4_R, double I_B, double t_CK, std::size_t BL, std::size_t DR,
                                   uint64_t N_RD) const {
-        return VDD * (IDD4_R - I_B) * (double(BL) / DR) * t_CK * N_RD;
+        return VDD * (IDD4_R - I_B) * (BL / DR) * t_CK * N_RD;
     }
 
     double Calculation_DDR5::E_WR(double VDD, double IDD4_W, double I_B, double t_CK, std::size_t BL, std::size_t DR,
