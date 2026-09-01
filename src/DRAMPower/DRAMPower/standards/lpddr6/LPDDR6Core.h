@@ -4,6 +4,7 @@
 #include "DRAMPower/dram/Rank.h"
 #include "DRAMPower/standards/lpddr6/LPDDR6Command.h"
 #include "DRAMPower/util/ImplicitCommandHandler.h"
+#include "DRAMPower/util/RegisterMapping.h"
 #include "DRAMPower/util/Serialize.h"
 #include "DRAMPower/util/Deserialize.h"
 
@@ -53,6 +54,7 @@ friend class internal::TestAccessor<LPDDR6Core>;
 public:
     LPDDR6Core(const MemSpecLPDDR6& memSpec)
         : m_memSpec(memSpec)
+        , m_helperMapping{}
         , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
     {}
 
@@ -92,6 +94,7 @@ private:
 // Private member variables
 private:
     LPDDR6CoreMemSpec m_memSpec;
+    util::coreHelpers::RankMapping m_helperMapping;
     std::vector<Rank> m_ranks;
     ImplicitCommandHandler<LPDDR6Core> m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;

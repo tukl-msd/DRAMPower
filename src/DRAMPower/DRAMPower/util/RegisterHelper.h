@@ -9,66 +9,93 @@
 namespace DRAMPower::util {
 
 namespace coreHelpers {
-    template<typename Func, typename Owner, typename Command_t = Command>
-    decltype(auto) bankHandler(const Command_t& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
-        assert(ranks.size()>cmd.targetCoordinate.rank);
-        auto & rank = ranks.at(cmd.targetCoordinate.rank);
 
-        assert(rank.banks.size()>cmd.targetCoordinate.bank);
-        auto & bank = rank.banks.at(cmd.targetCoordinate.bank);
+namespace detail {
 
-        return (owner->*member_func)(rank, bank, cmd.timestamp);
+struct ByRef {};
+struct ByIdx {};
+
+template<typename Sel, typename T>
+constexpr decltype(auto) pick(T& obj, std::size_t idx) noexcept {
+    if constexpr (std::is_same_v<Sel, ByIdx>) {
+        return idx;
+    } else {
+        return obj;
     }
+}
 
-    template<typename Func, typename Owner, typename Command_t = Command>
-    decltype(auto) bankHandlerIdx(const Command_t& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
-        assert(ranks.size()>cmd.targetCoordinate.rank);
-        assert(ranks.at(cmd.targetCoordinate.rank).banks.size()>cmd.targetCoordinate.bank);
+inline std::size_t checked(std::size_t idx, std::size_t size, const char* errorDescription) {
+    assert(idx < size && errorDescription);
+    (void)size; // not used
+    (void)errorDescription; // not used
+    return idx;
+}
 
-        return (owner->*member_func)(cmd.targetCoordinate.rank, cmd.targetCoordinate.bank, cmd.timestamp);
-    }
+template<typename GroupSel, typename BankSel, typename Cmd, typename Group, typename Mapping, typename Func, typename... Ctx>
+decltype(auto) dispatchBank(const Cmd& cmd, std::vector<Group>& groups, const Mapping& map, Func&& func, Ctx&&... ctx) {
+    const std::size_t groupIdx = checked(map.group(cmd), groups.size(), "Invalid group coordinate");
+    auto& group = groups[groupIdx];
+    const std::size_t bankIdx = checked(map.bank(cmd), group.banks.size(), "Invalid bank coordinate");
+    auto& bank = group.banks[bankIdx];
+    return std::invoke(std::forward<Func>(func), std::forward<Ctx>(ctx)...,
+        pick<GroupSel>(group, groupIdx),
+        pick<BankSel>(bank, bankIdx),
+        cmd.timestamp);
+}
 
-    template<typename Func, typename Owner, typename Command_t = Command>
-    decltype(auto) rankHandler(const Command_t& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
-        assert(ranks.size()>cmd.targetCoordinate.rank);
-        auto & rank = ranks.at(cmd.targetCoordinate.rank);
+template<typename GroupSel, typename Cmd, typename Group, typename Mapping, typename Func, typename... Ctx>
+decltype(auto) dispatchGroup(const Cmd& cmd, std::vector<Group>& groups, const Mapping& map, Func&& func, Ctx&&... ctx) {
+    const std::size_t groupIdx = checked(map.group(cmd), groups.size(), "Invalid group coordinate");
+    auto& group = groups[groupIdx];
+    return std::invoke(std::forward<Func>(func), std::forward<Ctx>(ctx)...,
+        pick<GroupSel>(group, groupIdx),
+        cmd.timestamp);
+}
 
-        return (owner->*member_func)(rank, cmd.timestamp);
-    }
+} // namespace detail
 
-    template<typename Func, typename Owner, typename Command_t = Command>
-    decltype(auto) rankHandlerIdx(const Command_t& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
-        assert(ranks.size()>cmd.targetCoordinate.rank);
-        return (owner->*member_func)(cmd.targetCoordinate.rank, cmd.timestamp);
-    }
+template<typename Cmd, typename Group, typename Mapping, typename Func, typename... Ctx>
+decltype(auto) bankHandler(const Cmd& cmd, std::vector<Group>& groups,
+                           const Mapping& map, Func&& func, Ctx&&... ctx)
+{   // (Group&, Bank&, timestamp)
+    return detail::dispatchBank<detail::ByRef, detail::ByRef>(
+        cmd, groups, map, std::forward<Func>(func), std::forward<Ctx>(ctx)...);
+}
 
-    template<typename Func, typename Owner, typename Command_t = Command>
-    decltype(auto) bankGroupHandler(const Command_t& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
-        assert(ranks.size()>cmd.targetCoordinate.rank);
-        auto& rank = ranks.at(cmd.targetCoordinate.rank);
+template<typename Cmd, typename Group, typename Mapping, typename Func, typename... Ctx>
+decltype(auto) bankHandlerIdx(const Cmd& cmd, std::vector<Group>& groups,
+                              const Mapping& map, Func&& func, Ctx&&... ctx)
+{   // (groupIdx, bankIdx, timestamp)
+    return detail::dispatchBank<detail::ByIdx, detail::ByIdx>(
+        cmd, groups, map, std::forward<Func>(func), std::forward<Ctx>(ctx)...);
+}
 
-        assert(rank.banks.size()>cmd.targetCoordinate.bank);
-        if (cmd.targetCoordinate.bank >= rank.banks.size()) {
-            throw std::invalid_argument("Invalid bank targetcoordinate");
-        }
-        auto bank_id = cmd.targetCoordinate.bank;
+template<typename Cmd, typename Group, typename Mapping, typename Func, typename... Ctx>
+decltype(auto) bankGroupHandler(const Cmd& cmd, std::vector<Group>& groups,
+                                const Mapping& map, Func&& func, Ctx&&... ctx)
+{   // (Group&, bankIdx, timestamp)
+    return detail::dispatchBank<detail::ByRef, detail::ByIdx>(
+        cmd, groups, map, std::forward<Func>(func), std::forward<Ctx>(ctx)...);
+}
 
-        return (owner->*member_func)(rank, bank_id, cmd.timestamp);
-    }
+template<typename Cmd, typename Group, typename Mapping, typename Func, typename... Ctx>
+decltype(auto) groupHandler(const Cmd& cmd, std::vector<Group>& groups,
+                            const Mapping& map, Func&& func, Ctx&&... ctx)
+{
+    // (Group&, timestamp)
+    return detail::dispatchGroup<detail::ByRef>(
+        cmd, groups, map, std::forward<Func>(func), std::forward<Ctx>(ctx)...);
+}
 
-    template<typename Func, typename Owner, typename Command_t = Command>
-    decltype(auto) bankGroupHandlerIdx(const Command_t& cmd, std::vector<Rank>& ranks, Owner owner, Func &&member_func) {
-        assert(ranks.size()>cmd.targetCoordinate.rank);
-        auto& rank = ranks.at(cmd.targetCoordinate.rank);
+template<typename Cmd, typename Group, typename Mapping, typename Func, typename... Ctx>
+decltype(auto) groupHandlerIdx(const Cmd& cmd, std::vector<Group>& groups,
+                               const Mapping& map, Func&& func, Ctx&&... ctx)
+{
+    // (groupIdx, timestamp)
+    return detail::dispatchGroup<detail::ByIdx>(
+        cmd, groups, map, std::forward<Func>(func), std::forward<Ctx>(ctx)...);
+}
 
-        assert(rank.banks.size()>cmd.targetCoordinate.bank);
-        if (cmd.targetCoordinate.bank >= rank.banks.size()) {
-            throw std::invalid_argument("Invalid bank targetcoordinate");
-        }
-        auto bank_id = cmd.targetCoordinate.bank;
-
-        return (owner->*member_func)(cmd.targetCoordinate.rank, bank_id, cmd.timestamp);
-    }
 } // namespace coreHelpers
 
 } // namespace DRAMPower::util

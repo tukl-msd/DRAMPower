@@ -11,25 +11,25 @@ void LPDDR6Core::doCommand(const LPDDR6Command& cmd) {
     m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
     switch(cmd.type) {
         case CmdType::ACT:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleAct);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handleAct, this);
             break;
         case CmdType::PRE:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePre);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handlePre, this);
             break;
         case CmdType::PREA:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handlePreAll);
+            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handlePreAll, this);
             break;
         case CmdType::RD:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleRead);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handleRead, this);
             break;
         case CmdType::RDA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleReadAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handleReadAuto, this);
             break;
         case CmdType::WR:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR6Core::handleWrite);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handleWrite, this);
             break;
         case CmdType::WRA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleWriteAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handleWriteAuto, this);
             break;
         case CmdType::REFDB: {
             assert(m_ranks.size() > cmd.targetCoordinate.rank);
@@ -45,25 +45,25 @@ void LPDDR6Core::doCommand(const LPDDR6Command& cmd) {
             break;
         }
         case CmdType::REFA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleRefAll);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handleRefAll, this);
             break;
         case CmdType::SREFEN:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handleSelfRefreshEntry);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handleSelfRefreshEntry, this);
             break;
         case CmdType::SREFEX:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR6Core::handleSelfRefreshExit);
+            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handleSelfRefreshExit, this);
             break;
         case CmdType::PDEA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownActEntry);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handlePowerDownActEntry, this);
             break;
         case CmdType::PDEP:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownPreEntry);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handlePowerDownPreEntry, this);
             break;
         case CmdType::PDXA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownActExit);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handlePowerDownActExit, this);
             break;
         case CmdType::PDXP:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR6Core::handlePowerDownPreExit);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR6Core::handlePowerDownPreExit, this);
             break;
         case CmdType::END_OF_SIMULATION:
             break;

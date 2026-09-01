@@ -10,46 +10,46 @@ void DDR4Core::doCommand(const Command& cmd) {
     m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
     switch(cmd.type) {
         case CmdType::ACT:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR4Core::handleAct);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &DDR4Core::handleAct, this);
             break;
         case CmdType::PRE:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR4Core::handlePre);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &DDR4Core::handlePre, this);
             break;
         case CmdType::PREA:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR4Core::handlePreAll);
+            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &DDR4Core::handlePreAll, this);
             break;
         case CmdType::REFA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR4Core::handleRefAll);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR4Core::handleRefAll, this);
             break;
         case CmdType::RD:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR4Core::handleRead);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &DDR4Core::handleRead, this);
             break;
         case CmdType::RDA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &DDR4Core::handleReadAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR4Core::handleReadAuto, this);
             break;
         case CmdType::WR:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &DDR4Core::handleWrite);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &DDR4Core::handleWrite, this);
             break;
         case CmdType::WRA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &DDR4Core::handleWriteAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR4Core::handleWriteAuto, this);
             break;
         case CmdType::SREFEN:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR4Core::handleSelfRefreshEntry);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR4Core::handleSelfRefreshEntry, this);
             break;
         case CmdType::SREFEX:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &DDR4Core::handleSelfRefreshExit);
+            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &DDR4Core::handleSelfRefreshExit, this);
             break;
         case CmdType::PDEA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR4Core::handlePowerDownActEntry);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR4Core::handlePowerDownActEntry, this);
             break;
         case CmdType::PDEP:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR4Core::handlePowerDownPreEntry);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR4Core::handlePowerDownPreEntry, this);
             break;
         case CmdType::PDXA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR4Core::handlePowerDownActExit);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR4Core::handlePowerDownActExit, this);
             break;
         case CmdType::PDXP:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &DDR4Core::handlePowerDownPreExit);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &DDR4Core::handlePowerDownPreExit, this);
             break;
         case CmdType::END_OF_SIMULATION:
             break;
