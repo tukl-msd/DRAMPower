@@ -88,6 +88,10 @@ public:
         return m_lastPattern;
     }
 
+    uint64_t getLastPattern() const {
+        return m_lastPattern;
+    }
+
     uint64_t getCoordinatePattern(const TargetCoordinate& coordinate, const commandPattern_t& pattern)
     {
         if (pattern.empty()) {

@@ -47,6 +47,8 @@ public:
 
 // Functions
 public:
+	static std::size_t countActiveBanks_impl(const std::vector<Bank>& banks);
+	static bool isActive_impl(const std::vector<Bank>& banks);
 	bool isActive();
 	std::size_t countActiveBanks() const;
 // Overrides
