@@ -5,6 +5,7 @@
 #include "DRAMPower/dram/Rank.h"
 #include "DRAMPower/util/ImplicitCommandHandler.h"
 #include "DRAMPower/util/Deserialize.h"
+#include "DRAMPower/util/RegisterMapping.h"
 #include "DRAMPower/util/Serialize.h"
 
 #include "DRAMPower/memspec/MemSpecDDR5.h"
@@ -56,6 +57,7 @@ friend class internal::TestAccessor<DDR5Core>;
 public:
     DDR5Core(const MemSpecDDR5& memSpec)
         : m_memSpec(memSpec)
+        , m_helperMapping{}
         , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
     {}
 
@@ -95,6 +97,7 @@ private:
 // Private member variables
 private:
     DDR5CoreMemSpec m_memSpec;
+    util::coreHelpers::RankMapping m_helperMapping;
     std::vector<Rank> m_ranks;
     ImplicitCommandHandler<DDR5Core> m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;

@@ -9,61 +9,61 @@ void LPDDR5Core::doCommand(const Command& cmd) {
     m_last_command_time = std::max(cmd.timestamp, m_last_command_time);
     switch(cmd.type) {
         case CmdType::ACT:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR5Core::handleAct);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleAct, this);
             break;
         case CmdType::PRE:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR5Core::handlePre);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handlePre, this);
             break;
         case CmdType::PREA:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR5Core::handlePreAll);
+            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handlePreAll, this);
             break;
         case CmdType::REFB:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleRefPerBank);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleRefPerBank, this);
             break;
         case CmdType::RD:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR5Core::handleRead);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleRead, this);
             break;
         case CmdType::RDA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleReadAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleReadAuto, this);
             break;
         case CmdType::WR:
-            util::coreHelpers::bankHandler(cmd, m_ranks, this, &LPDDR5Core::handleWrite);
+            util::coreHelpers::bankHandler(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleWrite, this);
             break;
         case CmdType::WRA:
-            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleWriteAuto);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleWriteAuto, this);
             break;
         case CmdType::REFP2B:
             if (m_memSpec.bank_arch != MemSpecLPDDR5::MBG && m_memSpec.bank_arch != MemSpecLPDDR5::M16B) {
                 throw Exception(std::string("REFP2B command is not supported for this bank architecture: ") + CmdTypeUtil::to_string(CmdType::REFP2B));
             }
-            util::coreHelpers::bankGroupHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleRefPerTwoBanks);
+            util::coreHelpers::bankHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleRefPerTwoBanks, this);
             break;
         case CmdType::REFA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleRefAll);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleRefAll, this);
             break;
         case CmdType::SREFEN:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handleSelfRefreshEntry);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleSelfRefreshEntry, this);
             break;
         case CmdType::SREFEX:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR5Core::handleSelfRefreshExit);
+            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleSelfRefreshExit, this);
             break;
         case CmdType::PDEA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handlePowerDownActEntry);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handlePowerDownActEntry, this);
             break;
         case CmdType::PDEP:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handlePowerDownPreEntry);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handlePowerDownPreEntry, this);
             break;
         case CmdType::PDXA:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handlePowerDownActExit);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handlePowerDownActExit, this);
             break;
         case CmdType::PDXP:
-            util::coreHelpers::rankHandlerIdx(cmd, m_ranks, this, &LPDDR5Core::handlePowerDownPreExit);
+            util::coreHelpers::groupHandlerIdx(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handlePowerDownPreExit, this);
             break;
         case CmdType::DSMEN:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR5Core::handleDSMEntry);
+            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleDSMEntry, this);
             break;
         case CmdType::DSMEX:
-            util::coreHelpers::rankHandler(cmd, m_ranks, this, &LPDDR5Core::handleDSMExit);
+            util::coreHelpers::groupHandler(cmd, m_ranks, m_helperMapping, &LPDDR5Core::handleDSMExit, this);
             break;
         case CmdType::END_OF_SIMULATION:
             break;

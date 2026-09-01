@@ -2,6 +2,7 @@
 #define DRAMPOWER_STANDARDS_LPDDR5_LPDDR5CORE_H
 
 #include "DRAMPower/util/Deserialize.h"
+#include "DRAMPower/util/RegisterMapping.h"
 #include "DRAMPower/util/Serialize.h"
 #include <DRAMPower/Types.h>
 #include "DRAMPower/dram/Rank.h"
@@ -57,6 +58,7 @@ friend class internal::TestAccessor<LPDDR5Core>;
 public:
     LPDDR5Core(const MemSpecLPDDR5& memSpec)
         : m_memSpec(memSpec)
+        , m_helperMapping{}
         , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
     {}
 
@@ -99,6 +101,7 @@ private:
 // Private member variables
 private:
     LPDDR5CoreMemSpec m_memSpec;
+    util::coreHelpers::RankMapping m_helperMapping;
     std::vector<Rank> m_ranks;
     ImplicitCommandHandler<LPDDR5Core> m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;

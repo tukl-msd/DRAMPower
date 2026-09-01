@@ -9,6 +9,7 @@
 #include <DRAMPower/data/stats.h>
 #include <DRAMPower/util/ImplicitCommandHandler.h>
 #include <DRAMPower/simconfig/simconfig.h>
+#include <DRAMPower/util/RegisterMapping.h>
 
 #include <DRAMPower/memspec/MemSpecDDR4.h>
 
@@ -20,6 +21,7 @@ namespace internal {
     template<typename Core>
     class TestAccessor;
 }
+
 
 struct DDR4CoreMemSpec {
     DDR4CoreMemSpec(const MemSpecDDR4& memSpec)
@@ -52,6 +54,7 @@ friend class internal::TestAccessor<DDR4Core>;
 public:
     DDR4Core(const MemSpecDDR4& memSpec)
         : m_memSpec(memSpec)
+        , m_helperMapping{}
         , m_ranks(memSpec.numberOfRanks, {static_cast<std::size_t>(memSpec.numberOfBanks)})
     {}
 
@@ -89,6 +92,7 @@ private:
 // Private members variables
 private:
     DDR4CoreMemSpec m_memSpec;
+    util::coreHelpers::RankMapping m_helperMapping;
     std::vector<Rank> m_ranks;
     ImplicitCommandHandler<DDR4Core> m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;
