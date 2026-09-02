@@ -1,6 +1,6 @@
 <img src="docs/images/logo_drampower_5_0.png" alt="DRAMPower 5.0" width="350" style="float: left;"/>  
 
-# DRAM Power Model (DRAMPower 6.0.0)
+# DRAM Power Model (DRAMPower 6.3.1)
 
 - [Releases](#releases)
 - [Installation of the DRAMPower library](#installation-of-the-drampower-library)
