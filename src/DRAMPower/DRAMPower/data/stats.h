@@ -274,6 +274,7 @@ namespace DRAMPower
 				writeBus == other.writeBus &&
 				clockStats == other.clockStats &&
 				wClockStats == other.wClockStats &&
+				cke == other.cke &&
 				readDBI == other.readDBI &&
 				writeDBI == other.writeDBI &&
 				togglingStats.read == other.togglingStats.read &&
@@ -308,6 +309,7 @@ namespace DRAMPower
 			writeBus += rhs.writeBus;
 			clockStats += rhs.clockStats;
 			wClockStats += rhs.wClockStats;
+			cke += rhs.cke;
 			readDBI += rhs.readDBI;
 			writeDBI += rhs.writeDBI;
 			togglingStats.read += rhs.togglingStats.read;
@@ -317,7 +319,7 @@ namespace DRAMPower
 			return *this;
 		}
 	};
-	NLOHMANN_JSONIFY_ALL_THINGS(SimulationStats, commandBus, readBus, writeBus, clockStats, wClockStats, readDBI, writeDBI, togglingStats, readDQSStats, writeDQSStats, bank, rank_total);
+	NLOHMANN_JSONIFY_ALL_THINGS(SimulationStats, commandBus, readBus, writeBus, clockStats, wClockStats, cke, readDBI, writeDBI, togglingStats, readDQSStats, writeDQSStats, bank, rank_total);
 };
 
 
