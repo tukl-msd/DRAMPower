@@ -18,6 +18,8 @@ class test_ddr : public dram_base<CmdType>
 {
 public:
     energy_t calcCoreEnergyStats(const SimulationStats&) const override { return energy_t(1); };
+    void setSimulationTime(timestamp_t) override {};
+    void reset() override {};
     interface_energy_info_t calcInterfaceEnergyStats(const SimulationStats&) const override { return interface_energy_info_t(); };
     SimulationStats getWindowStats(timestamp_t) override { return {}; };
     util::CLIArchitectureConfig getCLIArchitectureConfig() override { return util::CLIArchitectureConfig{}; };

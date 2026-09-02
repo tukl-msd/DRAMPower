@@ -1,4 +1,5 @@
 #include "LPDDR6Interface.h"
+#include "DRAMPower/Types.h"
 #include "DRAMPower/command/Pattern.h"
 #include "DRAMPower/standards/lpddr6/LPDDR6Command.h"
 #include "DRAMPower/standards/lpddr6/LPDDR6Pattern.h"
@@ -6,6 +7,7 @@
 #include <algorithm>
 #include <functional>
 #include <tuple>
+#include <cstddef>
 
 namespace DRAMPower {
 
@@ -43,6 +45,22 @@ LPDDR6Interface::LPDDR6Interface(const MemSpecLPDDR6& memSpec, const config::Sim
 {
     registerPatterns();
     m_patternHandler.getEncoder().getExtraData().numberOfBankGroups = memSpec.numberOfBankGroups;
+}
+
+void LPDDR6Interface::setSimulationTime(timestamp_t timestamp) {
+    m_offset = timestamp;
+}
+
+void LPDDR6Interface::reset() {
+    m_commandBus.reset();
+    m_dataBus.reset();
+    m_readDQS.reset();
+    m_wck.reset();
+    m_clock.reset();
+    m_dbi.reset();
+    m_formatter.reset();
+    m_patternHandler.reset();
+    m_last_command_time = 0;
 }
 
 void LPDDR6Interface::registerPatterns() {
@@ -212,10 +230,12 @@ void LPDDR6Interface::registerPatterns() {
 }
 
 timestamp_t LPDDR6Interface::getLastCommandTime() const {
-    return m_last_command_time;
+    return m_last_command_time + m_offset;
 }
 
 void LPDDR6Interface::doCommand(const LPDDR6Command& cmd) {
+    assert(cmd.timestamp >= m_offset);
+    timestamp_t timestamp = cmd.timestamp - m_offset;
     switch(cmd.type) {
         case CmdType::NOP:
         case CmdType::PDEA:
@@ -229,24 +249,24 @@ void LPDDR6Interface::doCommand(const LPDDR6Command& cmd) {
         case CmdType::REFDB:
         case CmdType::REFA:
         case CmdType::ACT:
-            handleCommandBus(cmd);
+            handleCommandBus(timestamp, cmd.type, cmd.targetCoordinate);
             break;
         case CmdType::WR:
         case CmdType::WRA:
-            handleData(cmd, false);
+            handleData(timestamp, cmd.type, cmd.data, cmd.sz_bits, cmd.targetCoordinate, false);
             break;
         case CmdType::RD:
         case CmdType::RDA:
-            handleData(cmd, true);
+            handleData(timestamp, cmd.type, cmd.data, cmd.sz_bits, cmd.targetCoordinate, true);
             break;
         case CmdType::END_OF_SIMULATION:
-            endOfSimulation(cmd.timestamp);
+            endOfSimulation(timestamp);
             break;
         default:
             assert(false && "Invalid command");
             break;
     }
-    m_last_command_time = cmd.timestamp;
+    m_last_command_time = timestamp;
 }
 
 std::optional<const uint8_t *> LPDDR6Interface::handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read) {
@@ -259,10 +279,10 @@ std::optional<const uint8_t *> LPDDR6Interface::handleDBIInterface(timestamp_t t
     return m_dbi.updateDBI(virtual_time, n_bits, data, read);
 }
 
-void LPDDR6Interface::handleCommandBus(const LPDDR6Command& cmd) {
-    auto pattern = m_patternHandler.getCommandPattern(cmd.type, cmd.targetCoordinate);
-    auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_commandBus.get_width();
-    m_commandBus.load(cmd.timestamp, pattern, ca_length);
+void LPDDR6Interface::handleCommandBus(timestamp_t timestamp, CmdType type, const LPDDR6TargetCoordinate& target) {
+    auto pattern = m_patternHandler.getCommandPattern(type, target);
+    auto ca_length = m_patternHandler.getPattern(type).size() / m_commandBus.get_width();
+    m_commandBus.load(timestamp, pattern, ca_length);
 }
 
 void LPDDR6Interface::enable(timestamp_t timestamp) {
@@ -307,47 +327,47 @@ bool LPDDR6Interface::getParityCheckMode() const {
     return m_patternHandler.getEncoder().getExtraData().parity_check_mode;
 }
 
-void LPDDR6Interface::handleData(const LPDDR6Command& cmd, bool read) {
+void LPDDR6Interface::handleData(timestamp_t timestamp, CmdType type, const uint8_t* data, std::size_t sz_bits, const LPDDR6TargetCoordinate& target, bool read) {
     auto loadfunc = read ? &databus_t::loadRead : &databus_t::loadWrite;
     size_t length = 0;
-    if (0 == cmd.sz_bits) {
+    if (0 == sz_bits) {
         // No data provided by command
         if (m_dataBus.isTogglingRate()) {
             length = m_memSpec.burstLength;
-            (m_dataBus.*loadfunc)(cmd.timestamp, length * m_dataBus.getWidth(), nullptr);
+            (m_dataBus.*loadfunc)(timestamp, length * m_dataBus.getWidth(), nullptr);
         }
     } else {
         std::optional<const uint8_t *> dbi_data = std::nullopt;
         // Data provided by command
         if (m_dataBus.isBus() && m_dbi.isEnabled()) {
-            dbi_data = handleDBIInterface(cmd.timestamp, cmd.sz_bits, cmd.data, read);
+            dbi_data = handleDBIInterface(timestamp, sz_bits, data, read);
         }
         auto[data_ptr, data_ptr_sz_bits] = m_formatter.formatData(
-            dbi_data.value_or(cmd.data), cmd.sz_bits,
+            dbi_data.value_or(data), sz_bits,
             m_dbi.isEnabled() ?
                 read ? std::make_optional(m_dbi.getInversionStateRead()) : std::make_optional(m_dbi.getInversionStateWrite())
                 : std::nullopt);
-        (m_dataBus.*loadfunc)(cmd.timestamp, data_ptr_sz_bits, data_ptr);
+        (m_dataBus.*loadfunc)(timestamp, data_ptr_sz_bits, data_ptr);
         length = data_ptr_sz_bits / m_dataBus.getWidth();
     }
     // DQS
     if (read) {
         // Read
-        m_readDQS.start(cmd.timestamp);
-        m_readDQS.stop(cmd.timestamp + length / m_memSpec.dataRate);
+        m_readDQS.start(timestamp);
+        m_readDQS.stop(timestamp + length / m_memSpec.dataRate);
         if (!m_memSpec.wckAlwaysOnMode) {
-            m_wck.start(cmd.timestamp);
-            m_wck.stop(cmd.timestamp + length / m_memSpec.dataRate);
+            m_wck.start(timestamp);
+            m_wck.stop(timestamp + length / m_memSpec.dataRate);
         }
     } else {
         // Write
         if (!m_memSpec.wckAlwaysOnMode) {
-            m_wck.start(cmd.timestamp);
-            m_wck.stop(cmd.timestamp + length / m_memSpec.dataRate);
+            m_wck.start(timestamp);
+            m_wck.stop(timestamp + length / m_memSpec.dataRate);
         }
     }
     m_patternHandler.getEncoder().getExtraData().currentBurstLength = length;
-    handleCommandBus(cmd);
+    handleCommandBus(timestamp, type, target);
 }
 
 void LPDDR6Interface::endOfSimulation(timestamp_t timestamp) {
@@ -355,6 +375,8 @@ void LPDDR6Interface::endOfSimulation(timestamp_t timestamp) {
 }
 
 void LPDDR6Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
+    assert(timestamp >= m_offset);
+    timestamp = timestamp - m_offset;
     stats.commandBus = m_commandBus.get_stats(timestamp);
 
     m_dataBus.get_stats(timestamp,
@@ -372,6 +394,7 @@ void LPDDR6Interface::getWindowStats(timestamp_t timestamp, SimulationStats &sta
 
 void LPDDR6Interface::serialize(std::ostream& stream) const {
     stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.write(reinterpret_cast<const char*>(&m_offset), sizeof(m_offset));
     m_patternHandler.serialize(stream);
     m_commandBus.serialize(stream);
     m_dataBus.serialize(stream);
@@ -382,6 +405,7 @@ void LPDDR6Interface::serialize(std::ostream& stream) const {
 
 void LPDDR6Interface::deserialize(std::istream& stream) {
     stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
+    stream.read(reinterpret_cast<char*>(&m_offset), sizeof(m_offset));
     m_patternHandler.deserialize(stream);
     m_commandBus.deserialize(stream);
     m_dataBus.deserialize(stream);
@@ -459,6 +483,11 @@ std::tuple<const uint8_t*, std::size_t> LPDDR6Interface::DataFormatter::formatDa
         }
     }
     return std::make_tuple(m_formatResult.data(), nbursts * 288);
+}
+
+void LPDDR6Interface::DataFormatter::reset() {
+    m_formatResult.clear();
+    m_metaData = {0, 0};
 }
 
 } // namespace DRAMPower

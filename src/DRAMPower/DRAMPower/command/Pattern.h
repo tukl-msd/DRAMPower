@@ -147,6 +147,11 @@ public:
     ExtraData_t& getExtraData() {
         return m_extraData;
     }
+    void reset() {
+        if constexpr (!std::is_same_v<std::decay_t<ExtraData_t>, std::monostate>) {
+            m_extraData.reset();
+        }
+    }
 
 // Overrides
 public:

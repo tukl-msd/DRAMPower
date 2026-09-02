@@ -1,4 +1,5 @@
 #include "HBM2Interface.h"
+#include "DRAMPower/Types.h"
 #include "DRAMPower/command/CmdType.h"
 #include "DRAMPower/command/Command.h"
 #include "DRAMPower/command/Pattern.h"
@@ -79,6 +80,31 @@ namespace DRAMPower {
     , m_patternHandler(BasePatternEncoderOverrides<pattern_descriptor_HBM2::t>{})
     {
         registerPatterns();
+    }
+
+    void HBM2Interface::setSimulationTime(timestamp_t timestamp) {
+        m_offset = timestamp;
+    }
+
+    void HBM2Interface::reset() {
+        m_columnCommandBus.reset();
+        m_rowCommandBus.reset();
+        for (auto& entry : m_dataBus) {
+            entry.m_dataBus.reset();
+            entry.m_readDQS.reset();
+            entry.m_writeDQS.reset();
+        }
+        m_clock.reset();
+        m_cke.reset();
+        m_dbi.reset();
+        for (auto& entry : m_dbiread) {
+            entry.reset();
+        }
+        for (auto& entry : m_dbiwrite) {
+            entry.reset();
+        }
+        m_patternHandler.reset();
+        m_last_command_time = 0;
     }
 
     void HBM2Interface::registerPatterns() {
@@ -212,10 +238,12 @@ namespace DRAMPower {
     }
 
     timestamp_t HBM2Interface::getLastCommandTime() const {
-        return m_last_command_time;
+        return m_last_command_time + m_offset;
     }
 
     void HBM2Interface::doCommand(const HBM2Command& cmd) {
+        assert(cmd.timestamp >= m_offset);
+        timestamp_t timestamp = cmd.timestamp - m_offset;
         switch(cmd.type) {
             case CmdType::ACT:
             case CmdType::PRE:
@@ -228,15 +256,15 @@ namespace DRAMPower {
             case CmdType::SREFEX:
             case CmdType::PDXA:
             case CmdType::PDXP:
-                handleRowCommandBus(cmd);
+                handleRowCommandBus(timestamp, cmd.type, cmd.targetCoordinate);
                 break;
             case CmdType::RD:
             case CmdType::RDA:
-                handleData(cmd, true);
+                handleData(timestamp, cmd.type, cmd.data, cmd.sz_bits, cmd.targetCoordinate, true);
                 break;
             case CmdType::WR:
             case CmdType::WRA:
-                handleData(cmd, false);
+                handleData(timestamp, cmd.type, cmd.data, cmd.sz_bits, cmd.targetCoordinate, false);
                 break;
             case CmdType::END_OF_SIMULATION:
                 endOfSimulation(cmd.timestamp);
@@ -245,7 +273,7 @@ namespace DRAMPower {
                 assert(false && "Invalid command");
                 break;
         }
-        m_last_command_time = std::max(m_last_command_time, cmd.timestamp);
+        m_last_command_time = timestamp;
     }
     
     void HBM2Interface::handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read) {
@@ -268,7 +296,7 @@ namespace DRAMPower {
         return m_dbi.updateDBI(virtual_time, n_bits, data, read);
     }
 
-    void HBM2Interface::handleColumnCommandBus(const HBM2Command &cmd) {
+    void HBM2Interface::handleColumnCommandBus(timestamp_t timestamp, CmdType type, const HBM2TargetCoordinate& target) {
         // NOTE: NOP pattern is not registered in the patternHandler
         using namespace pattern_descriptor_HBM2;
         const static std::initializer_list<t> nop_pattern = {
@@ -276,18 +304,18 @@ namespace DRAMPower {
             V, V, PAR, V, V, V, V, V, V
         };
         uint64_t pattern = 0;
-        if (CmdType::NOP == cmd.type) {
-            pattern = m_patternHandler.getEncoder().encode(cmd.targetCoordinate, nop_pattern, m_patternHandler.getLastPattern());
+        if (CmdType::NOP == type) {
+            pattern = m_patternHandler.getEncoder().encode(target, nop_pattern, m_patternHandler.getLastPattern());
         } else {
-            pattern = m_patternHandler.getCommandPattern(cmd.type, cmd.targetCoordinate);
+            pattern = m_patternHandler.getCommandPattern(type, target);
         }
-        auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_columnCommandBus.get_width();
+        auto ca_length = m_patternHandler.getPattern(type).size() / m_columnCommandBus.get_width();
         assert(ca_length > 0 && "Invalid command registered in DRAMPower");
         
-        this->m_columnCommandBus.load(cmd.timestamp, pattern, ca_length);
+        this->m_columnCommandBus.load(timestamp, pattern, ca_length);
     }
 
-    void HBM2Interface::handleRowCommandBus(const HBM2Command &cmd) {
+    void HBM2Interface::handleRowCommandBus(timestamp_t timestamp, CmdType type, const HBM2TargetCoordinate& target) {
         // NOTE: NOP pattern is not registered in the patternHandler
         using namespace pattern_descriptor_HBM2;
         const static std::initializer_list<t> nop_pattern = {
@@ -295,37 +323,37 @@ namespace DRAMPower {
             V, V, PAR, V, V, V, V,
         };
         uint64_t pattern = 0;
-        if (CmdType::NOP == cmd.type) {
-            pattern = m_patternHandler.getEncoder().encode(cmd.targetCoordinate, nop_pattern, m_patternHandler.getLastPattern());
+        if (CmdType::NOP == type) {
+            pattern = m_patternHandler.getEncoder().encode(target, nop_pattern, m_patternHandler.getLastPattern());
         } else {
-            pattern = m_patternHandler.getCommandPattern(cmd.type, cmd.targetCoordinate);
+            pattern = m_patternHandler.getCommandPattern(type, target);
         }
-        auto ca_length = m_patternHandler.getPattern(cmd.type).size() / m_rowCommandBus.get_width();
+        auto ca_length = m_patternHandler.getPattern(type).size() / m_rowCommandBus.get_width();
         assert(ca_length > 0 && "Invalid command registered in DRAMPower");
 
-        this->m_rowCommandBus.load(cmd.timestamp, pattern, ca_length);
+        this->m_rowCommandBus.load(timestamp, pattern, ca_length);
 
         // handle CKE
         // Low for PDE and SRE
-        switch(cmd.type) {
+        switch(type) {
             case CmdType::PDEA:
             case CmdType::PDEP:
             case CmdType::SREFEN:
-                m_cke.set(cmd.timestamp, util::PinState::L);
+                m_cke.set(timestamp, util::PinState::L);
                 break;
             default:
-                m_cke.set(cmd.timestamp, util::PinState::H);
+                m_cke.set(timestamp, util::PinState::H);
                 break;
         }
     }
 
-    void HBM2Interface::handleDQs(const HBM2Command &cmd, util::Clock &dqs, const size_t length) {
-        dqs.start(cmd.timestamp);
-        dqs.stop(cmd.timestamp + length / m_memSpec.dataRate);
+    void HBM2Interface::handleDQs(timestamp_t timestamp, util::Clock &dqs, const size_t length) {
+        dqs.start(timestamp);
+        dqs.stop(timestamp + length / m_memSpec.dataRate);
     }
 
-    void HBM2Interface::handleData(const HBM2Command &cmd, bool read) {
-        auto busDataCallback = [this, &cmd, read](databusContainer_t &dataBusContainer){
+    void HBM2Interface::handleData(timestamp_t timestamp, CmdType type, const uint8_t* data, std::size_t sz_bits, const HBM2TargetCoordinate& target, bool read) {
+        auto busDataCallback = [this, timestamp, sz_bits, data, read](databusContainer_t &dataBusContainer){
             auto &dataBus = dataBusContainer.m_dataBus;
             auto &writeDQS = dataBusContainer.m_writeDQS;
             auto &readDQS = dataBusContainer.m_readDQS;
@@ -333,31 +361,31 @@ namespace DRAMPower {
             auto loadfunc = read ? &databus_t::loadRead : &databus_t::loadWrite;
             util::Clock &dqs = read ? readDQS : writeDQS;
             size_t length = 0;
-            if (0 == cmd.sz_bits) {
+            if (0 == sz_bits) {
                 // No data provided by command
                 // Use default burst length
                 if (dataBus.isTogglingRate()) {
                     // If bus is enabled skip loading data
                     length = m_memSpec.burstLength;
-                    (dataBus.*loadfunc)(cmd.timestamp, length * dataBus.getWidth(), nullptr);
+                    (dataBus.*loadfunc)(timestamp, length * dataBus.getWidth(), nullptr);
                 }
             } else {
                 std::optional<const uint8_t *> dbi_data = std::nullopt;
                 // Data provided by command
                 if (dataBus.isBus() && m_dbi.isEnabled()) {
                     // Only compute dbi for bus mode
-                    dbi_data = handleDBIInterface(cmd.timestamp, cmd.sz_bits, cmd.data, read);
+                    dbi_data = handleDBIInterface(timestamp, sz_bits, data, read);
                 }
-                length = cmd.sz_bits / (dataBus.getWidth());
-                (dataBus.*loadfunc)(cmd.timestamp, cmd.sz_bits, dbi_data.value_or(cmd.data));
+                length = sz_bits / (dataBus.getWidth());
+                (dataBus.*loadfunc)(timestamp, sz_bits, dbi_data.value_or(data));
             }
-            handleDQs(cmd, dqs, length);
+            handleDQs(timestamp, dqs, length);
         };
-        assert(m_dataBus.size() > cmd.targetCoordinate.pseudoChannel
+        assert(m_dataBus.size() > target.pseudoChannel
             && "Invalid pseudoChannel in targetCoordinate"
         );
-        busDataCallback(m_dataBus.at(cmd.targetCoordinate.pseudoChannel));
-        handleColumnCommandBus(cmd);
+        busDataCallback(m_dataBus.at(target.pseudoChannel));
+        handleColumnCommandBus(timestamp, type, target);
     }
 
     void HBM2Interface::endOfSimulation(timestamp_t timestamp) {
@@ -365,6 +393,8 @@ namespace DRAMPower {
     }
 
     void HBM2Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
+        assert(timestamp >= m_offset);
+        timestamp = timestamp - m_offset;
         stats.commandBus += 
             m_columnCommandBus.get_stats(timestamp)
             + m_rowCommandBus.get_stats(timestamp);
@@ -401,6 +431,7 @@ namespace DRAMPower {
 
     void HBM2Interface::serialize(std::ostream& stream) const {
         stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
+        stream.write(reinterpret_cast<const char*>(&m_offset), sizeof(m_offset));
         m_patternHandler.serialize(stream);
         m_rowCommandBus.serialize(stream);
         m_columnCommandBus.serialize(stream);
@@ -422,6 +453,7 @@ namespace DRAMPower {
 
     void HBM2Interface::deserialize(std::istream& stream) {
         stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
+        stream.read(reinterpret_cast<char*>(&m_offset), sizeof(m_offset));
         m_patternHandler.deserialize(stream);
         m_rowCommandBus.deserialize(stream);
         m_columnCommandBus.deserialize(stream);

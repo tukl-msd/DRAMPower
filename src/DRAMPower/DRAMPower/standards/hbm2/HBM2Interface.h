@@ -82,6 +82,8 @@ public:
     timestamp_t getLastCommandTime() const;
     void doCommand(const HBM2Command& cmd);
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats) const;
+    void setSimulationTime(timestamp_t timestamp);
+    void reset();
 // Overrides
     void serialize(std::ostream& stream) const override;
     void deserialize(std::istream& stream) override;
@@ -95,10 +97,10 @@ private:
     void registerPatterns();
     std::optional<const uint8_t *> handleDBIInterface(timestamp_t timestamp, std::size_t n_bits, const uint8_t* data, bool read);
     void handleDBIPinChange(const timestamp_t load_timestamp, std::size_t pin, bool state, bool read);
-    void handleDQs(const HBM2Command& cmd, util::Clock &dqs, size_t length);
-    void handleColumnCommandBus(const HBM2Command& cmd);
-    void handleRowCommandBus(const HBM2Command& cmd);
-    void handleData(const HBM2Command &cmd, bool read);
+    void handleDQs(timestamp_t timestamp, util::Clock &dqs, size_t length);
+    void handleColumnCommandBus(timestamp_t timestamp, CmdType type, const HBM2TargetCoordinate& target);
+    void handleRowCommandBus(timestamp_t timestamp, CmdType type, const HBM2TargetCoordinate& target);
+    void handleData(timestamp_t timestamp, CmdType type, const uint8_t* data, std::size_t sz_bits, const HBM2TargetCoordinate& target, bool read);
     void endOfSimulation(timestamp_t timestamp);
     
     static std::size_t getRowWidth(const HBM2InterfaceMemSpec& memSpec);
@@ -117,6 +119,7 @@ private:
     std::vector<pin_dbi_t> m_dbiwrite;
     patternHandler_t m_patternHandler;
     timestamp_t m_last_command_time = 0;
+    timestamp_t m_offset = 0;
 };
 
 } // namespace DRAMPower
