@@ -12,8 +12,6 @@
 #include <DRAMPower/util/PatternHandler.h>
 #include <DRAMPower/util/ImplicitCommandHandler.h>
 #include <DRAMPower/util/cli_architecture_config.h>
-#include <DRAMPower/util/Serialize.h>
-#include <DRAMPower/util/Deserialize.h>
 
 #include <DRAMUtils/config/toggling_rate.h>
 
@@ -25,7 +23,7 @@ namespace DRAMPower {
 using namespace DRAMUtils::Config;
 
 template <typename CommandEnum>
-class dram_base : public util::Serialize, public util::Deserialize
+class dram_base
 {
 // Public type definitions
 public:
@@ -83,18 +81,6 @@ public:
         return getWindowStats(getLastCommandTime());
     }
 
-    void serialize(std::ostream& stream) const override {
-        // Serialize the extension manager
-        m_extensionManager.serialize(stream);
-        serialize_impl(stream);
-    }
-
-    void deserialize(std::istream& stream) override {
-        // Deserialize the extension manager
-        m_extensionManager.deserialize(stream);
-        deserialize_impl(stream);
-    }
-
 // Public virtual methods
 public:
     virtual energy_t calcCoreEnergyStats(const SimulationStats& stats) const = 0;
@@ -114,8 +100,6 @@ private:
     virtual void doCoreCommandImpl(const Command& command) = 0;
     virtual void doInterfaceCommandImpl(const Command& command) = 0;
     virtual timestamp_t getLastCommandTime_impl() const = 0;
-    virtual void serialize_impl(std::ostream& stream) const = 0;
-    virtual void deserialize_impl(std::istream& stream) = 0;
 
 // Private member variables
 private:

@@ -351,18 +351,4 @@ void DDR5Core::getWindowStats(timestamp_t timestamp, SimulationStats &stats) {
     }
 }
 
-void DDR5Core::serialize(std::ostream& stream) const {
-    stream.write(reinterpret_cast<const char*>(&m_last_command_time), sizeof(m_last_command_time));
-    for (const auto& rank : m_ranks) {
-        rank.serialize(stream);
-    }
-}
-
-void DDR5Core::deserialize(std::istream& stream) {
-    stream.read(reinterpret_cast<char*>(&m_last_command_time), sizeof(m_last_command_time));
-    for (auto& rank : m_ranks) {
-        rank.deserialize(stream);
-    }
-}
-
 } // namespace DRAMPower

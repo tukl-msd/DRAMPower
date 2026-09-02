@@ -5,8 +5,6 @@
 #include "DRAMPower/standards/lpddr6/LPDDR6Command.h"
 #include "DRAMPower/util/ImplicitCommandHandler.h"
 #include "DRAMPower/util/RegisterMapping.h"
-#include "DRAMPower/util/Serialize.h"
-#include "DRAMPower/util/Deserialize.h"
 
 #include "DRAMPower/memspec/MemSpecLPDDR6.h"
 
@@ -46,7 +44,7 @@ struct LPDDR6CoreMemSpec {
     uint64_t prechargeOffsetWR;
 };
 
-class LPDDR6Core : public util::Serialize, public util::Deserialize {
+class LPDDR6Core {
 // Friend classes
 friend class internal::TestAccessor<LPDDR6Core>;
 
@@ -65,9 +63,6 @@ public:
     timestamp_t getLastCommandTime() const;
     bool isSerializable() const;
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
-// Overrides
-    void serialize(std::ostream& stream) const override;
-    void deserialize(std::istream& stream) override;
 
 // Private member functions
 private:

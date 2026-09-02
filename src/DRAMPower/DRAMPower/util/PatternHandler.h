@@ -3,8 +3,6 @@
 
 #include <DRAMPower/command/Pattern.h>
 #include <DRAMPower/command/Command.h>
-#include <DRAMPower/util/Serialize.h>
-#include <DRAMPower/util/Deserialize.h>
 
 #include <utility>
 #include <variant>
@@ -24,7 +22,7 @@ template <
     typename Encoder_t = DefaultEncoder,
     typename ExtraData_t = std::monostate
 >
-class PatternHandler : public util::Serialize, public util::Deserialize {
+class PatternHandler {
 // Public type definitions+
 public:
     using commandEnum_t = CommandEnum;
@@ -100,15 +98,6 @@ public:
         }
         m_lastPattern = m_encoder.encode(coordinate, pattern, m_lastPattern);
         return m_lastPattern;
-    }
-
-// Overrides
-public:
-    void serialize(std::ostream& stream) const override {
-        m_encoder.serialize(stream);
-    }
-    void deserialize(std::istream& stream) override {
-        m_encoder.deserialize(stream);
     }
 
 // Private member variables

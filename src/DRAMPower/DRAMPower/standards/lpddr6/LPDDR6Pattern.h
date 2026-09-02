@@ -31,15 +31,6 @@ struct LPDDR6PatternExtraData {
     std::size_t currentBurstLength = 0;
     uint64_t numberOfBankGroups = 4;
     bool parity_check_mode = false;
-
-    void serialize(std::ostream& stream) const {
-        stream.write(reinterpret_cast<const char*>(&currentBurstLength), sizeof(currentBurstLength));
-        stream.write(reinterpret_cast<const char*>(&parity_check_mode), sizeof(parity_check_mode));
-    }
-    void deserialize(std::istream& stream) {
-        stream.read(reinterpret_cast<char*>(&currentBurstLength), sizeof(currentBurstLength));
-        stream.read(reinterpret_cast<char*>(&parity_check_mode), sizeof(parity_check_mode));
-    }
 };
 
 struct LPDDR6Encoder {
