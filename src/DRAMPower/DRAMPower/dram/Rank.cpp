@@ -9,6 +9,15 @@ Rank::Rank(std::size_t numBanks)
     : banks(numBanks)
 {}
 
+void Rank::reset() {
+    memState = MemState::NOT_IN_PD;
+    cycles = {};
+    counter = {};
+    for(auto& entry : banks) {
+        entry.reset();
+    }
+}
+
 std::size_t Rank::countActiveBanks_impl(const std::vector<Bank>& banks) {
     return static_cast<unsigned>(std::count_if(banks.begin(), banks.end(),
         [](const auto& bank) {

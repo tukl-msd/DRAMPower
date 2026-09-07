@@ -31,6 +31,7 @@ struct LPDDR6PatternExtraData {
     std::size_t currentBurstLength = 0;
     uint64_t numberOfBankGroups = 4;
     bool parity_check_mode = false;
+    void reset();
 };
 
 struct LPDDR6Encoder {

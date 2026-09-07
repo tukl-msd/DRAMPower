@@ -19,6 +19,16 @@ namespace DRAMPower {
         , m_core(m_memSpec)
     {}
 
+    void DDR5::setSimulationTime(timestamp_t timestamp) {
+        m_interface.setSimulationTime(timestamp);
+        m_core.setSimulationTime(timestamp);
+    }
+
+    void DDR5::reset() {
+        m_interface.reset();
+        m_core.reset();
+    }
+
 // Getters for CLI
     util::CLIArchitectureConfig DDR5::getCLIArchitectureConfig() {
         return util::CLIArchitectureConfig{

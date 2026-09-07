@@ -28,6 +28,14 @@ public:
     timestamp_t latestPre = 0;
     timestamp_t latestAutoPreFinished = 0;
     timestamp_t refreshEndTime = 0;
+
+    void reset() {
+        counter = {};
+        cycles = {};
+        bankState = BankState::BANK_PRECHARGED;
+        latestPre = 0;
+        refreshEndTime = 0;
+    }
 };
 
 }

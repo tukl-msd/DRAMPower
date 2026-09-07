@@ -55,6 +55,7 @@ struct StaticDBI {
         }
     }
 
+    void reset() {}
 };
 
 template <std::size_t threshold>
@@ -94,6 +95,8 @@ struct DynamicDBI {
             }
         }
     }
+
+    void reset() {}
 };
 
 } // namespace DRAMPower::util

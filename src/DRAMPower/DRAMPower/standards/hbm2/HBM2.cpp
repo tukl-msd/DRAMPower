@@ -22,6 +22,16 @@ namespace DRAMPower {
         this->registerExtensions();
     }
 
+    void HBM2::setSimulationTime(timestamp_t timestamp) {
+        m_interface.setSimulationTime(timestamp);
+        m_core.setSimulationTime(timestamp);
+    }
+
+    void HBM2::reset() {
+        m_interface.reset();
+        m_core.reset();
+    }
+
 // Extensions
     void HBM2::registerExtensions() {
         using namespace pattern_descriptor;

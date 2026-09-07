@@ -42,6 +42,12 @@ public:
     {
         m_pending = false;
     }
+
+    void reset() {
+        m_timestamp = 0;
+        m_stats.reset();
+        m_pending = false;
+    }
     
     timestamp_t getTimestamp() const
     {

@@ -8,6 +8,11 @@
 
 namespace DRAMPower {
 
+void LPDDR6PatternExtraData::reset() {
+    currentBurstLength = 0;
+    parity_check_mode = false;
+}
+
 uint64_t LPDDR6Encoder::encode(const LPDDR6TargetCoordinate& targetCoordinate, const std::vector<pattern_descriptor_LPDDR6::t>& pattern, const BasePatternEncoderOverrides<pattern_descriptor_LPDDR6::t>&, const uint64_t, const LPDDR6PatternExtraData& extraData) {
     using namespace pattern_descriptor_LPDDR6;
 

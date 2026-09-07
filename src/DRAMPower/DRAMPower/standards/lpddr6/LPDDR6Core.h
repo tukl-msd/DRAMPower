@@ -63,9 +63,10 @@ public:
     timestamp_t getLastCommandTime() const;
     bool isSerializable() const;
     void getWindowStats(timestamp_t timestamp, SimulationStats &stats);
+    void setSimulationTime(timestamp_t timestamp);
+    void reset();
 
 // Private member functions
-private:
     void handleAct(Rank& rank, Bank& bank, timestamp_t timestamp);
     void handlePre(Rank& rank, Bank& bank, timestamp_t timestamp);
     void handlePreAll(Rank& rank, timestamp_t timestamp);
@@ -93,6 +94,7 @@ private:
     std::vector<Rank> m_ranks;
     ImplicitCommandHandler<LPDDR6Core> m_implicitCommandHandler;
     timestamp_t m_last_command_time = 0;
+    timestamp_t m_offset = 0;
 };
 
 } // namespace DRAMPower

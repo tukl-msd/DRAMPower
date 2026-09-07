@@ -15,6 +15,7 @@ public:
     using clock_stats_t = bus_stats_t;
 
 private:
+    bool init_stopped;
     std::optional<timestamp_t> last_start;
     clock_stats_t stats;
     std::size_t dataRate;
@@ -36,13 +37,10 @@ private:
 
 public:
     Clock(std::size_t _dataRate = 2, bool stopped = false)
-        : dataRate(_dataRate)
-    {
-        if (stopped)
-            last_start = std::nullopt;
-        else
-            last_start = 0;
-    };
+        : init_stopped(stopped)
+        , last_start(stopped ? std::nullopt : std::make_optional(0))
+        , dataRate(_dataRate)
+    {}
 
 public:
     void stop(timestamp_t t)
@@ -70,6 +68,11 @@ public:
 
         return stats;
     };
+
+    void reset() {
+        last_start = init_stopped ? std::nullopt : std::make_optional(0);
+        stats.reset();
+    }
 };
 
 };
