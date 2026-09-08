@@ -1,0 +1,17 @@
+vcpkg_from_github(
+    OUT_SOURCE_PATH DRAMUTILS_SOURCE_PATH
+    REPO tukl-msd/DRAMUtils
+    REF 3dd8920defe308158f0774fba20914eb0db68514
+    SHA512 940d0135f182bf049e3c6b7b50f7898d21ad8cc07aedbf85df3c744fc314297df6d84f7080eabefe3235ac0107c11e9f82dd412d8c6fa586662e781ae398ad70
+    HEAD_REF master
+)
+
+vcpkg_configure_cmake(
+    SOURCE_PATH ${DRAMUTILS_SOURCE_PATH}
+    OPTIONS
+        -DDRAMUTILS_BUILD_TESTS=OFF
+        -DDRAMUTILS_USE_FETCH_CONTENT=OFF
+        -DDRAMUTILS_INSTALL=ON
+)
+
+vcpkg_install_cmake()
