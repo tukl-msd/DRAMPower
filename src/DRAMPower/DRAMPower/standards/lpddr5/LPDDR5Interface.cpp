@@ -371,6 +371,11 @@ void LPDDR5Interface::endOfSimulation(timestamp_t timestamp) {
 }
 
 void LPDDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &stats) const {
+    uint_fast8_t NumDQsPairs = 1;
+    if(m_memSpec.bitWidth >= 8) {
+        NumDQsPairs = m_memSpec.bitWidth / 8;
+    }
+
     stats.commandBus = m_commandBus.get_stats(timestamp);
 
     m_dataBus.get_stats(timestamp,
@@ -380,9 +385,9 @@ void LPDDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &sta
         stats.togglingStats.write
     );
 
-    stats.clockStats = 2.0 * m_clock.get_stats_at(timestamp);
-    stats.wClockStats = 2.0 * m_wck.get_stats_at(timestamp);
-    stats.readDQSStats = 2.0 * m_readDQS.get_stats_at(timestamp);
+    stats.clockStats = 2u * m_clock.get_stats_at(timestamp);
+    stats.wClockStats = NumDQsPairs * 2u * m_wck.get_stats_at(timestamp);
+    stats.readDQSStats = NumDQsPairs * 2u * m_readDQS.get_stats_at(timestamp);
 
     for (const auto &dbi_pin : m_dbiread) {
         stats.readDBI += dbi_pin.get_stats_at(timestamp, 2);
