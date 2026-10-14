@@ -130,6 +130,7 @@ void HBM2Core::handleRefreshOnBank(std::size_t pc_idx, std::size_t bank_idx, tim
     auto& pseudoChannel = m_pseudoChannels[pc_idx];
     auto& bank = pseudoChannel.banks[bank_idx];
     // assert(bank.bankState == Bank::BankState::BANK_ACTIVE && "Bank must be in active state for a refresh command"); // TODO validate
+    bank.bankState = Bank::BankState::BANK_ACTIVE;
     pseudoChannel.cycles.act.start_interval_if_not_running(timestamp);
     bank.cycles.act.start_interval_if_not_running(timestamp);
 
@@ -139,7 +140,7 @@ void HBM2Core::handleRefreshOnBank(std::size_t pc_idx, std::size_t bank_idx, tim
     // Execute implicit pre-charge at refresh end
     m_implicitCommandHandler.addImplicitCommand(timestamp_end, [bank_idx, pc_idx, timestamp_end](HBM2Core& self) {
         PseudoChannel& pseudoChannel = self.m_pseudoChannels[pc_idx];
-        Bank bank = pseudoChannel.banks[bank_idx];
+        Bank& bank = pseudoChannel.banks[bank_idx];
         self.handlePre_impl(pseudoChannel, bank, timestamp_end);
     });
 }
