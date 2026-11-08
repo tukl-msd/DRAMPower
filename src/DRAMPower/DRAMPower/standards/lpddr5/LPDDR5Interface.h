@@ -25,7 +25,8 @@ namespace DRAMPower {
 
 struct LPDDR5InterfaceMemSpec {
     LPDDR5InterfaceMemSpec(const MemSpecLPDDR5& memSpec)
-        : dataRate(memSpec.dataRate)
+        // interface beats per CK: dataRate is per WCK cycle (DDR), WCK runs WCKtoCK times faster than CK
+        : dataRate(memSpec.dataRate * memSpec.memTimingSpec.WCKtoCK)
         , burstLength(memSpec.burstLength)
         , bitWidth(memSpec.bitWidth)
         , bank_arch(memSpec.bank_arch)

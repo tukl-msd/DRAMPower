@@ -20,7 +20,7 @@ LPDDR5Interface::LPDDR5Interface(const MemSpecLPDDR5& memSpec, const config::Sim
         util::databus_presets::getDataBusPreset(
             util::DataBusConfig {
                 memSpec.bitWidth * memSpec.numberOfDevices,
-                memSpec.dataRate,
+                memSpec.dataRate * memSpec.memTimingSpec.WCKtoCK,
                 simConfig.toggleRateDefinition.value_or(busConfig)
             },
             simConfig.toggleRateDefinition.has_value()
@@ -28,8 +28,8 @@ LPDDR5Interface::LPDDR5Interface(const MemSpecLPDDR5& memSpec, const config::Sim
                 : util::DataBusMode::Bus
         )
     }
-    , m_readDQS(memSpec.dataRate, true)
-    , m_wck(memSpec.dataRate / memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode)
+    , m_readDQS(memSpec.dataRate * memSpec.memTimingSpec.WCKtoCK, true)
+    , m_wck(2 * memSpec.memTimingSpec.WCKtoCK, !memSpec.wckAlwaysOnMode) // WCKtoCK WCK periods per CK
     , m_dbi(memSpec.numberOfDevices * memSpec.bitWidth, m_memSpec.burstLength,
         [this](timestamp_t load_timestamp, timestamp_t, std::size_t pin, bool inversion_state, bool read) {
         this->handleDBIPinChange(load_timestamp, pin, inversion_state, read);
@@ -381,14 +381,16 @@ void LPDDR5Interface::getWindowStats(timestamp_t timestamp, SimulationStats &sta
     );
 
     stats.clockStats = 2.0 * m_clock.get_stats_at(timestamp);
-    stats.wClockStats = 2.0 * m_wck.get_stats_at(timestamp);
-    stats.readDQSStats = 2.0 * m_readDQS.get_stats_at(timestamp);
+    // one differential WCK pair and one RDQS pair per byte lane (x16: WCK0/1, RDQS0/1)
+    const uint64_t strobeWires = 2 * (m_dataBus.getWidth() / 8);
+    stats.wClockStats = strobeWires * m_wck.get_stats_at(timestamp);
+    stats.readDQSStats = strobeWires * m_readDQS.get_stats_at(timestamp);
 
     for (const auto &dbi_pin : m_dbiread) {
-        stats.readDBI += dbi_pin.get_stats_at(timestamp, 2);
+        stats.readDBI += dbi_pin.get_stats_at(timestamp, m_memSpec.dataRate);
     }
     for (const auto &dbi_pin : m_dbiwrite) {
-        stats.writeDBI += dbi_pin.get_stats_at(timestamp, 2);
+        stats.writeDBI += dbi_pin.get_stats_at(timestamp, m_memSpec.dataRate);
     }
 }
 

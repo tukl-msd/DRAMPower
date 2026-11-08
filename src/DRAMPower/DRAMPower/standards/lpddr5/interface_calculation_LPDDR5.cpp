@@ -3,6 +3,11 @@
 
 namespace DRAMPower {
 
+// data, RDQS and DBI beats per CK: dataRate is per WCK cycle (DDR), WCK runs WCKtoCK times faster than CK
+static uint64_t beatsPerCK(const MemSpecLPDDR5 &memspec) {
+    return memspec.dataRate * memspec.memTimingSpec.WCKtoCK;
+}
+
 static double calc_static_energy(uint64_t NxBits, double R_eq, double t_CK, double voltage) {
     return NxBits * (voltage * voltage) * t_CK / R_eq;
 };
@@ -66,7 +71,7 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQSEnergy(const Simulat
 
     // Read
     result.dram.staticEnergy +=
-        calcStaticTermination(impedances_.rdqs_termination, stats.readDQSStats, impedances_.rdqs_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
+        calcStaticTermination(impedances_.rdqs_termination, stats.readDQSStats, impedances_.rdqs_R_eq, t_CK_, beatsPerCK(memspec_), VDDQ_);
     result.dram.dynamicEnergy +=
         calc_dynamic_energy(stats.readDQSStats.zeroes_to_ones, impedances_.rdqs_dyn_E);
 
@@ -79,13 +84,13 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQEnergyTogglingRate(co
 
     // Write
     result.controller.staticEnergy +=
-        calcStaticTermination(impedances_.wdq_termination, stats.write, impedances_.wdq_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
+        calcStaticTermination(impedances_.wdq_termination, stats.write, impedances_.wdq_R_eq, t_CK_, beatsPerCK(memspec_), VDDQ_);
     result.controller.dynamicEnergy +=
         calc_dynamic_energy(stats.write.zeroes_to_ones, impedances_.wdq_dyn_E);
 
     // Read
     result.dram.staticEnergy +=
-        calcStaticTermination(impedances_.rdq_termination, stats.read, impedances_.rdq_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
+        calcStaticTermination(impedances_.rdq_termination, stats.read, impedances_.rdq_R_eq, t_CK_, beatsPerCK(memspec_), VDDQ_);
     result.dram.dynamicEnergy +=
         calc_dynamic_energy(stats.read.zeroes_to_ones, impedances_.rdq_dyn_E);
 
@@ -97,13 +102,13 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcDQEnergy(const Simulati
 
     // Write
     result.controller.staticEnergy +=
-        calcStaticTermination(impedances_.wdq_termination, stats.writeBus, impedances_.wdq_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
+        calcStaticTermination(impedances_.wdq_termination, stats.writeBus, impedances_.wdq_R_eq, t_CK_, beatsPerCK(memspec_), VDDQ_);
     result.controller.dynamicEnergy +=
         calc_dynamic_energy(stats.writeBus.zeroes_to_ones, impedances_.wdq_dyn_E);
 
     // Read
     result.dram.staticEnergy +=
-        calcStaticTermination(impedances_.rdq_termination, stats.readBus, impedances_.rdq_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
+        calcStaticTermination(impedances_.rdq_termination, stats.readBus, impedances_.rdq_R_eq, t_CK_, beatsPerCK(memspec_), VDDQ_);
     result.dram.dynamicEnergy +=
         calc_dynamic_energy(stats.readBus.zeroes_to_ones, impedances_.rdq_dyn_E);
 
@@ -126,13 +131,13 @@ interface_energy_info_t InterfaceCalculation_LPDDR5::calcDBIEnergy(const Simulat
     interface_energy_info_t result;
     // Read
     result.dram.staticEnergy +=
-        calcStaticTermination(impedances_.rdbi_termination, stats.readDBI, impedances_.rdbi_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
+        calcStaticTermination(impedances_.rdbi_termination, stats.readDBI, impedances_.rdbi_R_eq, t_CK_, beatsPerCK(memspec_), VDDQ_);
     result.dram.dynamicEnergy +=
         calc_dynamic_energy(stats.readDBI.zeroes_to_ones, impedances_.rdbi_dyn_E);
 
     // Write
     result.controller.staticEnergy +=
-        calcStaticTermination(impedances_.wdbi_termination, stats.writeDBI, impedances_.wdbi_R_eq, t_CK_, memspec_.dataRate, VDDQ_);
+        calcStaticTermination(impedances_.wdbi_termination, stats.writeDBI, impedances_.wdbi_R_eq, t_CK_, beatsPerCK(memspec_), VDDQ_);
     result.controller.dynamicEnergy +=
         calc_dynamic_energy(stats.writeDBI.zeroes_to_ones, impedances_.wdbi_dyn_E);
 
