@@ -18,6 +18,19 @@ using namespace DRAMUtils::Config;
 
 #define SZ_BITS(x) sizeof(x)*8
 
+// LPDDR5 interface timing: dataRate is per WCK cycle (DDR) and WCK runs WCKtoCK times faster than CK,
+// so data, RDQS and DBI carry dataRate * WCKtoCK beats per CK; WCK and RDQS have one differential
+// pair per byte lane.
+static uint64_t beatsPerCK(const DRAMPower::MemSpecLPDDR5& spec)
+{
+    return spec.dataRate * spec.memTimingSpec.WCKtoCK;
+}
+
+static uint64_t strobeWires(const DRAMPower::MemSpecLPDDR5& spec)
+{
+    return 2 * (spec.bitWidth * spec.numberOfDevices / 8);
+}
+
 // burst length = 16 for x8 devices
 static constexpr uint8_t wr_data[] = {
     0, 0, 0, 0,  0, 0, 0, 255,  0, 0, 0, 0,  0, 0, 0, 0,
@@ -84,25 +97,15 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_0_LH) {
     initDDR(trd);
     // Run commands
     runCommands(test_patterns.at(0));
-    // SZ_BITS: 256, width: 8 -> Burstlength: 32  (datarate bus)
-    // 0: ACT, 3: WR, 12: RD, 21: PRE, 24: EOS
-    // Read bus: idle: L
-        // 0 to 12 idle
-        // 12 to 24 toggle -> toggle cut off by EOS
-        // idle: 12 zeroes, toggle: 12 (datarate clock)
-        // idle: 24 zeroes, toggle: 24 (datarate bus)
-    // Write bus: idle: H
-        // 0 to 3 idle
-        // 3 to 19 toggle
-        // 19 to 24 idle
-        // idle: 8 ones, toggle: 16 (datarate clock)
-        // idle: 16 ones, toggle: 32 (datarate bus)
-    uint64_t toggles_read = 24;
+    // SZ_BITS: 256, width: 8 -> burst length 32 beats = 32 / beatsPerCK CK on the bus
+    // 0: ACT, 3: WR, 12: RD, 21: PRE, 24: EOS; both bursts end before EOS
+    // Read bus: idle L, write bus: idle H; idle beats = beatsPerCK * 24 - 32
+    uint64_t toggles_read = 32;
     uint64_t toggles_write = 32;
 
     uint64_t idleread_ones = 0;
-    uint64_t idleread_zeroes = 24;
-    uint64_t idlewrite_ones = 16;
+    uint64_t idleread_zeroes = beatsPerCK(*spec) * 24 - toggles_read;
+    uint64_t idlewrite_ones = beatsPerCK(*spec) * 24 - toggles_write;
     uint64_t idlewrite_zeroes = 0;
 
 
@@ -144,13 +147,12 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_0_LH) {
     EXPECT_EQ(stats.commandBus.zeroes_to_ones, 15);
 
 // DQs (see test_interface_lpddr5)
-    int number_of_cycles = (datasize_bits / spec->bitWidth);
-    uint_fast8_t scale = 1 * 2; // Differential_Pairs * 2(pairs of 2)
-    // f(t) = t / 2;
-    int DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
-    int DQS_zeros = DQS_ones;
-    int DQS_zeros_to_ones = DQS_ones;
-    int DQS_ones_to_zeros = DQS_zeros;
+    uint64_t number_of_cycles = (datasize_bits / spec->bitWidth);
+    // RDQS: burst beats / beats per CK = CK cycles, WCKtoCK periods per CK, one '1' per period and wire
+    uint64_t DQS_ones = (number_of_cycles / beatsPerCK(*spec)) * spec->memTimingSpec.WCKtoCK * strobeWires(*spec);
+    uint64_t DQS_zeros = DQS_ones;
+    uint64_t DQS_zeros_to_ones = DQS_ones;
+    uint64_t DQS_ones_to_zeros = DQS_zeros;
     EXPECT_EQ(stats.readDQSStats.ones, DQS_ones);
     EXPECT_EQ(stats.readDQSStats.zeroes, DQS_zeros);
     EXPECT_EQ(stats.readDQSStats.ones_to_zeroes, DQS_zeros_to_ones);
@@ -216,9 +218,9 @@ TEST_F(LPDDR5_TogglingRateEnergy_Tests, DQ_Energy) {
     // Controller -> write power
     // Dram -> read power
     double expected_static_controller =
-        stats.togglingStats.write.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.wdq_R_eq;
+        stats.togglingStats.write.ones * voltage * voltage * (t_CK / beatsPerCK(*spec)) / spec->memImpedanceSpec.wdq_R_eq;
     double expected_static_dram =
-        stats.togglingStats.read.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.rdq_R_eq;
+        stats.togglingStats.read.ones * voltage * voltage * (t_CK / beatsPerCK(*spec)) / spec->memImpedanceSpec.rdq_R_eq;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = stats.togglingStats.write.zeroes_to_ones *
@@ -269,10 +271,10 @@ TEST_F(LPDDR5_TogglingRate_Tests, Pattern_1) {
 // Toggling rate
     uint64_t toggles_read = 2 * 16;
     uint64_t idleread_ones = 0;
-    uint64_t idleread_zeroes = 2 * 56 - toggles_read; // TogglingRateIdlePattern::L
+    uint64_t idleread_zeroes = beatsPerCK(*spec) * 56 - toggles_read; // TogglingRateIdlePattern::L
 
     uint64_t toggles_write = 2 * 16;
-    uint64_t idlewrite_ones = 2 * 56 - toggles_write; // TogglingRateIdlePattern::H
+    uint64_t idlewrite_ones = beatsPerCK(*spec) * 56 - toggles_write; // TogglingRateIdlePattern::H
     uint64_t idlewrite_zeroes = 0;
 
     // Read bus

@@ -24,6 +24,19 @@ using DRAMPower::SimulationStats;
 
 #define SZ_BITS(x) sizeof(x)*8
 
+// LPDDR5 interface timing: dataRate is per WCK cycle (DDR) and WCK runs WCKtoCK times faster than CK,
+// so data, RDQS and DBI carry dataRate * WCKtoCK beats per CK; WCK and RDQS have one differential
+// pair per byte lane.
+static uint64_t beatsPerCK(const DRAMPower::MemSpecLPDDR5& spec)
+{
+    return spec.dataRate * spec.memTimingSpec.WCKtoCK;
+}
+
+static uint64_t strobeWires(const DRAMPower::MemSpecLPDDR5& spec)
+{
+    return 2 * (spec.bitWidth * spec.numberOfDevices / 8);
+}
+
 using namespace DRAMPower;
 
 static constexpr uint8_t wr_data[] = {
@@ -122,12 +135,12 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_0) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 752);  // 2 (datarate) * 24 (time) * 16 (bus width) - 16 (ones)
+    EXPECT_EQ(stats.writeBus.zeroes, beatsPerCK(*spec) * 24 * 16 - 16);  // beats per CK * 24 (time) * 16 (bus width) - 16 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);  // 0 -> 255 = 8 transitions, *2 = 16
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);  // back to 0
 
     EXPECT_EQ(stats.readBus.ones, 1);
-    EXPECT_EQ(stats.readBus.zeroes, 767);  // 2 (datarate) * 24 (time) * 16 (bus width) - 1 (ones)
+    EXPECT_EQ(stats.readBus.zeroes, beatsPerCK(*spec) * 24 * 16 - 1);  // beats per CK * 24 (time) * 16 (bus width) - 1 (ones)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 
@@ -139,9 +152,9 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_0) {
     // For read the number of clock cycles the strobes stay on is
     EXPECT_EQ(sizeof(wr_data), sizeof(rd_data));
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
-    uint_fast8_t scale = 1 * 2; // Differential_Pairs * 2(pairs of 2)
-    // f(t) = t / 2;
-    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
+    // RDQS toggles at the WCK frequency while the read burst is on the bus:
+    // burst beats / beats per CK = CK cycles, WCKtoCK periods per CK, one '1' per period and wire
+    uint64_t DQS_ones = (number_of_cycles / beatsPerCK(*spec)) * spec->memTimingSpec.WCKtoCK * strobeWires(*spec);
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;
@@ -176,12 +189,12 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_1) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 1520); // 2 (datarate) * 48 (time) * 16 (bus width) - 16 (ones)
+    EXPECT_EQ(stats.writeBus.zeroes, beatsPerCK(*spec) * 48 * 16 - 16); // beats per CK * 48 (time) * 16 (bus width) - 16 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);
 
     EXPECT_EQ(stats.readBus.ones, 0);
-    EXPECT_EQ(stats.readBus.zeroes, 1536); // 2 (datarate) * 48 (time) * 16 (bus width)
+    EXPECT_EQ(stats.readBus.zeroes, beatsPerCK(*spec) * 48 * 16); // beats per CK * 48 (time) * 16 (bus width)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 0);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 0);
 
@@ -220,12 +233,12 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_2) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 752); // 2 (datarate) * 24 (time) * 16 (bus width) - 16 (ones)
+    EXPECT_EQ(stats.writeBus.zeroes, beatsPerCK(*spec) * 24 * 16 - 16); // beats per CK * 24 (time) * 16 (bus width) - 16 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);
 
     EXPECT_EQ(stats.readBus.ones, 1);
-    EXPECT_EQ(stats.readBus.zeroes, 767); // 2 (datarate) * 24 (time) * 16 (bus width) - 1 (ones)
+    EXPECT_EQ(stats.readBus.zeroes, beatsPerCK(*spec) * 24 * 16 - 1); // beats per CK * 24 (time) * 16 (bus width) - 1 (ones)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 
@@ -241,10 +254,8 @@ TEST_F(LPDDR5_WindowStats_Tests, WriteClockAlwaysOn) {
 
     SimulationStats stats = ddr->getStats();
 
-    uint64_t wck_rate = spec->dataRate / spec->memTimingSpec.WCKtoCK;
-
-    // Number of cycles for always on is the simulation time
-    uint64_t wck_ones = 24 * wck_rate;
+    // Always on: WCKtoCK WCK periods per CK for the whole simulation time on every WCK wire
+    uint64_t wck_ones = 24 * spec->memTimingSpec.WCKtoCK * strobeWires(*spec);
     EXPECT_EQ(stats.wClockStats.ones, wck_ones);
     EXPECT_EQ(stats.wClockStats.zeroes, wck_ones);
     EXPECT_EQ(stats.wClockStats.ones_to_zeroes, wck_ones);
@@ -258,12 +269,10 @@ TEST_F(LPDDR5_WindowStats_Tests, WriteClockOnDemand) {
     runCommands(test_patterns[0]);
 
     SimulationStats stats = ddr->getStats();
-    uint64_t wck_rate = spec->dataRate / spec->memTimingSpec.WCKtoCK;
-
-    // Number of clocks of WCK is the length of the write data
-    uint64_t cycles = SZ_BITS(wr_data) / 16;
-
-    uint64_t wck_ones = cycles * wck_rate;
+    // WCK runs while the write and the read burst are on the bus:
+    // burst beats / beats per CK = CK cycles per burst, WCKtoCK periods per CK on every WCK wire
+    uint64_t beats = SZ_BITS(wr_data) / 16;
+    uint64_t wck_ones = 2 * (beats / beatsPerCK(*spec)) * spec->memTimingSpec.WCKtoCK * strobeWires(*spec);
     EXPECT_EQ(stats.wClockStats.ones, wck_ones);
     EXPECT_EQ(stats.wClockStats.zeroes, wck_ones);
     EXPECT_EQ(stats.wClockStats.ones_to_zeroes, wck_ones);
@@ -297,12 +306,12 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_3_BG_Mode) {
     SimulationStats stats = ddr->getStats();
 
     EXPECT_EQ(stats.writeBus.ones, 16);
-    EXPECT_EQ(stats.writeBus.zeroes, 752); // 2 (datarate) * 24 (time) * 16 (bus width) - 16 (ones)
+    EXPECT_EQ(stats.writeBus.zeroes, beatsPerCK(*spec) * 24 * 16 - 16); // beats per CK * 24 (time) * 16 (bus width) - 16 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 16);
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 16);
 
     EXPECT_EQ(stats.readBus.ones, 1);
-    EXPECT_EQ(stats.readBus.zeroes, 767); // 2 (datarate) * 24 (time) * 16 (bus width) - 1 (ones)
+    EXPECT_EQ(stats.readBus.zeroes, beatsPerCK(*spec) * 24 * 16 - 1); // beats per CK * 24 (time) * 16 (bus width) - 1 (ones)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 
@@ -313,9 +322,9 @@ TEST_F(LPDDR5_WindowStats_Tests, Pattern_3_BG_Mode) {
 
     EXPECT_EQ(sizeof(wr_data), sizeof(rd_data));
     uint64_t number_of_cycles = (SZ_BITS(wr_data) / spec->bitWidth);
-    uint_fast8_t scale = 1 * 2; // Differential_Pairs * 2(pairs of 2)
-    // f(t) = t / 2;
-    uint64_t DQS_ones = scale * (number_of_cycles / 2); // scale * (cycles / 2)
+    // RDQS toggles at the WCK frequency while the read burst is on the bus:
+    // burst beats / beats per CK = CK cycles, WCKtoCK periods per CK, one '1' per period and wire
+    uint64_t DQS_ones = (number_of_cycles / beatsPerCK(*spec)) * spec->memTimingSpec.WCKtoCK * strobeWires(*spec);
     uint64_t DQS_zeros = DQS_ones;
     uint64_t DQS_zeros_to_ones = DQS_ones;
     uint64_t DQS_ones_to_zeros = DQS_zeros;
@@ -418,7 +427,7 @@ TEST_F(LPDDR5_Energy_Tests, DQS_Energy) {
     // Dram -> read power
     double expected_static_controller = 0.0;
     double expected_static_dram =
-        0.5 * stats.readDQSStats.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.rdqs_R_eq;
+        stats.readDQSStats.ones * voltage * voltage * t_CK / beatsPerCK(*spec) / spec->memImpedanceSpec.rdqs_R_eq;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = 0;
@@ -451,9 +460,9 @@ TEST_F(LPDDR5_Energy_Tests, DQ_Energy) {
     // Controller -> write power
     // Dram -> read power
     double expected_static_controller =
-        0.5 * stats.writeBus.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.wdq_R_eq;
+        stats.writeBus.ones * voltage * voltage * t_CK / beatsPerCK(*spec) / spec->memImpedanceSpec.wdq_R_eq;
     double expected_static_dram =
-        0.5 * stats.readBus.ones * voltage * voltage * t_CK / spec->memImpedanceSpec.rdq_R_eq;
+        stats.readBus.ones * voltage * voltage * t_CK / beatsPerCK(*spec) / spec->memImpedanceSpec.rdq_R_eq;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller =

@@ -22,6 +22,19 @@ using DRAMPower::SimulationStats;
 
 #define SZ_BITS(x) sizeof(x)*8
 
+// LPDDR5 interface timing: dataRate is per WCK cycle (DDR) and WCK runs WCKtoCK times faster than CK,
+// so data, RDQS and DBI carry dataRate * WCKtoCK beats per CK; WCK and RDQS have one differential
+// pair per byte lane.
+static uint64_t beatsPerCK(const DRAMPower::MemSpecLPDDR5& spec)
+{
+    return spec.dataRate * spec.memTimingSpec.WCKtoCK;
+}
+
+static uint64_t strobeWires(const DRAMPower::MemSpecLPDDR5& spec)
+{
+    return 2 * (spec.bitWidth * spec.numberOfDevices / 8);
+}
+
 // burst length = 8 for x8 devices
 static constexpr uint8_t wr_data[] = {
     0xF0, 0x0F, 0xE0, 0xF1,  0x00, 0xFF, 0xFF, 0xFF, // inverted to 0xF0,0x0F,0xE0,0x0E, 0x00,0x00,0x00,0x00
@@ -133,23 +146,23 @@ TEST_F(LPDDR5_DBI_Tests, Pattern_0) {
 
     // Data bus
     EXPECT_EQ(stats.writeBus.ones, 14);
-    EXPECT_EQ(stats.writeBus.zeroes, 370); // 2 (datarate) * 24 (time) * 8 (bus width) - 14 (ones)
+    EXPECT_EQ(stats.writeBus.zeroes, beatsPerCK(*spec) * 24 * 8 - 14); // beats per CK * 24 (time) * 8 (bus width) - 14 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 14);
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 14);
 
     EXPECT_EQ(stats.readBus.ones, 1);
-    EXPECT_EQ(stats.readBus.zeroes, 383); // 2 (datarate) * 24 (time) * 8 (bus width) - 1 (ones)
+    EXPECT_EQ(stats.readBus.zeroes, beatsPerCK(*spec) * 24 * 8 - 1); // beats per CK * 24 (time) * 8 (bus width) - 1 (ones)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 1);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 1);
 
     // DBI
     EXPECT_EQ(stats.readDBI.ones, 1);
-    EXPECT_EQ(stats.readDBI.zeroes, 48-1);
+    EXPECT_EQ(stats.readDBI.zeroes, beatsPerCK(*spec) * 24 - 1);
     EXPECT_EQ(stats.readDBI.ones_to_zeroes, 1);
     EXPECT_EQ(stats.readDBI.zeroes_to_ones, 1);
 
     EXPECT_EQ(stats.writeDBI.ones, 4);
-    EXPECT_EQ(stats.writeDBI.zeroes, 48-4);
+    EXPECT_EQ(stats.writeDBI.zeroes, beatsPerCK(*spec) * 24 - 4);
     EXPECT_EQ(stats.writeDBI.ones_to_zeroes, 2);
     EXPECT_EQ(stats.writeDBI.zeroes_to_ones, 2);
 
@@ -167,23 +180,23 @@ TEST_F(LPDDR5_DBI_Tests, Pattern_1) {
 
     // Data bus
     EXPECT_EQ(stats.writeBus.ones, 14);
-    EXPECT_EQ(stats.writeBus.zeroes, 370); // 2 (datarate) * 24 (time) * 8 (bus width) - 14 (ones)
+    EXPECT_EQ(stats.writeBus.zeroes, beatsPerCK(*spec) * 24 * 8 - 14); // beats per CK * 24 (time) * 8 (bus width) - 14 (ones)
     EXPECT_EQ(stats.writeBus.ones_to_zeroes, 14);
     EXPECT_EQ(stats.writeBus.zeroes_to_ones, 14);
 
     EXPECT_EQ(stats.readBus.ones, 2);
-    EXPECT_EQ(stats.readBus.zeroes, 382);  // 2 (datarate) * 24 (time) * 8 (bus width) - 2 (ones) 
+    EXPECT_EQ(stats.readBus.zeroes, beatsPerCK(*spec) * 24 * 8 - 2);  // beats per CK * 24 (time) * 8 (bus width) - 2 (ones)
     EXPECT_EQ(stats.readBus.ones_to_zeroes, 2);
     EXPECT_EQ(stats.readBus.zeroes_to_ones, 2);
 
     // DBI
     EXPECT_EQ(stats.readDBI.ones, 2);
-    EXPECT_EQ(stats.readDBI.zeroes, 48-2);
+    EXPECT_EQ(stats.readDBI.zeroes, beatsPerCK(*spec) * 24 - 2);
     EXPECT_EQ(stats.readDBI.ones_to_zeroes, 2);
     EXPECT_EQ(stats.readDBI.zeroes_to_ones, 2);
 
     EXPECT_EQ(stats.writeDBI.ones, 4);
-    EXPECT_EQ(stats.writeDBI.zeroes, 48 - 4);
+    EXPECT_EQ(stats.writeDBI.zeroes, beatsPerCK(*spec) * 24 - 4);
     EXPECT_EQ(stats.writeDBI.ones_to_zeroes, 2);
     EXPECT_EQ(stats.writeDBI.zeroes_to_ones, 2);
 }
@@ -221,11 +234,11 @@ TEST_F(LPDDR5_DBI_Energy_Tests, Energy) {
 
     // Controller -> write power
     // Dram -> read power
-    // data rate dbi is 2 -> t_per_bit = 0.5 * t_CK
+    // DBI runs at the data rate: t_per_bit = t_CK / beats per CK
     double expected_static_controller =
-        stats.writeDBI.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.wdbi_R_eq;
+        stats.writeDBI.ones * voltage * voltage * (t_CK / beatsPerCK(*spec)) / spec->memImpedanceSpec.wdbi_R_eq;
     double expected_static_dram =
-        stats.readDBI.ones * voltage * voltage * (0.5 * t_CK) / spec->memImpedanceSpec.rdbi_R_eq;
+        stats.readDBI.ones * voltage * voltage * (t_CK / beatsPerCK(*spec)) / spec->memImpedanceSpec.rdbi_R_eq;
 
     // Dynamic power is consumed on 0 -> 1 transition
     double expected_dynamic_controller = stats.writeDBI.zeroes_to_ones *
